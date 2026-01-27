@@ -10,13 +10,17 @@ import SplashScreen from "@/components/app/SplashScreen";
 import { useSplashScreen } from "@/hooks/useSplashScreen";
 
 // Public pages
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Install from "./pages/Install";
-import NotFound from "./pages/NotFound";
-import TermosDeUso from "./pages/TermosDeUso";
-import PoliticaDeReembolso from "./pages/PoliticaDeReembolso";
+import Landing from "./pages/public/Landing";
+import Install from "./pages/public/Install";
+import NotFound from "./pages/public/NotFound";
+
+// Auth pages
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+
+// Legal pages
+import TermosDeUso from "./pages/legal/TermosDeUso";
+import PoliticaDeReembolso from "./pages/legal/PoliticaDeReembolso";
 
 // Funnel V1 pages
 import WelcomeV1 from "./pages/funnel/v1/Welcome";
@@ -48,7 +52,7 @@ const AppContent = () => {
         <AuthProvider>
           <Routes>
             {/* Root redirect */}
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Landing />} />
 
             {/* Funnel V1 routes */}
             <Route path="/v1" element={<WelcomeV1 />} />
