@@ -141,7 +141,7 @@ const WelcomeScreen = () => {
           <p className="text-white/90 text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] mb-0.5 md:mb-1 drop-shadow-sm">
             Usuários no aplicativo
           </p>
-          <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter drop-shadow-md">
+          <h2 className="text-4xl md:text-6xl font-black !font-sans text-white tracking-tighter drop-shadow-md">
             92.000+
           </h2>
         </div>

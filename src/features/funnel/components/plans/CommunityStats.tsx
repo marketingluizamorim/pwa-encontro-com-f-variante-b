@@ -21,7 +21,7 @@ export function CommunityStats() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
         {STATS.map((stat) => (
           <div key={stat.label} className="group cursor-default">
-            <p className="text-4xl font-black bg-gradient-to-br from-amber-400 to-amber-200 bg-clip-text text-transparent mb-1 group-hover:scale-110 transition-transform duration-300">
+            <p className="inline-block text-4xl font-black bg-gradient-to-br from-amber-400 to-amber-200 bg-clip-text text-transparent mb-1 pb-1 px-1 group-hover:scale-110 transition-transform duration-300">
               {stat.value}
             </p>
             <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
