@@ -132,7 +132,14 @@ export function OrderBumpDialog({
 
                 {/* Image */}
                 <div className="w-12 h-12 rounded-xl bg-black/20 p-0.5 border border-white/5 overflow-hidden flex-shrink-0">
-                  <img src={bump.image} alt={bump.name} className="w-full h-full object-contain" />
+                  <img
+                    src={bump.image}
+                    alt={bump.name}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
 
                 {/* Content */}
