@@ -187,17 +187,16 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
 
         {/* Content Area - Centered */}
         <div className="flex-1 flex flex-col justify-center">
-          <div className="space-y-10 w-full mt-20 fade-in-fast">
-            <div className="text-center space-y-6 mb-2">
+          <div className="space-y-6 w-full mt-12 fade-in-fast">
+            <div className="text-center space-y-3 mb-2">
               <div
-                className="inline-flex items-center gap-2 bg-[#fcd34d]/10 px-4 py-1.5 rounded-full border border-[#fcd34d]/20 mb-4"
+                className="inline-flex items-center gap-2 bg-[#fcd34d]/20 backdrop-blur-md px-5 py-1.5 rounded-full border border-[#fcd34d]/40 mb-2 shadow-[0_0_15px_rgba(252,211,77,0.1)]"
               >
-
-                <span className="text-[#fcd34d] text-xs font-bold tracking-widest uppercase">
-                  PERGUNTA {currentIndex + 1} / {BASE_QUESTIONS.length}
+                <span className="text-[#fcd34d] text-[13px] font-black tracking-widest">
+                  {currentIndex + 1} / {BASE_QUESTIONS.length}
                 </span>
               </div>
-              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight drop-shadow-xl px-2">
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight drop-shadow-2xl px-2">
                 {question.title}
               </h2>
             </div>
