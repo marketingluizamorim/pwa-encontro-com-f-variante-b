@@ -107,12 +107,12 @@ export function PlansGrid({ onSelectPlan }: PlansGridProps) {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-40"></span>
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500/80"></span>
               </span>
-              <span className="text-white/50 text-[10px] font-bold tracking-[0.15em] uppercase">Oferta Exclusiva</span>
+              <span className="text-white/80 text-[10px] font-bold tracking-[0.15em] uppercase">Oferta Exclusiva</span>
             </div>
 
             <div className="w-px h-3 bg-white/10" />
 
-            <span className="text-[#fcd34d] font-sans font-bold text-[15px] leading-none tabular-nums drop-shadow-[0_0_8px_rgba(252,211,77,0.2)]">
+            <span className="text-[#fcd34d] font-sans font-bold text-[15px] leading-none tabular-nums drop-shadow-[0_0_10px_rgba(252,211,77,0.3)]">
               {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
             </span>
           </motion.div>
