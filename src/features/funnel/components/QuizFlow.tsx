@@ -206,7 +206,7 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
             <div className="w-full">
               {question.type === 'select' ? (
                 <Select onValueChange={handleAnswer} value={quizAnswers[question.key] || ''}>
-                  <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-16 text-lg rounded-2xl px-5 shadow-sm backdrop-blur-md focus:border-[#fcd34d]/30 focus:ring-0 outline-none transition-all">
+                  <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-16 text-lg rounded-2xl px-5 shadow-sm backdrop-blur-md focus:ring-1 focus:ring-[#fcd34d]/50 focus:border-[#fcd34d]/50 transition-all">
                     <SelectValue placeholder={question.placeholder || 'Toque para selecionar...'} />
                   </SelectTrigger>
                   <SelectContent position="popper" sideOffset={5} className="bg-[#0f172a] border-white/10 text-white rounded-xl shadow-xl max-h-[40vh] overflow-y-auto z-[60]">
@@ -231,10 +231,10 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
                         onClick={() => handleAnswer(option)}
                         onMouseEnter={() => { if (currentIndex === BASE_QUESTIONS.length - 1) import('@/features/funnel/pages/Analysis'); }}
                         className={`
-                            group relative w-full overflow-hidden py-4 px-6 rounded-2xl text-center transition-all duration-300 border cursor-pointer active:scale-[0.98]
+                            group relative w-full overflow-hidden py-4 px-6 rounded-2xl text-center transition-all duration-300 border cursor-pointer active:scale-[0.98] outline-none focus:outline-none focus:ring-0
                             ${isActive
                             ? 'bg-[#fcd34d]/20 text-white border-[#fcd34d] shadow-[0_0_20px_rgba(252,211,77,0.2)]'
-                            : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-[#fcd34d]/30 text-white/90'
+                            : 'bg-white/5 border-white/10 md:hover:bg-white/10 md:hover:border-[#fcd34d]/30 text-white/90'
                           }
                           `}
                       >

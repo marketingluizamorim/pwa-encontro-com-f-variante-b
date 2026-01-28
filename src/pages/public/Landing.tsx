@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Heart, BadgeCheck, LockKeyhole } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
 
 const WelcomeScreen = () => {
   const navigate = useNavigate();
@@ -162,9 +163,12 @@ const WelcomeScreen = () => {
         <motion.button
           whileHover={{ scale: 1.02, boxShadow: "0 20px 30px -5px rgba(245, 158, 11, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)" }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => navigate('/v1/genero')}
+          onClick={() => {
+            useFunnelStore.getState().reset();
+            navigate('/v1/genero');
+          }}
           onMouseEnter={() => import('@/features/funnel/pages/Gender')}
-          className="w-full h-14 md:h-20 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] md:rounded-[30px] shadow-2xl shadow-orange-500/25 flex items-center justify-center gap-3 md:gap-4 text-white font-bold text-lg md:text-xl group transition-all relative overflow-hidden border border-white/20 outline-none"
+          className="w-full h-14 md:h-20 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] md:rounded-[30px] shadow-2xl shadow-orange-500/25 flex items-center justify-center gap-3 md:gap-4 text-white font-bold text-lg md:text-xl group transition-all relative overflow-hidden border border-white/20 outline-none focus:outline-none"
         >
           {/* Button Shine Animation */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 translate-x-[-150%] animate-shine" />

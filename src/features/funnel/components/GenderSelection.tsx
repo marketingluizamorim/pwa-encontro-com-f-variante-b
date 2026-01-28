@@ -80,7 +80,7 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect('male')}
             onMouseEnter={() => import('@/features/funnel/pages/Quiz')}
-            className="group relative w-full aspect-[4/5] md:aspect-square bg-[#1e3a8a]/30 hover:bg-[#1e3a8a]/50 backdrop-blur-2xl border border-white/10 hover:border-[#fcd34d]/30 rounded-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] transition-all flex flex-col items-center justify-center gap-5 ring-1 ring-white/5 active:scale-95"
+            className="group relative w-full aspect-[4/5] md:aspect-square bg-[#1e3a8a]/30 hover:bg-[#1e3a8a]/50 backdrop-blur-2xl border border-white/10 md:hover:border-[#fcd34d]/30 rounded-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] transition-all flex flex-col items-center justify-center gap-5 ring-0 outline-none focus:outline-none focus:ring-0 active:scale-95"
           >
             {/* Subtle Inner Glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -109,7 +109,7 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect('female')}
             onMouseEnter={() => import('@/features/funnel/pages/Quiz')}
-            className="group relative w-full aspect-[4/5] md:aspect-square bg-[#831843]/30 hover:bg-[#831843]/50 backdrop-blur-2xl border border-white/10 hover:border-[#fcd34d]/30 rounded-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] transition-all flex flex-col items-center justify-center gap-5 ring-1 ring-white/5 active:scale-95"
+            className="group relative w-full aspect-[4/5] md:aspect-square bg-[#831843]/30 hover:bg-[#831843]/50 backdrop-blur-2xl border border-white/10 md:hover:border-[#fcd34d]/30 rounded-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] transition-all flex flex-col items-center justify-center gap-5 ring-0 outline-none focus:outline-none focus:ring-0 active:scale-95"
           >
             {/* Subtle Inner Glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
