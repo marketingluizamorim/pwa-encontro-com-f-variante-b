@@ -49,7 +49,20 @@ const MALE_NOTIFICATIONS: NotificationData[] = [
   { name: 'Carlos', image: notifMarcos },
 ];
 
-const MESSAGES = [
+const FEMALE_MESSAGES = [
+  'está online agora',
+  'acabou de entrar',
+  'está respondendo',
+  'iniciou nova conversa',
+  'encontrou nova conexão',
+  'está buscando encontros',
+  'virou nova membro',
+  'está no seu estado',
+  'está próxima de você',
+  'entrou na plataforma',
+];
+
+const MALE_MESSAGES = [
   'está online agora',
   'acabou de entrar',
   'está respondendo',
@@ -68,9 +81,9 @@ interface PushNotificationProps {
   paused?: boolean;
 }
 
-export function PushNotification({ 
-  gender = 'feminino', 
-  baseInterval = 8,
+export function PushNotification({
+  gender = 'feminino',
+  baseInterval = 12,
   paused = false,
 }: PushNotificationProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -84,10 +97,13 @@ export function PushNotification({
 
   const getRandomNotification = useCallback(() => {
     // Show opposite gender notifications
-    const notifications = gender === 'masculino' ? FEMALE_NOTIFICATIONS : MALE_NOTIFICATIONS;
+    const isMaleUser = gender === 'masculino';
+    const notifications = isMaleUser ? FEMALE_NOTIFICATIONS : MALE_NOTIFICATIONS;
+    const messages = isMaleUser ? FEMALE_MESSAGES : MALE_MESSAGES;
+
     const randomPerson = notifications[Math.floor(Math.random() * notifications.length)];
-    const randomMessage = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
-    
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
     return {
       name: randomPerson.name,
       image: randomPerson.image,
@@ -97,7 +113,7 @@ export function PushNotification({
 
   const showNotification = useCallback(() => {
     if (isDismissed || paused) return;
-    
+
     const notification = getRandomNotification();
     setCurrentNotification(notification);
     setIsVisible(true);
@@ -125,7 +141,7 @@ export function PushNotification({
 
     // Calculate interval with exponential progression
     const interval = baseInterval * Math.pow(2, notificationCount) * 1000;
-    
+
     const timer = setTimeout(() => {
       showNotification();
       setNotificationCount(prev => prev + 1);
