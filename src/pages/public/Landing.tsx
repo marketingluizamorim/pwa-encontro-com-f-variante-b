@@ -164,7 +164,7 @@ const WelcomeScreen = () => {
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate('/v1/genero')}
           onMouseEnter={() => import('@/features/funnel/pages/Gender')}
-          className="w-full h-14 md:h-20 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] md:rounded-[30px] shadow-2xl shadow-orange-500/25 flex items-center justify-center gap-3 md:gap-4 text-white font-bold text-lg md:text-xl group transition-all relative overflow-hidden border border-white/20"
+          className="w-full h-14 md:h-20 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] md:rounded-[30px] shadow-2xl shadow-orange-500/25 flex items-center justify-center gap-3 md:gap-4 text-white font-bold text-lg md:text-xl group transition-all relative overflow-hidden border border-white/20 outline-none"
         >
           {/* Button Shine Animation */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 translate-x-[-150%] animate-shine" />

@@ -206,7 +206,7 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
             <div className="w-full">
               {question.type === 'select' ? (
                 <Select onValueChange={handleAnswer} value={quizAnswers[question.key] || ''}>
-                  <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-16 text-lg rounded-2xl px-5 shadow-sm backdrop-blur-md focus:ring-1 focus:ring-[#fcd34d]/50 focus:border-[#fcd34d]/50 transition-all">
+                  <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-16 text-lg rounded-2xl px-5 shadow-sm backdrop-blur-md focus:border-[#fcd34d]/30 focus:ring-0 outline-none transition-all">
                     <SelectValue placeholder={question.placeholder || 'Toque para selecionar...'} />
                   </SelectTrigger>
                   <SelectContent position="popper" sideOffset={5} className="bg-[#0f172a] border-white/10 text-white rounded-xl shadow-xl max-h-[40vh] overflow-y-auto z-[60]">

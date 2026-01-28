@@ -80,12 +80,12 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect('male')}
             onMouseEnter={() => import('@/features/funnel/pages/Quiz')}
-            className="group relative w-full aspect-[4/5] md:aspect-square bg-[#1e3a8a]/40 hover:bg-[#1e3a8a]/60 backdrop-blur-2xl border border-white/10 hover:border-[#fcd34d]/50 rounded-[32px] overflow-hidden shadow-2xl transition-all flex flex-col items-center justify-center gap-5 ring-1 ring-white/5"
+            className="group relative w-full aspect-[4/5] md:aspect-square bg-[#1e3a8a]/30 hover:bg-[#1e3a8a]/50 backdrop-blur-2xl border border-white/10 hover:border-[#fcd34d]/30 rounded-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] transition-all flex flex-col items-center justify-center gap-5 ring-1 ring-white/5 active:scale-95"
           >
             {/* Subtle Inner Glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#1e3a8a] to-[#1e40af] p-[2px] shadow-[0_0_30px_rgba(30,58,138,0.4)] group-hover:shadow-[0_0_40px_rgba(252,211,77,0.2)] transition-shadow duration-500">
+            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#1e3a8a] to-[#1e40af] p-[2px] shadow-[0_15px_30px_rgba(0,0,0,0.4),0_0_20px_rgba(30,58,138,0.3)] group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_30px_rgba(252,211,77,0.2)] transition-all duration-500">
               <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center border border-white/20 group-hover:border-[#fcd34d]/50 transition-colors">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-white/90 group-hover:text-[#fcd34d] transition-colors">
                   <path d="M16 3h5v5" />
@@ -109,12 +109,12 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect('female')}
             onMouseEnter={() => import('@/features/funnel/pages/Quiz')}
-            className="group relative w-full aspect-[4/5] md:aspect-square bg-[#831843]/40 hover:bg-[#831843]/60 backdrop-blur-2xl border border-white/10 hover:border-[#fcd34d]/50 rounded-[32px] overflow-hidden shadow-2xl transition-all flex flex-col items-center justify-center gap-5 ring-1 ring-white/5"
+            className="group relative w-full aspect-[4/5] md:aspect-square bg-[#831843]/30 hover:bg-[#831843]/50 backdrop-blur-2xl border border-white/10 hover:border-[#fcd34d]/30 rounded-[32px] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] transition-all flex flex-col items-center justify-center gap-5 ring-1 ring-white/5 active:scale-95"
           >
             {/* Subtle Inner Glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#831843] to-[#be185d] p-[2px] shadow-[0_0_30px_rgba(131,24,67,0.4)] group-hover:shadow-[0_0_40px_rgba(252,211,77,0.2)] transition-shadow duration-500">
+            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#831843] to-[#be185d] p-[2px] shadow-[0_15px_30px_rgba(0,0,0,0.4),0_0_20px_rgba(131,24,67,0.3)] group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_30px_rgba(252,211,77,0.2)] transition-all duration-500">
               <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center border border-white/20 group-hover:border-[#fcd34d]/50 transition-colors">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-white/90 group-hover:text-[#fcd34d] transition-colors">
                   <path d="M12 15v7" />
