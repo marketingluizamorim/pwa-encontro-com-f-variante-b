@@ -118,10 +118,10 @@ export function PushNotification({
     setCurrentNotification(notification);
     setIsVisible(true);
 
-    // Hide after 7 seconds
+    // Hide after 4.5 seconds (ideal for quick reading without clutter)
     setTimeout(() => {
       setIsVisible(false);
-    }, 7000);
+    }, 4500);
   }, [getRandomNotification, isDismissed, paused]);
 
   // Hide notification immediately when paused

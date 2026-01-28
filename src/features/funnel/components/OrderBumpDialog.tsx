@@ -115,7 +115,7 @@ export function OrderBumpDialog({
             Ofertas de Ano Novo 🎉
           </DialogTitle>
           <DialogDescription className="text-white/60 text-xs font-light tracking-wide mt-1">
-            Personalize sua experiência
+            Adicione junto e personalize sua experiência
           </DialogDescription>
         </div>
 
