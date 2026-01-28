@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Lock, ShieldCheck } from 'lucide-react';
 
 // Female display photos by age range
 import femaleDisplay18_25 from '@/assets/match-female-18-25-display.jpg';
@@ -68,11 +68,11 @@ function formatPhone(value: string): string {
   return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
 }
 
-export function CheckoutDialog({ 
-  open, 
-  onOpenChange, 
-  planPrice, 
-  onSubmit, 
+export function CheckoutDialog({
+  open,
+  onOpenChange,
+  planPrice,
+  onSubmit,
   isLoading,
   planName,
   orderBumps
@@ -82,10 +82,10 @@ export function CheckoutDialog({
   const [phone, setPhone] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [extrasExpanded, setExtrasExpanded] = useState(false);
-  
+
   const { gender, quizAnswers } = useFunnelStore();
   const displayPhoto = getDisplayPhoto(gender, quizAnswers.age);
-  
+
   // Calculate extras
   const hasExtras = orderBumps?.allRegions || orderBumps?.grupoEvangelico || orderBumps?.grupoCatolico;
   const extrasCount = (orderBumps?.allRegions ? 1 : 0) + (orderBumps?.grupoEvangelico ? 1 : 0) + (orderBumps?.grupoCatolico ? 1 : 0);
@@ -120,162 +120,160 @@ export function CheckoutDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto px-4 py-6 sm:px-6 sm:py-8 rounded-xl">
-        <DialogHeader>
-          <DialogTitle className="font-display text-center">
-            Finalizar Assinatura
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2rem] bg-[#0f172a]/95 backdrop-blur-2xl border-white/10 text-white shadow-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden top-[5%] translate-y-0 data-[state=open]:slide-in-from-top-[0%] data-[state=closed]:slide-out-to-top-[0%]">
+        <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide">
+          <DialogHeader className="mb-2">
+            <DialogTitle className="font-serif text-center text-2xl font-bold text-white tracking-tight">
+              Finalizar Assinatura
+            </DialogTitle>
+          </DialogHeader>
 
-        {/* Profile Preview Card - Compact with stacked avatars */}
-        <div className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg mb-2">
-          <div className="relative">
-            {/* Stacked blurred avatars - offset to bottom-right */}
-            <img 
-              src={displayPhoto} 
-              alt="" 
-              className="absolute top-3 left-5 w-8 h-8 rounded-full object-cover blur-sm opacity-50 border border-muted"
-            />
-            <img 
-              src={displayPhoto} 
-              alt="" 
-              className="absolute top-1.5 left-2.5 w-9 h-9 rounded-full object-cover blur-[2px] opacity-70 border border-muted"
-            />
-            {/* Main visible avatar */}
-            <img 
-              src={displayPhoto} 
-              alt="Perfil" 
-              className="relative z-10 w-10 h-10 rounded-full object-cover border-2 border-primary"
-            />
-            {/* Online indicator */}
-            <div className="absolute bottom-0 right-0 z-20 bg-green-500 w-3 h-3 rounded-full border-2 border-white"></div>
+          {/* Profile Preview Card - Compact */}
+          <div className="flex items-center gap-3 p-2 bg-white/5 border border-white/5 rounded-xl mb-3 backdrop-blur-sm">
+            <div className="relative">
+              {/* Stacked blurred avatars - offset to bottom-right */}
+              <img src={displayPhoto} alt="" className="absolute top-2 left-6 w-8 h-8 rounded-full object-cover blur-sm opacity-40 border border-white/10" />
+              <img src={displayPhoto} alt="" className="absolute top-1 left-3 w-9 h-9 rounded-full object-cover blur-[2px] opacity-60 border border-white/20" />
+
+              {/* Main visible avatar */}
+              <div className="relative z-10 w-10 h-10 rounded-full p-[1.5px] bg-gradient-to-tr from-[#fcd34d] to-[#b45309]">
+                <img src={displayPhoto} alt="Perfil" className="w-full h-full rounded-full object-cover border-2 border-[#0f172a]" />
+              </div>
+
+              {/* Online indicator */}
+              <div className="absolute bottom-0 right-0 z-20 bg-green-500 w-2.5 h-2.5 rounded-full border-2 border-[#0f172a] shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+            </div>
+            <div className="flex-1 leading-tight">
+              <p className="text-sm font-bold text-white">+5 perfis esperando</p>
+              <p className="text-[10px] text-white/60 font-light mt-0.5">Desbloqueie para conversar</p>
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-xs font-medium text-foreground">+5 perfis esperando por você</p>
-            <p className="text-[11px] text-muted-foreground">Desbloqueie e comece a conversar</p>
+
+          {/* Order Summary - Compact */}
+          <div className="bg-black/20 rounded-xl p-3 mb-3 border border-white/5">
+            <h4 className="text-xs font-bold text-white/90 mb-2 border-b border-white/5 pb-1">Resumo:</h4>
+            <div className="space-y-1 text-xs">
+              {planName && (
+                <div className="flex justify-between">
+                  <span className="text-white/70">{planName}</span>
+                  <span className="text-white font-medium">R$ {basePlanPrice.toFixed(2).replace('.', ',')}</span>
+                </div>
+              )}
+              {hasExtras && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setExtrasExpanded(!extrasExpanded)}
+                    className="flex justify-between items-center w-full text-left hover:bg-white/5 -mx-1 px-1 rounded transition-colors group"
+                  >
+                    <span className="text-[#fcd34d]/80 text-[10px] flex items-center gap-1 group-hover:text-[#fcd34d] transition-colors font-medium">
+                      Extras ({extrasCount})
+                      {extrasExpanded ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      )}
+                    </span>
+                    <span className="text-[#fcd34d] font-medium text-[10px]">R$ {extrasTotal.toFixed(2).replace('.', ',')}</span>
+                  </button>
+                  {extrasExpanded && (
+                    <div className="pl-2 space-y-1 border-l-2 border-[#fcd34d]/20 ml-1 py-0.5">
+                      {orderBumps?.allRegions && (
+                        <div className="flex justify-between text-white/60 text-[10px]">
+                          <span>Desbloquear Região</span>
+                          <span>R$ 5,00</span>
+                        </div>
+                      )}
+                      {orderBumps?.grupoEvangelico && (
+                        <div className="flex justify-between text-white/60 text-[10px]">
+                          <span>Grupo Evangélico</span>
+                          <span>R$ 5,00</span>
+                        </div>
+                      )}
+                      {orderBumps?.grupoCatolico && (
+                        <div className="flex justify-between text-white/60 text-[10px]">
+                          <span>Grupo Católico</span>
+                          <span>R$ 5,00</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4 pb-48">
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-white/90 pl-1 text-sm font-medium">Nome completo</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Digite seu nome completo..."
+                className={`bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-[#fcd34d] focus:ring-1 focus:ring-[#fcd34d] h-14 rounded-xl backdrop-blur-md transition-all text-base ${errors.name ? 'border-red-500/50 focus:border-red-500' : ''}`}
+              />
+              {errors.name && <p className="text-xs text-red-400 pl-1">{errors.name}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-white/90 pl-1 text-sm font-medium">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                className={`bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-[#fcd34d] focus:ring-1 focus:ring-[#fcd34d] h-14 rounded-xl backdrop-blur-md transition-all text-base ${errors.email ? 'border-red-500/50 focus:border-red-500' : ''}`}
+              />
+              {errors.email && <p className="text-xs text-red-400 pl-1">{errors.email}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="phone" className="text-white/90 pl-1 text-sm font-medium">Telefone</Label>
+              <div className="flex">
+                <span className="inline-flex items-center px-4 bg-white/10 border border-r-0 border-white/20 rounded-l-xl text-base text-white/80 font-medium h-14">
+                  +55
+                </span>
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  placeholder="(00) 00000-0000"
+                  className={`rounded-l-none bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-[#fcd34d] focus:ring-1 focus:ring-[#fcd34d] h-14 rounded-r-xl backdrop-blur-md transition-all text-base ${errors.phone ? 'border-red-500/50 focus:border-red-500' : ''}`}
+                  maxLength={15}
+                />
+              </div>
+              {errors.phone && <p className="text-xs text-red-400 pl-1">{errors.phone}</p>}
+            </div>
+          </form>
         </div>
 
-        {/* Order Summary */}
-        <div className="bg-muted/30 rounded-xl p-3 mb-2">
-          <h4 className="text-sm font-semibold mb-2">Resumo do pedido:</h4>
-          <div className="space-y-1 text-sm">
-            {planName && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">{planName}</span>
-                <span>R$ {basePlanPrice.toFixed(2).replace('.', ',')}</span>
+        {/* Footer (Fixed) */}
+        <div className="p-3 bg-[#0f172a] border-t border-white/10 absolute bottom-0 left-0 right-0 z-20">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-white/80 font-medium text-base">Total:</span>
+            <span className="text-3xl font-sans font-bold text-[#fcd34d] drop-shadow-md">R$ {planPrice.toFixed(2).replace('.', ',')}</span>
+          </div>
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="w-full h-14 rounded-2xl gradient-button text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition-all uppercase tracking-wide text-sm font-bold border border-white/20"
+          >
+            {isLoading ? (
+              <><i className="ri-loader-4-line animate-spin mr-2" /> Processando...</>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span>Finalizar Pagamento</span>
+                <Lock className="w-5 h-5" />
               </div>
             )}
-            {hasExtras && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setExtrasExpanded(!extrasExpanded)}
-                  className="flex justify-between items-center w-full text-left hover:bg-muted/50 -mx-1 px-1 rounded transition-colors"
-                >
-                  <span className="text-muted-foreground flex items-center gap-1">
-                    Extras ({extrasCount})
-                    {extrasExpanded ? (
-                      <ChevronUp className="w-3 h-3" />
-                    ) : (
-                      <ChevronDown className="w-3 h-3" />
-                    )}
-                  </span>
-                  <span className="text-muted-foreground">R$ {extrasTotal.toFixed(2).replace('.', ',')}</span>
-                </button>
-                {extrasExpanded && (
-                  <div className="pl-4 space-y-1 border-l-2 border-muted ml-1">
-                    {orderBumps?.allRegions && (
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Desbloquear Região</span>
-                        <span>R$ 5,00</span>
-                      </div>
-                    )}
-                    {orderBumps?.grupoEvangelico && (
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Grupo Evangélico</span>
-                        <span>R$ 5,00</span>
-                      </div>
-                    )}
-                    {orderBumps?.grupoCatolico && (
-                      <div className="flex justify-between text-muted-foreground">
-                        <span>Grupo Católico</span>
-                        <span>R$ 5,00</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
+          </Button>
+          <div className="flex items-center justify-center gap-2 mt-3 text-xs text-white/50">
+            <ShieldCheck className="w-4 h-4 text-green-400" />
+            <span>Pagamento 100% seguro via PIX</span>
           </div>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome completo</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Seu nome"
-              className={errors.name ? 'border-destructive' : ''}
-            />
-            {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className={errors.email ? 'border-destructive' : ''}
-            />
-            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone">Telefone</Label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 bg-muted border border-r-0 border-input rounded-l-md text-sm text-muted-foreground">
-                +55
-              </span>
-              <Input
-                id="phone"
-                value={phone}
-                onChange={handlePhoneChange}
-                placeholder="(XX) XXXXX-XXXX"
-                className={`rounded-l-none ${errors.phone ? 'border-destructive' : ''}`}
-                maxLength={15}
-              />
-            </div>
-            {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
-          </div>
-
-          <div className="pt-4 border-t">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-muted-foreground">Total:</span>
-              <span className="text-2xl font-bold text-primary">R$ {planPrice.toFixed(2).replace('.', ',')}</span>
-            </div>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full gradient-button text-primary-foreground py-6 text-lg font-semibold"
-            >
-              {isLoading ? (
-                <><i className="ri-loader-4-line animate-spin mr-2" /> Processando...</>
-              ) : (
-              <>Finalizar Pagamento <i className="ri-lock-fill ml-2" /></>
-            )}
-            </Button>
-            <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-              <i className="ri-shield-check-fill text-green-500" />
-              <span>Pagamento 100% seguro via PIX</span>
-            </div>
-          </div>
-        </form>
       </DialogContent>
     </Dialog>
   );

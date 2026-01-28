@@ -16,7 +16,7 @@ export function CommunityStats() {
       className="bg-white/5 backdrop-blur-2xl rounded-[2.5rem] p-10 mb-8 border border-white/10"
     >
       <h3 className="text-2xl font-serif font-bold text-white text-center mb-8 tracking-tight">
-        Nossa Comunidade em Números
+        Nossa Comunidade
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
         {STATS.map((stat) => (

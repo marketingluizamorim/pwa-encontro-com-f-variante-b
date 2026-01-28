@@ -92,27 +92,28 @@ export function PlansGrid({ onSelectPlan }: PlansGridProps) {
           Desbloqueie sua conexão ideal
         </h2>
         <p className="text-white/60 text-[14px] sm:text-base font-medium tracking-tight mb-6 whitespace-nowrap">
-          Acesso completo e exclusivo à maior comunidade do Brasil.
+          Acesso completo à maior comunidade do Brasil.
         </p>
 
-        {/* Countdown Timer - High contrast redesign */}
-        <div className="relative inline-block group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-300 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+        {/* Countdown Timer - Gold Glass Premium */}
+        <div className="relative inline-block">
           <motion.div
-            initial={{ scale: 0.95 }}
-            animate={{ scale: [1, 1.02, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="relative inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-2xl rounded-full px-6 py-2.5 border border-white/20 shadow-[0_0_20px_rgba(245,158,11,0.1)]"
+            initial={{ y: 5, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="relative inline-flex items-center gap-3 bg-gradient-to-r from-amber-500/10 to-amber-900/10 backdrop-blur-md rounded-full px-6 py-2 border border-amber-500/20 shadow-[0_0_15px_rgba(251,191,36,0.1)] hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all duration-300"
           >
-            <div className="relative">
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-ping absolute inset-0" />
-              <div className="w-2 h-2 rounded-full bg-amber-400 relative" />
-            </div>
-            <span className="text-white/90 font-bold text-sm tracking-tight">
-              Oferta especial expira em:
-              <span className="text-amber-400 ml-1.5 font-mono text-base tracking-tighter">
-                {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
               </span>
+              <span className="text-amber-100/90 text-xs font-bold tracking-wider uppercase">Oferta Exclusiva</span>
+            </div>
+
+            <div className="w-px h-4 bg-amber-500/20" />
+
+            <span className="text-[#fcd34d] font-serif font-black text-lg leading-none tracking-wide drop-shadow-sm">
+              {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
             </span>
           </motion.div>
         </div>

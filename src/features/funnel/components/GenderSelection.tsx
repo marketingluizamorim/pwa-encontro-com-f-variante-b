@@ -76,48 +76,58 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
 
           {/* Male Card */}
           <motion.button
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.02, y: -5 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect('male')}
-            className="group relative w-full aspect-[4/5] md:aspect-square bg-gradient-to-br from-sky-500/90 to-blue-600/90 backdrop-blur-xl border border-white/20 rounded-[32px] overflow-hidden shadow-xl hover:shadow-2xl transition-all flex flex-col items-center justify-center gap-4"
+            className="group relative w-full aspect-[4/5] md:aspect-square bg-[#1e3a8a]/40 hover:bg-[#1e3a8a]/60 backdrop-blur-2xl border border-white/10 hover:border-[#fcd34d]/50 rounded-[32px] overflow-hidden shadow-2xl transition-all flex flex-col items-center justify-center gap-5 ring-1 ring-white/5"
           >
-            {/* Hover Glow */}
-            <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
+            {/* Subtle Inner Glow */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-400 p-[2px] shadow-lg shadow-blue-500/30">
-              <div className="w-full h-full rounded-full bg-[#1e3a8a] flex items-center justify-center border border-white/20">
-                {/* Male Icon SVG */}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-white">
+            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#1e3a8a] to-[#1e40af] p-[2px] shadow-[0_0_30px_rgba(30,58,138,0.4)] group-hover:shadow-[0_0_40px_rgba(252,211,77,0.2)] transition-shadow duration-500">
+              <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center border border-white/20 group-hover:border-[#fcd34d]/50 transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-white/90 group-hover:text-[#fcd34d] transition-colors">
+                  <path d="M16 3h5v5" />
+                  <path d="M21 3L13.5 10.5" />
                   <circle cx="10" cy="14" r="6" />
-                  <path d="M16 10 L20 6" />
-                  <path d="M20 10 L20 6 L16 6" />
                 </svg>
               </div>
             </div>
-            <span className="text-2xl font-bold text-white tracking-wide">Sou Homem</span>
+
+            <div className="space-y-1">
+              <span className="text-2xl font-serif font-bold text-white tracking-wide block group-hover:text-[#fcd34d] transition-colors">Sou Homem</span>
+              <p className="text-white/40 text-xs font-medium tracking-widest uppercase opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                Selecionar
+              </p>
+            </div>
           </motion.button>
 
           {/* Female Card */}
           <motion.button
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.02, y: -5 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect('female')}
-            className="group relative w-full aspect-[4/5] md:aspect-square bg-gradient-to-br from-rose-500/90 to-pink-600/90 backdrop-blur-xl border border-white/20 rounded-[32px] overflow-hidden shadow-xl hover:shadow-2xl transition-all flex flex-col items-center justify-center gap-4"
+            className="group relative w-full aspect-[4/5] md:aspect-square bg-[#831843]/40 hover:bg-[#831843]/60 backdrop-blur-2xl border border-white/10 hover:border-[#fcd34d]/50 rounded-[32px] overflow-hidden shadow-2xl transition-all flex flex-col items-center justify-center gap-5 ring-1 ring-white/5"
           >
-            {/* Hover Glow */}
-            <div className="absolute inset-0 bg-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
+            {/* Subtle Inner Glow */}
+            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-pink-500 to-rose-400 p-[2px] shadow-lg shadow-pink-500/30">
-              <div className="w-full h-full rounded-full bg-[#831843] flex items-center justify-center border border-white/20">
-                {/* Female Icon SVG */}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-white">
-                  <circle cx="12" cy="10" r="6" />
-                  <path d="M12 16 L12 21" />
-                  <path d="M9 18 L15 18" />
+            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#831843] to-[#be185d] p-[2px] shadow-[0_0_30px_rgba(131,24,67,0.4)] group-hover:shadow-[0_0_40px_rgba(252,211,77,0.2)] transition-shadow duration-500">
+              <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center border border-white/20 group-hover:border-[#fcd34d]/50 transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-white/90 group-hover:text-[#fcd34d] transition-colors">
+                  <path d="M12 15v7" />
+                  <path d="M15 19H9" />
+                  <circle cx="12" cy="9" r="6" />
                 </svg>
               </div>
             </div>
-            <span className="text-2xl font-bold text-white tracking-wide">Sou Mulher</span>
+
+            <div className="space-y-1">
+              <span className="text-2xl font-serif font-bold text-white tracking-wide block group-hover:text-[#fcd34d] transition-colors">Sou Mulher</span>
+              <p className="text-white/40 text-xs font-medium tracking-widest uppercase opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                Selecionar
+              </p>
+            </div>
           </motion.button>
 
         </motion.div>

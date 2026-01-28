@@ -67,7 +67,7 @@ WhatsApp: +55 62 9826-8199`,
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/10 backdrop-blur-xl border-b border-white/10"
+        className="bg-white/5 backdrop-blur-2xl border-b border-white/10"
       >
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
           <Button
@@ -79,8 +79,8 @@ WhatsApp: +55 62 9826-8199`,
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <RefreshCcw className="w-6 h-6 text-amber-light" />
-            <h1 className="text-xl font-bold text-white">Política de Reembolso</h1>
+            <RefreshCcw className="w-6 h-6 text-[#fcd34d]" />
+            <h1 className="text-2xl font-serif font-bold text-white tracking-wide">Política de Reembolso</h1>
           </div>
         </div>
       </motion.header>
@@ -91,14 +91,14 @@ WhatsApp: +55 62 9826-8199`,
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10"
+          className="bg-white/5 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-10 border border-white/10"
         >
           {/* Title Section */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">
-              <FileText className="w-8 h-8 text-amber-light" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-[#fcd34d]/20 to-[#b45309]/20 mb-4 ring-1 ring-[#fcd34d]/30">
+              <FileText className="w-8 h-8 text-[#fcd34d]" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-2 tracking-tight">
               Política de Reembolso
             </h2>
             <p className="text-white/60 text-sm">
@@ -114,9 +114,9 @@ WhatsApp: +55 62 9826-8199`,
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + index * 0.05 }}
-                className="bg-white/5 rounded-2xl p-5 border border-white/5"
+                className="bg-white/5 rounded-2xl p-6 border border-white/5 hover:bg-white/10 transition-colors"
               >
-                <h3 className="text-lg font-semibold text-amber-light mb-3">
+                <h3 className="text-xl font-serif font-bold text-[#fcd34d] mb-3">
                   {section.title}
                 </h3>
                 <p className="text-white/80 text-sm leading-relaxed whitespace-pre-line">
@@ -131,9 +131,9 @@ WhatsApp: +55 62 9826-8199`,
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
-            className="mt-8 p-4 bg-amber-500/10 rounded-xl border border-amber-500/20"
+            className="mt-8 p-4 bg-[#fcd34d]/10 rounded-2xl border border-[#fcd34d]/20"
           >
-            <p className="text-amber-light text-sm text-center font-medium">
+            <p className="text-[#fcd34d] text-sm text-center font-medium">
               ⚠️ Aviso Legal: Este conteúdo é um resumo prático e não substitui aconselhamento jurídico.
             </p>
           </motion.div>

@@ -190,11 +190,11 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
           <div className="space-y-10 w-full mt-20 fade-in-fast">
             <div className="text-center space-y-6 mb-2">
               <div
-                className="inline-flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-full border border-white/5"
+                className="inline-flex items-center gap-2 bg-[#fcd34d]/10 px-4 py-1.5 rounded-full border border-[#fcd34d]/20 mb-4"
               >
 
-                <span className="text-white/70 text-xs font-bold tracking-widest uppercase">
-                  {currentIndex + 1} / {BASE_QUESTIONS.length}
+                <span className="text-[#fcd34d] text-xs font-bold tracking-widest uppercase">
+                  PERGUNTA {currentIndex + 1} / {BASE_QUESTIONS.length}
                 </span>
               </div>
               <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight drop-shadow-xl px-2">
@@ -206,15 +206,15 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
             <div className="w-full">
               {question.type === 'select' ? (
                 <Select onValueChange={handleAnswer} value={quizAnswers[question.key] || ''}>
-                  <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-16 text-lg rounded-2xl px-5 shadow-sm backdrop-blur-md focus:ring-1 focus:ring-teal-400/50">
+                  <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-16 text-lg rounded-2xl px-5 shadow-sm backdrop-blur-md focus:ring-1 focus:ring-[#fcd34d]/50 focus:border-[#fcd34d]/50 transition-all">
                     <SelectValue placeholder={question.placeholder || 'Toque para selecionar...'} />
                   </SelectTrigger>
-                  <SelectContent position="popper" sideOffset={5} className="bg-[#1e293b] border-white/10 text-white rounded-xl shadow-xl max-h-[40vh] overflow-y-auto z-[60]">
+                  <SelectContent position="popper" sideOffset={5} className="bg-[#0f172a] border-white/10 text-white rounded-xl shadow-xl max-h-[40vh] overflow-y-auto z-[60]">
                     {currentOptions?.map((option) => (
                       <SelectItem
                         key={option}
                         value={option}
-                        className="py-2.5 pl-4 pr-12 text-base focus:bg-transparent active:bg-white/5 data-[state=checked]:text-amber-400 border-b border-white/5 last:border-0 !text-white !opacity-100 relative [&>span]:left-auto [&>span]:right-2"
+                        className="py-3 pl-4 pr-12 text-base focus:bg-white/10 focus:text-[#fcd34d] data-[state=checked]:text-[#fcd34d] data-[state=checked]:bg-white/5 border-b border-white/5 last:border-0 !text-white relative cursor-pointer font-medium"
                       >
                         {option}
                       </SelectItem>
@@ -230,18 +230,18 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
                         key={option}
                         onClick={() => handleAnswer(option)}
                         className={`
-                            relative w-full overflow-hidden py-4 px-6 rounded-2xl text-center transition-all duration-150 border cursor-pointer active:scale-[0.98]
+                            group relative w-full overflow-hidden py-4 px-6 rounded-2xl text-center transition-all duration-300 border cursor-pointer active:scale-[0.98]
                             ${isActive
-                            ? 'bg-teal-500 text-white border-teal-400'
-                            : 'bg-white/5 border-white/5 active:bg-white/10 text-white/90'
+                            ? 'bg-[#fcd34d]/20 text-white border-[#fcd34d] shadow-[0_0_20px_rgba(252,211,77,0.2)]'
+                            : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-[#fcd34d]/30 text-white/90'
                           }
                           `}
                       >
                         <div className="flex items-center justify-center relative z-10 w-full">
-                          <span className={`text-lg font-bold tracking-wide ${isActive ? 'text-white' : 'text-white/80'}`}>
+                          <span className={`text-lg font-bold tracking-wide transition-colors ${isActive ? 'text-[#fcd34d]' : 'text-white/80 group-hover:text-white'}`}>
                             {option}
                           </span>
-                          {isActive && <ChevronRight className="w-5 h-5 text-white absolute right-0" />}
+                          {isActive && <div className="absolute right-0 w-2 h-2 rounded-full bg-[#fcd34d] shadow-[0_0_10px_#fcd34d] mr-2" />}
                         </div>
                       </div>
                     );
