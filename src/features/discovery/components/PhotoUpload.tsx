@@ -37,7 +37,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
 
     try {
       const { supabase } = await import('@/integrations/supabase/client');
-      
+
       // Generate unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -78,9 +78,9 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
     }
 
     setUploading(true);
-    
+
     const newPhotos = [...photos];
-    
+
     for (let i = 0; i < filesToUpload.length; i++) {
       setUploadingIndex(newPhotos.length);
       const url = await uploadPhoto(filesToUpload[i]);
@@ -92,7 +92,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
 
     setUploading(false);
     setUploadingIndex(null);
-    
+
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -101,7 +101,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
 
   const removePhoto = async (index: number) => {
     const photoUrl = photos[index];
-    
+
     // Extract file path from URL
     try {
       const { supabase } = await import('@/integrations/supabase/client');
@@ -155,9 +155,12 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
               <img
                 src={photo}
                 alt={`Foto ${index + 1}`}
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchPriority={index === 0 ? "high" : "auto"}
+                decoding="async"
                 className="w-full h-full object-cover"
               />
-              
+
               {/* Overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                 <div className="flex gap-2">

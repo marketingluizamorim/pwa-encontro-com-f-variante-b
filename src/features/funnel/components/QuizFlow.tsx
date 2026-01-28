@@ -229,6 +229,7 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
                       <div
                         key={option}
                         onClick={() => handleAnswer(option)}
+                        onMouseEnter={() => { if (currentIndex === BASE_QUESTIONS.length - 1) import('@/features/funnel/pages/Analysis'); }}
                         className={`
                             group relative w-full overflow-hidden py-4 px-6 rounded-2xl text-center transition-all duration-300 border cursor-pointer active:scale-[0.98]
                             ${isActive

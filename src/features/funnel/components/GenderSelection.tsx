@@ -79,6 +79,7 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             whileHover={{ scale: 1.02, y: -5 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect('male')}
+            onMouseEnter={() => import('@/features/funnel/pages/Quiz')}
             className="group relative w-full aspect-[4/5] md:aspect-square bg-[#1e3a8a]/40 hover:bg-[#1e3a8a]/60 backdrop-blur-2xl border border-white/10 hover:border-[#fcd34d]/50 rounded-[32px] overflow-hidden shadow-2xl transition-all flex flex-col items-center justify-center gap-5 ring-1 ring-white/5"
           >
             {/* Subtle Inner Glow */}
@@ -107,6 +108,7 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             whileHover={{ scale: 1.02, y: -5 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onSelect('female')}
+            onMouseEnter={() => import('@/features/funnel/pages/Quiz')}
             className="group relative w-full aspect-[4/5] md:aspect-square bg-[#831843]/40 hover:bg-[#831843]/60 backdrop-blur-2xl border border-white/10 hover:border-[#fcd34d]/50 rounded-[32px] overflow-hidden shadow-2xl transition-all flex flex-col items-center justify-center gap-5 ring-1 ring-white/5"
           >
             {/* Subtle Inner Glow */}

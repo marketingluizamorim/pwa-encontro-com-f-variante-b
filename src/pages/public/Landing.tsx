@@ -129,11 +129,11 @@ const WelcomeScreen = () => {
             {/* -- Layer 4: POWER PAIR (Center Heroes) -- */}
             {/* Female Hero (Center Left) */}
             <div className="absolute left-1/2 top-1/2 -translate-x-[calc(50%+18px)] -translate-y-[60%] w-[72px] h-[72px] rounded-full border-[3px] border-white overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.3)] z-50 ring-[3px] ring-white/20 transform hover:scale-110 transition-transform duration-300 hover:z-[60]">
-              <img src="/avatars/hero_f.jpg" alt="User" className="w-full h-full object-cover" />
+              <img src="/avatars/hero_f.jpg" alt="User" loading="eager" fetchPriority="high" decoding="async" className="w-full h-full object-cover" />
             </div>
             {/* Male Hero (Center Right) */}
             <div className="absolute left-1/2 top-1/2 -translate-x-[calc(50%-18px)] -translate-y-[60%] w-[72px] h-[72px] rounded-full border-[3px] border-white overflow-hidden shadow-[0_15px_30px_rgba(0,0,0,0.3)] z-50 ring-[3px] ring-white/20 transform hover:scale-110 transition-transform duration-300 hover:z-[60]">
-              <img src="/avatars/hero_m.jpg" alt="User" className="w-full h-full object-cover" />
+              <img src="/avatars/hero_m.jpg" alt="User" loading="eager" fetchPriority="high" decoding="async" className="w-full h-full object-cover" />
             </div>
 
           </div>
@@ -163,6 +163,7 @@ const WelcomeScreen = () => {
           whileHover={{ scale: 1.02, boxShadow: "0 20px 30px -5px rgba(245, 158, 11, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)" }}
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate('/v1/genero')}
+          onMouseEnter={() => import('@/features/funnel/pages/Gender')}
           className="w-full h-14 md:h-20 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] md:rounded-[30px] shadow-2xl shadow-orange-500/25 flex items-center justify-center gap-3 md:gap-4 text-white font-bold text-lg md:text-xl group transition-all relative overflow-hidden border border-white/20"
         >
           {/* Button Shine Animation */}

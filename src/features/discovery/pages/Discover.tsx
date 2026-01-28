@@ -44,7 +44,7 @@ export default function Discover() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitDirection, setExitDirection] = useState<'left' | 'right' | null>(null);
   const [swiping, setSwiping] = useState(false);
-  
+
   // Match celebration state
   const [showMatchCelebration, setShowMatchCelebration] = useState(false);
   const [matchData, setMatchData] = useState<{ name: string; photo: string; matchId: string } | null>(null);
@@ -52,25 +52,25 @@ export default function Discover() {
   // Motion values for smooth drag animation
   const x = useMotionValue(0);
   const springX = useSpring(x, { stiffness: 300, damping: 30 });
-  
+
   // Rotate based on drag position (subtle tilt effect)
   const rotate = useTransform(x, [-300, 0, 300], [-25, 0, 25]);
-  
+
   // Opacity for swipe indicators
   const likeOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
   const nopeOpacity = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0]);
-  
+
   // Scale for indicators
   const likeScale = useTransform(x, [0, SWIPE_THRESHOLD, SWIPE_THRESHOLD + 50], [0.5, 1, 1.1]);
   const nopeScale = useTransform(x, [-SWIPE_THRESHOLD - 50, -SWIPE_THRESHOLD, 0], [1.1, 1, 0.5]);
-  
+
   // Background cards animation based on drag progress
   const dragProgress = useTransform(x, [-200, 0, 200], [1, 0, 1]);
   const skeleton1Scale = useTransform(dragProgress, [0, 1], [0.94, 0.97]);
   const skeleton1Y = useTransform(dragProgress, [0, 1], [12, 6]);
   const skeleton2Scale = useTransform(dragProgress, [0, 1], [0.88, 0.94]);
   const skeleton2Y = useTransform(dragProgress, [0, 1], [24, 12]);
-  
+
   // Color tint overlay based on swipe direction
   const likeTint = useTransform(x, [0, SWIPE_THRESHOLD * 2], [0, 0.15]);
   const nopeTint = useTransform(x, [-SWIPE_THRESHOLD * 2, 0], [0.15, 0]);
@@ -154,7 +154,7 @@ export default function Discover() {
           matchId: result.match.id,
         });
         setShowMatchCelebration(true);
-        
+
         // Play match sound and haptic
         triggerHaptic('success');
         playNotification('match');
@@ -179,10 +179,10 @@ export default function Discover() {
 
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (swiping) return;
-    
+
     const shouldSwipeRight = info.offset.x > SWIPE_THRESHOLD || info.velocity.x > SWIPE_VELOCITY_THRESHOLD;
     const shouldSwipeLeft = info.offset.x < -SWIPE_THRESHOLD || info.velocity.x < -SWIPE_VELOCITY_THRESHOLD;
-    
+
     if (shouldSwipeRight) {
       handleSwipe('like');
     } else if (shouldSwipeLeft) {
@@ -257,22 +257,22 @@ export default function Discover() {
       <div className="flex-1 relative overflow-hidden">
         {/* Skeleton cards behind for stack effect - animated based on drag */}
         {profiles.length > currentIndex + 2 && (
-          <motion.div 
+          <motion.div
             className="absolute inset-0 rounded-3xl bg-muted/40 shadow-lg transition-colors"
-            style={{ 
+            style={{
               scale: skeleton2Scale,
               y: skeleton2Y,
-              zIndex: 1 
+              zIndex: 1
             }}
           />
         )}
         {profiles.length > currentIndex + 1 && (
-          <motion.div 
+          <motion.div
             className="absolute inset-0 rounded-3xl bg-muted/60 shadow-xl transition-colors"
-            style={{ 
+            style={{
               scale: skeleton1Scale,
               y: skeleton1Y,
-              zIndex: 2 
+              zIndex: 2
             }}
           />
         )}
@@ -282,8 +282,8 @@ export default function Discover() {
             <motion.div
               key={currentProfile.id}
               className="absolute inset-0 cursor-grab active:cursor-grabbing touch-none"
-              style={{ 
-                zIndex: 10, 
+              style={{
+                zIndex: 10,
                 x: exitDirection ? undefined : x,
                 rotate: exitDirection ? undefined : rotate,
               }}
@@ -302,12 +302,12 @@ export default function Discover() {
                 x: exitDirection === 'left' ? -500 : exitDirection === 'right' ? 500 : undefined,
                 rotate: exitDirection === 'left' ? -30 : exitDirection === 'right' ? 30 : undefined,
               }}
-              exit={{ 
-                scale: 0.8, 
+              exit={{
+                scale: 0.8,
                 opacity: 0,
                 transition: { duration: 0.2 }
               }}
-              transition={{ 
+              transition={{
                 type: "spring",
                 stiffness: 300,
                 damping: 25,
@@ -319,18 +319,21 @@ export default function Discover() {
                 <img
                   src={profilePhoto}
                   alt={currentProfile.display_name || 'Perfil'}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                   className="w-full h-full object-cover pointer-events-none select-none"
                   draggable={false}
                 />
 
                 {/* Like tint overlay */}
-                <motion.div 
+                <motion.div
                   className="absolute inset-0 bg-green-500 pointer-events-none"
                   style={{ opacity: likeTint }}
                 />
-                
+
                 {/* Nope tint overlay */}
-                <motion.div 
+                <motion.div
                   className="absolute inset-0 bg-red-500 pointer-events-none"
                   style={{ opacity: nopeTint }}
                 />
@@ -371,17 +374,17 @@ export default function Discover() {
                 {/* Dynamic swipe indicators - appear during drag */}
                 <motion.div
                   className="absolute top-10 left-6 border-4 border-green-500 text-green-500 px-4 py-2 rounded-lg font-bold text-2xl -rotate-12 pointer-events-none"
-                  style={{ 
+                  style={{
                     opacity: likeOpacity,
                     scale: likeScale,
                   }}
                 >
                   CURTIR
                 </motion.div>
-                
+
                 <motion.div
                   className="absolute top-10 right-6 border-4 border-red-500 text-red-500 px-4 py-2 rounded-lg font-bold text-2xl rotate-12 pointer-events-none"
-                  style={{ 
+                  style={{
                     opacity: nopeOpacity,
                     scale: nopeScale,
                   }}

@@ -114,6 +114,8 @@ export default function Matches() {
                     <img
                       src={match.profile.photos[0] || match.profile.avatar_url}
                       alt={match.profile.display_name}
+                      loading="eager"
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -129,7 +131,7 @@ export default function Matches() {
           <div>
             <h2 className="font-semibold mb-3">Todos os Matches</h2>
             <div className="space-y-2">
-              {matches.map((match) => (
+              {matches.map((match, index) => (
                 <Link
                   key={match.id}
                   to={`/app/chat/${match.id}`}
@@ -139,6 +141,8 @@ export default function Matches() {
                     <img
                       src={match.profile.photos[0] || match.profile.avatar_url}
                       alt={match.profile.display_name}
+                      loading={index < 6 ? "eager" : "lazy"}
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                   </div>

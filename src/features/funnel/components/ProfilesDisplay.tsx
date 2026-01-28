@@ -149,6 +149,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                       <p className="text-[10px] text-white/50 font-bold uppercase tracking-[0.2em] mb-1">Privado</p>
                       <button
                         onClick={onViewPlans}
+                        onMouseEnter={() => import('@/features/funnel/pages/Plans')}
                         className="bg-white/10 border border-white/20 px-4 py-2 rounded-xl text-white text-xs font-bold hover:bg-white/20 transition-all"
                       >
                         Desbloquear
@@ -194,6 +195,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
 
           <button
             onClick={onViewPlans}
+            onMouseEnter={() => import('@/features/funnel/pages/Plans')}
             className="group relative w-full bg-gradient-to-r from-teal-500 to-amber-500 text-white rounded-2xl py-5 px-8 font-bold text-lg shadow-[0_20px_50px_rgba(20,184,166,0.3)] hover:shadow-[0_20px_50px_rgba(20,184,166,0.5)] transition-all duration-300 overflow-hidden"
           >
             {/* Animated Shine Effect */}
