@@ -190,10 +190,10 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
           <div className="space-y-6 w-full mt-12 fade-in-fast">
             <div className="text-center space-y-3 mb-2">
               <div
-                className="inline-flex items-center gap-2 bg-[#fcd34d]/20 backdrop-blur-md px-5 py-1.5 rounded-full border border-[#fcd34d]/40 mb-2 shadow-[0_0_15px_rgba(252,211,77,0.1)]"
+                className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-1 rounded-full border border-white/10 mb-2"
               >
-                <span className="text-[#fcd34d] text-[13px] font-black tracking-widest">
-                  {currentIndex + 1} / {BASE_QUESTIONS.length}
+                <span className="text-white/60 text-[11px] font-bold tracking-[0.2em]">
+                  <span className="text-[#fcd34d]/80">{currentIndex + 1}</span> / {BASE_QUESTIONS.length}
                 </span>
               </div>
               <h2 className="text-3xl md:text-5xl font-serif font-bold text-white leading-tight drop-shadow-2xl px-2">
