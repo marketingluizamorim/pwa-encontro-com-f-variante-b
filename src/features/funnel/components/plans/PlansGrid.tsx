@@ -100,7 +100,7 @@ export function PlansGrid({ onSelectPlan }: PlansGridProps) {
           <motion.div
             initial={{ y: 5, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="relative inline-flex items-center gap-3 bg-gradient-to-r from-amber-500/10 to-amber-900/10 backdrop-blur-md rounded-full px-6 py-2 border border-amber-500/20 shadow-[0_0_15px_rgba(251,191,36,0.1)] hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all duration-300"
+            className="relative inline-flex items-center gap-3 bg-black/30 backdrop-blur-md rounded-full px-6 py-2 border border-white/10 shadow-xl hover:bg-black/40 transition-all duration-300"
           >
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
@@ -120,7 +120,7 @@ export function PlansGrid({ onSelectPlan }: PlansGridProps) {
       </motion.div>
 
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-16 pt-6">
         {PLANS.map((plan, index) => (
           <PlanCard
             key={plan.id}

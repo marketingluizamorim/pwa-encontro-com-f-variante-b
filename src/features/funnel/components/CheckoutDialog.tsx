@@ -203,7 +203,7 @@ export function CheckoutDialog({
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 pb-48">
+          <form onSubmit={handleSubmit} className="space-y-4 pb-40">
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-white/90 pl-1 text-sm font-medium">Nome completo</Label>
               <Input
@@ -211,7 +211,7 @@ export function CheckoutDialog({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Digite seu nome completo..."
-                className={`bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-[#fcd34d] focus:ring-1 focus:ring-[#fcd34d] h-14 rounded-xl backdrop-blur-md transition-all text-base ${errors.name ? 'border-red-500/50 focus:border-red-500' : ''}`}
+                className={`bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-[#fcd34d] focus:ring-1 focus:ring-[#fcd34d] h-14 rounded-xl backdrop-blur-md transition-all text-sm ${errors.name ? 'border-red-500/50 focus:border-red-500' : ''}`}
               />
               {errors.name && <p className="text-xs text-red-400 pl-1">{errors.name}</p>}
             </div>
@@ -224,7 +224,7 @@ export function CheckoutDialog({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                className={`bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-[#fcd34d] focus:ring-1 focus:ring-[#fcd34d] h-14 rounded-xl backdrop-blur-md transition-all text-base ${errors.email ? 'border-red-500/50 focus:border-red-500' : ''}`}
+                className={`bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-[#fcd34d] focus:ring-1 focus:ring-[#fcd34d] h-14 rounded-xl backdrop-blur-md transition-all text-sm ${errors.email ? 'border-red-500/50 focus:border-red-500' : ''}`}
               />
               {errors.email && <p className="text-xs text-red-400 pl-1">{errors.email}</p>}
             </div>
@@ -232,7 +232,7 @@ export function CheckoutDialog({
             <div className="space-y-1.5">
               <Label htmlFor="phone" className="text-white/90 pl-1 text-sm font-medium">Telefone</Label>
               <div className="flex">
-                <span className="inline-flex items-center px-4 bg-white/10 border border-r-0 border-white/20 rounded-l-xl text-base text-white/80 font-medium h-14">
+                <span className="inline-flex items-center px-4 bg-white/10 border border-r-0 border-white/20 rounded-l-xl text-sm text-white/80 font-medium h-14">
                   +55
                 </span>
                 <Input
@@ -240,7 +240,7 @@ export function CheckoutDialog({
                   value={phone}
                   onChange={handlePhoneChange}
                   placeholder="(00) 00000-0000"
-                  className={`rounded-l-none bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-[#fcd34d] focus:ring-1 focus:ring-[#fcd34d] h-14 rounded-r-xl backdrop-blur-md transition-all text-base ${errors.phone ? 'border-red-500/50 focus:border-red-500' : ''}`}
+                  className={`rounded-l-none bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-[#fcd34d] focus:ring-1 focus:ring-[#fcd34d] h-14 rounded-r-xl backdrop-blur-md transition-all text-sm ${errors.phone ? 'border-red-500/50 focus:border-red-500' : ''}`}
                   maxLength={15}
                 />
               </div>
@@ -252,8 +252,8 @@ export function CheckoutDialog({
         {/* Footer (Fixed) */}
         <div className="p-3 bg-[#0f172a] border-t border-white/10 absolute bottom-0 left-0 right-0 z-20">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-white/80 font-medium text-base">Total:</span>
-            <span className="text-3xl font-sans font-bold text-[#fcd34d] drop-shadow-md">R$ {planPrice.toFixed(2).replace('.', ',')}</span>
+            <span className="text-white/80 font-medium text-sm">Total:</span>
+            <span className="text-xl font-sans font-bold text-[#fcd34d] drop-shadow-md">R$ {planPrice.toFixed(2).replace('.', ',')}</span>
           </div>
           <Button
             onClick={handleSubmit}

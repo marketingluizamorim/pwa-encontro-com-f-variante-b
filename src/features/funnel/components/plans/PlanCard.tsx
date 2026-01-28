@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, ChevronsDown } from 'lucide-react';
 
 interface Plan {
   id: string;
@@ -38,7 +38,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
       bg: 'bg-[#1e293b]/60 border-white/5',
       badge: 'bg-white/5 text-white/40',
       glow: 'opacity-0',
-      button: 'bg-white/5 text-white hover:bg-white/10 border-white/10',
+      button: 'bg-white/10 text-white hover:bg-white/20 border border-white/20',
       check: 'text-white/40 border-white/10'
     },
     monthly: {
@@ -65,7 +65,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
 
   return (
     <div
-      className="relative w-full h-full fade-in-fast"
+      className={`relative w-full h-full fade-in-fast ${plan.popular ? 'mt-2' : ''}`}
       style={{ animationDelay: `${index * 100}ms` }}
     >
       {/* Popular Badge - Premium Design */}
@@ -139,6 +139,26 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
           </Button>
         </div>
       </div>
+
+      {/* Next Plan Indicator (Ultra-Wide, High-Contrast Guidance) */}
+      {(plan.id === 'weekly' || plan.id === 'monthly') && (
+        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none w-full">
+          <svg
+            viewBox="0 0 48 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-32 h-14 text-white/35 transition-opacity drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]"
+          >
+            <path
+              d="M4 6L24 16L44 6M4 12L24 22L44 12"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      )}
     </div>
   );
 }
