@@ -95,24 +95,24 @@ export function PlansGrid({ onSelectPlan }: PlansGridProps) {
           Acesso completo à maior comunidade do Brasil.
         </p>
 
-        {/* Countdown Timer - Gold Glass Premium */}
+        {/* Countdown Timer - Crystal Premium Design */}
         <div className="relative inline-block">
           <motion.div
             initial={{ y: 5, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="relative inline-flex items-center gap-3 bg-black/30 backdrop-blur-md rounded-full px-6 py-2 border border-white/10 shadow-xl hover:bg-black/40 transition-all duration-300"
+            className="relative inline-flex items-center gap-3 bg-white/[0.03] backdrop-blur-md rounded-full px-4 py-1.5 border border-white/10 transition-all duration-300 hover:bg-white/[0.08]"
           >
             <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-40"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500/80"></span>
               </span>
-              <span className="text-amber-100/90 text-xs font-bold tracking-wider uppercase">Oferta Exclusiva</span>
+              <span className="text-white/50 text-[10px] font-bold tracking-[0.15em] uppercase">Oferta Exclusiva</span>
             </div>
 
-            <div className="w-px h-4 bg-amber-500/20" />
+            <div className="w-px h-3 bg-white/10" />
 
-            <span className="text-[#fcd34d] font-serif font-black text-lg leading-none tracking-wide drop-shadow-sm">
+            <span className="text-[#fcd34d] font-sans font-bold text-[15px] leading-none tabular-nums drop-shadow-[0_0_8px_rgba(252,211,77,0.2)]">
               {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
             </span>
           </motion.div>
