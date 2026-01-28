@@ -5,8 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { AppLayout } from "@/components/app/AppLayout";
-import SplashScreen from "@/components/app/SplashScreen";
+import { AppLayout } from "@/features/discovery/components/AppLayout";
+import SplashScreen from "@/features/discovery/components/SplashScreen";
 import { useSplashScreen } from "@/hooks/useSplashScreen";
 
 // Public pages
@@ -23,27 +23,29 @@ import TermosDeUso from "./pages/legal/TermosDeUso";
 import PoliticaDeReembolso from "./pages/legal/PoliticaDeReembolso";
 
 // Funnel V1 pages
-import WelcomeV1 from "./pages/funnel/v1/Welcome";
-import GenderV1 from "./pages/funnel/v1/Gender";
-import QuizV1 from "./pages/funnel/v1/Quiz";
-import ProfilesV1 from "./pages/funnel/v1/Profiles";
-import PlansV1 from "./pages/funnel/v1/Plans";
 
-// Protected app pages
-import Discover from "./pages/app/Discover";
-import Matches from "./pages/app/Matches";
-import Chat from "./pages/app/Chat";
-import ChatRoom from "./pages/app/ChatRoom";
-import Profile from "./pages/app/Profile";
-import ProfileSetup from "./pages/app/ProfileSetup";
-import ProfileEdit from "./pages/app/ProfileEdit";
-import Onboarding from "./pages/app/Onboarding";
-import Settings from "./pages/app/Settings";
+import GenderV1 from "@/features/funnel/pages/Gender";
+import QuizV1 from "@/features/funnel/pages/Quiz";
+import AnalysisV1 from "@/features/funnel/pages/Analysis";
+import ProfilesV1 from "@/features/funnel/pages/Profiles";
+import PlansV1 from "@/features/funnel/pages/Plans";
+
+// Protected app pages (Discovery)
+import Discover from "@/features/discovery/pages/Discover";
+import Matches from "@/features/discovery/pages/Matches";
+import Chat from "@/features/discovery/pages/Chat";
+import ChatRoom from "@/features/discovery/pages/ChatRoom";
+import Profile from "@/features/discovery/pages/Profile";
+import ProfileSetup from "@/features/discovery/pages/ProfileSetup";
+import ProfileEdit from "@/features/discovery/pages/ProfileEdit";
+import Onboarding from "@/features/discovery/pages/Onboarding";
+import Settings from "@/features/discovery/pages/Settings";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const { showSplash, completeSplash } = useSplashScreen();
+  console.log("AppContent rendering, showSplash:", showSplash);
 
   return (
     <>
@@ -55,9 +57,10 @@ const AppContent = () => {
             <Route path="/" element={<Landing />} />
 
             {/* Funnel V1 routes */}
-            <Route path="/v1" element={<WelcomeV1 />} />
+            <Route path="/v1" element={<Landing />} />
             <Route path="/v1/genero" element={<GenderV1 />} />
-            <Route path="/v1/quiz" element={<QuizV1 />} />
+            <Route path="/v1/quiz/:step?" element={<QuizV1 />} />
+            <Route path="/v1/analise" element={<AnalysisV1 />} />
             <Route path="/v1/perfis" element={<ProfilesV1 />} />
             <Route path="/v1/planos" element={<PlansV1 />} />
 

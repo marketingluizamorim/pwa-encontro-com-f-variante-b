@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import type { DiscoverFiltersState } from '@/components/app/DiscoverFilters';
+import type { DiscoverFiltersState } from '@/features/discovery/components/DiscoverFilters';
 
 const PAGE_SIZE = 10;
 
