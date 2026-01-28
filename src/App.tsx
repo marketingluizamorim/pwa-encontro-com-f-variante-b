@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -8,40 +9,50 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppLayout } from "@/features/discovery/components/AppLayout";
 import SplashScreen from "@/features/discovery/components/SplashScreen";
 import { useSplashScreen } from "@/hooks/useSplashScreen";
+import { Loader2 } from "lucide-react";
 
-// Public pages
-import Landing from "./pages/public/Landing";
-import Install from "./pages/public/Install";
-import NotFound from "./pages/public/NotFound";
+// Lazy load public pages
+const Landing = lazy(() => import("./pages/public/Landing"));
+const Install = lazy(() => import("./pages/public/Install"));
+const NotFound = lazy(() => import("./pages/public/NotFound"));
 
-// Auth pages
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
+// Lazy load auth pages
+const Login = lazy(() => import("./pages/auth/Login"));
+const Register = lazy(() => import("./pages/auth/Register"));
 
-// Legal pages
-import TermosDeUso from "./pages/legal/TermosDeUso";
-import PoliticaDeReembolso from "./pages/legal/PoliticaDeReembolso";
+// Lazy load legal pages
+const TermosDeUso = lazy(() => import("./pages/legal/TermosDeUso"));
+const PoliticaDeReembolso = lazy(() => import("./pages/legal/PoliticaDeReembolso"));
 
-// Funnel V1 pages
+// Lazy load Funnel V1 pages
+const GenderV1 = lazy(() => import("@/features/funnel/pages/Gender"));
+const QuizV1 = lazy(() => import("@/features/funnel/pages/Quiz"));
+const AnalysisV1 = lazy(() => import("@/features/funnel/pages/Analysis"));
+const ProfilesV1 = lazy(() => import("@/features/funnel/pages/Profiles"));
+const PlansV1 = lazy(() => import("@/features/funnel/pages/Plans"));
 
-import GenderV1 from "@/features/funnel/pages/Gender";
-import QuizV1 from "@/features/funnel/pages/Quiz";
-import AnalysisV1 from "@/features/funnel/pages/Analysis";
-import ProfilesV1 from "@/features/funnel/pages/Profiles";
-import PlansV1 from "@/features/funnel/pages/Plans";
-
-// Protected app pages (Discovery)
-import Discover from "@/features/discovery/pages/Discover";
-import Matches from "@/features/discovery/pages/Matches";
-import Chat from "@/features/discovery/pages/Chat";
-import ChatRoom from "@/features/discovery/pages/ChatRoom";
-import Profile from "@/features/discovery/pages/Profile";
-import ProfileSetup from "@/features/discovery/pages/ProfileSetup";
-import ProfileEdit from "@/features/discovery/pages/ProfileEdit";
-import Onboarding from "@/features/discovery/pages/Onboarding";
-import Settings from "@/features/discovery/pages/Settings";
+// Lazy load protected app pages (Discovery)
+const Discover = lazy(() => import("@/features/discovery/pages/Discover"));
+const Matches = lazy(() => import("@/features/discovery/pages/Matches"));
+const Chat = lazy(() => import("@/features/discovery/pages/Chat"));
+const ChatRoom = lazy(() => import("@/features/discovery/pages/ChatRoom"));
+const Profile = lazy(() => import("@/features/discovery/pages/Profile"));
+const ProfileSetup = lazy(() => import("@/features/discovery/pages/ProfileSetup"));
+const ProfileEdit = lazy(() => import("@/features/discovery/pages/ProfileEdit"));
+const Onboarding = lazy(() => import("@/features/discovery/pages/Onboarding"));
+const Settings = lazy(() => import("@/features/discovery/pages/Settings"));
 
 const queryClient = new QueryClient();
+
+// Loading Fallback Component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex flex-col items-center gap-4">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <p className="text-sm text-muted-foreground animate-pulse">Carregando...</p>
+    </div>
+  </div>
+);
 
 const AppContent = () => {
   const { showSplash, completeSplash } = useSplashScreen();
@@ -52,84 +63,86 @@ const AppContent = () => {
       {showSplash && <SplashScreen onComplete={completeSplash} />}
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            {/* Root redirect */}
-            <Route path="/" element={<Landing />} />
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              {/* Root redirect */}
+              <Route path="/" element={<Landing />} />
 
-            {/* Funnel V1 routes */}
-            <Route path="/v1" element={<Landing />} />
-            <Route path="/v1/genero" element={<GenderV1 />} />
-            <Route path="/v1/quiz/:step?" element={<QuizV1 />} />
-            <Route path="/v1/analise" element={<AnalysisV1 />} />
-            <Route path="/v1/perfis" element={<ProfilesV1 />} />
-            <Route path="/v1/planos" element={<PlansV1 />} />
+              {/* Funnel V1 routes */}
+              <Route path="/v1" element={<Landing />} />
+              <Route path="/v1/genero" element={<GenderV1 />} />
+              <Route path="/v1/quiz/:step?" element={<QuizV1 />} />
+              <Route path="/v1/analise" element={<AnalysisV1 />} />
+              <Route path="/v1/perfis" element={<ProfilesV1 />} />
+              <Route path="/v1/planos" element={<PlansV1 />} />
 
-            {/* Public routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/install" element={<Install />} />
-            <Route path="/termos-de-uso" element={<TermosDeUso />} />
-            <Route path="/politica-de-reembolso" element={<PoliticaDeReembolso />} />
+              {/* Public routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/install" element={<Install />} />
+              <Route path="/termos-de-uso" element={<TermosDeUso />} />
+              <Route path="/politica-de-reembolso" element={<PoliticaDeReembolso />} />
 
-            {/* Protected app routes */}
-            <Route
-              path="/app"
-              element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="discover" element={<Discover />} />
-              <Route path="matches" element={<Matches />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="chat/:matchId" element={<ChatRoom />} />
-              <Route path="profile" element={<Profile />} />
-            </Route>
+              {/* Protected app routes */}
+              <Route
+                path="/app"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="discover" element={<Discover />} />
+                <Route path="matches" element={<Matches />} />
+                <Route path="chat" element={<Chat />} />
+                <Route path="chat/:matchId" element={<ChatRoom />} />
+                <Route path="profile" element={<Profile />} />
+              </Route>
 
-            {/* Onboarding (protected but different layout) */}
-            <Route
-              path="/app/onboarding"
-              element={
-                <ProtectedRoute>
-                  <Onboarding />
-                </ProtectedRoute>
-              }
-            />
+              {/* Onboarding (protected but different layout) */}
+              <Route
+                path="/app/onboarding"
+                element={
+                  <ProtectedRoute>
+                    <Onboarding />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Settings (protected but different layout) */}
-            <Route
-              path="/app/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
+              {/* Settings (protected but different layout) */}
+              <Route
+                path="/app/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Profile edit (protected but different layout) */}
-            <Route
-              path="/app/profile/edit"
-              element={
-                <ProtectedRoute>
-                  <ProfileEdit />
-                </ProtectedRoute>
-              }
-            />
+              {/* Profile edit (protected but different layout) */}
+              <Route
+                path="/app/profile/edit"
+                element={
+                  <ProtectedRoute>
+                    <ProfileEdit />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Profile setup (protected but different layout) */}
-            <Route
-              path="/app/profile/setup"
-              element={
-                <ProtectedRoute>
-                  <ProfileSetup />
-                </ProtectedRoute>
-              }
-            />
+              {/* Profile setup (protected but different layout) */}
+              <Route
+                path="/app/profile/setup"
+                element={
+                  <ProtectedRoute>
+                    <ProfileSetup />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Catch-all */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* Catch-all */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </>

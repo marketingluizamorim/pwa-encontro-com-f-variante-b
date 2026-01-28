@@ -82,6 +82,9 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                   <img
                     src={profile.photo}
                     alt={profile.name}
+                    loading={index < 4 ? "eager" : "lazy"}
+                    decoding="async"
+                    fetchPriority={index < 2 ? "high" : "auto"}
                     className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!profile.unlocked ? 'blur-sm grayscale-0 opacity-60 brightness-75' : ''}`}
                   />
 
