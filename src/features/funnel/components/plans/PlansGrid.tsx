@@ -60,12 +60,12 @@ interface PlansGridProps {
 }
 
 export function PlansGrid({ onSelectPlan }: PlansGridProps) {
-  const [timeLeft, setTimeLeft] = useState(10 * 60); // 10 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(7 * 60 + 53); // 07:53 in seconds
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 0) return 10 * 60; // Reset to 10 minutes
+        if (prev <= 0) return 7 * 60 + 53; // Reset to 07:53
         return prev - 1;
       });
     }, 1000);
