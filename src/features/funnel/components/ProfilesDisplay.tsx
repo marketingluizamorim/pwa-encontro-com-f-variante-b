@@ -62,7 +62,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-white/70 text-sm md:text-base leading-relaxed whitespace-nowrap"
+            className="text-white/70 text-sm md:text-base leading-relaxed whitespace-nowrap text-center w-full"
           >
             Essas pessoas compartilham valores semelhantes.
           </motion.p>
