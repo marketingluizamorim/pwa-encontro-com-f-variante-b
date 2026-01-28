@@ -60,14 +60,27 @@ const getMalePhotosByAge = (age: string | undefined): string[] => {
     }
 };
 
+const SHORT_INTEREST_MAP: Record<string, string> = {
+    'Um compromisso sério': 'NAMORO',
+    'Construir uma família': 'CASAR',
+    'Conhecer pessoas novas': 'AMIZADE',
+    'Amizade verdadeira': 'AMIZADE',
+    'Já sou pai/mãe': 'COM FILHOS',
+    'Desejo ter filhos': 'QUER FILHOS',
+    'Talvez no futuro': 'TALVEZ',
+    'Não pretendo ter': 'SEM FILHOS',
+};
+
 const generateMatchingInterests = (quizAnswers: QuizAnswers, _profileIndex: number): string[] => {
     const interests: string[] = [];
-    if (quizAnswers.religion) interests.push(quizAnswers.religion);
-    if (quizAnswers.lookingFor) interests.push(quizAnswers.lookingFor);
+    if (quizAnswers.religion) interests.push(quizAnswers.religion.toUpperCase());
+    if (quizAnswers.lookingFor) {
+        interests.push(SHORT_INTEREST_MAP[quizAnswers.lookingFor] || quizAnswers.lookingFor.toUpperCase());
+    }
     if (interests.length < 3) {
         const fallback = quizAnswers.religion === 'Evangélica'
-            ? ['Louvor', 'Célula', 'Bíblia']
-            : ['Família', 'Oração', 'Fé', 'Jesus'];
+            ? ['LOUVOR', 'CÉLULA', 'BÍBLIA']
+            : ['FAMÍLIA', 'ORAÇÃO', 'FÉ', 'JESUS'];
         interests.push(fallback[_profileIndex % fallback.length]);
     }
     return Array.from(new Set(interests)).slice(0, 2);

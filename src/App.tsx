@@ -11,8 +11,15 @@ import SplashScreen from "@/features/discovery/components/SplashScreen";
 import { useSplashScreen } from "@/hooks/useSplashScreen";
 import { Loader2 } from "lucide-react";
 
-// Lazy load public pages
-const Landing = lazy(() => import("./pages/public/Landing"));
+// Static imports for critical path (Performance)
+import Landing from "./pages/public/Landing";
+import GenderV1 from "@/features/funnel/pages/Gender";
+import QuizV1 from "@/features/funnel/pages/Quiz";
+import AnalysisV1 from "@/features/funnel/pages/Analysis";
+import ProfilesV1 from "@/features/funnel/pages/Profiles";
+import PlansV1 from "@/features/funnel/pages/Plans";
+
+// Lazy load secondary public pages
 const Install = lazy(() => import("./pages/public/Install"));
 const NotFound = lazy(() => import("./pages/public/NotFound"));
 
@@ -24,12 +31,7 @@ const Register = lazy(() => import("./pages/auth/Register"));
 const TermosDeUso = lazy(() => import("./pages/legal/TermosDeUso"));
 const PoliticaDeReembolso = lazy(() => import("./pages/legal/PoliticaDeReembolso"));
 
-// Lazy load Funnel V1 pages
-const GenderV1 = lazy(() => import("@/features/funnel/pages/Gender"));
-const QuizV1 = lazy(() => import("@/features/funnel/pages/Quiz"));
-const AnalysisV1 = lazy(() => import("@/features/funnel/pages/Analysis"));
-const ProfilesV1 = lazy(() => import("@/features/funnel/pages/Profiles"));
-const PlansV1 = lazy(() => import("@/features/funnel/pages/Plans"));
+
 
 // Lazy load protected app pages (Discovery)
 const Discover = lazy(() => import("@/features/discovery/pages/Discover"));

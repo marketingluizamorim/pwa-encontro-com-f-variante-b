@@ -99,7 +99,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                     <div className="flex flex-col gap-2">
                       <div className="bg-amber-400 text-[#1e3a8a] px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg font-bold text-[10px] uppercase tracking-wider">
                         <Heart className="w-3 h-3 fill-current" />
-                        98% Match
+                        98%
                       </div>
                     </div>
                   ) : (
