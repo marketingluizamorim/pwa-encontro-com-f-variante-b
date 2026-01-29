@@ -255,19 +255,19 @@ export function PixPaymentDialog({
               </Button>
             </div>
 
-            {/* Payment Not Found Overlay (View Swap) */}
+            {/* Payment Not Found Bubble */}
             {showPaymentNotFound && (
-              <div className="absolute inset-0 z-50 bg-[#0f172a] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
-                <div className="w-full max-w-xs space-y-6">
-                  <DialogTitle className="font-serif text-2xl font-bold text-white tracking-tight leading-tight">
-                    Pagamento não identificado
-                  </DialogTitle>
-                  <p className="text-white/70 text-sm leading-relaxed">
-                    Ainda não identificamos seu pagamento. Aguarde alguns instantes e tente novamente.
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] max-w-[280px] z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] text-center ring-1 ring-white/5">
+                  <h3 className="text-white font-serif font-bold text-lg mb-2">
+                    Pagamento não encontrado
+                  </h3>
+                  <p className="text-white/70 text-xs leading-relaxed mb-4">
+                    O banco ainda não confirmou a transação. Aguarde alguns instantes.
                   </p>
                   <Button
                     onClick={() => setShowPaymentNotFound(false)}
-                    className="w-full h-14 rounded-2xl gradient-button text-[#0f172a] font-bold text-sm uppercase tracking-wider shadow-lg active:scale-95 transition-all"
+                    className="w-full h-10 rounded-xl gradient-button text-[#0f172a] font-bold text-xs uppercase tracking-wide shadow-lg active:scale-95 transition-all"
                   >
                     Entendi
                   </Button>
