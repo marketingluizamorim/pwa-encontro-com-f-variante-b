@@ -137,7 +137,15 @@ export function PixPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2.5rem] bg-[#0f172a]/95 backdrop-blur-3xl border-white/10 text-white shadow-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden top-[5%] translate-y-0">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2.5rem] bg-[#0f172a]/95 backdrop-blur-3xl border-white/10 text-white shadow-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden top-[5%] translate-y-0 selection:bg-amber-500/30">
+        {/* Close Button - Absolutely positioned top right */}
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute top-5 right-5 p-2 text-white/40 hover:text-white transition-colors z-50 rounded-full hover:bg-white/10"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6 scrollbar-hide">
           <DialogHeader className="mb-4">
             <DialogTitle className="font-serif text-center text-2xl font-bold text-white tracking-tight drop-shadow-sm">
@@ -194,16 +202,10 @@ export function PixPaymentDialog({
 
             {/* PIX Code */}
             <div className="space-y-2 mt-2 px-1">
-              <div className="flex justify-between items-end px-1">
+              <div className="flex justify-center items-end px-1">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center">
                   Ou copie o código:
                 </p>
-                <button
-                  onClick={() => onOpenChange(false)}
-                  className="p-1.5 -mr-1 text-white/40 hover:text-white/80 transition-colors rounded-full hover:bg-white/5"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
               </div>
               <div className="relative group">
                 <textarea
@@ -252,23 +254,25 @@ export function PixPaymentDialog({
               </Button>
             </div>
 
-            {/* Payment Not Found Modal/Alert inside Dialog */}
-            <Dialog open={showPaymentNotFound} onOpenChange={setShowPaymentNotFound}>
-              <DialogContent className="max-w-xs rounded-2xl bg-[#0f172a] border border-white/10 text-center p-6">
-                <DialogHeader>
-                  <DialogTitle className="text-white text-lg font-bold mb-2">Pagamento não identificado</DialogTitle>
-                </DialogHeader>
-                <p className="text-white/70 text-sm mb-4">
-                  Ainda não identificamos seu pagamento. Aguarde alguns instantes e tente novamente.
-                </p>
-                <Button
-                  onClick={() => setShowPaymentNotFound(false)}
-                  className="w-full rounded-xl gradient-button text-[#0f172a] font-bold"
-                >
-                  Entendi
-                </Button>
-              </DialogContent>
-            </Dialog>
+            {/* Payment Not Found Overlay (View Swap) */}
+            {showPaymentNotFound && (
+              <div className="absolute inset-0 z-50 bg-[#0f172a] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+                <div className="w-full max-w-xs space-y-6">
+                  <DialogTitle className="font-serif text-2xl font-bold text-white tracking-tight leading-tight">
+                    Pagamento não identificado
+                  </DialogTitle>
+                  <p className="text-white/70 text-sm leading-relaxed">
+                    Ainda não identificamos seu pagamento. Aguarde alguns instantes e tente novamente.
+                  </p>
+                  <Button
+                    onClick={() => setShowPaymentNotFound(false)}
+                    className="w-full h-14 rounded-2xl gradient-button text-[#0f172a] font-bold text-sm uppercase tracking-wider shadow-lg active:scale-95 transition-all"
+                  >
+                    Entendi
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Timer */}
             <div className="flex justify-center items-center gap-2">
