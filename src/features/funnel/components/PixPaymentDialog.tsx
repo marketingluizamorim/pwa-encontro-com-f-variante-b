@@ -132,20 +132,20 @@ export function PixPaymentDialog({
             </div>
 
             {/* Instructions Card */}
-            <div className="rounded-2xl bg-white/[0.03] p-4 border border-white/5 backdrop-blur-sm mx-2">
-              <p className="text-sm font-bold text-white mb-2 font-serif tracking-tight text-center">
+            <div className="rounded-2xl bg-white/[0.03] p-5 border border-white/5 backdrop-blur-sm mx-1">
+              <p className="text-sm font-bold text-white mb-4 font-serif tracking-tight">
                 Como finalizar seu pagamento:
               </p>
-              <ol className="text-xs text-white/60 space-y-2 max-w-[240px] mx-auto">
-                <li className="flex gap-2.5 items-center">
+              <ol className="text-xs text-white/70 space-y-3.5">
+                <li className="flex gap-3 items-center whitespace-nowrap">
                   <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20">1</span>
                   <span>Abra o aplicativo do seu banco</span>
                 </li>
-                <li className="flex gap-2.5 items-center">
+                <li className="flex gap-3 items-center whitespace-nowrap">
                   <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20">2</span>
-                  <span className="leading-tight">Selecione PIX <span className="text-white font-semibold">Copia e Cola</span> ou <span className="text-white font-semibold">QR Code</span></span>
+                  <span>Selecione PIX <span className="text-white font-semibold">Copia e Cola</span> ou <span className="text-white font-semibold">QR Code</span></span>
                 </li>
-                <li className="flex gap-2.5 items-center">
+                <li className="flex gap-3 items-center whitespace-nowrap">
                   <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20">3</span>
                   <span>Confirme o pagamento e aguarde</span>
                 </li>
