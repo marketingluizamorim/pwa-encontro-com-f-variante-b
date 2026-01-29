@@ -237,6 +237,8 @@ export function CheckoutDialog({
                 </span>
                 <Input
                   id="phone"
+                  type="tel"
+                  inputMode="numeric"
                   value={phone}
                   onChange={handlePhoneChange}
                   placeholder="(00) 00000-0000"
