@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 
 type Step = 'basics' | 'faith' | 'photos' | 'complete';
@@ -134,11 +134,10 @@ export default function ProfileSetup() {
                       key={option.value}
                       type="button"
                       onClick={() => setGender(option.value as 'male' | 'female')}
-                      className={`p-4 rounded-xl border-2 transition-all ${
-                        gender === option.value
+                      className={`p-4 rounded-xl border-2 transition-all ${gender === option.value
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
-                      }`}
+                        }`}
                     >
                       <i className={`${option.icon} text-2xl mb-1`} />
                       <p className="font-medium">{option.label}</p>
@@ -207,11 +206,10 @@ export default function ProfileSetup() {
                       key={r}
                       type="button"
                       onClick={() => setReligion(r)}
-                      className={`p-3 rounded-xl border-2 transition-all text-left ${
-                        religion === r
+                      className={`p-3 rounded-xl border-2 transition-all text-left ${religion === r
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
-                      }`}
+                        }`}
                     >
                       <p className="font-medium">{r}</p>
                     </button>
@@ -227,11 +225,10 @@ export default function ProfileSetup() {
                       key={freq}
                       type="button"
                       onClick={() => setChurchFrequency(freq)}
-                      className={`w-full p-3 rounded-xl border-2 transition-all text-left ${
-                        churchFrequency === freq
+                      className={`w-full p-3 rounded-xl border-2 transition-all text-left ${churchFrequency === freq
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
-                      }`}
+                        }`}
                     >
                       {freq}
                     </button>
@@ -247,11 +244,10 @@ export default function ProfileSetup() {
                       key={option}
                       type="button"
                       onClick={() => setLookingFor(option)}
-                      className={`p-3 rounded-xl border-2 transition-all text-left ${
-                        lookingFor === option
+                      className={`p-3 rounded-xl border-2 transition-all text-left ${lookingFor === option
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50'
-                      }`}
+                        }`}
                     >
                       {option}
                     </button>
@@ -280,9 +276,8 @@ export default function ProfileSetup() {
               {[0, 1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className={`aspect-[3/4] rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors ${
-                    i === 0 ? 'col-span-2 row-span-2' : ''
-                  }`}
+                  className={`aspect-[3/4] rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors ${i === 0 ? 'col-span-2 row-span-2' : ''
+                    }`}
                 >
                   <div className="text-center">
                     <i className="ri-add-line text-2xl text-muted-foreground" />
@@ -333,11 +328,10 @@ export default function ProfileSetup() {
             {['basics', 'faith', 'photos'].map((s, i) => (
               <div
                 key={s}
-                className={`h-1 flex-1 rounded-full transition-colors ${
-                  ['basics', 'faith', 'photos'].indexOf(step) >= i
+                className={`h-1 flex-1 rounded-full transition-colors ${['basics', 'faith', 'photos'].indexOf(step) >= i
                     ? 'bg-primary'
                     : 'bg-muted'
-                }`}
+                  }`}
               />
             ))}
           </div>

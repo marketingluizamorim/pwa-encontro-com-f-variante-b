@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { SlideTransition } from '@/features/discovery/components/PageTransition';
 import { TypingIndicator } from '@/features/discovery/components/TypingIndicator';
@@ -70,7 +70,7 @@ export default function ChatRoom() {
     const fetchData = async () => {
       setLoading(true);
 
-       const { supabase } = await import('@/integrations/supabase/client');
+      const { supabase } = await import('@/integrations/supabase/client');
 
       // Fetch match to get the other user's ID
       const { data: match, error: matchError } = await supabase
@@ -169,7 +169,7 @@ export default function ChatRoom() {
             // Play notification if from other user
             if (newMsg.sender_id !== user?.id) {
               playNotification('message');
-              
+
               supabase
                 .from('messages')
                 .update({ is_read: true, read_at: new Date().toISOString() })
@@ -412,8 +412,8 @@ export default function ChatRoom() {
                         >
                           <span>{formatTime(message.created_at)}</span>
                           {isOwn && (
-                            <MessageStatus 
-                              isRead={message.is_read} 
+                            <MessageStatus
+                              isRead={message.is_read}
                               isSending={message.id.startsWith('temp-')}
                             />
                           )}
@@ -427,11 +427,11 @@ export default function ChatRoom() {
           ))
         )}
         <div ref={messagesEndRef} />
-        
+
         {/* Typing indicator */}
-        <TypingIndicator 
-          isTyping={isOtherUserTyping} 
-          userName={matchProfile?.display_name} 
+        <TypingIndicator
+          isTyping={isOtherUserTyping}
+          userName={matchProfile?.display_name}
         />
       </div>
 

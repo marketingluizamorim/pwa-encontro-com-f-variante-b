@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PhotoUpload } from '@/features/discovery/components/PhotoUpload';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 
@@ -78,7 +78,7 @@ export default function ProfileEdit() {
         .single();
 
       if (error) throw error;
-      
+
       setProfile({
         display_name: data.display_name || '',
         bio: data.bio || '',
@@ -99,7 +99,7 @@ export default function ProfileEdit() {
 
   const handleSave = async () => {
     if (!user) return;
-    
+
     if (!profile.display_name.trim()) {
       toast.error('Nome é obrigatório');
       return;
@@ -109,7 +109,7 @@ export default function ProfileEdit() {
 
     try {
       const { supabase } = await import('@/integrations/supabase/client');
-      
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -187,7 +187,7 @@ export default function ProfileEdit() {
         {/* Basic Info */}
         <section className="bg-card rounded-xl p-4 border border-border space-y-4">
           <h2 className="font-display font-semibold text-foreground">Informações Básicas</h2>
-          
+
           <div>
             <label className="text-sm text-muted-foreground mb-1 block">Nome</label>
             <Input
@@ -240,7 +240,7 @@ export default function ProfileEdit() {
         {/* Faith Info */}
         <section className="bg-card rounded-xl p-4 border border-border space-y-4">
           <h2 className="font-display font-semibold text-foreground">Fé e Religião</h2>
-          
+
           <div>
             <label className="text-sm text-muted-foreground mb-1 block">Religião</label>
             <Select value={profile.religion} onValueChange={(v) => updateField('religion', v)}>
@@ -273,7 +273,7 @@ export default function ProfileEdit() {
         {/* Preferences */}
         <section className="bg-card rounded-xl p-4 border border-border space-y-4">
           <h2 className="font-display font-semibold text-foreground">Preferências</h2>
-          
+
           <div>
             <label className="text-sm text-muted-foreground mb-1 block">Procurando</label>
             <Select value={profile.looking_for} onValueChange={(v) => updateField('looking_for', v)}>

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSoundSettings } from '@/hooks/useSoundSettings';
 import { toast } from 'sonner';
 import { ChevronLeft, Volume2, VolumeX, Eye, EyeOff, Bell, BellOff, Shield, Trash2, LogOut } from 'lucide-react';
@@ -30,13 +30,13 @@ export default function Settings() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isMuted, toggleMute } = useSoundSettings();
-  
+
   const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
     showOnlineStatus: true,
     showLastActive: true,
     showDistance: true,
   });
-  
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -46,7 +46,7 @@ export default function Settings() {
     if (savedPrivacy) {
       setPrivacySettings(JSON.parse(savedPrivacy));
     }
-    
+
     const savedNotifications = localStorage.getItem(`notifications_enabled_${user?.id}`);
     if (savedNotifications !== null) {
       setNotificationsEnabled(savedNotifications === 'true');
@@ -71,13 +71,13 @@ export default function Settings() {
     setSaving(true);
     try {
       const { supabase } = await import('@/integrations/supabase/client');
-      
+
       // Mark profile as inactive
       await supabase
         .from('profiles')
         .update({ is_active: false })
         .eq('user_id', user?.id);
-      
+
       toast.success('Conta desativada. Você pode reativá-la fazendo login novamente.');
       await signOut();
       navigate('/');
@@ -93,11 +93,11 @@ export default function Settings() {
     navigate('/login');
   };
 
-  const SettingRow = ({ 
-    icon: Icon, 
-    title, 
-    description, 
-    checked, 
+  const SettingRow = ({
+    icon: Icon,
+    title,
+    description,
+    checked,
     onCheckedChange,
     iconColor = 'text-primary'
   }: {
@@ -178,7 +178,7 @@ export default function Settings() {
             <Shield className="w-5 h-5" />
             Privacidade
           </h2>
-          
+
           <SettingRow
             icon={privacySettings.showOnlineStatus ? Eye : EyeOff}
             title="Mostrar status online"
@@ -186,9 +186,9 @@ export default function Settings() {
             checked={privacySettings.showOnlineStatus}
             onCheckedChange={(checked) => updatePrivacySetting('showOnlineStatus', checked)}
           />
-          
+
           <Separator />
-          
+
           <SettingRow
             icon={privacySettings.showLastActive ? Eye : EyeOff}
             title="Mostrar última atividade"
@@ -196,9 +196,9 @@ export default function Settings() {
             checked={privacySettings.showLastActive}
             onCheckedChange={(checked) => updatePrivacySetting('showLastActive', checked)}
           />
-          
+
           <Separator />
-          
+
           <SettingRow
             icon={privacySettings.showDistance ? Eye : EyeOff}
             title="Mostrar distância"
@@ -214,7 +214,7 @@ export default function Settings() {
             <i className="ri-user-settings-line text-lg" />
             Conta
           </h2>
-          
+
           <Button
             variant="outline"
             className="w-full justify-start gap-3"
@@ -223,7 +223,7 @@ export default function Settings() {
             <LogOut className="w-5 h-5" />
             Sair da conta
           </Button>
-          
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button

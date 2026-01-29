@@ -4,11 +4,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/hooks/useAuth";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AuthProvider } from "@/features/auth/hooks/useAuth";
+import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { AppLayout } from "@/features/discovery/components/AppLayout";
 import SplashScreen from "@/features/discovery/components/SplashScreen";
-import { useSplashScreen } from "@/hooks/useSplashScreen";
+import { useSplashScreen } from "@/features/discovery/hooks/useSplashScreen";
 import { Loader2 } from "lucide-react";
 
 // Static imports for critical path (Performance)
@@ -25,8 +25,8 @@ const Construction = lazy(() => import("./pages/public/Construction"));
 const NotFound = lazy(() => import("./pages/public/NotFound"));
 
 // Lazy load auth pages
-const Login = lazy(() => import("./pages/auth/Login"));
-const Register = lazy(() => import("./pages/auth/Register"));
+const Login = lazy(() => import("@/features/auth/pages/Login"));
+const Register = lazy(() => import("@/features/auth/pages/Register"));
 
 // Lazy load legal pages
 const TermosDeUso = lazy(() => import("./pages/legal/TermosDeUso"));

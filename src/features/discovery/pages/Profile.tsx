@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { ProfileSkeleton } from '@/features/discovery/components/SkeletonLoaders';

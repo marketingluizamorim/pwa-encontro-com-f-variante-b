@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { ChatListSkeleton } from '@/features/discovery/components/SkeletonLoaders';
 import { PullToRefresh } from '@/features/discovery/components/PullToRefresh';
@@ -148,11 +148,10 @@ export default function Chat() {
                   </div>
                   {conv.last_message && (
                     <p
-                      className={`text-sm truncate ${
-                        !conv.last_message.is_read && conv.last_message.sender_id !== user?.id
+                      className={`text-sm truncate ${!conv.last_message.is_read && conv.last_message.sender_id !== user?.id
                           ? 'text-foreground font-medium'
                           : 'text-muted-foreground'
-                      }`}
+                        }`}
                     >
                       {conv.last_message.sender_id === user?.id && (
                         <span className="text-muted-foreground">Você: </span>

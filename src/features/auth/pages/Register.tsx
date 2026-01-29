@@ -1,32 +1,52 @@
-import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 
-export default function Login() {
+export default function Register() {
+  const [searchParams] = useSearchParams();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/app/discover';
+  // Pre-fill from checkout redirect
+  useEffect(() => {
+    const emailParam = searchParams.get('email');
+    const nameParam = searchParams.get('name');
+    if (emailParam) setEmail(decodeURIComponent(emailParam));
+    if (nameParam) setName(decodeURIComponent(nameParam));
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast.error('As senhas não conferem');
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    const { error } = await signUp(email, password, name);
 
     if (error) {
-      toast.error(error.message || 'Erro ao fazer login');
+      toast.error(error.message || 'Erro ao criar conta');
       setLoading(false);
     } else {
-      toast.success('Login realizado com sucesso!');
-      navigate(from, { replace: true });
+      toast.success('Conta criada com sucesso!');
+      // New users go to onboarding first
+      navigate('/app/onboarding', { replace: true });
     }
   };
 
@@ -38,13 +58,25 @@ export default function Login() {
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <i className="ri-hearts-fill text-4xl text-white" />
           </div>
-          <h1 className="font-display text-3xl text-white font-bold">Encontro com Fé</h1>
-          <p className="text-white/80 mt-2">Faça login para continuar</p>
+          <h1 className="font-display text-3xl text-white font-bold">Crie sua conta</h1>
+          <p className="text-white/80 mt-2">E encontre seu par ideal</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="glass rounded-2xl p-6 space-y-4">
+            <div>
+              <label className="text-white/90 text-sm mb-1 block">Nome</label>
+              <Input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Seu nome"
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                required
+              />
+            </div>
+
             <div>
               <label className="text-white/90 text-sm mb-1 block">E-mail</label>
               <Input
@@ -63,7 +95,19 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Mínimo 6 caracteres"
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-white/90 text-sm mb-1 block">Confirmar Senha</label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repita a senha"
                 className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
                 required
               />
@@ -77,20 +121,17 @@ export default function Login() {
               {loading ? (
                 <i className="ri-loader-4-line animate-spin mr-2" />
               ) : null}
-              Entrar
+              Criar Conta
             </Button>
           </div>
         </form>
 
         {/* Links */}
-        <div className="text-center mt-6 space-y-2">
-          <Link to="/forgot-password" className="text-white/80 hover:text-white text-sm block">
-            Esqueceu sua senha?
-          </Link>
+        <div className="text-center mt-6">
           <p className="text-white/80 text-sm">
-            Não tem uma conta?{' '}
-            <Link to="/register" className="text-white font-semibold hover:underline">
-              Cadastre-se
+            Já tem uma conta?{' '}
+            <Link to="/login" className="text-white font-semibold hover:underline">
+              Faça login
             </Link>
           </p>
         </div>

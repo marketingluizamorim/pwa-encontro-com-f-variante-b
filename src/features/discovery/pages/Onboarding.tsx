@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Heart, Users, MessageCircle, Shield, ChevronRight, ChevronLeft } from 'lucide-react';
-import { useOnboarding } from '@/hooks/useOnboarding';
+import { useOnboarding } from '@/features/discovery/hooks/useOnboarding';
 
 interface Slide {
   id: number;
@@ -64,22 +64,22 @@ const slideVariants = {
 
 const iconVariants = {
   initial: { scale: 0, rotate: -180 },
-  animate: { 
-    scale: 1, 
+  animate: {
+    scale: 1,
     rotate: 0,
-    transition: { 
-      type: "spring" as const, 
-      stiffness: 200, 
+    transition: {
+      type: "spring" as const,
+      stiffness: 200,
       damping: 15,
-      delay: 0.2 
+      delay: 0.2
     }
   }
 };
 
 const textVariants = {
   initial: { opacity: 0, y: 20 },
-  animate: { 
-    opacity: 1, 
+  animate: {
+    opacity: 1,
     y: 0,
     transition: { delay: 0.4, duration: 0.5 }
   }
@@ -158,7 +158,7 @@ export default function Onboarding() {
           >
             {/* Background gradient */}
             <div className={`absolute inset-0 bg-gradient-to-b ${slides[currentSlide].gradient} pointer-events-none`} />
-            
+
             {/* Content */}
             <div className="relative z-10 text-center max-w-sm">
               {/* Animated icon */}
@@ -196,11 +196,10 @@ export default function Onboarding() {
           {slides.map((_, index) => (
             <motion.div
               key={index}
-              className={`h-2 rounded-full transition-colors ${
-                index === currentSlide 
-                  ? 'bg-primary w-8' 
+              className={`h-2 rounded-full transition-colors ${index === currentSlide
+                  ? 'bg-primary w-8'
                   : 'bg-muted w-2'
-              }`}
+                }`}
               animate={{
                 width: index === currentSlide ? 32 : 8
               }}

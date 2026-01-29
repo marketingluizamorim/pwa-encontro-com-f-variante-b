@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { MatchesListSkeleton } from '@/features/discovery/components/SkeletonLoaders';
 import { PullToRefresh } from '@/features/discovery/components/PullToRefresh';

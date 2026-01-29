@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import DiscoverFilters, { DiscoverFiltersState } from '@/features/discovery/components/DiscoverFilters';
-import { useDiscoverProfiles, useSwipeMutation, Profile } from '@/hooks/useDiscoverProfiles';
+import { useDiscoverProfiles, useSwipeMutation, Profile } from '@/features/discovery/hooks/useDiscoverProfiles';
 import { triggerHaptic } from '@/lib/haptics';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { DiscoverSkeleton } from '@/features/discovery/components/SkeletonLoaders';

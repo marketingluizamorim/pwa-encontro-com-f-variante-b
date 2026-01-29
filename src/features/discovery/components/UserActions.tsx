@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { Shield, Ban, AlertTriangle, Loader2 } from 'lucide-react';
 
@@ -83,10 +83,10 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
       toast.success('Denúncia enviada', {
         description: 'Nossa equipe irá analisar e tomar as providências.',
       });
-      
+
       onOpenChange(false);
       onReported?.();
-      
+
       // Reset form
       setReason('');
       setDescription('');
