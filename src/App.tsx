@@ -21,6 +21,7 @@ import PlansV1 from "@/features/funnel/pages/Plans";
 
 // Lazy load secondary public pages
 const Install = lazy(() => import("./pages/public/Install"));
+const Construction = lazy(() => import("./pages/public/Construction"));
 const NotFound = lazy(() => import("./pages/public/NotFound"));
 
 // Lazy load auth pages
@@ -68,7 +69,7 @@ const AppContent = () => {
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               {/* Root redirect */}
-              <Route path="/" element={<Landing />} />
+              <Route path="/" element={<Construction />} />
 
               {/* Funnel V1 routes */}
               <Route path="/v1" element={<Landing />} />
