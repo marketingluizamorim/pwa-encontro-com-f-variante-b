@@ -50,29 +50,30 @@ export function PixPaymentDialog({
     }
   };
 
-  const handleCheckPayment = useCallback(async () => {
-    if (retryCooldown > 0) return;
+  const checkPayment = useCallback(async (isManual: boolean = false) => {
+    if (isManual && retryCooldown > 0) return;
 
-    setIsChecking(true);
+    if (isManual) setIsChecking(true);
+
     try {
-      // Simulate API delay for UX (minimum 1s) to show "Buscando..."
-      const [status] = await Promise.all([
-        checkPaymentStatus(),
-        new Promise(resolve => setTimeout(resolve, 1500))
-      ]);
+      // If manual, we want a minimum delay for UX. If auto, we don't care about delay.
+      const statusPromise = checkPaymentStatus();
+      const delayPromise = isManual ? new Promise(resolve => setTimeout(resolve, 1500)) : Promise.resolve();
+
+      const [status] = await Promise.all([statusPromise, delayPromise]);
 
       if (status === 'PAID') {
         onPaymentConfirmed();
-      } else {
-        // Show not found modal and start cooldown
+      } else if (isManual) {
+        // Only show error if manual check
         setShowPaymentNotFound(true);
         setRetryCooldown(CHECK_INTERVALS[0]);
       }
     } catch (error) {
       console.error('Error checking payment:', error);
-      toast.error('Erro ao verificar pagamento');
+      if (isManual) toast.error('Erro ao verificar pagamento');
     } finally {
-      setIsChecking(false);
+      if (isManual) setIsChecking(false);
     }
   }, [checkPaymentStatus, onPaymentConfirmed, retryCooldown]);
 
@@ -115,12 +116,12 @@ export function PixPaymentDialog({
     const currentInterval = CHECK_INTERVALS[Math.min(checkCount, CHECK_INTERVALS.length - 1)];
 
     const checkTimer = setTimeout(() => {
-      handleCheckPayment();
+      checkPayment(false);
       setCheckCount((prev) => prev + 1);
     }, currentInterval * 1000);
 
     return () => clearTimeout(checkTimer);
-  }, [open, paymentId, checkCount, handleCheckPayment]);
+  }, [open, paymentId, checkCount, checkPayment]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -237,7 +238,7 @@ export function PixPaymentDialog({
               </Button>
 
               <Button
-                onClick={handleCheckPayment}
+                onClick={() => checkPayment(true)}
                 disabled={isChecking || retryCooldown > 0}
                 className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 text-xs uppercase font-bold tracking-widest transition-all"
               >
