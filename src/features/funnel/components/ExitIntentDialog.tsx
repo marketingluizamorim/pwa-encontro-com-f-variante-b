@@ -101,7 +101,7 @@ export function ExitIntentDialog({
             <span className="text-white/60 text-xs">por apenas</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-4xl font-serif font-bold text-[#fcd34d] drop-shadow-[0_2px_10px_rgba(252,211,77,0.3)]">R$ 9,90</span>
+            <span className="text-4xl font-sans font-bold text-[#fcd34d] drop-shadow-[0_2px_10px_rgba(252,211,77,0.3)]">R$ 9,90</span>
             <span className="text-[10px] font-bold text-[#0f172a] bg-[#fcd34d] px-2 py-0.5 rounded-full shadow-lg shadow-amber-500/20">
               -60% OFF
             </span>
