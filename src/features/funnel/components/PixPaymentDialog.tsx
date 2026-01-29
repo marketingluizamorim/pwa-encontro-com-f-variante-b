@@ -125,45 +125,45 @@ export function PixPaymentDialog({
           <div className="space-y-6">
             {/* Total Amount */}
             <div className="text-center">
-              <p className="text-sm text-white/60 font-medium uppercase tracking-wider">Total a Pagar</p>
-              <p className="text-4xl sm:text-5xl font-serif font-bold text-[#fcd34d] mt-2 drop-shadow-lg">
+              <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">Total a Pagar</p>
+              <p className="text-3xl font-sans font-bold text-[#fcd34d] mt-1 drop-shadow-md">
                 {formatCurrency(totalAmount)}
               </p>
             </div>
 
             {/* Instructions Card */}
-            <div className="rounded-2xl bg-white/[0.03] p-5 border border-white/5 backdrop-blur-sm">
-              <p className="text-base font-bold text-white mb-3 font-serif tracking-tight">
+            <div className="rounded-2xl bg-white/[0.03] p-4 border border-white/5 backdrop-blur-sm mx-2">
+              <p className="text-sm font-bold text-white mb-2 font-serif tracking-tight text-center">
                 Como finalizar seu pagamento:
               </p>
-              <ol className="text-sm text-white/70 space-y-2.5">
-                <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[10px] font-black border border-[#fcd34d]/20">1</span>
+              <ol className="text-xs text-white/60 space-y-2 max-w-[240px] mx-auto">
+                <li className="flex gap-2.5 items-center">
+                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20">1</span>
                   <span>Abra o aplicativo do seu banco</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[10px] font-black border border-[#fcd34d]/20">2</span>
-                  <span>Selecione PIX <span className="text-white font-semibold">Copia e Cola</span> ou <span className="text-white font-semibold">QR Code</span></span>
+                <li className="flex gap-2.5 items-center">
+                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20">2</span>
+                  <span className="leading-tight">Selecione PIX <span className="text-white font-semibold">Copia e Cola</span> ou <span className="text-white font-semibold">QR Code</span></span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[10px] font-black border border-[#fcd34d]/20">3</span>
+                <li className="flex gap-2.5 items-center">
+                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20">3</span>
                   <span>Confirme o pagamento e aguarde</span>
                 </li>
               </ol>
             </div>
 
             {/* QR Code */}
-            <div className="flex justify-center my-4">
-              <div className="p-4 bg-white rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.1)] ring-4 ring-[#fcd34d]/20 transition-transform hover:scale-105 duration-300">
+            <div className="flex justify-center -my-1">
+              <div className="p-3 bg-white rounded-xl shadow-[0_0_30px_rgba(255,255,255,0.05)] ring-2 ring-[#fcd34d]/10">
                 {pixQrCode ? (
                   <img
                     src={pixQrCode}
                     alt="QR Code PIX"
-                    className="w-40 h-40 sm:w-48 sm:h-48 rounded"
+                    className="w-32 h-32 rounded"
                   />
                 ) : (
-                  <div className="w-40 h-40 sm:w-48 sm:h-48 flex items-center justify-center bg-gray-100 rounded">
-                    <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                  <div className="w-32 h-32 flex items-center justify-center bg-gray-100 rounded">
+                    <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
                   </div>
                 )}
               </div>
