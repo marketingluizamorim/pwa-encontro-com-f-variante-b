@@ -37,13 +37,14 @@ export function PixPaymentDialog({
   const [checkCount, setCheckCount] = useState(0);
   const [copied, setCopied] = useState(false);
   const [showPaymentNotFound, setShowPaymentNotFound] = useState(false);
+  const [showCopyInstructions, setShowCopyInstructions] = useState(false);
   const [retryCooldown, setRetryCooldown] = useState(0);
 
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(pixCode);
       setCopied(true);
-      toast.success('Código PIX copiado com sucesso!');
+      setShowCopyInstructions(true);
       setTimeout(() => setCopied(false), 6000);
     } catch {
       toast.error('Erro ao copiar código');
@@ -267,6 +268,31 @@ export function PixPaymentDialog({
                   </p>
                   <Button
                     onClick={() => setShowPaymentNotFound(false)}
+                    className="w-full h-10 rounded-xl gradient-button text-[#0f172a] font-bold text-xs uppercase tracking-wide shadow-lg active:scale-95 transition-all"
+                  >
+                    Entendi
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Copy Instructions Bubble */}
+            {showCopyInstructions && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] max-w-[280px] z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] text-center ring-1 ring-white/5">
+                  <div className="flex justify-center mb-3">
+                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <Check className="w-5 h-5 text-green-500" />
+                    </div>
+                  </div>
+                  <h3 className="text-white font-serif font-bold text-lg mb-2">
+                    Código Copiado!
+                  </h3>
+                  <p className="text-white/70 text-xs leading-relaxed mb-4">
+                    Agora abra o app do seu banco, escolha <strong>Pix Copia e Cola</strong> e cole o código para finalizar.
+                  </p>
+                  <Button
+                    onClick={() => setShowCopyInstructions(false)}
                     className="w-full h-10 rounded-xl gradient-button text-[#0f172a] font-bold text-xs uppercase tracking-wide shadow-lg active:scale-95 transition-all"
                   >
                     Entendi
