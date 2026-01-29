@@ -36,6 +36,8 @@ export function PixPaymentDialog({
   const [isChecking, setIsChecking] = useState(false);
   const [checkCount, setCheckCount] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [showPaymentNotFound, setShowPaymentNotFound] = useState(false);
+  const [retryCooldown, setRetryCooldown] = useState(0);
 
   const copyToClipboard = async () => {
     try {
@@ -49,20 +51,41 @@ export function PixPaymentDialog({
   };
 
   const handleCheckPayment = useCallback(async () => {
+    if (retryCooldown > 0) return;
+
     setIsChecking(true);
     try {
-      const status = await checkPaymentStatus();
+      // Simulate API delay for UX (minimum 1s) to show "Buscando..."
+      const [status] = await Promise.all([
+        checkPaymentStatus(),
+        new Promise(resolve => setTimeout(resolve, 1500))
+      ]);
+
       if (status === 'PAID') {
         onPaymentConfirmed();
-      } else if (status === 'FAILED') {
-        toast.error('Pagamento falhou. Tente novamente.');
+      } else {
+        // Show not found modal and start cooldown
+        setShowPaymentNotFound(true);
+        setRetryCooldown(CHECK_INTERVALS[0]);
       }
     } catch (error) {
       console.error('Error checking payment:', error);
+      toast.error('Erro ao verificar pagamento');
     } finally {
       setIsChecking(false);
     }
-  }, [checkPaymentStatus, onPaymentConfirmed]);
+  }, [checkPaymentStatus, onPaymentConfirmed, retryCooldown]);
+
+  // Handle retry cooldown
+  useEffect(() => {
+    if (retryCooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setRetryCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [retryCooldown]);
 
   // Timer countdown
   useEffect(() => {
@@ -116,13 +139,7 @@ export function PixPaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2.5rem] bg-[#0f172a]/95 backdrop-blur-3xl border-white/10 text-white shadow-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden top-[5%] translate-y-0">
         <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6 scrollbar-hide">
-          <DialogHeader className="mb-4 relative">
-            <button
-              onClick={() => onOpenChange(false)}
-              className="absolute -top-2 -right-2 p-2 text-white/40 hover:text-white transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+          <DialogHeader className="mb-4">
             <DialogTitle className="font-serif text-center text-2xl font-bold text-white tracking-tight drop-shadow-sm">
               PIX Gerado
             </DialogTitle>
@@ -176,10 +193,18 @@ export function PixPaymentDialog({
             </div>
 
             {/* PIX Code */}
-            <div className="space-y-2 mt-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center">
-                Ou copie o código:
-              </p>
+            <div className="space-y-2 mt-2 px-1">
+              <div className="flex justify-between items-end px-1">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center">
+                  Ou copie o código:
+                </p>
+                <button
+                  onClick={() => onOpenChange(false)}
+                  className="p-1.5 -mr-1 text-white/40 hover:text-white/80 transition-colors rounded-full hover:bg-white/5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
               <div className="relative group">
                 <textarea
                   readOnly
@@ -209,22 +234,41 @@ export function PixPaymentDialog({
                 )}
               </Button>
 
-              {/* Verify Payment Button */}
               <Button
                 onClick={handleCheckPayment}
-                disabled={isChecking}
+                disabled={isChecking || retryCooldown > 0}
                 className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 text-xs uppercase font-bold tracking-widest transition-all"
               >
                 {isChecking ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Verificando...
+                    Buscando...
                   </>
+                ) : retryCooldown > 0 ? (
+                  `Tente novamente em ${retryCooldown}s`
                 ) : (
                   'Já realizei o pagamento'
                 )}
               </Button>
             </div>
+
+            {/* Payment Not Found Modal/Alert inside Dialog */}
+            <Dialog open={showPaymentNotFound} onOpenChange={setShowPaymentNotFound}>
+              <DialogContent className="max-w-xs rounded-2xl bg-[#0f172a] border border-white/10 text-center p-6">
+                <DialogHeader>
+                  <DialogTitle className="text-white text-lg font-bold mb-2">Pagamento não identificado</DialogTitle>
+                </DialogHeader>
+                <p className="text-white/70 text-sm mb-4">
+                  Ainda não identificamos seu pagamento. Aguarde alguns instantes e tente novamente.
+                </p>
+                <Button
+                  onClick={() => setShowPaymentNotFound(false)}
+                  className="w-full rounded-xl gradient-button text-[#0f172a] font-bold"
+                >
+                  Entendi
+                </Button>
+              </DialogContent>
+            </Dialog>
 
             {/* Timer */}
             <div className="flex justify-center items-center gap-2">
