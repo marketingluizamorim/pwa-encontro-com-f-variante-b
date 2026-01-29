@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Copy, Check, Loader2 } from 'lucide-react';
+import { Copy, Check, Loader2, X } from 'lucide-react';
 
 interface PixPaymentDialogProps {
   open: boolean;
@@ -41,8 +41,8 @@ export function PixPaymentDialog({
     try {
       await navigator.clipboard.writeText(pixCode);
       setCopied(true);
-      toast.success('Código PIX copiado!');
-      setTimeout(() => setCopied(false), 2000);
+      toast.success('Código PIX copiado com sucesso!');
+      setTimeout(() => setCopied(false), 6000);
     } catch {
       toast.error('Erro ao copiar código');
     }
@@ -116,7 +116,13 @@ export function PixPaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2.5rem] bg-[#0f172a]/95 backdrop-blur-3xl border-white/10 text-white shadow-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden top-[5%] translate-y-0">
         <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6 scrollbar-hide">
-          <DialogHeader className="mb-4">
+          <DialogHeader className="mb-4 relative">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="absolute -top-2 -right-2 p-2 text-white/40 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
             <DialogTitle className="font-serif text-center text-2xl font-bold text-white tracking-tight drop-shadow-sm">
               PIX Gerado
             </DialogTitle>
