@@ -115,18 +115,18 @@ export function PixPaymentDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2.5rem] bg-[#0f172a]/95 backdrop-blur-3xl border-white/10 text-white shadow-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden top-[5%] translate-y-0">
-        <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-8 sm:py-8 scrollbar-hide">
-          <DialogHeader className="mb-6">
-            <DialogTitle className="font-serif text-center text-3xl font-bold text-white tracking-tight drop-shadow-sm">
+        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6 scrollbar-hide">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="font-serif text-center text-2xl font-bold text-white tracking-tight drop-shadow-sm">
               PIX Gerado
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Total Amount */}
             <div className="text-center">
-              <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">Total a Pagar</p>
-              <p className="text-3xl font-sans font-bold text-[#fcd34d] mt-1 drop-shadow-md">
+              <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em]">Total a Pagar</p>
+              <p className="text-2xl font-sans font-bold text-[#fcd34d] mt-0.5 drop-shadow-md">
                 {formatCurrency(totalAmount)}
               </p>
             </div>
@@ -153,17 +153,17 @@ export function PixPaymentDialog({
             </div>
 
             {/* QR Code */}
-            <div className="flex justify-center -my-1">
-              <div className="p-3 bg-white rounded-xl shadow-[0_0_30px_rgba(255,255,255,0.05)] ring-2 ring-[#fcd34d]/10">
+            <div className="flex justify-center -my-2">
+              <div className="p-2.5 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.05)] ring-1 ring-[#fcd34d]/10">
                 {pixQrCode ? (
                   <img
                     src={pixQrCode}
                     alt="QR Code PIX"
-                    className="w-32 h-32 rounded"
+                    className="w-24 h-24 rounded"
                   />
                 ) : (
-                  <div className="w-32 h-32 flex items-center justify-center bg-gray-100 rounded">
-                    <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                  <div className="w-24 h-24 flex items-center justify-center bg-gray-100 rounded">
+                    <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
                   </div>
                 )}
               </div>
