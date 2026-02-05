@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
@@ -23,51 +23,97 @@ interface Conversation {
   };
 }
 
-// Demo conversations
-const DEMO_CONVERSATIONS: Conversation[] = [
-  {
-    id: 'conv-1',
-    match_id: 'match-1',
-    profile: {
-      id: 'profile-1',
-      display_name: 'Maria',
-      photos: ['https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'],
-    },
-    last_message: {
-      content: 'Oi! Vi que você também gosta de música. Qual seu estilo favorito?',
-      created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      is_read: false,
-      sender_id: 'profile-1',
-    },
-  },
-  {
-    id: 'conv-2',
-    match_id: 'match-2',
-    profile: {
-      id: 'profile-2',
-      display_name: 'Ana',
-      photos: ['https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop'],
-    },
-    last_message: {
-      content: 'Foi muito bom conversar com você ontem!',
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      is_read: true,
-      sender_id: 'user-id',
-    },
-  },
-];
-
 export default function Chat() {
   const { user } = useAuth();
-  const [conversations, setConversations] = useState<Conversation[]>(DEMO_CONVERSATIONS);
-  const [loading, setLoading] = useState(false);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleRefresh = useCallback(async () => {
-    // Simulate API call - replace with actual fetch
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // Re-fetch conversations here
+  const fetchConversations = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+
+      // 1. Get Matches
+      const { data: matchesData, error: matchesError } = await supabase
+        .from('matches')
+        .select('id, user1_id, user2_id')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .eq('is_active', true);
+
+      if (matchesError) throw matchesError;
+      if (!matchesData || matchesData.length === 0) {
+        setConversations([]);
+        return;
+      }
+
+      // 2. Get Profiles
+      const otherUserIds = matchesData.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, avatar_url, photos')
+        .in('user_id', otherUserIds);
+
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
+
+      // 3. Get Last Messages
+      const matchesWithMessages = await Promise.all(matchesData.map(async (m) => {
+        const { data: msgs } = await supabase
+          .from('messages')
+          .select('content, created_at, sender_id, is_read')
+          .eq('match_id', m.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        const lastMsg = msgs?.[0];
+        const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
+        const profile = profilesMap.get(otherId);
+
+        if (!profile) return null;
+
+        return {
+          id: 'conv-' + m.id,
+          match_id: m.id,
+          profile: {
+            id: profile.user_id,
+            display_name: profile.display_name || 'Usuário',
+            avatar_url: profile.avatar_url || undefined,
+            photos: profile.photos || []
+          },
+          last_message: lastMsg ? {
+            content: lastMsg.content,
+            created_at: lastMsg.created_at,
+            is_read: lastMsg.is_read,
+            sender_id: lastMsg.sender_id
+          } : undefined
+        };
+      }));
+
+      const validConversations = matchesWithMessages
+        .filter((c): c is Conversation => c !== null)
+        .sort((a, b) => {
+          const timeA = a.last_message?.created_at || '';
+          const timeB = b.last_message?.created_at || '';
+          return timeB.localeCompare(timeA);
+        });
+
+      setConversations(validConversations);
+
+    } catch (error) {
+      console.error('Error loading chats:', error);
+      toast.error('Erro ao carregar conversas');
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchConversations();
+  }, [fetchConversations]);
+
+  const handleRefresh = async () => {
+    await fetchConversations();
     toast.success('Conversas atualizadas');
-  }, []);
+  };
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -110,8 +156,8 @@ export default function Chat() {
 
   return (
     <PageTransition className="h-[calc(100vh-8rem)]">
-      <PullToRefresh onRefresh={handleRefresh} className="h-full -mx-4 -my-4">
-        <div className="space-y-4 px-4 py-4">
+      <PullToRefresh onRefresh={handleRefresh} className="h-full">
+        <div className="space-y-4 px-4 pt-6 pb-24">
           <div>
             <h1 className="font-display text-2xl font-bold">Mensagens</h1>
             <p className="text-muted-foreground text-sm">Suas conversas</p>
@@ -149,8 +195,8 @@ export default function Chat() {
                   {conv.last_message && (
                     <p
                       className={`text-sm truncate ${!conv.last_message.is_read && conv.last_message.sender_id !== user?.id
-                          ? 'text-foreground font-medium'
-                          : 'text-muted-foreground'
+                        ? 'text-foreground font-medium'
+                        : 'text-muted-foreground'
                         }`}
                     >
                       {conv.last_message.sender_id === user?.id && (

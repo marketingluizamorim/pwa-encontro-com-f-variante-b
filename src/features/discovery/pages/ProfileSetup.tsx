@@ -1,371 +1,492 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
+import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
+import { BRAZIL_STATES, BRAZIL_CITIES } from '@/config/brazil-cities';
+import { PhotoUpload } from '@/features/discovery/components/PhotoUpload';
+import { InstallPwaDrawer } from '@/components/pwa/InstallPwaDrawer';
+import { ChevronLeft, Check, AlertCircle, AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type Step = 'basics' | 'faith' | 'photos' | 'complete';
 
-const STATES = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG',
-  'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-];
-
-const RELIGIONS = ['Católica', 'Evangélica', 'Cristã', 'Outra'];
-
-const CHURCH_FREQUENCIES = [
-  'Toda semana',
-  'Algumas vezes por mês',
-  'Ocasionalmente',
-  'Raramente',
-];
-
-const LOOKING_FOR = [
-  'Namoro sério',
-  'Casamento',
-  'Amizade primeiro',
-  'Ainda descobrindo',
-];
+// Constants matching Quiz
+const RELIGIONS = ['Evangélica', 'Católica', 'Protestante', 'Outra'];
+const CHURCH_FREQUENCIES = ['Sim, sou ativo(a)', 'Às vezes', 'Raramente', 'Não frequento'];
+const LOOKING_FOR = ['Um compromisso sério', 'Construir uma família', 'Conhecer pessoas novas', 'Amizade verdadeira'];
+const CHILDREN_OPTIONS = ['Já sou pai/mãe', 'Desejo ter filhos', 'Talvez no futuro', 'Não pretendo ter'];
+const VALUES_OPTIONS = ['Sim, é essencial', 'Muito importante', 'Não é prioridade', 'Indiferente'];
 
 export default function ProfileSetup() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { gender: funnelGender, quizAnswers } = useFunnelStore();
+
   const [step, setStep] = useState<Step>('basics');
   const [saving, setSaving] = useState(false);
+  const [showInstallDrawer, setShowInstallDrawer] = useState(false);
 
-  // Form data
+  // Form Data
   const [birthDate, setBirthDate] = useState('');
-  const [gender, setGender] = useState<'male' | 'female' | ''>('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [bio, setBio] = useState('');
-  const [religion, setReligion] = useState('');
-  const [churchFrequency, setChurchFrequency] = useState('');
-  const [lookingFor, setLookingFor] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | ''>(funnelGender || '');
+  const [city, setCity] = useState(quizAnswers.city || '');
+  const [state, setState] = useState(quizAnswers.state || '');
+  const [occupation, setOccupation] = useState('');
+
+  const [religion, setReligion] = useState(quizAnswers.religion || '');
+  const [churchFrequency, setChurchFrequency] = useState(quizAnswers.churchFrequency || '');
+  const [lookingFor, setLookingFor] = useState(quizAnswers.lookingFor || '');
+  const [aboutChildren, setAboutChildren] = useState(quizAnswers.children || '');
+  const [valuesImportance, setValuesImportance] = useState(quizAnswers.valuesImportance || '');
+
+  const [photos, setPhotos] = useState<(string)[]>([]);
+
+  // Validation State
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [showErrorBanner, setShowErrorBanner] = useState(false);
+
+  // Calculate progress
+  const progress = {
+    basics: 33,
+    faith: 66,
+    photos: 90,
+    complete: 100
+  }[step];
+
+  // Clear errors on change
+  useEffect(() => {
+    if (showErrorBanner) {
+      const timer = setTimeout(() => setShowErrorBanner(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showErrorBanner]);
+
+  const validateBasics = () => {
+    const newErrors: Record<string, boolean> = {};
+    if (!birthDate) newErrors.birthDate = true;
+    if (!gender) newErrors.gender = true;
+    if (!state) newErrors.state = true;
+    if (!city) newErrors.city = true;
+    return newErrors;
+  };
+
+  const validateFaith = () => {
+    const newErrors: Record<string, boolean> = {};
+    if (!religion) newErrors.religion = true;
+    if (!churchFrequency) newErrors.churchFrequency = true;
+    if (!lookingFor) newErrors.lookingFor = true;
+    // Optional ones? Assuming mandatory for now based on user request "todos os outros"
+    if (!aboutChildren) newErrors.aboutChildren = true;
+    if (!valuesImportance) newErrors.valuesImportance = true;
+    return newErrors;
+  };
 
   const handleNext = () => {
+    let newErrors: Record<string, boolean> = {};
+
     if (step === 'basics') {
-      if (!birthDate || !gender || !state) {
-        toast.error('Por favor, preencha todos os campos obrigatórios');
+      newErrors = validateBasics();
+      if (Object.keys(newErrors).length === 0) {
+        setErrors({});
+        setStep('faith');
         return;
       }
-      setStep('faith');
     } else if (step === 'faith') {
-      if (!religion) {
-        toast.error('Por favor, selecione sua religião');
+      newErrors = validateFaith();
+      if (Object.keys(newErrors).length === 0) {
+        setErrors({});
+        setStep('photos');
         return;
       }
-      setStep('photos');
     } else if (step === 'photos') {
-      handleSave();
+      if (photos.length === 0) {
+        newErrors.photos = true;
+      } else {
+        handleSave();
+        return;
+      }
     }
+
+    // If we have errors
+    setErrors(newErrors);
+    setShowErrorBanner(true);
+    // Haptic feedback for error
+    if (window.navigator.vibrate) window.navigator.vibrate(200);
+  };
+
+  const handleBack = () => {
+    setErrors({});
+    setShowErrorBanner(false);
+    if (step === 'faith') setStep('basics');
+    if (step === 'photos') setStep('faith');
   };
 
   const handleSave = async () => {
     setSaving(true);
 
-    try {
-      const { supabase } = await import('@/integrations/supabase/client');
+    // Bypass for Mock/Test Users
+    if (user?.id.startsWith('mock-')) {
+      setTimeout(() => {
+        setSaving(false);
+        setStep('complete');
+        toast.success("Perfil salvo (Modo Teste)");
+      }, 1000);
+      return;
+    }
 
-      const { error } = await supabase
+    try {
+      const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+      const { error } = await supabaseRuntime
         .from('profiles')
         .update({
           birth_date: birthDate,
           gender,
           city,
           state,
-          bio,
+          occupation,
           religion,
           church_frequency: churchFrequency,
           looking_for: lookingFor,
+          about_children: aboutChildren,
+          values_importance: valuesImportance,
+          photos: photos,
+          avatar_url: photos[0] || null,
           is_profile_complete: true,
         })
         .eq('user_id', user?.id);
 
       if (error) throw error;
-
       setStep('complete');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving profile:', error);
-      toast.error('Erro ao salvar perfil. Tente novamente.');
+      toast.error('Erro ao salvar perfil: ' + (error.message || 'Tente novamente'));
     } finally {
       setSaving(false);
     }
   };
 
-  const renderStep = () => {
-    switch (step) {
-      case 'basics':
-        return (
-          <motion.div
-            key="basics"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
-          >
-            <div className="text-center mb-8">
-              <h1 className="font-display text-2xl font-bold">Informações Básicas</h1>
-              <p className="text-muted-foreground">Conte um pouco sobre você</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Data de Nascimento *</label>
-                <Input
-                  type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Gênero *</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { value: 'male', label: 'Homem', icon: 'ri-men-line' },
-                    { value: 'female', label: 'Mulher', icon: 'ri-women-line' },
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setGender(option.value as 'male' | 'female')}
-                      className={`p-4 rounded-xl border-2 transition-all ${gender === option.value
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                        }`}
-                    >
-                      <i className={`${option.icon} text-2xl mb-1`} />
-                      <p className="font-medium">{option.label}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Estado *</label>
-                  <select
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="">Selecione</option>
-                    {STATES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Cidade</label>
-                  <Input
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="Sua cidade"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Sobre você</label>
-                <Textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Conte um pouco sobre você, seus hobbies e o que te faz feliz..."
-                  rows={4}
-                />
-              </div>
-            </div>
-          </motion.div>
-        );
-
-      case 'faith':
-        return (
-          <motion.div
-            key="faith"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
-          >
-            <div className="text-center mb-8">
-              <h1 className="font-display text-2xl font-bold">Sua Fé</h1>
-              <p className="text-muted-foreground">Ajude-nos a encontrar alguém compatível</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Religião *</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {RELIGIONS.map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setReligion(r)}
-                      className={`p-3 rounded-xl border-2 transition-all text-left ${religion === r
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                        }`}
-                    >
-                      <p className="font-medium">{r}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Frequência na igreja</label>
-                <div className="space-y-2">
-                  {CHURCH_FREQUENCIES.map((freq) => (
-                    <button
-                      key={freq}
-                      type="button"
-                      onClick={() => setChurchFrequency(freq)}
-                      className={`w-full p-3 rounded-xl border-2 transition-all text-left ${churchFrequency === freq
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                        }`}
-                    >
-                      {freq}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">O que você busca?</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {LOOKING_FOR.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => setLookingFor(option)}
-                      className={`p-3 rounded-xl border-2 transition-all text-left ${lookingFor === option
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                        }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        );
-
-      case 'photos':
-        return (
-          <motion.div
-            key="photos"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
-          >
-            <div className="text-center mb-8">
-              <h1 className="font-display text-2xl font-bold">Suas Fotos</h1>
-              <p className="text-muted-foreground">Adicione fotos para completar seu perfil</p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className={`aspect-[3/4] rounded-xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors ${i === 0 ? 'col-span-2 row-span-2' : ''
-                    }`}
-                >
-                  <div className="text-center">
-                    <i className="ri-add-line text-2xl text-muted-foreground" />
-                    {i === 0 && <p className="text-xs text-muted-foreground mt-1">Foto principal</p>}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <p className="text-xs text-muted-foreground text-center">
-              Você poderá adicionar fotos depois nas configurações do perfil
-            </p>
-          </motion.div>
-        );
-
-      case 'complete':
-        return (
-          <motion.div
-            key="complete"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-12"
-          >
-            <div className="w-24 h-24 rounded-full gradient-button flex items-center justify-center mx-auto mb-6">
-              <i className="ri-check-line text-4xl text-white" />
-            </div>
-            <h1 className="font-display text-2xl font-bold mb-2">Perfil Criado!</h1>
-            <p className="text-muted-foreground mb-8">
-              Agora você pode começar a encontrar pessoas compatíveis
-            </p>
-            <Button
-              onClick={() => navigate('/app/discover')}
-              className="gradient-button text-white px-8"
-            >
-              Começar a Descobrir
-            </Button>
-          </motion.div>
-        );
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-md mx-auto">
-        {/* Progress */}
+    <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
+      {/* Background Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-20%] left-[-20%] w-[70%] h-[70%] bg-[#14b8a6]/10 rounded-full blur-[100px]" />
+        <div className="absolute bottom-[-20%] right-[-20%] w-[70%] h-[70%] bg-[#d4af37]/5 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="relative z-10 flex-1 flex flex-col max-w-md mx-auto w-full p-6">
+        {/* Header */}
         {step !== 'complete' && (
-          <div className="flex gap-2 mb-8">
-            {['basics', 'faith', 'photos'].map((s, i) => (
-              <div
-                key={s}
-                className={`h-1 flex-1 rounded-full transition-colors ${['basics', 'faith', 'photos'].indexOf(step) >= i
-                    ? 'bg-primary'
-                    : 'bg-muted'
-                  }`}
+          <div className="mb-8 pt-4">
+            <div className="flex items-center justify-between mb-4">
+              {step !== 'basics' ? (
+                <button onClick={handleBack} className="p-2 -ml-2 text-white/50 hover:text-white transition-colors">
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+              ) : <div className="w-6" />}
+
+              <span className="text-xs font-bold tracking-widest text-[#d4af37] uppercase">
+                {step === 'basics' ? 'Básico' : step === 'faith' ? 'Fé & Valores' : 'Fotos'}
+              </span>
+              <div className="w-6" />
+            </div>
+
+            <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+              <motion.div
+                animate={{ width: `${progress}%` }}
+                className="h-full bg-gradient-to-r from-[#d4af37] to-[#fcd34d]"
               />
-            ))}
+            </div>
           </div>
         )}
 
-        <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
-
-        {/* Navigation */}
-        {step !== 'complete' && (
-          <div className="flex gap-3 mt-8">
-            {step !== 'basics' && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (step === 'faith') setStep('basics');
-                  else if (step === 'photos') setStep('faith');
-                }}
-                className="flex-1"
+        {/* Content */}
+        <div className="relative w-full">
+          <AnimatePresence mode="wait">
+            {step === 'basics' && (
+              <motion.div
+                key="basics"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
               >
-                Voltar
-              </Button>
+                <div className="text-center mb-8">
+                  <h1 className="text-3xl font-serif font-bold text-white mb-2">Sobre Você</h1>
+                  <p className="text-white/60 text-sm">Vamos começar pelo essencial</p>
+                </div>
+                {/* ... fields ... */}
+
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.birthDate ? "text-red-400" : "text-white/50")}>
+                      Data de Nascimento {errors.birthDate && "*"}
+                    </label>
+                    <Input
+                      type="date"
+                      value={birthDate}
+                      onChange={(e) => { setBirthDate(e.target.value); delete errors.birthDate; }}
+                      className={cn(
+                        "bg-card text-foreground h-14 text-lg rounded-xl transition-all",
+                        errors.birthDate
+                          ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
+                          : "border-border focus:border-[#d4af37]/50 focus:ring-[#d4af37]/20"
+                      )}
+                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.gender ? "text-red-400" : "text-white/50")}>
+                      Gênero {errors.gender && "*"}
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { value: 'male', label: 'Homem' },
+                        { value: 'female', label: 'Mulher' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => { setGender(opt.value as any); delete errors.gender; }}
+                          className={cn(
+                            "h-14 rounded-xl border transition-all font-medium relative overflow-hidden",
+                            gender === opt.value
+                              ? 'bg-[#d4af37]/20 border-[#d4af37] text-white shadow-[0_0_15px_rgba(212,175,55,0.2)]'
+                              : 'bg-card text-muted-foreground hover:bg-muted',
+                            errors.gender && !gender ? "border-red-500/50 text-red-400" : "border-border"
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.state ? "text-red-400" : "text-white/50")}>
+                        Estado {errors.state && "*"}
+                      </label>
+                      <select
+                        value={state}
+                        onChange={(e) => { setState(e.target.value); setCity(''); delete errors.state; }}
+                        className={cn(
+                          "w-full h-14 bg-card rounded-xl text-foreground px-3 appearance-none focus:outline-none transition-all",
+                          errors.state
+                            ? "border border-red-500/50 focus:border-red-500"
+                            : "border border-border focus:border-[#d4af37]/50"
+                        )}
+                      >
+                        <option value="" className="bg-[#0f172a]">UF</option>
+                        {BRAZIL_STATES.map(s => (
+                          <option key={s} value={s} className="bg-[#0f172a]">{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.city ? "text-red-400" : "text-white/50")}>
+                        Cidade {errors.city && "*"}
+                      </label>
+                      <select
+                        value={city}
+                        onChange={(e) => { setCity(e.target.value); delete errors.city; }}
+                        disabled={!state}
+                        className={cn(
+                          "w-full h-14 bg-card rounded-xl text-foreground px-3 appearance-none disabled:opacity-50 focus:outline-none transition-all",
+                          errors.city
+                            ? "border border-red-500/50 focus:border-red-500"
+                            : "border border-border focus:border-[#d4af37]/50"
+                        )}
+                      >
+                        <option value="" className="bg-[#0f172a]">Cidade</option>
+                        {state && BRAZIL_CITIES[state]?.map(c => (
+                          <option key={c} value={c} className="bg-[#0f172a]">{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+
+                </div>
+              </motion.div>
             )}
+
+            {step === 'faith' && (
+              <motion.div
+                key="faith"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                <div className="text-center mb-6">
+                  <h1 className="text-3xl font-serif font-bold text-white mb-2">Sua Fé e Valores</h1>
+                  <p className="text-white/60 text-sm">O que torna você único(a)?</p>
+                </div>
+
+                <div className="space-y-6">
+                  <SelectGroup
+                    label="Qual o pilar da sua fé?"
+                    value={religion}
+                    onChange={(v) => { setReligion(v); delete errors.religion }}
+                    options={RELIGIONS}
+                    error={errors.religion}
+                  />
+                  <SelectGroup
+                    label="Frequência na igreja"
+                    value={churchFrequency}
+                    onChange={(v) => { setChurchFrequency(v); delete errors.churchFrequency }}
+                    options={CHURCH_FREQUENCIES}
+                    error={errors.churchFrequency}
+                  />
+                  <SelectGroup
+                    label="O que você busca?"
+                    value={lookingFor}
+                    onChange={(v) => { setLookingFor(v); delete errors.lookingFor }}
+                    options={LOOKING_FOR}
+                    error={errors.lookingFor}
+                  />
+                  <SelectGroup
+                    label="Sobre filhos"
+                    value={aboutChildren}
+                    onChange={(v) => { setAboutChildren(v); delete errors.aboutChildren }}
+                    options={CHILDREN_OPTIONS}
+                    error={errors.aboutChildren}
+                  />
+                  <SelectGroup
+                    label="IMPORTÂNCIA DE ENCONTRAR ALGUÉM COM MESMOS VALORES?"
+                    value={valuesImportance}
+                    onChange={(v) => { setValuesImportance(v); delete errors.valuesImportance }}
+                    options={VALUES_OPTIONS}
+                    error={errors.valuesImportance}
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {step === 'photos' && (
+              <motion.div
+                key="photos"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="text-center mb-8">
+                  <h1 className="text-3xl font-serif font-bold text-white mb-2">Suas Melhores Fotos</h1>
+                  <p className="text-white/60 text-sm">A primeira foto será seu cartão de visita</p>
+                </div>
+
+                <div className={cn(
+                  "bg-white/5 border rounded-3xl p-4 shadow-xl transition-all",
+                  errors.photos ? "border-red-500/50 shadow-red-500/10" : "border-white/10"
+                )}>
+                  <PhotoUpload
+                    photos={photos}
+                    onPhotosChange={(p) => { setPhotos(p); if (p.length > 0) delete errors.photos }}
+                    maxPhotos={6}
+                  />
+                </div>
+                {errors.photos && <p className="text-red-400 text-sm text-center">Adicione pelo menos uma foto para continuar</p>}
+              </motion.div>
+            )}
+
+            {step === 'complete' && (
+              <motion.div
+                key="complete"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center justify-center min-h-[50vh] py-12 text-center"
+              >
+                <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-[#d4af37] to-[#fcd34d] p-[3px] mb-8 shadow-[0_0_50px_rgba(212,175,55,0.4)]">
+                  <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center">
+                    <Check className="w-12 h-12 text-[#fcd34d]" />
+                  </div>
+                </div>
+
+                <h1 className="text-4xl font-serif font-bold text-white mb-4">Perfil Criado!</h1>
+                <p className="text-white/70 max-w-xs mx-auto mb-12 leading-relaxed">
+                  Tudo pronto. Agora você faz parte de uma comunidade exclusiva de pessoas que compartilham seus valores.
+                </p>
+
+                <Button
+                  onClick={() => setShowInstallDrawer(true)}
+                  className="w-full h-14 rounded-xl gradient-button text-white font-bold tracking-wide text-lg shadow-lg shadow-amber-500/20"
+                >
+                  Começar a Explorar
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Floating Error Banner - "Below Center" but visually prominent */}
+        <AnimatePresence>
+          {showErrorBanner && Object.keys(errors).length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-24 left-6 right-6 z-50 pointer-events-none"
+            >
+              <div className="bg-red-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-center gap-3 backdrop-blur-md bg-opacity-90 border border-red-400/30">
+                <AlertTriangle size={18} className="fill-white text-red-600" />
+                <span className="font-semibold text-sm">Preencha os campos destacados</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Footer Actions */}
+        {step !== 'complete' && (
+          <div className="py-8 relative z-20">
             <Button
               onClick={handleNext}
               disabled={saving}
-              className="flex-1 gradient-button text-white"
+              className="w-full h-14 rounded-xl gradient-button text-white font-bold tracking-wide text-lg shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all active:scale-[0.98]"
             >
-              {saving ? (
-                <i className="ri-loader-4-line animate-spin mr-2" />
-              ) : null}
-              {step === 'photos' ? 'Finalizar' : 'Continuar'}
+              {saving ? <AlertCircle className="animate-spin" /> : (step === 'photos' ? 'Finalizar Perfil' : 'Continuar')}
             </Button>
           </div>
         )}
+      </div>
+
+      <InstallPwaDrawer
+        open={showInstallDrawer}
+        onOpenChange={setShowInstallDrawer}
+        onComplete={() => navigate('/app/discover')}
+      />
+    </div >
+  );
+}
+
+// Helper Component: Select with Error State
+function SelectGroup({ label, value, onChange, options, error }: { label: string, value: string, onChange: (v: string) => void, options: string[], error?: boolean }) {
+  return (
+    <div className="space-y-2">
+      <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", error ? "text-red-400" : "text-white/50")}>
+        {label} {error && "*"}
+      </label>
+      <div className="grid grid-cols-1 gap-2">
+        {options.map((opt) => (
+          <button
+            key={opt}
+            onClick={() => onChange(opt)}
+            className={cn(
+              "w-full text-left px-5 py-4 rounded-xl border transition-all text-sm font-medium flex items-center justify-between group",
+              value === opt
+                ? 'bg-[#d4af37]/10 border-[#d4af37] text-white'
+                : 'bg-card text-muted-foreground hover:bg-muted',
+              error && value !== opt ? "border-red-500/50" : "border-border"
+            )}
+          >
+            <span>{opt}</span>
+            {value === opt && <Check className="w-4 h-4 text-[#d4af37]" />}
+          </button>
+        ))}
       </div>
     </div>
   );

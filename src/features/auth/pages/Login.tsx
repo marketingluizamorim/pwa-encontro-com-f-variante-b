@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -34,13 +36,32 @@ export default function Login() {
     <div className="min-h-screen gradient-welcome flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <i className="ri-hearts-fill text-4xl text-white" />
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="flex flex-col items-center gap-6 mb-8"
+        >
+          <div className="relative group cursor-pointer">
+            {/* Divine Halo Effect */}
+            <div className="absolute inset-0 bg-[#d4af37]/40 blur-3xl rounded-full scale-150 animate-pulse-slow" style={{ animationDuration: '4s' }} />
+            <div className="relative w-20 h-20 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-white/20 to-black/10 backdrop-blur-3xl flex items-center justify-center border border-white/30 shadow-inner overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-150%] group-hover:animate-shine pointer-events-none" />
+                <Heart className="w-10 h-10 text-white fill-white drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]" />
+              </div>
+            </div>
           </div>
-          <h1 className="font-display text-3xl text-white font-bold">Encontro com Fé</h1>
-          <p className="text-white/80 mt-2">Faça login para continuar</p>
-        </div>
+
+          <div className="text-center space-y-1">
+            <h1 className="text-3xl font-serif text-white font-bold tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]">
+              Encontro <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd34d] to-[#d4af37] drop-shadow-[0_2px_10px_rgba(245,158,11,0.4)]">com Fé</span>
+            </h1>
+            <p className="text-white/90 text-sm font-light tracking-wide drop-shadow-md">
+              Faça login para continuar
+            </p>
+          </div>
+        </motion.div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -86,20 +107,6 @@ export default function Login() {
         <div className="text-center mt-6 space-y-2">
           <Link to="/forgot-password" className="text-white/80 hover:text-white text-sm block">
             Esqueceu sua senha?
-          </Link>
-          <p className="text-white/80 text-sm">
-            Não tem uma conta?{' '}
-            <Link to="/register" className="text-white font-semibold hover:underline">
-              Cadastre-se
-            </Link>
-          </p>
-        </div>
-
-        {/* Back to funnel */}
-        <div className="text-center mt-8">
-          <Link to="/" className="text-white/60 hover:text-white text-sm inline-flex items-center gap-1">
-            <i className="ri-arrow-left-line" />
-            Voltar ao início
           </Link>
         </div>
       </div>

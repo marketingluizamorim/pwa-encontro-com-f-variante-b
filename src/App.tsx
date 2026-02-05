@@ -10,9 +10,10 @@ import { AppLayout } from "@/features/discovery/components/AppLayout";
 import SplashScreen from "@/features/discovery/components/SplashScreen";
 import { useSplashScreen } from "@/features/discovery/hooks/useSplashScreen";
 import { Loader2 } from "lucide-react";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Static imports for critical path (Performance)
-import Landing from "./pages/public/Landing";
+import Landing from "@/features/funnel/pages/Landing";
 import GenderV1 from "@/features/funnel/pages/Gender";
 import QuizV1 from "@/features/funnel/pages/Quiz";
 import AnalysisV1 from "@/features/funnel/pages/Analysis";
@@ -154,11 +155,13 @@ const AppContent = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AppContent />
-    </TooltipProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="theme">
+      <TooltipProvider>
+        <Toaster />
+        <Sonner position="top-center" />
+        <AppContent />
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

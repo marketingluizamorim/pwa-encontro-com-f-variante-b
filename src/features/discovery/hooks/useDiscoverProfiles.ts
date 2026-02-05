@@ -12,6 +12,8 @@ export interface Profile {
   city?: string;
   state?: string;
   religion?: string;
+  church_frequency?: string;
+  christian_interests?: string[];
   bio?: string;
   photos: string[];
   avatar_url?: string;
@@ -55,7 +57,7 @@ async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams
   // Build query with filters
   let query = supabase
     .from('profiles')
-    .select('id, user_id, display_name, birth_date, city, state, religion, bio, photos, avatar_url')
+    .select('id, user_id, display_name, birth_date, city, state, religion, church_frequency, christian_interests, bio, photos, avatar_url')
     .eq('is_active', true)
     .eq('is_profile_complete', true);
 
@@ -85,7 +87,12 @@ async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams
 
   // Apply looking for filter
   if (filters.lookingFor && filters.lookingFor !== 'all') {
-    query = query.eq('looking_for_goals', filters.lookingFor);
+    query = query.eq('looking_for', filters.lookingFor);
+  }
+
+  // Apply christian interests filter
+  if (filters.christianInterests && filters.christianInterests.length > 0) {
+    query = query.overlaps('christian_interests', filters.christianInterests);
   }
 
   // Apply hasPhotos filter

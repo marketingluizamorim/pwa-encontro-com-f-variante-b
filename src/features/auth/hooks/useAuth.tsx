@@ -55,13 +55,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, displayName: string) => {
+
+
     try {
       const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
       const { error } = await supabaseRuntime.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin,
           data: {
             display_name: displayName,
           },
@@ -74,6 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+
+
     try {
       const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
       const { error } = await supabaseRuntime.auth.signInWithPassword({

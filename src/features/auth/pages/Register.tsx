@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
+
+import { Heart, AlertTriangle } from 'lucide-react';
+import { AccountCreatedDialog } from '@/features/auth/components/AccountCreatedDialog';
 
 export default function Register() {
   const [searchParams] = useSearchParams();
@@ -12,7 +16,8 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp } = useAuth();
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const { signUp, signIn } = useAuth();
   const navigate = useNavigate();
 
   // Pre-fill from checkout redirect
@@ -41,26 +46,86 @@ export default function Register() {
     const { error } = await signUp(email, password, name);
 
     if (error) {
-      toast.error(error.message || 'Erro ao criar conta');
+      console.error('Registration error:', error);
+      let errorMessage = error.message || 'Erro ao criar conta';
+
+      // Translate common Supabase errors
+      if (errorMessage.includes('rate limit')) {
+        errorMessage = 'Muitas tentativas recentes. Por favor, aguarde alguns minutos antes de tentar novamente.';
+      } else if (errorMessage.includes('User already registered')) {
+        errorMessage = 'Este e-mail já está cadastrado. Tente fazer login.';
+      }
+
+      toast.error(errorMessage);
       setLoading(false);
     } else {
-      toast.success('Conta criada com sucesso!');
-      // New users go to onboarding first
-      navigate('/app/onboarding', { replace: true });
+      // Account created successfully.
+      // 1. Try to auto-login immediately for better UX
+      const { error: signInError } = await signIn(email, password);
+
+      if (!signInError) {
+        // Ensure profile is created with the provided name
+        try {
+          const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+          const { data: { user } } = await supabaseRuntime.auth.getUser();
+
+          if (user) {
+            await supabaseRuntime.from('profiles').upsert({
+              user_id: user.id,
+              display_name: name,
+              is_profile_complete: false
+            }, { onConflict: 'user_id' });
+          }
+        } catch (err) {
+          console.error('Error creating profile row:', err);
+        }
+
+        // Logged in! Show success dialog which will redirect to onboarding
+        setShowSuccessDialog(true);
+      } else {
+        // Could not auto-login (likely verify email required), but account created.
+        // Still show success, but maybe redirect to login instead?
+        // User requested "popup to proceed creating profile", implying flow continuity.
+        // We will show dialog, and if they click continue, we try ensuring flow.
+        toast.success('Conta criada com sucesso!');
+        setShowSuccessDialog(true);
+      }
+      setLoading(false);
     }
+  };
+
+  const handleContinue = () => {
+    navigate('/app/onboarding', { replace: true });
   };
 
   return (
     <div className="min-h-screen gradient-welcome flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <i className="ri-hearts-fill text-4xl text-white" />
+        {/* Logo */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="flex flex-col items-center gap-6 mb-8"
+        >
+          <div className="relative group cursor-pointer">
+            <div className="absolute inset-0 bg-[#d4af37]/40 blur-3xl rounded-full scale-150 animate-pulse-slow" style={{ animationDuration: '4s' }} />
+            <div className="relative w-20 h-20 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-white/20 to-black/10 backdrop-blur-3xl flex items-center justify-center border border-white/30 shadow-inner overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-150%] group-hover:animate-shine pointer-events-none" />
+                <Heart className="w-10 h-10 text-white fill-white drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]" />
+              </div>
+            </div>
           </div>
-          <h1 className="font-display text-3xl text-white font-bold">Crie sua conta</h1>
-          <p className="text-white/80 mt-2">E encontre seu par ideal</p>
-        </div>
+
+          <div className="text-center">
+            <h1 className="font-serif text-3xl md:text-4xl text-white font-bold tracking-tight drop-shadow-lg">
+              Crie sua conta
+            </h1>
+            <p className="text-white/80 mt-2 font-light">Você está a um passo de encontrar seu par ideal</p>
+          </div>
+        </motion.div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -126,24 +191,25 @@ export default function Register() {
           </div>
         </form>
 
-        {/* Links */}
-        <div className="text-center mt-6">
-          <p className="text-white/80 text-sm">
-            Já tem uma conta?{' '}
-            <Link to="/login" className="text-white font-semibold hover:underline">
-              Faça login
-            </Link>
+        {/* Disclaimer Area */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-6 text-center px-4"
+        >
+          <p className="text-white/40 text-[11px] flex items-center justify-center gap-2 bg-black/20 rounded-full py-1.5 px-4 backdrop-blur-sm inline-flex border border-white/5 mx-auto">
+            <AlertTriangle className="w-3 h-3 text-amber-500/80 shrink-0" />
+            <span>Não saia desta página. Uma cópia do acesso foi enviada ao seu e-mail.</span>
           </p>
-        </div>
-
-        {/* Back to funnel */}
-        <div className="text-center mt-8">
-          <Link to="/" className="text-white/60 hover:text-white text-sm inline-flex items-center gap-1">
-            <i className="ri-arrow-left-line" />
-            Voltar ao início
-          </Link>
-        </div>
+        </motion.div>
       </div>
+
+      <AccountCreatedDialog
+        open={showSuccessDialog}
+        name={name}
+        onContinue={handleContinue}
+      />
     </div>
   );
 }

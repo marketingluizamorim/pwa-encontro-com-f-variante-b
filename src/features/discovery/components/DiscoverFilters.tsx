@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { BRAZIL_CITIES, BRAZIL_STATES } from '@/config/brazil-cities';
 
 export interface DiscoverFiltersState {
   minAge: number;
@@ -18,6 +19,7 @@ export interface DiscoverFiltersState {
   religion: string;
   churchFrequency: string;
   lookingFor: string;
+  christianInterests: string[];
   hasPhotos: boolean;
   isVerified: boolean;
   onlineRecently: boolean;
@@ -27,6 +29,7 @@ interface DiscoverFiltersProps {
   filters: DiscoverFiltersState;
   onFiltersChange: (filters: DiscoverFiltersState) => void;
   onApply: () => void;
+  triggerId?: string;
 }
 
 const RELIGIONS = [
@@ -60,36 +63,16 @@ const LOOKING_FOR_OPTIONS = [
   { value: 'Conhecer pessoas', label: 'Conhecer pessoas' },
 ];
 
-const BRAZILIAN_STATES = [
-  { value: '', label: 'Todos os estados' },
-  { value: 'AC', label: 'Acre' },
-  { value: 'AL', label: 'Alagoas' },
-  { value: 'AP', label: 'Amapá' },
-  { value: 'AM', label: 'Amazonas' },
-  { value: 'BA', label: 'Bahia' },
-  { value: 'CE', label: 'Ceará' },
-  { value: 'DF', label: 'Distrito Federal' },
-  { value: 'ES', label: 'Espírito Santo' },
-  { value: 'GO', label: 'Goiás' },
-  { value: 'MA', label: 'Maranhão' },
-  { value: 'MT', label: 'Mato Grosso' },
-  { value: 'MS', label: 'Mato Grosso do Sul' },
-  { value: 'MG', label: 'Minas Gerais' },
-  { value: 'PA', label: 'Pará' },
-  { value: 'PB', label: 'Paraíba' },
-  { value: 'PR', label: 'Paraná' },
-  { value: 'PE', label: 'Pernambuco' },
-  { value: 'PI', label: 'Piauí' },
-  { value: 'RJ', label: 'Rio de Janeiro' },
-  { value: 'RN', label: 'Rio Grande do Norte' },
-  { value: 'RS', label: 'Rio Grande do Sul' },
-  { value: 'RO', label: 'Rondônia' },
-  { value: 'RR', label: 'Roraima' },
-  { value: 'SC', label: 'Santa Catarina' },
-  { value: 'SP', label: 'São Paulo' },
-  { value: 'SE', label: 'Sergipe' },
-  { value: 'TO', label: 'Tocantins' },
+const CHRISTIAN_INTERESTS_OPTIONS = [
+  'Louvor & Adoração', 'Música Gospel', 'Grupo de Jovens (Célula)', 'Estudo Bíblico',
+  'Retiros & Acampamentos', 'Podcasts Cristãos', 'Conferências', 'Voluntariado',
+  'Missões', 'Evangelismo', 'Devocional Diário', 'Oração / Intercessão',
+  'Leitura Cristã (Livros)', 'Ação Social', 'Liderança', 'Discipulado',
+  'Teologia', 'Mídia / Comunicação', 'Arte Profética', 'Dança / Teatro',
+  'Empreendedorismo Reino', 'Israel / Viagens'
 ];
+
+
 
 const DEFAULT_FILTERS: DiscoverFiltersState = {
   minAge: 18,
@@ -99,14 +82,16 @@ const DEFAULT_FILTERS: DiscoverFiltersState = {
   religion: '',
   churchFrequency: '',
   lookingFor: '',
+  christianInterests: [],
   hasPhotos: false,
   isVerified: false,
   onlineRecently: false,
 };
 
-export default function DiscoverFilters({ filters, onFiltersChange, onApply }: DiscoverFiltersProps) {
+export default function DiscoverFilters({ filters, onFiltersChange, onApply, triggerId }: DiscoverFiltersProps) {
   const [open, setOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState<DiscoverFiltersState>(filters);
+  const [showAllInterests, setShowAllInterests] = useState(false);
 
   const handleAgeChange = (values: number[]) => {
     setLocalFilters((prev) => ({
@@ -135,6 +120,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply }: D
     if (filters.religion) count++;
     if (filters.churchFrequency) count++;
     if (filters.lookingFor) count++;
+    if (filters.christianInterests && filters.christianInterests.length > 0) count++;
     if (filters.hasPhotos) count++;
     if (filters.isVerified) count++;
     if (filters.onlineRecently) count++;
@@ -153,16 +139,16 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply }: D
     </div>
   );
 
-  const ToggleFilter = ({ 
-    label, 
-    description, 
-    checked, 
+  const ToggleFilter = ({
+    label,
+    description,
+    checked,
     onCheckedChange,
     icon
-  }: { 
-    label: string; 
-    description: string; 
-    checked: boolean; 
+  }: {
+    label: string;
+    description: string;
+    checked: boolean;
     onCheckedChange: (checked: boolean) => void;
     icon: string;
   }) => (
@@ -181,7 +167,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply }: D
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
+        <Button variant="outline" size="icon" className="relative" id={triggerId}>
           <i className="ri-equalizer-line text-lg" />
           {activeFiltersCount > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-medium">
@@ -202,7 +188,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply }: D
           </div>
         </SheetHeader>
 
-        <div className="space-y-5 overflow-y-auto max-h-[calc(90vh-180px)] pb-4 pr-1">
+        <div className="space-y-5 overflow-y-auto max-h-[calc(90vh-180px)] px-2 pb-12">
           {/* Age Range */}
           <FilterSection title="Faixa de idade" icon="ri-user-line">
             <div className="px-2 pt-2">
@@ -243,9 +229,10 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply }: D
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] bg-background">
-                    {BRAZILIAN_STATES.map((state) => (
-                      <SelectItem key={state.value || 'all'} value={state.value || 'all'}>
-                        {state.label}
+                    <SelectItem value="all">Todos os estados</SelectItem>
+                    {BRAZIL_STATES.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -253,12 +240,25 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply }: D
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground mb-1.5 block">Cidade</Label>
-                <Input
+                <Select
                   value={localFilters.city}
-                  onChange={(e) => setLocalFilters((prev) => ({ ...prev, city: e.target.value }))}
-                  placeholder="Qualquer cidade"
-                  className="h-10"
-                />
+                  onValueChange={(value) =>
+                    setLocalFilters((prev) => ({ ...prev, city: value === 'all' ? '' : value }))
+                  }
+                  disabled={!localFilters.state}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder={!localFilters.state ? "Selecione um estado" : "Todas"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px] bg-background">
+                    <SelectItem value="all">Todas</SelectItem>
+                    {localFilters.state && BRAZIL_CITIES[localFilters.state]?.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </FilterSection>
@@ -290,7 +290,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply }: D
               </div>
 
               <div>
-                <Label className="text-xs text-muted-foreground mb-1.5 block">Frequência na igreja</Label>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">Frequência na Igreja</Label>
                 <Select
                   value={localFilters.churchFrequency}
                   onValueChange={(value) =>
@@ -300,7 +300,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply }: D
                   <SelectTrigger className="h-10">
                     <SelectValue placeholder="Qualquer frequência" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background">
+                  <SelectContent className="max-h-[200px] bg-background">
                     {CHURCH_FREQUENCIES.map((freq) => (
                       <SelectItem key={freq.value || 'all'} value={freq.value || 'all'}>
                         {freq.label}
@@ -308,6 +308,53 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply }: D
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-3 block">Filtrar por Interesses</Label>
+                <div className="flex flex-wrap gap-2">
+                  {(showAllInterests ? CHRISTIAN_INTERESTS_OPTIONS : CHRISTIAN_INTERESTS_OPTIONS.slice(0, 5)).map(interest => {
+                    const isSelected = localFilters.christianInterests?.includes(interest);
+                    return (
+                      <button
+                        key={interest}
+                        onClick={() => {
+                          const currentInterests = localFilters.christianInterests || [];
+                          const isSelected = currentInterests.includes(interest);
+                          const newInterests = isSelected
+                            ? currentInterests.filter(i => i !== interest)
+                            : [...currentInterests, interest];
+                          setLocalFilters(prev => ({ ...prev, christianInterests: newInterests }));
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-[10px] font-medium border transition-all ${isSelected
+                          ? 'bg-primary/20 border-primary text-primary shadow-sm shadow-primary/10'
+                          : 'bg-muted/50 border-input text-muted-foreground hover:bg-muted'
+                          }`}
+                      >
+                        {interest}
+                      </button>
+                    )
+                  })}
+
+                  {!showAllInterests && (
+                    <button
+                      onClick={() => setShowAllInterests(true)}
+                      className="px-3 py-1.5 rounded-full text-[10px] font-medium border bg-primary/10 border-primary/20 text-primary hover:bg-primary/20 transition-all flex items-center gap-1"
+                    >
+                      <i className="ri-add-line" />
+                      Outros
+                    </button>
+                  )}
+
+                  {showAllInterests && (
+                    <button
+                      onClick={() => setShowAllInterests(false)}
+                      className="w-full py-2 text-[10px] font-medium text-primary hover:underline transition-all text-center mt-2 border-t border-dashed border-primary/20"
+                    >
+                      Ver menos
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </FilterSection>

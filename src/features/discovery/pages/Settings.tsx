@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
   AlertDialog,
@@ -18,12 +19,13 @@ import {
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSoundSettings } from '@/hooks/useSoundSettings';
 import { toast } from 'sonner';
-import { ChevronLeft, Volume2, VolumeX, Eye, EyeOff, Bell, BellOff, Shield, Trash2, LogOut } from 'lucide-react';
+import { ChevronLeft, Volume2, VolumeX, Eye, EyeOff, Bell, BellOff, Shield, Trash2, LogOut, Mail, Key, Lock } from 'lucide-react';
 
 interface PrivacySettings {
   showOnlineStatus: boolean;
   showLastActive: boolean;
   showDistance: boolean;
+  showReadReceipts: boolean;
 }
 
 export default function Settings() {
@@ -35,10 +37,15 @@ export default function Settings() {
     showOnlineStatus: true,
     showLastActive: true,
     showDistance: true,
+    showReadReceipts: true,
   });
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Load settings from localStorage
   useEffect(() => {
@@ -70,10 +77,10 @@ export default function Settings() {
   const handleDeactivateAccount = async () => {
     setSaving(true);
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
+      const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
 
       // Mark profile as inactive
-      await supabase
+      await supabaseRuntime
         .from('profiles')
         .update({ is_active: false })
         .eq('user_id', user?.id);
@@ -91,6 +98,35 @@ export default function Settings() {
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
+  };
+
+  const handlePasswordChange = async () => {
+    if (newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+      const { error } = await supabaseRuntime.auth.updateUser({ password: newPassword });
+
+      if (error) throw error;
+
+      toast.success('Senha atualizada com sucesso!');
+      setShowPasswordDialog(false);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      toast.error('Erro ao atualizar senha: ' + (error.message || 'Tente novamente'));
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const SettingRow = ({
@@ -123,7 +159,7 @@ export default function Settings() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
         <div className="container flex h-14 items-center px-4">
@@ -140,10 +176,97 @@ export default function Settings() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="container px-4 py-6 space-y-6"
+        className="container px-4 py-6 space-y-6 pb-24" // Extra padding for visual breathing
       >
+        {/* Profile & Security */}
+        <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4">
+          <h2 className="font-display font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Lock className="w-5 h-5 text-amber-500" />
+            Perfil & Segurança
+          </h2>
+
+          <div className="space-y-4">
+            {/* Read-only Email Row */}
+            <div className="flex items-center justify-between py-2">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 text-muted-foreground/60">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">E-mail da conta</p>
+                  <p className="text-xs text-muted-foreground">{user?.email}</p>
+                </div>
+              </div>
+              <div className="px-2 py-0.5 rounded-full bg-muted text-[10px] text-muted-foreground font-mono">
+                VERIFICADO
+              </div>
+            </div>
+
+            <Separator className="opacity-50" />
+
+            {/* Change Password Dialog */}
+            <AlertDialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+              <AlertDialogTrigger asChild>
+                <button className="flex items-center justify-between w-full py-2 hover:bg-muted/30 rounded-lg transition-colors group">
+                  <div className="flex items-start gap-3 text-left">
+                    <div className="mt-0.5 text-muted-foreground/60 group-hover:text-primary transition-colors">
+                      <Key className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Alterar Senha</p>
+                      <p className="text-xs text-muted-foreground">Crie uma nova credencial de acesso</p>
+                    </div>
+                  </div>
+                  <i className="ri-arrow-right-s-line text-muted-foreground" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="w-[90vw] max-w-sm rounded-2xl">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Alterar Senha</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Sua nova senha deve conter no mínimo 6 caracteres.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Nova Senha</p>
+                    <Input
+                      type="password"
+                      placeholder="••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="h-10 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Confirmar Nova Senha</p>
+                    <Input
+                      type="password"
+                      placeholder="••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="h-10 rounded-xl"
+                    />
+                  </div>
+                </div>
+                <AlertDialogFooter className="flex flex-col gap-2">
+                  <Button
+                    onClick={handlePasswordChange}
+                    disabled={changingPassword || !newPassword}
+                    className="w-full gradient-button h-11 rounded-xl"
+                  >
+                    {changingPassword ? 'Atualizando...' : 'Confirmar Alteração'}
+                  </Button>
+                  <AlertDialogCancel className="w-full h-11 rounded-xl border-none text-muted-foreground hover:bg-muted">
+                    Agora não
+                  </AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </section>
         {/* Sound Settings */}
-        <section className="bg-card rounded-xl p-4 border border-border">
+        <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10">
           <h2 className="font-display font-semibold text-foreground mb-2 flex items-center gap-2">
             {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
             Sons
@@ -158,7 +281,7 @@ export default function Settings() {
         </section>
 
         {/* Notification Settings */}
-        <section className="bg-card rounded-xl p-4 border border-border">
+        <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10">
           <h2 className="font-display font-semibold text-foreground mb-2 flex items-center gap-2">
             <Bell className="w-5 h-5" />
             Notificações
@@ -173,7 +296,7 @@ export default function Settings() {
         </section>
 
         {/* Privacy Settings */}
-        <section className="bg-card rounded-xl p-4 border border-border">
+        <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10">
           <h2 className="font-display font-semibold text-foreground mb-2 flex items-center gap-2">
             <Shield className="w-5 h-5" />
             Privacidade
@@ -206,23 +329,53 @@ export default function Settings() {
             checked={privacySettings.showDistance}
             onCheckedChange={(checked) => updatePrivacySetting('showDistance', checked)}
           />
+
+          <Separator />
+
+          <SettingRow
+            icon={privacySettings.showReadReceipts ? Eye : EyeOff}
+            title="Confirmação de leitura"
+            description="Permitir que outros saibam quando você visualizou a mensagem"
+            checked={privacySettings.showReadReceipts}
+            onCheckedChange={(checked) => updatePrivacySetting('showReadReceipts', checked)}
+          />
         </section>
 
         {/* Account Actions */}
-        <section className="bg-card rounded-xl p-4 border border-border space-y-3">
+        <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-3">
           <h2 className="font-display font-semibold text-foreground mb-2 flex items-center gap-2">
             <i className="ri-user-settings-line text-lg" />
             Conta
           </h2>
 
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-3"
-            onClick={handleSignOut}
-          >
-            <LogOut className="w-5 h-5" />
-            Sair da conta
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3"
+              >
+                <LogOut className="w-5 h-5" />
+                Sair da conta
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Sair da conta?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Você precisará de suas credenciais para entrar novamente. Tem certeza que deseja sair?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleSignOut}
+                  className="bg-primary text-white hover:bg-primary/90"
+                >
+                  Sair
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <AlertDialog>
             <AlertDialogTrigger asChild>

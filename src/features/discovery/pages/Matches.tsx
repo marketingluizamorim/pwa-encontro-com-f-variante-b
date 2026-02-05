@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
@@ -17,39 +17,86 @@ interface Match {
   };
 }
 
-// Demo matches for initial display
-const DEMO_MATCHES: Match[] = [
-  {
-    id: 'match-1',
-    matched_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    profile: {
-      id: 'profile-1',
-      display_name: 'Maria',
-      photos: ['https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'],
-    },
-  },
-  {
-    id: 'match-2',
-    matched_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    profile: {
-      id: 'profile-2',
-      display_name: 'Ana',
-      photos: ['https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop'],
-    },
-  },
-];
-
 export default function Matches() {
   const { user } = useAuth();
-  const [matches, setMatches] = useState<Match[]>(DEMO_MATCHES);
-  const [loading, setLoading] = useState(false);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleRefresh = useCallback(async () => {
-    // Simulate API call - replace with actual fetch
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // Re-fetch matches here
+  const fetchMatches = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+
+      // 1. Get Matches
+      const { data: matchesData, error: matchesError } = await supabase
+        .from('matches')
+        .select('id, created_at, user1_id, user2_id')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (matchesError) throw matchesError;
+
+      if (!matchesData || matchesData.length === 0) {
+        setMatches([]);
+        return;
+      }
+
+      // 2. Get Profiles
+      const otherUserIds = matchesData.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
+
+      // Only fetch if we have IDs
+      if (otherUserIds.length === 0) {
+        setMatches([]);
+        return;
+      }
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, avatar_url, photos')
+        .in('user_id', otherUserIds);
+
+      if (profilesError) throw profilesError;
+
+      // 3. Map together
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
+
+      const formattedMatches: Match[] = matchesData.map(m => {
+        const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
+        const profile = profilesMap.get(otherId);
+
+        if (!profile) return null;
+
+        return {
+          id: m.id,
+          matched_at: m.created_at,
+          profile: {
+            id: profile.user_id,
+            display_name: profile.display_name || 'Usuário',
+            avatar_url: profile.avatar_url || undefined,
+            photos: profile.photos || []
+          }
+        }
+      }).filter((m): m is Match => m !== null);
+
+      setMatches(formattedMatches);
+
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+      toast.error('Erro ao carregar matches');
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchMatches();
+  }, [fetchMatches]);
+
+  const handleRefresh = async () => {
+    await fetchMatches();
     toast.success('Matches atualizados');
-  }, []);
+  };
 
   const formatMatchTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -90,8 +137,8 @@ export default function Matches() {
 
   return (
     <PageTransition className="h-[calc(100vh-8rem)]">
-      <PullToRefresh onRefresh={handleRefresh} className="h-full -mx-4 -my-4">
-        <div className="space-y-6 px-4 py-4">
+      <PullToRefresh onRefresh={handleRefresh} className="h-full">
+        <div className="space-y-6 px-4 pt-6 pb-24">
           <div>
             <h1 className="font-display text-2xl font-bold">Matches</h1>
             <p className="text-muted-foreground text-sm">Pessoas que também curtiram você</p>

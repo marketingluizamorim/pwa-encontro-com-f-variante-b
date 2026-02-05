@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
-import { Camera, X, Plus, Loader2, GripVertical } from 'lucide-react';
+import { Camera, X, Plus, Loader2, GripVertical, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PhotoUploadProps {
@@ -24,6 +24,12 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
       return null;
     }
 
+    // Bypass for Mock/Test Users
+    if (user.id.startsWith('mock-')) {
+      console.log('Mock upload - returning local URL');
+      return URL.createObjectURL(file);
+    }
+
     // Validate file
     if (!file.type.startsWith('image/')) {
       toast.error('Apenas imagens são permitidas');
@@ -36,31 +42,37 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
     }
 
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
+      const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+
+
 
       // Generate unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
       // Upload to storage
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabaseRuntime.storage
         .from('profile-photos')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false,
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Supabase upload error:', uploadError);
+        throw uploadError;
+      }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = supabaseRuntime.storage
         .from('profile-photos')
         .getPublicUrl(fileName);
 
       return publicUrl;
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Erro ao enviar foto');
+    } catch (error: any) {
+      console.error('Upload error details:', error);
+      const msg = error?.message || 'Erro desconhecido';
+      toast.error(`Erro ao enviar foto: ${msg}. Tente novamente.`);
       return null;
     }
   };
@@ -104,11 +116,11 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
 
     // Extract file path from URL
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
+      const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
       const urlParts = photoUrl.split('/profile-photos/');
       if (urlParts.length > 1) {
         const filePath = urlParts[1];
-        await supabase.storage.from('profile-photos').remove([filePath]);
+        await supabaseRuntime.storage.from('profile-photos').remove([filePath]);
       }
     } catch (error) {
       console.warn('Could not delete from storage:', error);
@@ -130,99 +142,130 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-foreground">Suas fotos</h3>
-        <span className="text-sm text-muted-foreground">
-          {photos.length}/{maxPhotos}
-        </span>
+    <div className="space-y-6 w-full select-none">
+      {/* Main Photo Area */}
+      <div className="flex flex-col items-center w-full">
+        {photos.length > 0 ? (
+          <motion.div
+            key={photos[0]}
+            layoutId="main-photo"
+            className="relative w-full max-w-[280px] aspect-[3/4] rounded-3xl overflow-hidden bg-white/5 border-2 border-[#d4af37] shadow-[0_0_30px_rgba(212,175,55,0.2)] group"
+          >
+            <img
+              src={photos[0]}
+              alt="Foto Principal"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#d4af37] text-black text-[10px] font-bold uppercase tracking-wider shadow-lg z-10">
+              Principal
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-6">
+              <button
+                onClick={() => removePhoto(0)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/90 text-white text-xs font-bold hover:bg-red-600 transition-colors shadow-lg"
+              >
+                <X size={14} /> Remover
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full max-w-[280px] aspect-[3/4] rounded-3xl border-2 border-dashed border-[#d4af37]/30 bg-[#d4af37]/5 flex flex-col items-center justify-center gap-4 hover:bg-[#d4af37]/10 transition-colors group cursor-pointer"
+          >
+            <div className="w-16 h-16 rounded-full bg-[#d4af37]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Camera className="w-8 h-8 text-[#d4af37]" />
+            </div>
+            <div className="text-center">
+              <span className="block text-[#d4af37] font-bold text-sm mb-1 uppercase tracking-wide">Adicionar Principal</span>
+              <span className="text-white/40 text-xs text-center px-4 block">A primeira foto é a mais importante do seu perfil</span>
+            </div>
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        <AnimatePresence mode="popLayout">
-          {photos.map((photo, index) => (
-            <motion.div
-              key={photo}
-              layout
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className={cn(
-                'relative aspect-[3/4] rounded-xl overflow-hidden bg-muted group',
-                index === 0 && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-              )}
-            >
-              <img
-                src={photo}
-                alt={`Foto ${index + 1}`}
-                loading={index === 0 ? "eager" : "lazy"}
-                fetchPriority={index === 0 ? "high" : "auto"}
-                decoding="async"
-                className="w-full h-full object-cover"
-              />
+      <div className="h-px bg-white/10 w-full" />
 
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                <div className="flex gap-2">
-                  {index !== 0 && (
+      {/* Secondary Photos Grid */}
+      <div>
+        <p className="text-xs text-white/40 font-semibold uppercase tracking-wider mb-3">Fotos Adicionais</p>
+        <div className={cn(
+          "grid gap-3 transition-all duration-300 ease-in-out",
+          (() => {
+            const secondaryCount = Math.max(0, photos.length - 1);
+            const showAdd = photos.length < maxPhotos;
+            const totalItems = secondaryCount + (showAdd ? 1 : 0);
+            // Min 3 cols (larger), Max 5 cols (smaller to fit 5)
+            const cols = Math.min(5, Math.max(3, totalItems));
+            return {
+              3: "grid-cols-3",
+              4: "grid-cols-4",
+              5: "grid-cols-5",
+            }[cols];
+          })()
+        )}>
+          <AnimatePresence mode="popLayout">
+            {photos.slice(1).map((photo, i) => {
+              const realIndex = i + 1;
+              return (
+                <motion.div
+                  key={photo}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="relative aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/10 group"
+                >
+                  <img
+                    src={photo}
+                    alt={`Foto ${realIndex + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+
+                  {/* Actions Overlay */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col items-center justify-center gap-2">
                     <button
-                      onClick={() => setAsMain(index)}
-                      className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-foreground hover:bg-white transition-colors"
-                      title="Definir como principal"
+                      onClick={() => setAsMain(realIndex)}
+                      className="w-8 h-8 rounded-full bg-white/20 hover:bg-[#d4af37] flex items-center justify-center text-white transition-colors"
+                      title="Tornar Principal"
                     >
-                      <Camera className="w-4 h-4" />
+                      <Camera size={14} />
                     </button>
-                  )}
-                  <button
-                    onClick={() => removePhoto(index)}
-                    className="w-8 h-8 rounded-full bg-destructive/90 flex items-center justify-center text-white hover:bg-destructive transition-colors"
-                    title="Remover foto"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+                    <button
+                      onClick={() => removePhoto(realIndex)}
+                      className="w-8 h-8 rounded-full bg-white/20 hover:bg-red-500 flex items-center justify-center text-white transition-colors"
+                      title="Remover"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
 
-              {/* Main badge */}
-              {index === 0 && (
-                <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                  Principal
-                </div>
-              )}
-
-              {/* Drag handle */}
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <GripVertical className="w-4 h-4 text-white drop-shadow" />
-              </div>
-            </motion.div>
-          ))}
-
-          {/* Upload button */}
-          {photos.length < maxPhotos && (
-            <motion.button
-              layout
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className={cn(
-                'aspect-[3/4] rounded-xl border-2 border-dashed border-muted-foreground/30',
-                'flex flex-col items-center justify-center gap-2',
-                'hover:border-primary/50 hover:bg-muted/50 transition-colors',
-                'disabled:opacity-50 disabled:cursor-not-allowed'
-              )}
-            >
-              {uploading ? (
-                <Loader2 className="w-6 h-6 text-primary animate-spin" />
-              ) : (
-                <>
-                  <Plus className="w-6 h-6 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Adicionar</span>
-                </>
-              )}
-            </motion.button>
-          )}
-        </AnimatePresence>
+            {/* Small Add Button - Only show if we have a main photo AND less than max */}
+            {photos.length > 0 && photos.length < maxPhotos && (
+              <motion.button
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="aspect-[3/4] rounded-xl border border-dashed border-white/20 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-colors disabled:opacity-50"
+              >
+                {uploading ? (
+                  <Loader2 className="w-5 h-5 text-[#d4af37] animate-spin" />
+                ) : (
+                  <>
+                    <Plus className="w-6 h-6 text-white/30" />
+                    <span className="text-[10px] uppercase font-bold text-white/30">Adicionar</span>
+                  </>
+                )}
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       <input
@@ -233,10 +276,6 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
         onChange={handleFileSelect}
         className="hidden"
       />
-
-      <p className="text-xs text-muted-foreground text-center">
-        A primeira foto será sua foto principal. Toque para reordenar.
-      </p>
     </div>
   );
 }

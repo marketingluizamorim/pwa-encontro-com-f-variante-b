@@ -89,6 +89,17 @@ export default function Plans() {
       const currentOrderBumps = explicitBumps
         || (isSpecialOffer ? { allRegions: true, grupoEvangelico: true, grupoCatolico: true, lifetime: true } : currentBumpsRef.current);
 
+      // --- MOCK PAYMENT FOR FREE TESTING (REQUESTED BY USER) ---
+      // We simulate a successful API response
+      const paymentData = {
+        pixCode: '00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-42661417400052040000530398654040.005802BR5913EncontroComFe6008Brasilia62070503***6304E2CA',
+        qrCodeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Link_pra_pagina_principal_da_Wikipedia-PT_em_codigo_QR_b.svg/1200px-Link_pra_pagina_principal_da_Wikipedia-PT_em_codigo_QR_b.svg.png',
+        paymentId: 'mock-payment-id-' + Date.now(),
+        totalAmount: 0.00 // Free for testing
+      };
+
+      // In real scenario we would call:
+      /*
       const paymentData = await funnelService.createPayment({
         planId,
         planPrice,
@@ -100,11 +111,12 @@ export default function Plans() {
         utmParams: utmParams as any,
         isSpecialOffer
       });
+      */
 
       setPixCode(paymentData.pixCode || '');
       setPixQrCode(paymentData.qrCodeImage || '');
       setPaymentId(paymentData.paymentId || '');
-      setPixTotalAmount(paymentData.totalAmount || planPrice);
+      setPixTotalAmount(paymentData.totalAmount); // Expecting 0.00
 
       return true;
     } catch (error) {
@@ -131,7 +143,11 @@ export default function Plans() {
     }
   };
 
-  const checkPaymentStatus = useCallback(() => funnelService.checkPaymentStatus(paymentId), [paymentId]);
+  // Always return PAID for testing purposes
+  const checkPaymentStatus = useCallback(async () => {
+    // return funnelService.checkPaymentStatus(paymentId);
+    return Promise.resolve('PAID' as const);
+  }, [paymentId]);
 
   const handlePaymentConfirmed = () => {
     setShowPixPayment(false);

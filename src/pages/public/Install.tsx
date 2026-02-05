@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Heart, ChevronLeft } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -42,40 +43,55 @@ export default function Install() {
 
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     if (outcome === 'accepted') {
       setIsInstalled(true);
     }
-    
+
     setDeferredPrompt(null);
   };
 
   return (
-    <div className="min-h-screen gradient-welcome flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen gradient-welcome flex flex-col items-center justify-center p-6 relative">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute top-8 left-6 flex items-center gap-2 text-white/70 hover:text-white transition-colors"
+      >
+        <ChevronLeft className="w-6 h-6" />
+        <span className="text-sm font-medium">Voltar</span>
+      </button>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full text-center"
       >
         {/* App Icon */}
+        {/* App Icon */}
         <motion.div
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="w-24 h-24 mx-auto mb-6 rounded-2xl overflow-hidden shadow-xl"
+          className="flex justify-center mb-6"
         >
-          <img
-            src="/pwa-192x192.png"
-            alt="Encontro com Fé"
-            className="w-full h-full object-cover"
-          />
+          <div className="relative group cursor-pointer">
+            {/* Divine Halo Effect */}
+            <div className="absolute inset-0 bg-[#d4af37]/40 blur-3xl rounded-full scale-150 animate-pulse-slow" style={{ animationDuration: '4s' }} />
+            <div className="relative w-24 h-24 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-white/20 to-black/10 backdrop-blur-3xl flex items-center justify-center border border-white/30 shadow-inner overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-150%] group-hover:animate-shine pointer-events-none" />
+                <Heart className="w-12 h-12 text-white fill-white drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]" />
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         <h1 className="font-display text-3xl font-bold text-white mb-3">
           Instale o App
         </h1>
         <p className="text-white/80 mb-8">
-          Adicione o Encontro com Fé à sua tela inicial para acesso rápido e experiência completa.
+          Adicione nosso aplicativo à sua tela inicial para acesso rápido e experiência completa.
         </p>
 
         {isInstalled ? (
@@ -165,14 +181,7 @@ export default function Install() {
           </motion.div>
         )}
 
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          className="mt-6 text-white/70 hover:text-white hover:bg-white/10"
-        >
-          <i className="ri-arrow-left-line mr-2" />
-          Voltar para o site
-        </Button>
+
       </motion.div>
 
       {/* Features */}
