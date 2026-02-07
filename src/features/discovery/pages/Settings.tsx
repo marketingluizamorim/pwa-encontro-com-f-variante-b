@@ -47,12 +47,36 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
 
-  // Load settings from localStorage
+  // Load settings from Supabase (and localStorage as fallback)
   useEffect(() => {
-    const savedPrivacy = localStorage.getItem(`privacy_settings_${user?.id}`);
-    if (savedPrivacy) {
-      setPrivacySettings(JSON.parse(savedPrivacy));
+    async function loadSettings() {
+      if (!user) return;
+
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('show_online_status, show_last_active, show_distance, show_read_receipts')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data && !error) {
+        const serverSettings = {
+          showOnlineStatus: data.show_online_status ?? true,
+          showLastActive: data.show_last_active ?? true,
+          showDistance: data.show_distance ?? true,
+          showReadReceipts: data.show_read_receipts ?? true,
+        };
+        setPrivacySettings(serverSettings);
+        localStorage.setItem(`privacy_settings_${user.id}`, JSON.stringify(serverSettings));
+      } else {
+        // Fallback to localStorage if server fetch fails or no data
+        const savedPrivacy = localStorage.getItem(`privacy_settings_${user?.id}`);
+        if (savedPrivacy) {
+          setPrivacySettings(JSON.parse(savedPrivacy));
+        }
+      }
     }
+    loadSettings();
 
     const savedNotifications = localStorage.getItem(`notifications_enabled_${user?.id}`);
     if (savedNotifications !== null) {
@@ -60,11 +84,35 @@ export default function Settings() {
     }
   }, [user?.id]);
 
-  const updatePrivacySetting = (key: keyof PrivacySettings, value: boolean) => {
+  const updatePrivacySetting = async (key: keyof PrivacySettings, value: boolean) => {
+    // 1. Optimistic Update
     const newSettings = { ...privacySettings, [key]: value };
     setPrivacySettings(newSettings);
     localStorage.setItem(`privacy_settings_${user?.id}`, JSON.stringify(newSettings));
-    toast.success('Configuração atualizada');
+
+    // 2. Persist to Supabase
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+
+      // Map frontend keys to DB columns
+      const dbKeyMap: Record<keyof PrivacySettings, string> = {
+        showOnlineStatus: 'show_online_status',
+        showLastActive: 'show_last_active',
+        showDistance: 'show_distance',
+        showReadReceipts: 'show_read_receipts'
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ [dbKeyMap[key]]: value })
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+      toast.success('Configuração salva');
+    } catch (error) {
+      console.error('Error saving setting:', error);
+      toast.error('Erro ao salvar no servidor');
+    }
   };
 
   const toggleNotifications = () => {

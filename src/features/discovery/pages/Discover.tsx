@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform, useDragControls } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import DiscoverFilters, { DiscoverFiltersState } from '@/features/discovery/components/DiscoverFilters';
 import { useDiscoverProfiles, useSwipeMutation } from '@/features/discovery/hooks/useDiscoverProfiles';
 import { triggerHaptic } from '@/lib/haptics';
@@ -12,6 +14,13 @@ import { DiscoverSkeleton } from '@/features/discovery/components/SkeletonLoader
 import { MatchCelebration } from '@/features/discovery/components/MatchCelebration';
 import { playNotification } from '@/lib/notifications';
 import { Search } from 'lucide-react';
+
+const LOOKING_FOR_EMOJIS: Record<string, string> = {
+  'Um compromisso sério': '💍',
+  'Construir uma família': '👨‍👩‍👧‍👦',
+  'Conhecer pessoas novas': '✨',
+  'Amizade verdadeira': '🤝',
+};
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +52,7 @@ const SWIPE_VELOCITY_THRESHOLD = 500;
 export default function Discover() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const dragControls = useDragControls();
 
   const [filters, setFilters] = useState<DiscoverFiltersState>(() => {
     const saved = localStorage.getItem('discover-filters');
@@ -62,6 +72,27 @@ export default function Discover() {
   const [showInfo, setShowInfo] = useState(false);
   const [showCompleteProfileDialog, setShowCompleteProfileDialog] = useState(false);
 
+  // Photo Navigation State
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+  useEffect(() => {
+    setCurrentPhotoIndex(0);
+  }, [currentIndex]);
+
+  const handleNextPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentProfile && currentProfile.photos && currentPhotoIndex < currentProfile.photos.length - 1) {
+      setCurrentPhotoIndex(prev => prev + 1);
+    }
+  };
+
+  const handlePrevPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentPhotoIndex > 0) {
+      setCurrentPhotoIndex(prev => prev - 1);
+    }
+  };
+
   // Motion Values
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -79,13 +110,19 @@ export default function Discover() {
     hasNextPage,
     fetchNextPage,
     refetch,
+    error,
   } = useDiscoverProfiles(appliedFilters);
 
   const swipeMutation = useSwipeMutation();
 
+  console.log('Discover Render. User:', user?.id);
+
   const profiles = useMemo(() => {
+    console.log('Discover: Memoizing profiles. Data:', data);
     if (!data?.pages) return [];
-    return data.pages.flatMap((page) => page.profiles);
+    const allProfiles = data.pages.flatMap((page) => page.profiles);
+    console.log('Discover: Flattened Profiles:', allProfiles.length, allProfiles);
+    return allProfiles;
   }, [data]);
 
   const currentProfile = profiles[currentIndex];
@@ -109,8 +146,38 @@ export default function Discover() {
     return today.getFullYear() - birth.getFullYear();
   };
 
-  const handleApplyFilters = () => {
-    setAppliedFilters(filters);
+  const formatLastActive = (lastActiveAt?: string, showOnline?: boolean, showLastActive?: boolean) => {
+    if (showOnline === false) return null;
+    if (!lastActiveAt) return null;
+
+    const lastActive = new Date(lastActiveAt);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - lastActive.getTime()) / (1000 * 60));
+
+    // Considere "Online agora" se ativo nos últimos 5 minutos
+    if (diffInMinutes < 5) return 'Online agora';
+
+    if (showLastActive === false) return 'Visto recentemente';
+
+    if (diffInMinutes < 60) return `Visto há ${diffInMinutes} min`;
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `Visto há ${diffInHours} h`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays === 1) return 'Visto ontem';
+    if (diffInDays < 7) return `Visto há ${diffInDays} dias`;
+
+    return `Visto em ${lastActive.toLocaleDateString('pt-BR')}`;
+  };
+
+  const handleApplyFilters = (newFilters?: DiscoverFiltersState) => {
+    if (newFilters) {
+      setFilters(newFilters);
+      setAppliedFilters(newFilters);
+    } else {
+      setAppliedFilters(filters);
+    }
     setCurrentIndex(0);
   };
 
@@ -176,28 +243,7 @@ export default function Discover() {
     const hapticType = swipeDirection === 'dislike' ? 'light' : swipeDirection === 'like' ? 'medium' : 'success';
     triggerHaptic(hapticType);
 
-    try {
-      const result = await swipeMutation.mutateAsync({
-        swiperId: user.id,
-        swipedId: currentProfile.user_id,
-        direction: swipeDirection,
-      });
-
-      if (result.match) {
-        setMatchData({
-          name: currentProfile.display_name || 'Alguém',
-          photo: currentProfile.photos?.[0] || currentProfile.avatar_url || '',
-          matchId: result.match.id,
-        });
-        setShowMatchCelebration(true);
-        triggerHaptic('success');
-        playNotification('match');
-      }
-    } catch (error) {
-      console.error('Error saving swipe:', error);
-      toast.error('Erro ao processar swipe');
-    }
-
+    // OPTIMISTIC UPDATE: Move to next card immediately visually
     setTimeout(() => {
       setCurrentIndex((prev) => prev + 1);
       setExitDirection(null);
@@ -206,6 +252,34 @@ export default function Discover() {
       y.set(0);
       setShowInfo(false);
     }, 200);
+
+    // Fire and forget mutation (handling errors/matches async)
+    swipeMutation.mutate(
+      {
+        swiperId: user.id,
+        swipedId: currentProfile.user_id,
+        direction: swipeDirection,
+      },
+      {
+        onSuccess: (data) => {
+          if (data.match) {
+            setMatchData({
+              name: currentProfile.display_name || 'Alguém',
+              photo: currentProfile.photos?.[0] || currentProfile.avatar_url || '',
+              matchId: data.match.id,
+            });
+            setShowMatchCelebration(true);
+            triggerHaptic('success');
+            playNotification('match');
+          }
+        },
+        onError: (error) => {
+          console.error('Error saving swipe:', error);
+          // Optional: You could revert the swipe here, but for dating apps it's usually better to just ignore or show a toast
+          // toast.error('Erro ao salvar interação');
+        },
+      }
+    );
   };
 
   const handleDragEnd = (event: any, info: PanInfo) => {
@@ -235,12 +309,13 @@ export default function Discover() {
 
   return (
     <PageTransition className="relative w-full h-full flex flex-col items-center pt-6">
+      {/* DEBUG BANNER REMOVED */}
+
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center w-full h-full min-h-[50vh] text-center px-6">
-          <div className="relative w-32 h-32 flex items-center justify-center mb-6">
-            <div className="absolute inset-0 bg-[#d4af37]/10 rounded-full animate-pulse opacity-50" style={{ animationDuration: '3s' }} />
-            <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-[#d4af37]/10 to-transparent border border-[#d4af37]/20 flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.1)] backdrop-blur-sm">
-              <Search className="w-12 h-12 text-[#d4af37] drop-shadow-md animate-pulse" strokeWidth={1.5} style={{ animationDuration: '3s' }} />
+          <div className="flex flex-col items-center justify-center opacity-60 mb-6">
+            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+              <Search className="w-10 h-10 text-foreground" strokeWidth={1.5} />
             </div>
           </div>
 
@@ -275,10 +350,7 @@ export default function Discover() {
         </div>
       ) : (
         <>
-          {/* Filters Trigger (Top Right) */}
-          <div className="absolute top-0 right-4 z-40">
-            <DiscoverFilters filters={filters} onFiltersChange={setFilters} onApply={handleApplyFilters} />
-          </div>
+
 
           {/* Card Stack Container */}
           <div className="flex-1 w-full max-w-md relative flex items-center justify-center pb-24 px-4">
@@ -302,7 +374,7 @@ export default function Discover() {
               style={{ x, y, rotate }}
               drag
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-              dragElastic={0.7}
+              dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
               onDragEnd={handleDragEnd}
               className="w-full h-full absolute inset-0 px-4 pt-4 pb-24 z-20 cursor-grab active:cursor-grabbing touch-none"
               initial={{ scale: 0.95, opacity: 0, y: 50 }}
@@ -317,9 +389,28 @@ export default function Discover() {
             >
               <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative select-none">
 
+                {/* Photo Stories Progress Bar */}
+                {currentProfile.photos && currentProfile.photos.length > 1 && (
+                  <div className="absolute top-3 left-3 right-3 z-40 flex gap-1.5 h-1">
+                    {currentProfile.photos.map((_, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex-1 rounded-full h-full shadow-sm transition-colors duration-300 ${idx === currentPhotoIndex ? 'bg-white' : 'bg-white/30'
+                          }`}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Navigation Zones (Left/Right) - Only Active if not swiping (handled by onClick vs Drag) */}
+                <div className="absolute inset-0 z-30 flex">
+                  <div className="w-1/2 h-[80%]" onClick={handlePrevPhoto} />
+                  <div className="w-1/2 h-[80%]" onClick={handleNextPhoto} />
+                </div>
+
                 {/* Photo */}
                 <img
-                  src={currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
+                  src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
                   className="w-full h-full object-cover pointer-events-none"
                   alt="Profile"
                   draggable={false}
@@ -329,39 +420,44 @@ export default function Discover() {
                 <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
 
                 {/* Text Info */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none">
-                  <div className="flex items-end gap-3 mb-2">
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
+                  <div className="flex items-end gap-3 mb-4">
                     <h1 className="font-display text-4xl font-bold tracking-tight drop-shadow-md">
                       {currentProfile.display_name}
                     </h1>
                     {currentProfile.birth_date && (
                       <span className="text-2xl font-light text-white/90 mb-1">{calculateAge(currentProfile.birth_date)}</span>
                     )}
-                    {(currentProfile as any).is_verified && (
-                      <i className="ri-verified-badge-fill text-blue-400 text-2xl mb-1" />
-                    )}
                   </div>
 
-                  <div className="flex flex-wrap gap-2 mb-3 text-sm font-medium text-white/90">
-                    {(currentProfile.city || currentProfile.state) && (
-                      <div className="flex items-center gap-1 bg-white/10 backdrop-blur-md px-2 py-1 rounded-md border border-white/10">
-                        <i className="ri-map-pin-line text-accent" />
-                        <span>{currentProfile.city}</span>
+                  {/* Looking For Section */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1 opacity-90">
+                      <Search className="w-3.5 h-3.5 text-white/80" strokeWidth={3} />
+                      <span className="text-sm font-bold text-white/90">Tô procurando</span>
+                    </div>
+
+                    {currentProfile.looking_for ? (
+                      <div className="flex items-center gap-3">
+                        <div className="relative flex items-center justify-center">
+                          <div className="absolute w-5 h-5 bg-[#14b8a6] blur-md rounded-full opacity-100" />
+                          <span className="relative text-3xl z-10 drop-shadow-md">
+                            {LOOKING_FOR_EMOJIS[currentProfile.looking_for] || '💘'}
+                          </span>
+                        </div>
+                        <span className="text-lg font-bold text-white tracking-wide">
+                          {currentProfile.looking_for}
+                        </span>
                       </div>
-                    )}
-                    {currentProfile.religion && (
-                      <div className="flex items-center gap-1 bg-white/10 backdrop-blur-md px-2 py-1 rounded-md border border-white/10">
-                        <i className="ri-book-open-line text-accent" />
-                        <span>{currentProfile.religion}</span>
+                    ) : (
+                      <div className="flex items-center gap-2 opacity-50">
+                        <span className="text-xl">✨</span>
+                        <span className="text-lg font-bold text-white tracking-wide">
+                          Buscando conexões
+                        </span>
                       </div>
                     )}
                   </div>
-
-                  {currentProfile.bio && (
-                    <p className="text-white/80 line-clamp-2 text-sm leading-relaxed max-w-[85%]">
-                      {currentProfile.bio}
-                    </p>
-                  )}
                 </div>
 
                 {/* Stamps */}
@@ -375,44 +471,260 @@ export default function Discover() {
                   SUPER
                 </motion.div>
 
-                {/* Info Detail Button */}
+                {/* Info Detail Button -> Expand */}
                 <button
-                  onClick={() => setShowInfo(!showInfo)}
-                  className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-white/20 z-30 pointer-events-auto"
+                  onClick={() => setShowInfo(true)}
+                  className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-colors"
                 >
-                  <i className="ri-information-line text-xl" />
+                  <i className="ri-arrow-up-s-line text-2xl" />
                 </button>
               </div>
             </motion.div>
           </div>
 
-          {/* Floating Action Controls */}
-          <div className="absolute bottom-4 left-0 right-0 z-30 flex justify-center items-center gap-6 pointer-events-none">
-            {/* Nope */}
-            <button
-              onClick={() => handleSwipe('dislike')}
-              className="w-14 h-14 rounded-full bg-card/80 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
-            >
-              <i className="ri-close-line text-3xl font-bold" />
-            </button>
+          {/* Floating Action Controls (Main View) */}
+          {!showInfo && (
+            <div className="absolute bottom-4 left-0 right-0 z-30 flex justify-center items-center gap-6 pointer-events-none">
+              {/* Nope */}
+              <button
+                onClick={() => handleSwipe('dislike')}
+                className="w-14 h-14 rounded-full bg-card/80 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+              >
+                <i className="ri-close-line text-3xl font-bold" />
+              </button>
 
-            {/* Super Like */}
-            <button
-              onClick={() => handleSwipe('super_like')}
-              className="w-11 h-11 mb-2 rounded-full bg-card/80 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
-            >
-              <i className="ri-star-fill text-xl" />
-            </button>
+              {/* Super Like */}
+              <button
+                onClick={() => handleSwipe('super_like')}
+                className="w-11 h-11 mb-2 rounded-full bg-card/80 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+              >
+                <i className="ri-star-fill text-xl" />
+              </button>
 
-            {/* Like */}
-            <button
-              onClick={() => handleSwipe('like')}
-              className="w-14 h-14 rounded-full gradient-button text-white shadow-[0_8px_25px_rgba(16,185,129,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto border border-emerald-400/20"
-            >
-              <i className="ri-heart-fill text-3xl" />
-            </button>
-          </div>
+              {/* Like */}
+              <button
+                onClick={() => handleSwipe('like')}
+                className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+              >
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center border border-white/20 shadow-inner group-hover:from-[#fcd34d] group-hover:to-[#d4af37] transition-colors">
+                  <i className="ri-heart-fill text-3xl text-white drop-shadow-md" />
+                </div>
+              </button>
+
+              {/* Filter Button (Discreet - Absolute Right) */}
+              <div className="absolute right-6 pointer-events-auto">
+                <DiscoverFilters
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  onApply={handleApplyFilters}
+                  triggerClassName="w-10 h-10 rounded-full bg-black/20 backdrop-blur-md border-white/10 text-white/50 hover:bg-black/40 hover:text-white transition-all shadow-none ring-0 focus:ring-0 active:scale-95"
+                />
+              </div>
+            </div>
+          )}
         </>
+      )}
+
+      {/* Expanded Profile Details Overlay - PORTAL for Full Immersion */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showInfo && currentProfile && (
+            <motion.div
+              key="expanded-profile-view"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              drag="y"
+              dragListener={false}
+              dragControls={dragControls}
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={{ top: 0, bottom: 0.7 }}
+              onDragEnd={(e, info) => {
+                if (info.offset.y > 100 || info.velocity.y > 500) {
+                  setShowInfo(false);
+                }
+              }}
+              className="fixed inset-0 z-[9999] bg-background flex flex-col overflow-hidden"
+            >
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
+
+                {/* Close Button - Top Right (Replaces Theme Toggle) */}
+                <button
+                  onClick={() => setShowInfo(false)}
+                  className="fixed top-4 right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
+                >
+                  <i className="ri-arrow-down-s-line text-2xl" />
+                </button>
+
+                {/* Hero Image - Drag Handle */}
+                <div
+                  className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
+                  onPointerDown={(e) => dragControls.start(e)}
+                >
+                  <img
+                    src={currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
+                    className="w-full h-full object-cover pointer-events-none"
+                    alt={currentProfile.display_name}
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+                </div>
+
+                {/* Profile Info Content */}
+                <div className="px-5 -mt-20 relative z-10 space-y-6">
+
+                  {/* Header: Name & Age */}
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <h1 className="text-4xl font-display font-bold text-foreground">
+                        {currentProfile.display_name}
+                      </h1>
+                      <span className="text-3xl font-light text-muted-foreground">
+                        {currentProfile.birth_date ? calculateAge(currentProfile.birth_date) : ''}
+                      </span>
+                    </div>
+
+                    {/* Metadata Badges */}
+                    <div className="flex flex-col gap-2.5 mt-4">
+                      {/* Status */}
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full",
+                          formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active) === 'Online agora'
+                            ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+                            : "bg-muted-foreground/30"
+                        )} />
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active) || 'Offline'}
+                        </span>
+                      </div>
+
+                      {/* Job & Location */}
+                      <div className="flex items-center gap-4 text-sm text-foreground/70">
+                        {currentProfile.occupation && (
+                          <div className="flex items-center gap-1.5 leading-none">
+                            <i className="ri-briefcase-line text-lg" />
+                            <span>{currentProfile.occupation}</span>
+                          </div>
+                        )}
+                        {(currentProfile.city) && (currentProfile.show_distance !== false) && (
+                          <div className="flex items-center gap-1.5 leading-none">
+                            <i className="ri-map-pin-line text-lg" />
+                            <span>{currentProfile.city}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Looking For */}
+                  <div className="bg-card/50 border border-border/50 rounded-2xl p-4 backdrop-blur-sm">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tô procurando</h3>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/20">
+                        <i className="ri-heart-2-fill text-xl" />
+                      </div>
+                      <span className="text-lg font-medium">{currentProfile.looking_for || 'Um encontro abençoado'}</span>
+                    </div>
+                  </div>
+
+                  {/* Section: About Me */}
+                  {currentProfile.bio && (
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-bold">Sobre mim</h3>
+                      <p className="text-muted-foreground leading-relaxed text-base">
+                        {currentProfile.bio}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Section: Basic Info */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-bold">Informações básicas</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
+                        <i className="ri-ruler-line text-foreground/50 text-xl" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Altura</p>
+                          <p className="font-medium">170 cm</p> {/* Placeholder if not in DB */}
+                        </div>
+                      </div>
+                      <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
+                        <i className="ri-translate-2 text-foreground/50 text-xl" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Idiomas</p>
+                          <p className="font-medium">Português</p>
+                        </div>
+                      </div>
+                      <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
+                        <i className="ri-book-open-line text-foreground/50 text-xl" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Religião</p>
+                          <p className="font-medium">{currentProfile.religion || 'Cristão'}</p>
+                        </div>
+                      </div>
+                      <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
+                        <i className="ri-graduation-cap-line text-foreground/50 text-xl" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Formação</p>
+                          <p className="font-medium">Superior</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Interests */}
+                  {(currentProfile.christian_interests && currentProfile.christian_interests.length > 0) && (
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-bold">Interesses</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {currentProfile.christian_interests.map((tag: string) => (
+                          <span key={tag} className="px-4 py-2 rounded-full border border-primary/30 text-primary bg-primary/5 text-sm font-medium">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bottom Spacer */}
+                  <div className="h-10" />
+                </div>
+              </div>
+
+              {/* Floating Action Controls (Expanded View) - Matching Main View Style */}
+              <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center items-center gap-6 pointer-events-none">
+                {/* Nope */}
+                <button
+                  onClick={() => handleSwipe('dislike')}
+                  className="w-14 h-14 rounded-full bg-card/80 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+                >
+                  <i className="ri-close-line text-3xl font-bold" />
+                </button>
+
+                {/* Super Like */}
+                <button
+                  onClick={() => handleSwipe('super_like')}
+                  className="w-11 h-11 mb-2 rounded-full bg-card/80 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+                >
+                  <i className="ri-star-fill text-xl" />
+                </button>
+
+                {/* Like */}
+                <button
+                  onClick={() => handleSwipe('like')}
+                  className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+                >
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center border border-white/20 shadow-inner group-hover:from-[#fcd34d] group-hover:to-[#d4af37] transition-colors">
+                    <i className="ri-heart-fill text-3xl text-white drop-shadow-md" />
+                  </div>
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
       )}
 
       {/* Overlays */}
@@ -460,6 +772,7 @@ export default function Discover() {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
     </PageTransition>
   );
 }

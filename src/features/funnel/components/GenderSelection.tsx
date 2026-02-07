@@ -85,9 +85,9 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             {/* Subtle Inner Glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#1e3a8a] to-[#1e40af] p-[2px] shadow-[0_15px_30px_rgba(0,0,0,0.4),0_0_20px_rgba(30,58,138,0.3)] group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_30px_rgba(252,211,77,0.2)] transition-all duration-500">
-              <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center border border-white/20 group-hover:border-[#fcd34d]/50 transition-colors">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-white/90 group-hover:text-[#fcd34d] transition-colors">
+            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#1e3a8a] to-[#1e40af] p-[2px] shadow-[0_15px_30px_rgba(0,0,0,0.4),0_0_20px_rgba(30,58,138,0.3)] md:group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_30px_rgba(252,211,77,0.2)] transition-all duration-500">
+              <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center border border-white/20 md:group-hover:border-[#fcd34d]/50 transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-white/90 md:group-hover:text-[#fcd34d] transition-colors">
                   <path d="M16 3h5v5" />
                   <path d="M21 3L13.5 10.5" />
                   <circle cx="10" cy="14" r="6" />
@@ -96,8 +96,8 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             </div>
 
             <div className="space-y-1">
-              <span className="text-2xl font-serif font-bold text-white tracking-wide block group-hover:text-[#fcd34d] transition-colors">Sou Homem</span>
-              <p className="text-white/40 text-xs font-medium tracking-widest uppercase opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+              <span className="text-2xl font-serif font-bold text-white tracking-wide block md:group-hover:text-[#fcd34d] transition-colors">Sou Homem</span>
+              <p className="text-white/40 text-xs font-medium tracking-widest uppercase opacity-0 md:group-hover:opacity-100 transform translate-y-2 md:group-hover:translate-y-0 transition-all duration-300">
                 Selecionar
               </p>
             </div>
@@ -114,9 +114,9 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             {/* Subtle Inner Glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#831843] to-[#be185d] p-[2px] shadow-[0_15px_30px_rgba(0,0,0,0.4),0_0_20px_rgba(131,24,67,0.3)] group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_30px_rgba(252,211,77,0.2)] transition-all duration-500">
-              <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center border border-white/20 group-hover:border-[#fcd34d]/50 transition-colors">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-white/90 group-hover:text-[#fcd34d] transition-colors">
+            <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#831843] to-[#be185d] p-[2px] shadow-[0_15px_30px_rgba(0,0,0,0.4),0_0_20px_rgba(131,24,67,0.3)] md:group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_30px_rgba(252,211,77,0.2)] transition-all duration-500">
+              <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center border border-white/20 md:group-hover:border-[#fcd34d]/50 transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-white/90 md:group-hover:text-[#fcd34d] transition-colors">
                   <path d="M12 15v7" />
                   <path d="M15 19H9" />
                   <circle cx="12" cy="9" r="6" />
@@ -125,8 +125,8 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             </div>
 
             <div className="space-y-1">
-              <span className="text-2xl font-serif font-bold text-white tracking-wide block group-hover:text-[#fcd34d] transition-colors">Sou Mulher</span>
-              <p className="text-white/40 text-xs font-medium tracking-widest uppercase opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+              <span className="text-2xl font-serif font-bold text-white tracking-wide block md:group-hover:text-[#fcd34d] transition-colors">Sou Mulher</span>
+              <p className="text-white/40 text-xs font-medium tracking-widest uppercase opacity-0 md:group-hover:opacity-100 transform translate-y-2 md:group-hover:translate-y-0 transition-all duration-300">
                 Selecionar
               </p>
             </div>

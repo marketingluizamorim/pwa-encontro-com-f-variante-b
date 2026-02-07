@@ -28,51 +28,46 @@ export interface DiscoverFiltersState {
 interface DiscoverFiltersProps {
   filters: DiscoverFiltersState;
   onFiltersChange: (filters: DiscoverFiltersState) => void;
-  onApply: () => void;
+  onApply: (filters?: DiscoverFiltersState) => void;
   triggerId?: string;
+  triggerClassName?: string;
 }
+
+// ... imports ...
 
 const RELIGIONS = [
   { value: '', label: 'Todas' },
-  { value: 'Católica', label: 'Católica' },
   { value: 'Evangélica', label: 'Evangélica' },
+  { value: 'Católica', label: 'Católica' },
   { value: 'Protestante', label: 'Protestante' },
-  { value: 'Adventista', label: 'Adventista' },
-  { value: 'Batista', label: 'Batista' },
-  { value: 'Presbiteriana', label: 'Presbiteriana' },
-  { value: 'Metodista', label: 'Metodista' },
-  { value: 'Assembleia de Deus', label: 'Assembleia de Deus' },
-  { value: 'Espírita', label: 'Espírita' },
-  { value: 'Testemunha de Jeová', label: 'Testemunha de Jeová' },
   { value: 'Outra', label: 'Outra' },
 ];
 
 const CHURCH_FREQUENCIES = [
   { value: '', label: 'Qualquer frequência' },
-  { value: 'Todo domingo', label: 'Todo domingo' },
-  { value: 'Algumas vezes por mês', label: 'Algumas vezes por mês' },
+  { value: 'Sim, sou ativo(a)', label: 'Sim, sou ativo(a)' },
+  { value: 'Às vezes', label: 'Às vezes' },
   { value: 'Raramente', label: 'Raramente' },
-  { value: 'Só em ocasiões especiais', label: 'Só em ocasiões especiais' },
+  { value: 'Não frequento', label: 'Não frequento' },
 ];
 
 const LOOKING_FOR_OPTIONS = [
   { value: '', label: 'Qualquer objetivo' },
-  { value: 'Namoro sério', label: 'Namoro sério' },
-  { value: 'Casamento', label: 'Casamento' },
-  { value: 'Amizade cristã', label: 'Amizade cristã' },
-  { value: 'Conhecer pessoas', label: 'Conhecer pessoas' },
+  { value: 'Um compromisso sério', label: 'Um compromisso sério' },
+  { value: 'Construir uma família', label: 'Construir uma família' },
+  { value: 'Conhecer pessoas novas', label: 'Conhecer pessoas novas' },
+  { value: 'Amizade verdadeira', label: 'Amizade verdadeira' },
 ];
 
 const CHRISTIAN_INTERESTS_OPTIONS = [
-  'Louvor & Adoração', 'Música Gospel', 'Grupo de Jovens (Célula)', 'Estudo Bíblico',
-  'Retiros & Acampamentos', 'Podcasts Cristãos', 'Conferências', 'Voluntariado',
-  'Missões', 'Evangelismo', 'Devocional Diário', 'Oração / Intercessão',
-  'Leitura Cristã (Livros)', 'Ação Social', 'Liderança', 'Discipulado',
-  'Teologia', 'Mídia / Comunicação', 'Arte Profética', 'Dança / Teatro',
-  'Empreendedorismo Reino', 'Israel / Viagens'
+  'Oração', 'Companheirismo', 'Respeito', 'Propósito', 'Leitura',
+  'Estudos', 'Pregações', 'Podcasts', 'Chamado', 'Família',
+  'Retiro', 'Acampamento', 'Viagem', 'Comunhão', 'Missões',
+  'Voluntariado', 'Teatro', 'Profético', 'Dança', 'Coral',
+  'Discipulado', 'Teologia', 'Bíblia', 'Santidade', 'Adoração',
+  'Louvor', 'Jejum', 'Evangelismo', 'Devocional', 'Edificação',
+  'Maturidade', 'Composição', 'Instrumental', 'Pastoreio', 'ServiçoSocial'
 ];
-
-
 
 const DEFAULT_FILTERS: DiscoverFiltersState = {
   minAge: 18,
@@ -88,7 +83,7 @@ const DEFAULT_FILTERS: DiscoverFiltersState = {
   onlineRecently: false,
 };
 
-export default function DiscoverFilters({ filters, onFiltersChange, onApply, triggerId }: DiscoverFiltersProps) {
+export default function DiscoverFilters({ filters, onFiltersChange, onApply, triggerId, triggerClassName }: DiscoverFiltersProps) {
   const [open, setOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState<DiscoverFiltersState>(filters);
   const [showAllInterests, setShowAllInterests] = useState(false);
@@ -103,7 +98,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
 
   const handleApply = () => {
     onFiltersChange(localFilters);
-    onApply();
+    onApply(localFilters);
     setOpen(false);
   };
 
@@ -167,7 +162,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative" id={triggerId}>
+        <Button variant="outline" size="icon" className={cn("relative", triggerClassName)} id={triggerId}>
           <i className="ri-equalizer-line text-lg" />
           {activeFiltersCount > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-medium">
@@ -394,14 +389,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
                 checked={localFilters.hasPhotos}
                 onCheckedChange={(checked) => setLocalFilters((prev) => ({ ...prev, hasPhotos: checked }))}
               />
-              <Separator className="my-2" />
-              <ToggleFilter
-                icon="ri-verified-badge-line"
-                label="Verificados"
-                description="Mostrar apenas perfis verificados"
-                checked={localFilters.isVerified}
-                onCheckedChange={(checked) => setLocalFilters((prev) => ({ ...prev, isVerified: checked }))}
-              />
+
               <Separator className="my-2" />
               <ToggleFilter
                 icon="ri-time-line"

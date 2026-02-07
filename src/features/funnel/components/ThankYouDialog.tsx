@@ -49,16 +49,16 @@ export function ThankYouDialog({ open, email, name, onRedirect }: ThankYouDialog
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                className="w-24 h-24 rounded-full bg-gradient-to-tr from-green-500 to-emerald-400 p-[3px] shadow-[0_0_40px_rgba(16,185,129,0.4)]"
+                className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#14b8a6] to-[#f59e0b] p-[3px] shadow-[0_0_40px_rgba(20,184,166,0.4)]"
               >
                 <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-green-500/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-[#14b8a6]/20 to-transparent" />
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <Check className="w-10 h-10 text-green-400 stroke-[3]" />
+                    <Check className="w-10 h-10 text-white stroke-[3]" />
                   </motion.div>
                 </div>
               </motion.div>
@@ -82,7 +82,7 @@ export function ThankYouDialog({ open, email, name, onRedirect }: ThankYouDialog
             >
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-white tracking-tight drop-shadow-md">
                 Pagamento <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">Confirmado!</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#14b8a6] to-[#f59e0b]">Confirmado!</span>
               </h2>
 
               <p className="text-white/80 text-lg font-light leading-relaxed max-w-[280px] mx-auto">
@@ -107,7 +107,7 @@ export function ThankYouDialog({ open, email, name, onRedirect }: ThankYouDialog
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
                   transition={{ duration: 5, ease: "linear" }}
-                  className="h-full bg-gradient-to-r from-green-400 to-emerald-300"
+                  className="h-full bg-gradient-to-r from-[#14b8a6] to-[#f59e0b]"
                 />
               </div>
             </motion.div>

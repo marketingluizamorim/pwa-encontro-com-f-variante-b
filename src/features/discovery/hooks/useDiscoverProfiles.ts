@@ -1,4 +1,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import type { DiscoverFiltersState } from '@/features/discovery/components/DiscoverFilters';
 
@@ -17,6 +20,13 @@ export interface Profile {
   bio?: string;
   photos: string[];
   avatar_url?: string;
+  looking_for?: string;
+  occupation?: string;
+  is_verified?: boolean;
+  show_online_status?: boolean;
+  show_last_active?: boolean;
+  show_distance?: boolean;
+  last_active_at?: string;
 }
 
 interface FetchProfilesParams {
@@ -54,17 +64,21 @@ async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams
   const blockedByIds = blockedByUsers?.map((b) => b.blocker_id) || [];
   const excludedIds = [userId, ...swipedIds, ...blockedIds, ...blockedByIds];
 
-  // Build query with filters
+  // SUPER DEBUG MODE: FETCH CRUDE DATA
   let query = supabase
     .from('profiles')
-    .select('id, user_id, display_name, birth_date, city, state, religion, church_frequency, christian_interests, bio, photos, avatar_url')
+    .select('id, user_id, display_name, birth_date, city, state, religion, church_frequency, bio, photos, avatar_url, looking_for, occupation, show_online_status, show_last_active, show_distance')
     .eq('is_active', true)
     .eq('is_profile_complete', true);
 
-  // Exclude already swiped profiles
-  if (excludedIds.length > 0) {
-    query = query.not('user_id', 'in', `(${excludedIds.join(',')})`);
-  }
+  // Always exclude current user
+  query = query.neq('user_id', userId);
+
+  // Exclude swiped and blocked users
+  // const otherExcludedIds = [...swipedIds, ...blockedIds, ...blockedByIds];
+  // if (otherExcludedIds.length > 0) {
+  //   query = query.not('user_id', 'in', `(${otherExcludedIds.join(',')})`);
+  // }
 
   // Apply location filters
   if (filters.state && filters.state !== 'all') {
@@ -75,37 +89,8 @@ async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams
     query = query.ilike('city', `%${filters.city}%`);
   }
 
-  // Apply religion filter
-  if (filters.religion && filters.religion !== 'all') {
-    query = query.eq('religion', filters.religion);
-  }
-
-  // Apply church frequency filter
-  if (filters.churchFrequency && filters.churchFrequency !== 'all') {
-    query = query.eq('church_frequency', filters.churchFrequency);
-  }
-
-  // Apply looking for filter
-  if (filters.lookingFor && filters.lookingFor !== 'all') {
-    query = query.eq('looking_for', filters.lookingFor);
-  }
-
-  // Apply christian interests filter
-  if (filters.christianInterests && filters.christianInterests.length > 0) {
-    query = query.overlaps('christian_interests', filters.christianInterests);
-  }
-
-  // Apply hasPhotos filter
-  if (filters.hasPhotos) {
-    query = query.not('photos', 'eq', '{}');
-  }
-
-  // Apply onlineRecently filter (last 24 hours)
-  if (filters.onlineRecently) {
-    const oneDayAgo = new Date();
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-    query = query.gte('last_active_at', oneDayAgo.toISOString());
-  }
+  console.log('Fetching profiles for user:', userId);
+  console.log('Excluded IDs:', excludedIds.length);
 
   // Apply age filter - calculate date range from age
   const today = new Date();
@@ -122,7 +107,9 @@ async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams
 
   const { data: profilesData, error } = await query
     .order('last_active_at', { ascending: false, nullsFirst: false })
-    .range(from, to);
+    .range(from, to) as any;
+
+  console.log('Profiles fetched:', profilesData?.length, error);
 
   if (error) {
     throw error;
@@ -151,8 +138,8 @@ export function useDiscoverProfiles(filters: DiscoverFiltersState) {
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!user,
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
-    gcTime: 1000 * 60 * 10, // 10 minutes garbage collection
+    staleTime: 0, // Disable cache for dev
+    gcTime: 0, // Disable garbage collection cache for dev
   });
 }
 

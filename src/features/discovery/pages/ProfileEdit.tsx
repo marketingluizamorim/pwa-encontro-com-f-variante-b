@@ -9,14 +9,12 @@ import { PhotoUpload } from '@/features/discovery/components/PhotoUpload';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { ChevronLeft, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const RELIGIONS = [
   'Evangélica',
   'Católica',
   'Protestante',
-  'Espírita',
-  'Adventista',
-  'Testemunha de Jeová',
   'Outra',
 ];
 
@@ -65,37 +63,51 @@ const SMOKE_OPTIONS = ['Não', 'Sim', 'Às vezes'];
 const PETS_OPTIONS = ['Gosto de animais', 'Tenho gato(s)', 'Tenho cachorro(s)', 'Tenho outros', 'Não gosto'];
 const ACTIVITY_OPTIONS = ['Sedentário', 'Leve (Caminhadas)', 'Moderado (Academia/Esportes)', 'Intenso (Atleta)'];
 const CHRISTIAN_INTERESTS_OPTIONS = [
-  'Louvor & Adoração', 'Música Gospel', 'Grupo de Jovens (Célula)', 'Estudo Bíblico',
-  'Retiros & Acampamentos', 'Podcasts Cristãos', 'Conferências', 'Voluntariado',
-  'Missões', 'Evangelismo', 'Devocional Diário', 'Oração / Intercessão',
-  'Leitura Cristã (Livros)', 'Ação Social', 'Liderança', 'Discipulado',
-  'Teologia', 'Mídia / Comunicação', 'Arte Profética', 'Dança / Teatro',
-  'Empreendedorismo Reino', 'Israel / Viagens'
+  'Oração', 'Companheirismo', 'Respeito', 'Propósito', 'Leitura',
+  'Estudos', 'Pregações', 'Podcasts', 'Chamado', 'Família',
+  'Retiro', 'Acampamento', 'Viagem', 'Comunhão', 'Missões',
+  'Voluntariado', 'Teatro', 'Profético', 'Dança', 'Coral',
+  'Discipulado', 'Teologia', 'Bíblia', 'Santidade', 'Adoração',
+  'Louvor', 'Jejum', 'Evangelismo', 'Devocional', 'Edificação',
+  'Maturidade', 'Composição', 'Instrumental', 'Pastoreio', 'ServiçoSocial'
 ];
 
 const INTEREST_ICONS: Record<string, string> = {
-  'Louvor & Adoração': 'ri-mic-line',
-  'Música Gospel': 'ri-music-2-line',
-  'Grupo de Jovens (Célula)': 'ri-group-line',
-  'Estudo Bíblico': 'ri-book-read-line',
-  'Retiros & Acampamentos': 'ri-tent-line',
-  'Podcasts Cristãos': 'ri-headphone-line',
-  'Conferências': 'ri-slideshow-line',
-  'Voluntariado': 'ri-hand-heart-line',
+  'Oração': 'ri-hand-line',
+  'Companheirismo': 'ri-team-line',
+  'Respeito': 'ri-shield-user-line',
+  'Propósito': 'ri-compass-3-line',
+  'Leitura': 'ri-book-line',
+  'Estudos': 'ri-book-read-line',
+  'Pregações': 'ri-mic-line',
+  'Podcasts': 'ri-headphone-line',
+  'Chamado': 'ri-notification-3-line',
+  'Família': 'ri-home-heart-line',
+  'Retiro': 'ri-tent-line',
+  'Acampamento': 'ri-fire-line',
+  'Viagem': 'ri-plane-line',
+  'Comunhão': 'ri-group-line',
   'Missões': 'ri-earth-line',
-  'Evangelismo': 'ri-megaphone-line',
-  'Devocional Diário': 'ri-sun-line',
-  'Oração / Intercessão': 'ri-hand-line',
-  'Leitura Cristã (Livros)': 'ri-book-line',
-  'Ação Social': 'ri-heart-line',
-  'Liderança': 'ri-medal-line',
+  'Voluntariado': 'ri-hand-heart-line',
+  'Teatro': 'ri-drama-line',
+  'Profético': 'ri-sparkling-fill',
+  'Dança': 'ri-music-line',
+  'Coral': 'ri-user-voice-line',
   'Discipulado': 'ri-user-follow-line',
   'Teologia': 'ri-graduation-cap-line',
-  'Mídia / Comunicação': 'ri-broadcast-line',
-  'Arte Profética': 'ri-palette-line',
-  'Dança / Teatro': 'ri-music-line',
-  'Empreendedorismo Reino': 'ri-briefcase-line',
-  'Israel / Viagens': 'ri-plane-line'
+  'Bíblia': 'ri-book-open-line',
+  'Santidade': 'ri-sparkling-line',
+  'Adoração': 'ri-heart-line',
+  'Louvor': 'ri-music-2-line',
+  'Jejum': 'ri-rest-time-line',
+  'Evangelismo': 'ri-megaphone-line',
+  'Devocional': 'ri-sun-line',
+  'Edificação': 'ri-hammer-line',
+  'Maturidade': 'ri-seedling-line',
+  'Composição': 'ri-quill-pen-line',
+  'Instrumental': 'ri-guitar-line',
+  'Pastoreio': 'ri-heart-pulse-line',
+  'ServiçoSocial': 'ri-community-line'
 };
 const LANGUAGE_OPTIONS = ['Português', 'Inglês', 'Espanhol', 'Francês', 'Alemão', 'Italiano', 'Libras', 'Outro'];
 
@@ -526,22 +538,58 @@ export default function ProfileEdit() {
                       <label className="text-xs font-medium mb-1.5 block capitalize">
                         Seu {activeSocial}
                       </label>
-                      <Input
-                        autoFocus
-                        value={(() => {
-                          let socialData = {};
-                          try { socialData = JSON.parse(profile.social_media || '{}'); } catch { }
-                          return (socialData as any)[activeSocial] || '';
-                        })()}
-                        onChange={(e) => {
-                          let socialData = {};
-                          try { socialData = JSON.parse(profile.social_media || '{}'); } catch { }
-                          const newData = { ...(socialData as any), [activeSocial]: e.target.value };
-                          updateField('social_media', JSON.stringify(newData));
-                        }}
-                        placeholder={activeSocial === 'whatsapp' ? '(00) 00000-0000' : '@usuario'}
-                        className="h-10 bg-background"
-                      />
+                      <div className="relative">
+                        <Input
+                          autoFocus
+                          value={(() => {
+                            let socialData: any = {};
+                            const raw = profile.social_media;
+                            if (typeof raw === 'object' && raw !== null) {
+                              socialData = raw;
+                            } else if (typeof raw === 'string') {
+                              try { socialData = JSON.parse(raw); } catch { }
+                            }
+                            return socialData[activeSocial!] || '';
+                          })()}
+                          onChange={(e) => {
+                            let val = e.target.value;
+                            const platform = activeSocial?.toLowerCase();
+
+                            if (platform === 'whatsapp') {
+                              // Remove non-digits
+                              val = val.replace(/\D/g, '');
+                              // Limit to 11 digits
+                              if (val.length > 11) val = val.slice(0, 11);
+
+                              // Mask: (XX) XXXXX-XXXX
+                              val = val.replace(/^(\d{2})(\d)/g, '($1) $2');
+                              val = val.replace(/(\d)(\d{4})$/, '$1-$2');
+                            } else if (platform === 'instagram' || platform === 'facebook') {
+                              if (val.startsWith('@')) val = val.substring(1);
+                            }
+
+                            // Safe parse existing data
+                            let socialData: any = {};
+                            const raw = profile.social_media;
+                            if (typeof raw === 'object' && raw !== null) {
+                              socialData = { ...raw };
+                            } else if (typeof raw === 'string') {
+                              try { socialData = JSON.parse(raw); } catch { }
+                            }
+
+                            const newData = { ...socialData, [activeSocial!]: val };
+                            updateField('social_media', JSON.stringify(newData));
+                          }}
+                          placeholder={activeSocial === 'whatsapp' ? '(11) 99999-9999' : 'seu.usuario'}
+                          className={cn(
+                            "h-10 bg-background transition-all font-medium",
+                            activeSocial === 'whatsapp' ? "pl-14" : "pl-9"
+                          )}
+                        />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-bold pointer-events-none select-none z-50">
+                          {activeSocial === 'whatsapp' ? '+55' : '@'}
+                        </span>
+                      </div>
                     </div>
                   </motion.div>
                 )}

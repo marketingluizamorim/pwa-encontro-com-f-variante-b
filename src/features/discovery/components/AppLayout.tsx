@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 // import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { useTheme } from '@/components/theme-provider';
+import { SafetyToolkitDrawer } from './SafetyToolkitDrawer';
+import { HelpDrawer } from './HelpDrawer';
 
 const navItems = [
   { to: '/app/discover', icon: 'ri-compass-3-fill', inactiveIcon: 'ri-compass-3-line', label: 'Descobrir' },
@@ -14,12 +16,14 @@ const navItems = [
 ];
 
 export function AppLayout() {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const { theme, toggleTheme } = useTheme();
   const isDarkMode = theme === 'dark';
+  const [showSafety, setShowSafety] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -28,6 +32,35 @@ export function AppLayout() {
 
   // Check if we are in the Discover page to apply special layout rules
   const isDiscover = location.pathname.includes('/discover');
+
+  // Track and update user activity
+  useEffect(() => {
+    if (!user) return;
+
+    const updateActivity = async () => {
+      try {
+        const lastUpdate = localStorage.getItem(`last_active_update_${user.id}`);
+        const now = Date.now();
+
+        // Só atualiza se passou mais de 2 minutos desde a última atualização no banco
+        if (lastUpdate && (now - parseInt(lastUpdate)) < 120000) {
+          return;
+        }
+
+        const { supabase } = await import('@/integrations/supabase/client');
+        await supabase
+          .from('profiles')
+          .update({ last_active_at: new Date().toISOString() })
+          .eq('user_id', user.id);
+
+        localStorage.setItem(`last_active_update_${user.id}`, now.toString());
+      } catch (error) {
+        console.error('Failed to update activity status:', error);
+      }
+    };
+
+    updateActivity();
+  }, [user, location.pathname]);
 
   return (
     // Force dark mode for premium feel and use 100dvh for mobile browsers
@@ -61,7 +94,25 @@ export function AppLayout() {
           )}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          {location.pathname.includes('/app/chat') && (
+            <button
+              onClick={() => setShowSafety(true)}
+              className="w-10 h-10 rounded-full bg-background/20 backdrop-blur-md border border-border/10 flex items-center justify-center text-foreground/80 hover:bg-background/30 active:scale-95 transition-all outline-none"
+            >
+              <i className="ri-shield-check-line text-xl" />
+            </button>
+          )}
+
+          {location.pathname.includes('/app/matches') && (
+            <button
+              onClick={() => setShowHelp(true)}
+              className="w-10 h-10 rounded-full bg-background/20 backdrop-blur-md border border-border/10 flex items-center justify-center text-foreground/80 hover:bg-background/30 active:scale-95 transition-all outline-none"
+            >
+              <i className="ri-question-line text-xl" />
+            </button>
+          )}
+
           {isDiscover && (
             <button
               onClick={toggleTheme}
@@ -84,6 +135,8 @@ export function AppLayout() {
 
       {/* Main Content Area */}
       <main className="relative z-10 flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-hide">
+        <SafetyToolkitDrawer open={showSafety} onOpenChange={setShowSafety} />
+        <HelpDrawer open={showHelp} onOpenChange={setShowHelp} />
         <Outlet />
       </main>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
@@ -43,38 +43,50 @@ interface UserProfile {
 export default function Profile() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { userId } = useParams<{ userId: string }>();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isBioDialogOpen, setIsBioDialogOpen] = useState(false);
   const [bioText, setBioText] = useState('');
   const [isSavingBio, setIsSavingBio] = useState(false);
 
+  const isOwnProfile = !userId || userId === user?.id;
+
   useEffect(() => {
     loadProfile();
-  }, [user]);
+  }, [user, userId]);
 
   const loadProfile = async () => {
+    // If no user is logged in, and we are trying to view "my profile", return.
+    // If we are viewing another profile, 'user' might be null if public (though protected route prevents this).
     if (!user) return;
+
+    const targetUserId = userId || user.id;
 
     try {
       const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
       const { data, error } = await supabaseRuntime
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId)
         .single();
 
       if (error) throw error;
       setProfile(data as UserProfile);
     } catch (error) {
       console.error('Error loading profile:', error);
-      // Set demo profile
-      setProfile({
-        display_name: user.user_metadata?.display_name || 'Usuário',
-        bio: 'Complete seu perfil para aparecer para outras pessoas.',
-        photos: [],
-        interests: [],
-      });
+      // Only set demo profile for own profile if it fails? Or handles error gracefully.
+      // For now, keep existing behavior but tailored to target.
+      if (isOwnProfile) {
+        setProfile({
+          display_name: user.user_metadata?.display_name || 'Usuário',
+          bio: 'Complete seu perfil para aparecer para outras pessoas.',
+          photos: [],
+          interests: [],
+        });
+      } else {
+        toast.error('Perfil não encontrado');
+      }
     } finally {
       setLoading(false);
     }
@@ -86,7 +98,7 @@ export default function Profile() {
   };
 
   const handleSaveBio = async () => {
-    if (!user) return;
+    if (!user || !isOwnProfile) return;
     setIsSavingBio(true);
     try {
       const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
@@ -152,39 +164,51 @@ export default function Profile() {
 
   return (
     <PageTransition className="space-y-6 pb-24 px-6 pt-6">
+      {/* Header if viewing other profile */}
+      {!isOwnProfile && (
+        <div className="flex items-center gap-3 -mx-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <i className="ri-arrow-left-line text-xl" />
+          </Button>
+          <span className="font-semibold text-lg">Perfil</span>
+        </div>
+      )}
+
       {/* Profile Header */}
       <div className="text-center">
         <div className="relative inline-block mb-4">
-          {/* Progress Ring */}
-          <div className="absolute -inset-2 flex items-center justify-center pointer-events-none">
-            <svg className="w-[128px] h-[128px] -rotate-90">
-              <defs>
-                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#f59e0b" /> {/* Amber 500 */}
-                  <stop offset="100%" stopColor="#d97706" /> {/* Amber 600 */}
-                </linearGradient>
-              </defs>
-              {/* Background Track */}
-              <circle
-                cx="64" cy="64" r="60"
-                fill="transparent"
-                stroke="currentColor"
-                strokeWidth="4"
-                className="text-muted/30"
-              />
-              {/* Progress Path */}
-              <circle
-                cx="64" cy="64" r="60"
-                fill="transparent"
-                stroke="url(#progressGradient)"
-                strokeWidth="4"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                className="transition-all duration-1000 ease-out"
-              />
-            </svg>
-          </div>
+          {/* Progress Ring - Only for own profile */}
+          {isOwnProfile && (
+            <div className="absolute -inset-2 flex items-center justify-center pointer-events-none">
+              <svg className="w-[128px] h-[128px] -rotate-90">
+                <defs>
+                  <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#f59e0b" /> {/* Amber 500 */}
+                    <stop offset="100%" stopColor="#d97706" /> {/* Amber 600 */}
+                  </linearGradient>
+                </defs>
+                {/* Background Track */}
+                <circle
+                  cx="64" cy="64" r="60"
+                  fill="transparent"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  className="text-muted/30"
+                />
+                {/* Progress Path */}
+                <circle
+                  cx="64" cy="64" r="60"
+                  fill="transparent"
+                  stroke="url(#progressGradient)"
+                  strokeWidth="4"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                  className="transition-all duration-1000 ease-out"
+                />
+              </svg>
+            </div>
+          )}
 
           {/* Avatar */}
           <div className="w-28 h-28 rounded-full overflow-hidden bg-muted mx-auto ring-4 ring-background relative z-10">
@@ -201,12 +225,14 @@ export default function Profile() {
             )}
           </div>
 
-          {/* Percentage Pill */}
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20">
-            <div className="bg-[#1f2937] text-white text-xs font-bold px-3 py-1 rounded-full border border-border/50 shadow-lg flex items-center justify-center min-w-[3rem]">
-              {completion}%
+          {/* Percentage Pill - Only for own profile */}
+          {isOwnProfile && (
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-20">
+              <div className="bg-[#1f2937] text-white text-xs font-bold px-3 py-1 rounded-full border border-border/50 shadow-lg flex items-center justify-center min-w-[3rem]">
+                {completion}%
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <h1 className="font-display text-2xl font-bold mt-4">
@@ -231,10 +257,12 @@ export default function Profile() {
             <i className="ri-double-quotes-l text-primary text-xl" />
             <h2 className="font-display font-semibold text-foreground">Sobre mim</h2>
           </div>
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-            <i className="ri-eye-line" />
-            Público
-          </span>
+          {isOwnProfile && (
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <i className="ri-eye-line" />
+              Público
+            </span>
+          )}
         </div>
 
         {profile?.bio ? (
@@ -242,7 +270,31 @@ export default function Profile() {
             <p className="text-sm text-foreground/90 leading-relaxed pl-2 border-l-2 border-primary/20">
               {profile.bio}
             </p>
-            <div className="flex justify-end">
+            {isOwnProfile && (
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setBioText(profile?.bio || '');
+                    setIsBioDialogOpen(true);
+                  }}
+                  className="text-[10px] h-7 text-primary hover:text-primary/80 hover:bg-primary/5 uppercase tracking-wider font-bold"
+                >
+                  <i className="ri-edit-line mr-1" />
+                  Editar
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-muted-foreground text-sm italic mb-3">
+              {isOwnProfile
+                ? 'Sem descrição ainda. Adicione algo sobre você!'
+                : 'Este usuário ainda não adicionou uma descrição.'}
+            </p>
+            {isOwnProfile && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -250,131 +302,90 @@ export default function Profile() {
                   setBioText(profile?.bio || '');
                   setIsBioDialogOpen(true);
                 }}
-                className="text-[10px] h-7 text-primary hover:text-primary/80 hover:bg-primary/5 uppercase tracking-wider font-bold"
+                className="text-primary hover:text-primary/80 hover:bg-primary/10"
               >
-                <i className="ri-edit-line mr-1" />
-                Editar Bio
+                Adicionar Descrição
               </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-4">
-            <p className="text-muted-foreground text-sm italic mb-3">
-              Sem descrição ainda. Adicione algo sobre você!
-            </p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setBioText(profile?.bio || '');
-                setIsBioDialogOpen(true);
-              }}
-              className="text-primary hover:text-primary/80 hover:bg-primary/10"
-            >
-              Adicionar Descrição
-            </Button>
+            )}
           </div>
         )}
       </div>
 
-      {/* Combined Interests */}
-      {((profile?.interests && profile.interests.length > 0) || (profile?.christian_interests && profile.christian_interests.length > 0)) && (
-        <div className="space-y-3">
-          <h2 className="font-display font-semibold text-lg flex items-center gap-2">
-            <i className="ri-heart-add-line text-primary" />
-            Interesses
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {profile?.christian_interests?.map((interest, i) => (
-              <span key={`c-${i}`} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20">
-                {interest}
-              </span>
-            ))}
-            {profile?.interests?.map((interest, i) => (
-              <span
-                key={`g-${i}`}
-                className="px-3 py-1 rounded-full bg-secondary/50 text-secondary-foreground text-sm border border-white/5"
-              >
-                {interest}
-              </span>
-            ))}
+
+
+      {/* Action Buttons - Only for own profile */}
+      {isOwnProfile && (
+        <div className="space-y-2 pt-4">
+          <Button
+            onClick={() => navigate('/app/profile/edit')}
+            className="w-full h-12 font-medium bg-card text-foreground border border-border hover:bg-muted dark:bg-white/10 dark:hover:bg-white/15 dark:border-white/20 dark:text-white"
+          >
+            <i className="ri-pencil-line mr-2 text-lg" />
+            Editar Perfil
+          </Button>
+
+          {/* App Installation Disclaimer */}
+          <div className="mt-8 pt-6 border-t border-border/30 text-center">
+            <button
+              onClick={() => navigate('/install')}
+              className="group flex flex-col items-center gap-2 mx-auto px-4 py-2"
+            >
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                <i className="ri-download-cloud-2-line text-lg" />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                  Instale o App no seu celular
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed max-w-[280px]">
+                  Tenha uma experiência premium com notificações e acesso instantâneo. Toque para ver como instalar.
+                </p>
+              </div>
+            </button>
           </div>
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="space-y-2 pt-4">
-        <Button
-          onClick={() => navigate('/app/profile/edit')}
-          className="w-full h-12 font-medium bg-card text-foreground border border-border hover:bg-muted dark:bg-white/10 dark:hover:bg-white/15 dark:border-white/20 dark:text-white"
-        >
-          <i className="ri-pencil-line mr-2 text-lg" />
-          Editar Perfil
-        </Button>
-
-
-
-
-
-        {/* App Installation Disclaimer */}
-        <div className="mt-8 pt-6 border-t border-border/30 text-center">
-          <button
-            onClick={() => navigate('/install')}
-            className="group flex flex-col items-center gap-2 mx-auto px-4 py-2"
-          >
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300">
-              <i className="ri-download-cloud-2-line text-lg" />
-            </div>
-            <div className="space-y-1.5">
-              <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                Instale o App no seu celular
+      {isOwnProfile && (
+        <Dialog open={isBioDialogOpen} onOpenChange={setIsBioDialogOpen}>
+          <DialogContent className="max-w-[90vw] rounded-2xl border-border bg-card/95 backdrop-blur-xl outline-none">
+            <DialogHeader>
+              <DialogTitle className="font-display text-xl">Sobre mim</DialogTitle>
+            </DialogHeader>
+            <div className="py-2 space-y-4">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Conte um pouco sobre você, sua fé e o que você procura. Sua descrição ajuda outras pessoas a te conhecerem melhor.
               </p>
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-[280px]">
-                Tenha uma experiência premium com notificações e acesso instantâneo. Toque para ver como instalar.
+              <Textarea
+                placeholder="Ex: Sou apaixonado por missões, amo louvor e busco alguém para caminhar na fé..."
+                value={bioText}
+                onChange={(e) => setBioText(e.target.value)}
+                className="min-h-[150px] bg-background/50 border-border/50 rounded-xl focus:ring-primary/20 resize-none text-sm leading-relaxed"
+                maxLength={500}
+              />
+              <p className="text-[10px] text-right text-muted-foreground">
+                {bioText.length}/500 caracteres
               </p>
             </div>
-          </button>
-        </div>
-      </div>
-
-      <Dialog open={isBioDialogOpen} onOpenChange={setIsBioDialogOpen}>
-        <DialogContent className="max-w-[90vw] rounded-2xl border-border bg-card/95 backdrop-blur-xl outline-none">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl">Sobre mim</DialogTitle>
-          </DialogHeader>
-          <div className="py-2 space-y-4">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Conte um pouco sobre você, sua fé e o que você procura. Sua descrição ajuda outras pessoas a te conhecerem melhor.
-            </p>
-            <Textarea
-              placeholder="Ex: Sou apaixonado por missões, amo louvor e busco alguém para caminhar na fé..."
-              value={bioText}
-              onChange={(e) => setBioText(e.target.value)}
-              className="min-h-[150px] bg-background/50 border-border/50 rounded-xl focus:ring-primary/20 resize-none text-sm leading-relaxed"
-              maxLength={500}
-            />
-            <p className="text-[10px] text-right text-muted-foreground">
-              {bioText.length}/500 caracteres
-            </p>
-          </div>
-          <DialogFooter className="flex flex-col gap-2 sm:flex-col pt-2">
-            <Button
-              onClick={handleSaveBio}
-              disabled={isSavingBio || bioText.length === 0}
-              className="w-full h-11 rounded-xl bg-primary text-white hover:bg-primary/90 font-medium"
-            >
-              {isSavingBio ? 'Salvando...' : 'Salvar Descrição'}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setIsBioDialogOpen(false)}
-              className="w-full h-11 rounded-xl text-muted-foreground hover:bg-muted font-medium"
-            >
-              Cancelar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter className="flex flex-col gap-2 sm:flex-col pt-2">
+              <Button
+                onClick={handleSaveBio}
+                disabled={isSavingBio || bioText.length === 0}
+                className="w-full h-11 rounded-xl bg-primary text-white hover:bg-primary/90 font-medium"
+              >
+                {isSavingBio ? 'Salvando...' : 'Salvar Descrição'}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setIsBioDialogOpen(false)}
+                className="w-full h-11 rounded-xl text-muted-foreground hover:bg-muted font-medium"
+              >
+                Cancelar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </PageTransition>
   );
 }

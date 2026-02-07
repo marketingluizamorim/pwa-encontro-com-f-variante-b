@@ -99,9 +99,19 @@ const AppContent = () => {
                 <Route path="discover" element={<Discover />} />
                 <Route path="matches" element={<Matches />} />
                 <Route path="chat" element={<Chat />} />
-                <Route path="chat/:matchId" element={<ChatRoom />} />
                 <Route path="profile" element={<Profile />} />
+                <Route path="profile/:userId" element={<Profile />} />
               </Route>
+
+              {/* Chat Room (Standalone layout to cover AppLayout) */}
+              <Route
+                path="/app/chat/:matchId"
+                element={
+                  <ProtectedRoute>
+                    <ChatRoom />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Onboarding (protected but different layout) */}
               <Route
