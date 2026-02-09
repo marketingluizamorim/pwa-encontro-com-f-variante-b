@@ -58,13 +58,13 @@ const LOOKING_FOR_OPTIONS = [
 ];
 
 const CHRISTIAN_INTERESTS_OPTIONS = [
-  'Oração', 'Companheirismo', 'Respeito', 'Propósito', 'Leitura',
-  'Estudos', 'Pregações', 'Podcasts', 'Chamado', 'Família',
-  'Retiro', 'Acampamento', 'Viagem', 'Comunhão', 'Missões',
-  'Voluntariado', 'Teatro', 'Profético', 'Dança', 'Coral',
-  'Discipulado', 'Teologia', 'Bíblia', 'Santidade', 'Adoração',
-  'Louvor', 'Jejum', 'Evangelismo', 'Devocional', 'Edificação',
-  'Maturidade', 'Composição', 'Instrumental', 'Pastoreio', 'ServiçoSocial'
+  'Oração', 'Teatro', 'Instrumental', 'Companheirismo', 'Respeito',
+  'Propósito', 'Leitura', 'Estudos', 'Pregações', 'Podcasts',
+  'Chamado', 'Família', 'Retiro', 'Acampamento', 'Viagem',
+  'Comunhão', 'Missões', 'Voluntariado', 'Profético', 'Dança',
+  'Coral', 'Discipulado', 'Teologia', 'Bíblia', 'Santidade',
+  'Adoração', 'Louvor', 'Jejum', 'Evangelismo', 'Devocional',
+  'Edificação', 'Maturidade', 'Composição', 'Pastoreio', 'ServiçoSocial'
 ];
 
 const DEFAULT_FILTERS: DiscoverFiltersState = {

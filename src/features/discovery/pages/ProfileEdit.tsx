@@ -63,17 +63,17 @@ const SMOKE_OPTIONS = ['Não', 'Sim', 'Às vezes'];
 const PETS_OPTIONS = ['Gosto de animais', 'Tenho gato(s)', 'Tenho cachorro(s)', 'Tenho outros', 'Não gosto'];
 const ACTIVITY_OPTIONS = ['Sedentário', 'Leve (Caminhadas)', 'Moderado (Academia/Esportes)', 'Intenso (Atleta)'];
 const CHRISTIAN_INTERESTS_OPTIONS = [
-  'Oração', 'Companheirismo', 'Respeito', 'Propósito', 'Leitura',
-  'Estudos', 'Pregações', 'Podcasts', 'Chamado', 'Família',
-  'Retiro', 'Acampamento', 'Viagem', 'Comunhão', 'Missões',
-  'Voluntariado', 'Teatro', 'Profético', 'Dança', 'Coral',
-  'Discipulado', 'Teologia', 'Bíblia', 'Santidade', 'Adoração',
-  'Louvor', 'Jejum', 'Evangelismo', 'Devocional', 'Edificação',
-  'Maturidade', 'Composição', 'Instrumental', 'Pastoreio', 'ServiçoSocial'
+  'Oração', 'Teatro', 'Instrumental', 'Companheirismo', 'Respeito',
+  'Propósito', 'Leitura', 'Estudos', 'Pregações', 'Podcasts',
+  'Chamado', 'Família', 'Retiro', 'Acampamento', 'Viagem',
+  'Comunhão', 'Missões', 'Voluntariado', 'Profético', 'Dança',
+  'Coral', 'Discipulado', 'Teologia', 'Bíblia', 'Santidade',
+  'Adoração', 'Louvor', 'Jejum', 'Evangelismo', 'Devocional',
+  'Edificação', 'Maturidade', 'Composição', 'Pastoreio', 'ServiçoSocial'
 ];
 
 const INTEREST_ICONS: Record<string, string> = {
-  'Oração': 'ri-hand-line',
+  'Oração': 'ri-hand-heart-line',
   'Companheirismo': 'ri-team-line',
   'Respeito': 'ri-shield-user-line',
   'Propósito': 'ri-compass-3-line',
@@ -89,7 +89,7 @@ const INTEREST_ICONS: Record<string, string> = {
   'Comunhão': 'ri-group-line',
   'Missões': 'ri-earth-line',
   'Voluntariado': 'ri-hand-heart-line',
-  'Teatro': 'ri-drama-line',
+  'Teatro': 'ri-mask-line',
   'Profético': 'ri-sparkling-fill',
   'Dança': 'ri-music-line',
   'Coral': 'ri-user-voice-line',
@@ -105,7 +105,7 @@ const INTEREST_ICONS: Record<string, string> = {
   'Edificação': 'ri-hammer-line',
   'Maturidade': 'ri-seedling-line',
   'Composição': 'ri-quill-pen-line',
-  'Instrumental': 'ri-guitar-line',
+  'Instrumental': 'ri-music-2-line',
   'Pastoreio': 'ri-heart-pulse-line',
   'ServiçoSocial': 'ri-community-line'
 };
@@ -571,10 +571,10 @@ export default function ProfileEdit() {
                             // Safe parse existing data
                             let socialData: any = {};
                             const raw = profile.social_media;
-                            if (typeof raw === 'object' && raw !== null) {
-                              socialData = { ...raw };
-                            } else if (typeof raw === 'string') {
+                            if (typeof raw === 'string') {
                               try { socialData = JSON.parse(raw); } catch { }
+                            } else if (raw && typeof raw === 'object') {
+                              socialData = { ...(raw as any) };
                             }
 
                             const newData = { ...socialData, [activeSocial!]: val };
