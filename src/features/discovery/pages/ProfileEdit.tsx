@@ -63,18 +63,32 @@ const SMOKE_OPTIONS = ['Não', 'Sim', 'Às vezes'];
 const PETS_OPTIONS = ['Gosto de animais', 'Tenho gato(s)', 'Tenho cachorro(s)', 'Tenho outros', 'Não gosto'];
 const ACTIVITY_OPTIONS = ['Sedentário', 'Leve (Caminhadas)', 'Moderado (Academia/Esportes)', 'Intenso (Atleta)'];
 const CHRISTIAN_INTERESTS_OPTIONS = [
-  'Oração', 'Teatro', 'Instrumental', 'Companheirismo', 'Respeito',
-  'Propósito', 'Leitura', 'Estudos', 'Pregações', 'Podcasts',
-  'Chamado', 'Família', 'Retiro', 'Acampamento', 'Viagem',
-  'Comunhão', 'Missões', 'Voluntariado', 'Profético', 'Dança',
-  'Coral', 'Discipulado', 'Teologia', 'Bíblia', 'Santidade',
-  'Adoração', 'Louvor', 'Jejum', 'Evangelismo', 'Devocional',
-  'Edificação', 'Maturidade', 'Composição', 'Pastoreio', 'ServiçoSocial'
+  'Bíblia', 'Oração', 'Adoração', 'Família',
+  'Comunhão', 'Louvor', 'Santidade', 'Evangelismo',
+  'Missões', 'Teatro', 'Instrumental', 'Devocional',
+  'Jejum', 'Discipulado', 'Respeito', 'Propósito',
+  'Leitura', 'Estudos', 'Pregações', 'Podcasts',
+  'Chamado', 'Retiro', 'Acampamento', 'Viagem',
+  'Voluntariado', 'Profético', 'Dança', 'Coral',
+  'Teologia', 'Edificação', 'Maturidade', 'Composição',
+  'Pastoreio', 'ServiçoSocial', 'Companheirismo'
 ];
 
 const INTEREST_ICONS: Record<string, string> = {
+  'Bíblia': 'ri-book-open-line',
   'Oração': 'ri-hand-heart-line',
-  'Companheirismo': 'ri-team-line',
+  'Adoração': 'ri-heart-line',
+  'Família': 'ri-home-heart-line',
+  'Comunhão': 'ri-group-line',
+  'Louvor': 'ri-music-2-line',
+  'Santidade': 'ri-sparkling-line',
+  'Evangelismo': 'ri-megaphone-line',
+  'Missões': 'ri-earth-line',
+  'Teatro': 'ri-theater-line',
+  'Instrumental': 'ri-music-line',
+  'Devocional': 'ri-sun-line',
+  'Jejum': 'ri-rest-time-line',
+  'Discipulado': 'ri-user-follow-line',
   'Respeito': 'ri-shield-user-line',
   'Propósito': 'ri-compass-3-line',
   'Leitura': 'ri-book-line',
@@ -82,32 +96,20 @@ const INTEREST_ICONS: Record<string, string> = {
   'Pregações': 'ri-mic-line',
   'Podcasts': 'ri-headphone-line',
   'Chamado': 'ri-notification-3-line',
-  'Família': 'ri-home-heart-line',
   'Retiro': 'ri-tent-line',
   'Acampamento': 'ri-fire-line',
   'Viagem': 'ri-plane-line',
-  'Comunhão': 'ri-group-line',
-  'Missões': 'ri-earth-line',
   'Voluntariado': 'ri-hand-heart-line',
-  'Teatro': 'ri-mask-line',
   'Profético': 'ri-sparkling-fill',
   'Dança': 'ri-music-line',
   'Coral': 'ri-user-voice-line',
-  'Discipulado': 'ri-user-follow-line',
   'Teologia': 'ri-graduation-cap-line',
-  'Bíblia': 'ri-book-open-line',
-  'Santidade': 'ri-sparkling-line',
-  'Adoração': 'ri-heart-line',
-  'Louvor': 'ri-music-2-line',
-  'Jejum': 'ri-rest-time-line',
-  'Evangelismo': 'ri-megaphone-line',
-  'Devocional': 'ri-sun-line',
   'Edificação': 'ri-hammer-line',
   'Maturidade': 'ri-seedling-line',
   'Composição': 'ri-quill-pen-line',
-  'Instrumental': 'ri-music-2-line',
   'Pastoreio': 'ri-heart-pulse-line',
-  'ServiçoSocial': 'ri-community-line'
+  'ServiçoSocial': 'ri-community-line',
+  'Companheirismo': 'ri-team-line'
 };
 const LANGUAGE_OPTIONS = ['Português', 'Inglês', 'Espanhol', 'Francês', 'Alemão', 'Italiano', 'Libras', 'Outro'];
 
@@ -386,7 +388,7 @@ export default function ProfileEdit() {
           <div>
             <label className="text-sm text-muted-foreground mb-3 block">Interesses Cristãos</label>
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
-              {(showAllInterests ? CHRISTIAN_INTERESTS_OPTIONS : CHRISTIAN_INTERESTS_OPTIONS.slice(0, 11)).map(interest => {
+              {(showAllInterests ? CHRISTIAN_INTERESTS_OPTIONS : CHRISTIAN_INTERESTS_OPTIONS.slice(0, 15)).map(interest => {
                 const isSelected = profile.christian_interests?.includes(interest);
                 const icon = INTEREST_ICONS[interest] || 'ri-star-line';
                 return (

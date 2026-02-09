@@ -58,13 +58,15 @@ const LOOKING_FOR_OPTIONS = [
 ];
 
 const CHRISTIAN_INTERESTS_OPTIONS = [
-  'Oração', 'Teatro', 'Instrumental', 'Companheirismo', 'Respeito',
-  'Propósito', 'Leitura', 'Estudos', 'Pregações', 'Podcasts',
-  'Chamado', 'Família', 'Retiro', 'Acampamento', 'Viagem',
-  'Comunhão', 'Missões', 'Voluntariado', 'Profético', 'Dança',
-  'Coral', 'Discipulado', 'Teologia', 'Bíblia', 'Santidade',
-  'Adoração', 'Louvor', 'Jejum', 'Evangelismo', 'Devocional',
-  'Edificação', 'Maturidade', 'Composição', 'Pastoreio', 'ServiçoSocial'
+  'Bíblia', 'Oração', 'Adoração', 'Família',
+  'Comunhão', 'Louvor', 'Santidade', 'Evangelismo',
+  'Missões', 'Teatro', 'Instrumental', 'Devocional',
+  'Jejum', 'Discipulado', 'Respeito', 'Propósito',
+  'Leitura', 'Estudos', 'Pregações', 'Podcasts',
+  'Chamado', 'Retiro', 'Acampamento', 'Viagem',
+  'Voluntariado', 'Profético', 'Dança', 'Coral',
+  'Teologia', 'Edificação', 'Maturidade', 'Composição',
+  'Pastoreio', 'ServiçoSocial', 'Companheirismo'
 ];
 
 const DEFAULT_FILTERS: DiscoverFiltersState = {
@@ -332,7 +334,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               <div>
                 <Label className="text-sm font-medium mb-3 block">Filtrar por Interesses</Label>
                 <div className="flex flex-wrap gap-2">
-                  {(showAllInterests ? CHRISTIAN_INTERESTS_OPTIONS : CHRISTIAN_INTERESTS_OPTIONS.slice(0, 5)).map(interest => {
+                  {(showAllInterests ? CHRISTIAN_INTERESTS_OPTIONS : CHRISTIAN_INTERESTS_OPTIONS.slice(0, 16)).map(interest => {
                     const isSelected = localFilters.christianInterests?.includes(interest);
                     return (
                       <button
