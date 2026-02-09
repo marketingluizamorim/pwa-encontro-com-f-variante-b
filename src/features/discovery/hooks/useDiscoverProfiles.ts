@@ -64,62 +64,49 @@ async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams
   const blockedByIds = blockedByUsers?.map((b) => b.blocker_id) || [];
   const excludedIds = [userId, ...swipedIds, ...blockedIds, ...blockedByIds];
 
-  // SUPER DEBUG MODE: FETCH CRUDE DATA
-  let query = supabase
+  // Get current user's location for distance calculation
+  const { data: currentUserProfile } = await supabase
     .from('profiles')
-    .select('id, user_id, display_name, birth_date, city, state, religion, church_frequency, bio, photos, avatar_url, looking_for, occupation, show_online_status, show_last_active, show_distance')
-    .eq('is_active', true)
-    .eq('is_profile_complete', true);
+    .select('latitude, longitude')
+    .eq('user_id', userId)
+    .single();
 
-  // Always exclude current user
-  query = query.neq('user_id', userId);
+  const userLat = currentUserProfile?.latitude ? parseFloat(currentUserProfile.latitude as any) : null;
+  const userLon = currentUserProfile?.longitude ? parseFloat(currentUserProfile.longitude as any) : null;
 
-  // Exclude swiped and blocked users
-  // const otherExcludedIds = [...swipedIds, ...blockedIds, ...blockedByIds];
-  // if (otherExcludedIds.length > 0) {
-  //   query = query.not('user_id', 'in', `(${otherExcludedIds.join(',')})`);
-  // }
-
-  // Apply location filters
-  if (filters.state && filters.state !== 'all') {
-    query = query.eq('state', filters.state);
-  }
-
-  if (filters.city) {
-    query = query.ilike('city', `%${filters.city}%`);
-  }
-
-  console.log('Fetching profiles for user:', userId);
-  console.log('Excluded IDs:', excludedIds.length);
-
-  // Apply age filter - calculate date range from age
-  const today = new Date();
-  const maxBirthDate = new Date(today.getFullYear() - filters.minAge, today.getMonth(), today.getDate());
-  const minBirthDate = new Date(today.getFullYear() - filters.maxAge - 1, today.getMonth(), today.getDate());
-
-  query = query
-    .gte('birth_date', minBirthDate.toISOString().split('T')[0])
-    .lte('birth_date', maxBirthDate.toISOString().split('T')[0]);
-
-  // Pagination
-  const from = pageParam * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
-
-  const { data: profilesData, error } = await query
-    .order('last_active_at', { ascending: false, nullsFirst: false })
-    .range(from, to) as any;
-
-  console.log('Profiles fetched:', profilesData?.length, error);
+  // Use RPC for advanced discovery (supports PostGIS distance and complex filters)
+  const { data: profilesData, error } = await (supabase as any).rpc('get_profiles_discovery', {
+    user_lat: userLat,
+    user_lon: userLon,
+    min_age: filters.minAge,
+    max_age: filters.maxAge,
+    max_dist_km: filters.maxDistance,
+    target_state: filters.state && filters.state !== 'all' ? filters.state : null,
+    target_city: filters.city && filters.city !== '' ? filters.city : null,
+    target_religion: filters.religion && filters.religion !== '' ? filters.religion : null,
+    target_church_frequency: filters.churchFrequency && filters.churchFrequency !== '' ? filters.churchFrequency : null,
+    target_looking_for: filters.lookingFor && filters.lookingFor !== '' ? filters.lookingFor : null,
+    target_interests: filters.christianInterests && filters.christianInterests.length > 0 ? filters.christianInterests : null,
+    excluded_ids: excludedIds
+  });
 
   if (error) {
+    console.error('Error in fetchProfiles RPC:', error);
     throw error;
   }
 
+  // Handle range locally since rpc returns the whole set (or we can add range to rpc)
+  // For better performance, we should ideally add range to RPC, but let's do it here for now or update RPC.
+  // Actually, let's update RPC to include limit/offset.
+
+  const from = pageParam * PAGE_SIZE;
+  const to = from + PAGE_SIZE;
   const profiles = (profilesData || []) as Profile[];
-  const hasMore = profiles.length === PAGE_SIZE;
+  const paginatedProfiles = profiles.slice(from, to);
+  const hasMore = profiles.length > to;
 
   return {
-    profiles,
+    profiles: paginatedProfiles,
     nextPage: hasMore ? pageParam + 1 : null,
   };
 }

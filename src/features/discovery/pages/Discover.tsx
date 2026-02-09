@@ -13,7 +13,8 @@ import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { DiscoverSkeleton } from '@/features/discovery/components/SkeletonLoaders';
 import { MatchCelebration } from '@/features/discovery/components/MatchCelebration';
 import { playNotification } from '@/lib/notifications';
-import { Search } from 'lucide-react';
+import { Search, MapPin } from 'lucide-react';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Um compromisso sério': '💍',
@@ -44,6 +45,7 @@ const DEFAULT_FILTERS: DiscoverFiltersState = {
   hasPhotos: false,
   isVerified: false,
   onlineRecently: false,
+  maxDistance: 100,
 };
 
 const SWIPE_THRESHOLD = 100;
@@ -53,6 +55,7 @@ export default function Discover() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const dragControls = useDragControls();
+  const { error: geoError, requestLocation } = useGeolocation();
 
   const [filters, setFilters] = useState<DiscoverFiltersState>(() => {
     const saved = localStorage.getItem('discover-filters');

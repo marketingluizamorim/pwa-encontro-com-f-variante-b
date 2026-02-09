@@ -4,7 +4,6 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -23,6 +22,7 @@ export interface DiscoverFiltersState {
   hasPhotos: boolean;
   isVerified: boolean;
   onlineRecently: boolean;
+  maxDistance: number;
 }
 
 interface DiscoverFiltersProps {
@@ -32,8 +32,6 @@ interface DiscoverFiltersProps {
   triggerId?: string;
   triggerClassName?: string;
 }
-
-// ... imports ...
 
 const RELIGIONS = [
   { value: '', label: 'Todas' },
@@ -81,6 +79,7 @@ const DEFAULT_FILTERS: DiscoverFiltersState = {
   hasPhotos: false,
   isVerified: false,
   onlineRecently: false,
+  maxDistance: 100,
 };
 
 export default function DiscoverFilters({ filters, onFiltersChange, onApply, triggerId, triggerClassName }: DiscoverFiltersProps) {
@@ -112,6 +111,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
     if (filters.minAge !== 18 || filters.maxAge !== 60) count++;
     if (filters.state) count++;
     if (filters.city) count++;
+    if (filters.maxDistance !== 100) count++;
     if (filters.religion) count++;
     if (filters.churchFrequency) count++;
     if (filters.lookingFor) count++;
@@ -203,6 +203,30 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
                 <Badge variant="outline" className="text-sm">
                   {localFilters.maxAge} anos
                 </Badge>
+              </div>
+            </div>
+          </FilterSection>
+
+          <Separator />
+
+          {/* Distance */}
+          <FilterSection title="Distância máxima" icon="ri-road-map-line">
+            <div className="px-2 pt-2">
+              <Slider
+                value={[localFilters.maxDistance]}
+                onValueChange={(values) => setLocalFilters(prev => ({ ...prev, maxDistance: values[0] }))}
+                min={1}
+                max={500}
+                step={5}
+                className="w-full"
+              />
+              <div className="flex justify-between mt-3">
+                <Badge variant="outline" className="text-sm">
+                  Até {localFilters.maxDistance} km
+                </Badge>
+                <span className="text-xs text-muted-foreground flex items-center">
+                  {localFilters.maxDistance >= 500 ? 'Todo o Brasil' : 'Raio de busca'}
+                </span>
               </div>
             </div>
           </FilterSection>
