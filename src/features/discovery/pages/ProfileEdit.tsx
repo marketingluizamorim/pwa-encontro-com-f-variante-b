@@ -84,7 +84,7 @@ const INTEREST_ICONS: Record<string, string> = {
   'Santidade': 'ri-sparkling-line',
   'Evangelismo': 'ri-megaphone-line',
   'Missões': 'ri-earth-line',
-  'Teatro': 'ri-theater-line',
+  'Teatro': 'ri-masks-line',
   'Instrumental': 'ri-music-line',
   'Devocional': 'ri-sun-line',
   'Jejum': 'ri-rest-time-line',
