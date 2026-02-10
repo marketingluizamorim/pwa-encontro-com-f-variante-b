@@ -47,38 +47,16 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
 
-  // Load settings from Supabase (and localStorage as fallback)
+  // Load settings from localStorage
   useEffect(() => {
-    async function loadSettings() {
-      if (!user) return;
+    if (!user) return;
 
-      const { supabase } = await import('@/integrations/supabase/client');
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('show_online_status, show_last_active, show_distance, show_read_receipts')
-        .eq('user_id', user.id)
-        .single();
-
-      if (data && !error) {
-        const serverSettings = {
-          showOnlineStatus: data.show_online_status ?? true,
-          showLastActive: data.show_last_active ?? true,
-          showDistance: data.show_distance ?? true,
-          showReadReceipts: data.show_read_receipts ?? true,
-        };
-        setPrivacySettings(serverSettings);
-        localStorage.setItem(`privacy_settings_${user.id}`, JSON.stringify(serverSettings));
-      } else {
-        // Fallback to localStorage if server fetch fails or no data
-        const savedPrivacy = localStorage.getItem(`privacy_settings_${user?.id}`);
-        if (savedPrivacy) {
-          setPrivacySettings(JSON.parse(savedPrivacy));
-        }
-      }
+    const savedPrivacy = localStorage.getItem(`privacy_settings_${user.id}`);
+    if (savedPrivacy) {
+      setPrivacySettings(JSON.parse(savedPrivacy));
     }
-    loadSettings();
 
-    const savedNotifications = localStorage.getItem(`notifications_enabled_${user?.id}`);
+    const savedNotifications = localStorage.getItem(`notifications_enabled_${user.id}`);
     if (savedNotifications !== null) {
       setNotificationsEnabled(savedNotifications === 'true');
     }
