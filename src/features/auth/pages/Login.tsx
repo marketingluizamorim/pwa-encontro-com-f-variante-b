@@ -33,8 +33,12 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen gradient-welcome flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Divine Background Elements */}
+      <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#d4af37]/5 blur-[120px] rounded-full" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#14b8a6]/5 blur-[120px] rounded-full" />
+
+      <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -93,7 +97,7 @@ export default function Login() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full gradient-button text-white font-semibold py-6"
+              className="w-full h-14 rounded-2xl gradient-button text-white font-bold uppercase tracking-wider text-sm border-0 shadow-none hover:opacity-90 transition-all"
             >
               {loading ? (
                 <i className="ri-loader-4-line animate-spin mr-2" />
