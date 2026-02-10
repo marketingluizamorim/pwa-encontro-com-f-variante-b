@@ -174,7 +174,7 @@ export default function Plans() {
         planPrice={selectedPlanPrice}
         onSubmit={handleCheckoutSubmit}
         isLoading={isProcessing}
-        planName={selectedPlanId === 'weekly' ? 'Plano Semanal' : selectedPlanId === 'monthly' ? 'Plano Mensal' : 'Plano Anual'}
+        planName={selectedPlanId === 'bronze' ? 'Plano Bronze' : selectedPlanId === 'silver' ? 'Plano Prata' : 'Plano Ouro'}
         orderBumps={currentBumpsRef.current}
       />
 

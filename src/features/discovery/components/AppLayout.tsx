@@ -64,12 +64,18 @@ export function AppLayout() {
 
   return (
     // Force dark mode for premium feel and use 100dvh for mobile browsers
-    <div className={cn("relative w-full h-[100dvh] overflow-hidden bg-background text-foreground flex flex-col font-sans")}>
+    <div className={cn("relative w-full h-[100dvh] overflow-hidden bg-[#0f172a] text-foreground flex flex-col font-sans")}>
 
-      {/* Background Ambience (Global) */}
+      {/* Background Ambience (Global - Clean & Premium) */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-20%] w-[70%] h-[70%] bg-primary/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-20%] right-[-20%] w-[70%] h-[70%] bg-accent/5 rounded-full blur-[100px]" />
+        {/* Main ambient light - Top Center (Teal/Blue mix) */}
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[60%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/30 via-[#0f172a]/0 to-transparent blur-[80px]" />
+
+        {/* Bottom warm light - (Amber/Gold mix) for grounding */}
+        <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/15 via-[#0f172a]/0 to-transparent blur-[100px]" />
+
+        {/* Global Noise Texture for cinematic feel */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
       </div>
 
       {/* Modern Top Header */}

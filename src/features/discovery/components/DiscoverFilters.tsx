@@ -186,6 +186,8 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
         </SheetHeader>
 
         <div className="space-y-5 overflow-y-auto max-h-[calc(90vh-180px)] px-2 pb-12">
+
+
           {/* Age Range */}
           <FilterSection title="Faixa de idade" icon="ri-user-line">
             <div className="px-2 pt-2">
@@ -426,6 +428,8 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               />
             </div>
           </FilterSection>
+
+
         </div>
 
         {/* Action Buttons */}

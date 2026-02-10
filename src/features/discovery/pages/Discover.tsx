@@ -443,7 +443,7 @@ export default function Discover() {
                     {currentProfile.looking_for ? (
                       <div className="flex items-center gap-3">
                         <div className="relative flex items-center justify-center">
-                          <div className="absolute w-5 h-5 bg-[#14b8a6] blur-md rounded-full opacity-100" />
+                          <div className="absolute w-8 h-8 bg-amber-500/40 blur-xl rounded-full translate-y-1" />
                           <span className="relative text-3xl z-10 drop-shadow-md">
                             {LOOKING_FOR_EMOJIS[currentProfile.looking_for] || '💘'}
                           </span>

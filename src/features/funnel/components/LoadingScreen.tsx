@@ -148,12 +148,17 @@ export function LoadingScreen({ onComplete, gender }: LoadingScreenProps) {
     const CurrentIcon = STAGES[currentStage].icon;
 
     return (
-        <div className="fixed inset-0 bg-[#0f9b8e] flex flex-col font-sans overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0f9b8e] to-[#1e3a8a] z-0" />
+        <div className="fixed inset-0 bg-[#0f172a] flex flex-col font-sans overflow-hidden">
+            {/* Background Ambience - Clean & Premium */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {/* Main ambient light - Top Center (Teal/Blue mix) */}
+                <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[70%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/30 via-[#0f172a]/0 to-transparent blur-[90px]" />
 
-            <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
-                <div className="absolute top-0 right-0 w-[50%] h-[40%] bg-white/10 rounded-full translate-x-1/2 -translate-y-1/2" />
-                <div className="absolute bottom-0 left-0 w-[50%] h-[40%] bg-black/10 rounded-full -translate-x-1/2 translate-y-1/2" />
+                {/* Bottom warm light - (Amber/Gold mix) for grounding */}
+                <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/15 via-[#0f172a]/0 to-transparent blur-[110px]" />
+
+                {/* Global Noise Texture for cinematic feel */}
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
             </div>
 
             <div className="relative z-10 w-full max-w-md mx-auto flex flex-col flex-1 px-6 py-6">

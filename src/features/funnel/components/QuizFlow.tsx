@@ -147,12 +147,17 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
   if (!question) return null;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-[#0f9b8e] to-[#1e3a8a] relative overflow-hidden flex flex-col font-sans px-4 py-4 fixed inset-0">
-      {/* Mesh Gradient Background Blobs */}
+    <div className="min-h-screen w-full bg-[#0f172a] relative overflow-hidden flex flex-col font-sans px-4 py-4 fixed inset-0">
+      {/* Background Ambience - Clean & Premium */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Optimized Static Background for Mobile Performance */}
-        <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[60%] bg-teal-500/10 rounded-full blur-[40px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[50%] bg-amber-500/10 rounded-full blur-[40px]" />
+        {/* Main ambient light - Top Center (Teal/Blue mix) */}
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[70%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/30 via-[#0f172a]/0 to-transparent blur-[90px]" />
+
+        {/* Bottom warm light - (Amber/Gold mix) for grounding */}
+        <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/15 via-[#0f172a]/0 to-transparent blur-[110px]" />
+
+        {/* Global Noise Texture for cinematic feel */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
       </div>
 
       <div className="relative z-10 w-full max-w-md mx-auto flex flex-col h-full">

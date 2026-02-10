@@ -43,26 +43,35 @@ export function PlansSection({ onSelectPlan, onBack, isDialogOpen = false }: Pla
     <>
       <PushNotification gender={gender === 'male' ? 'masculino' : 'feminino'} paused={notificationsPaused} />
 
-      <div className="min-h-screen bg-gradient-to-b from-[#0f9b8e] to-[#1e3a8a] relative overflow-hidden pb-32 flex flex-col items-center w-full">
-        {/* Mesh Gradient Background Blobs for Premium Feel */}
-        {/* Optimized Static Background for Mobile Performance */}
+      <div className="min-h-screen bg-[#0f172a] relative overflow-hidden pb-32 flex flex-col items-center w-full">
+        {/* Premium Dark Background with Subtle Lighting */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-[-5%] left-[-5%] w-[80%] h-[60%] bg-teal-400/20 rounded-full blur-[60px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[50%] bg-amber-400/15 rounded-full blur-[60px]" />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+          {/* Main ambient light - Top Center (Teal/Blue mix) */}
+          <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[60%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/40 via-[#0f172a]/0 to-transparent blur-[80px]" />
+
+          {/* Bottom warm light - (Amber/Gold mix) for grounding */}
+          <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/20 via-[#0f172a]/0 to-transparent blur-[100px]" />
+
+          {/* Global Noise Texture for cinematic feel */}
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
         </div>
 
         <div className="w-full max-w-md mx-auto relative z-10 px-4">
-          <div className="pt-4 mb-4">
+          <div className="pt-6 mb-6">
             <PlansHeader onBack={onBack} />
           </div>
 
-          <div className="space-y-10">
+          <div className="space-y-12">
             <VideoSection />
             <PlansGrid onSelectPlan={handleSelectPlan} />
-            <TestimonialsCarousel />
-            <GuaranteeSection />
-            <CommunityStats />
+
+            {/* Trust Building Section - Clean Layout */}
+            <div className="space-y-12 pt-4">
+              <CommunityStats />
+              <TestimonialsCarousel />
+              <GuaranteeSection />
+            </div>
+
             <PlansFooter />
           </div>
         </div>

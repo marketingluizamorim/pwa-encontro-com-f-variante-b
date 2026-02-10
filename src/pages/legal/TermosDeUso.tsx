@@ -8,53 +8,79 @@ export default function TermosDeUso() {
 
   const sections = [
     {
-      title: '1. Quem somos',
-      content: `Encontro com Fé ("Aplicativo") é uma plataforma de acesso digital que conecta pessoas com valores cristãos através de grupos no WhatsApp e conteúdos exclusivos de relacionamento, sendo o acesso realizado mediante contratação de planos.`,
+      title: '1. Sobre o Encontro com Fé',
+      content: `O Encontro com Fé ("Plataforma") é um aplicativo de relacionamentos cristão dedicado a conectar pessoas que compartilham da mesma fé e valores, com o objetivo de construir relacionamentos sérios, namoro e casamento.
+
+Nossa missão é fornecer um ambiente seguro e respeitoso para que cristãos possam se conhecer. Não somos uma agência de casamentos e não garantimos que você encontrará um parceiro, mas fornecemos as ferramentas para facilitar essa busca.`,
     },
     {
-      title: '2. Aceite dos termos',
-      content: 'Ao criar uma conta, contratar um plano ou acessar qualquer conteúdo, você concorda com estes Termos e com a Política de Reembolso. Estes Termos constituem um acordo legal entre você e a plataforma.',
+      title: '2. Elegibilidade e Cadastro',
+      content: `Para utilizar o serviço, você declara ter pelo menos 18 anos de idade e ser solteiro(a), divorciado(a) ou viúvo(a). O uso da plataforma por pessoas casadas é estritamente proibido.
+
+Você se compromete a fornecer informações verdadeiras sobre seu perfil, fotos recentes e intenções reais de relacionamento sério. Perfis falsos, "fakes" ou com intenções comerciais/golpistas serão banidos imediatamente.`,
     },
     {
-      title: '3. Serviços e planos',
-      content: 'Oferecemos acesso a grupos e áreas exclusivas conforme o plano contratado (semanal, mensal ou anual).\n\nO Plano Adicional libera o grupo do seu próprio estado, além de bônus de acesso permanente à comunidade, independentemente da validade do plano principal.',
+      title: '3. Planos e Funcionalidades',
+      content: `O acesso a funcionalidades específicas depende do plano contratado:
+
+• Plano Bronze: Acesso básico para conhecer a plataforma.
+• Plano Prata: Acesso intermediário com mais visibilidade e recursos de comunicação.
+• Plano Ouro: Acesso premium com todas as funcionalidades desbloqueadas, incluindo filtros avançados e prioridade.
+
+A descrição detalhada de cada plano e seus benefícios está disponível na página de assinatura. Reservamo-nos o direito de alterar os benefícios dos planos, mantendo o acesso contratado até o fim do período vigente.`,
     },
     {
-      title: '4. Cadastro e conta',
-      content: 'Você é responsável por todas as atividades realizadas na sua conta.\n\nÉ proibido compartilhar acesso, praticar spam, assédio, ofensas, conteúdos impróprios ou qualquer violação à legislação vigente. O descumprimento gera sanções sem reembolso fora do período legal.',
+      title: '4. Regras de Conduta (Código de Valores)',
+      content: `Como uma comunidade cristã, esperamos comportamento exemplar de todos os membros:
+
+• Respeito e Modéstia: Fotos e conversas devem manter o decoro cristão. Conteúdo sexualmente explícito, vulgar ou nudez é proibido.
+• Honestidade: Não minta sobre sua idade, estado civil, fé ou localização.
+• Segurança: Nunca envie dinheiro a outros usuários. Reporte perfis suspeitos imediatamente.
+• Zero Tolerância: Assédio, discurso de ódio, racismo ou qualquer forma de discriminação resultará no banimento imediato e sem reembolso.`,
     },
     {
-      title: '5. Pagamentos e renovações',
-      content: 'Os pagamentos podem ser realizados via PIX, cartão ou boleto, conforme opções disponíveis no checkout.\n\nApós a confirmação da compra, o acesso à comunidade é liberado automaticamente, e você será redirecionado para a página de acesso. Também enviamos um e-mail de confirmação e uma mensagem no WhatsApp com os dados do seu plano e instruções de uso.\n\nAlguns planos podem ter renovação automática, quando informado no momento da compra. Caso não deseje renovar, é possível cancelar antes da próxima cobrança pelos canais informados.',
+      title: '5. Pagamentos e Renovação',
+      content: `Os planos são oferecidos em modalidades de assinatura (mensal, trimestral, anual) ou pagamento único, conforme oferta selecionada.
+
+Para assinaturas recorrentes, a renovação é automática ao final de cada período. Você pode cancelar a renovação automática a qualquer momento nas configurações da sua conta para evitar cobranças futuras. O cancelamento não gera reembolso proporcional do período já pago, mas mantém seu acesso até o fim do ciclo.`,
     },
     {
-      title: '6. Cancelamento e reembolso',
-      content: 'Os reembolsos seguem o prazo legal de 7 (sete) dias contados a partir da contratação, conforme o Código de Defesa do Consumidor.\n\nApós esse período, não há obrigatoriedade legal de devolução, salvo casos previstos em lei ou falhas comprovadas no serviço. Veja a Política de Reembolso para mais detalhes.',
+      title: '6. Segurança e Responsabilidade',
+      content: `Embora verifiquemos perfis e utilizemos tecnologia para segurança, não realizamos checagem de antecedentes criminais de todos os usuários. Você é o único responsável por suas interações.
+
+Recomendamos cautela ao marcar encontros presenciais (sempre em locais públicos) e ao compartilhar informações pessoais sensíveis (endereço, dados financeiros). A Plataforma não se responsabiliza por condutas de usuários fora do ambiente digital.`,
     },
     {
-      title: '7. Uso adequado e sanções',
-      content: 'A violação das regras ou condutas inadequadas poderá resultar em advertência, suspensão ou encerramento da conta, sem direito a reembolso fora do período legal.',
+      title: '7. Política de Cancelamento',
+      content: `Conforme o Código de Defesa do Consumidor (Art. 49), você tem direito de se arrepender da compra no prazo de 7 dias corridos após a contratação inicial.
+
+Para solicitar o cancelamento e reembolso dentro deste prazo, entre em contato com nosso suporte. Após 7 dias, não há reembolso de valores pagos, exceto em casos de falha técnica comprovada da plataforma que impeça o uso.`,
     },
     {
-      title: '8. Limitação de responsabilidade',
-      content: 'Os serviços são fornecidos "como estão", sem garantias de resultados pessoais. Interrupções temporárias podem ocorrer por motivos técnicos ou de manutenção.',
+      title: '8. Proteção de Dados',
+      content: `Sua privacidade é prioridade. Seus dados são tratados conforme a LGPD. Não vendemos suas informações para terceiros. Suas conversas no chat são privadas e criptografadas. Consulte nossa Política de Privacidade completa para mais detalhes.`,
     },
     {
-      title: '9. Privacidade',
-      content: 'Tratamos seus dados conforme a Lei Geral de Proteção de Dados (LGPD). Para mais informações, consulte nossa Política de Privacidade.',
-    },
-    {
-      title: '10. Alterações nos Termos',
-      content: 'Podemos atualizar estes Termos periodicamente. A data de atualização será informada no topo do documento, e você poderá revisar as alterações antes de continuar usando a plataforma.',
-    },
-    {
-      title: '11. Lei aplicável e foro',
-      content: 'Estes Termos são regidos pelas leis brasileiras. Qualquer disputa será resolvida no foro da comarca do consumidor.',
+      title: '9. Contato',
+      content: `Dúvidas, denúncias ou solicitações de suporte devem ser enviadas para:
+E-mail: suporte@encontrocomfe.com
+WhatsApp Oficial: +55 62 9826-8199`,
     },
   ];
 
   return (
-    <div className="min-h-screen gradient-welcome">
+    <div className="min-h-screen bg-[#0f172a] relative overflow-hidden font-sans">
+      {/* Background Ambience - Clean & Premium */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Main ambient light - Top Center (Teal/Blue mix) */}
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[70%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/30 via-[#0f172a]/0 to-transparent blur-[90px]" />
+
+        {/* Bottom warm light - (Amber/Gold mix) for grounding */}
+        <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/15 via-[#0f172a]/0 to-transparent blur-[110px]" />
+
+        {/* Global Noise Texture for cinematic feel */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
+      </div>
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
@@ -157,7 +183,7 @@ export default function TermosDeUso() {
             </Button>
             <Button
               onClick={() => navigate('/v1/planos')}
-              className="gradient-button text-white"
+              className="bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] hover:opacity-90 text-white border border-white/20 shadow-lg shadow-orange-500/20"
             >
               Voltar para Planos
             </Button>

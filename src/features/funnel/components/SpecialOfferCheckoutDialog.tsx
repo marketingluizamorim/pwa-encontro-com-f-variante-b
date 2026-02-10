@@ -151,7 +151,7 @@ export function SpecialOfferCheckoutDialog({
           <Button
             onClick={() => handleSubmit()}
             disabled={isLoading}
-            className="w-full h-14 rounded-2xl gradient-button text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition-all uppercase tracking-wide text-sm font-bold border border-white/20"
+            className="w-full h-14 rounded-2xl gradient-button text-white transition-all uppercase tracking-wide text-sm font-bold border-0 hover:opacity-90"
           >
             {isLoading ? (
               <><i className="ri-loader-4-line animate-spin mr-2" /> Processando...</>

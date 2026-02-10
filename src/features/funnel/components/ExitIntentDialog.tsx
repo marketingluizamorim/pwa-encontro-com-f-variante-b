@@ -111,12 +111,9 @@ export function ExitIntentDialog({
 
       {/* CTA Button */}
       <div className="pt-6 space-y-4">
-        <Button onClick={onAccept} className="w-full h-14 rounded-xl gradient-button text-white shadow-[0_8px_30px_rgba(245,158,11,0.3)] hover:shadow-[0_10px_40px_rgba(245,158,11,0.4)] hover:scale-[1.02] transition-all uppercase tracking-wide text-sm font-bold border border-white/20 group relative overflow-hidden">
-          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 backdrop-blur-[1px]" />
-          <div className="relative flex items-center justify-center gap-2">
-            <Gift className="w-5 h-5 animate-bounce" />
-            Sim! Quero desbloquear agora
-          </div>
+        <Button onClick={onAccept} className="w-full h-14 rounded-xl gradient-button text-white transition-all uppercase tracking-wide text-sm font-bold border-0 hover:opacity-90 flex items-center justify-center gap-2">
+          <Gift className="w-5 h-5 animate-bounce" />
+          Sim! Quero desbloquear agora
         </Button>
 
         {/* Scarcity Timer */}

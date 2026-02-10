@@ -28,14 +28,18 @@ const WelcomeScreen = () => {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-b from-[#0f9b8e] to-[#1e3a8a] flex flex-col items-center justify-center gap-6 md:gap-12 py-8 px-4 md:py-16 md:px-6 font-sans overflow-hidden relative">
+    <div className="min-h-[100dvh] w-full bg-[#0f172a] flex flex-col items-center justify-center gap-6 md:gap-12 py-8 px-4 md:py-16 md:px-6 font-sans overflow-hidden relative">
 
-      {/* Background Ambience - Animated */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[50%] bg-[#14b8a6] rounded-full blur-[100px] md:blur-[130px] opacity-20 animate-pulse-slow" style={{ animationDuration: '8s' }} />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[50%] bg-[#1e3a8a] rounded-full blur-[100px] md:blur-[130px] opacity-30 animate-pulse-slow" style={{ animationDuration: '10s', animationDelay: '1s' }} />
-        {/* Adds a subtle noise texture overlay for professional feel */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
+      {/* Background Ambience - Clean & Premium */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Main ambient light - Top Center (Teal/Blue mix) */}
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[70%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/40 via-[#0f172a]/0 to-transparent blur-[90px] animate-pulse-slow" style={{ animationDuration: '8s' }} />
+
+        {/* Bottom warm light - (Amber/Gold mix) for grounding */}
+        <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/20 via-[#0f172a]/0 to-transparent blur-[110px] animate-pulse-slow" style={{ animationDuration: '10s', animationDelay: '1s' }} />
+
+        {/* Global Noise Texture for cinematic feel */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
       </div>
 
       {/* Top Section: Logo & Brand */}
@@ -161,14 +165,14 @@ const WelcomeScreen = () => {
       {/* Bottom Section: CTA & Trust Badges */}
       <div className="w-full max-w-sm flex flex-col gap-5 md:gap-8 z-10 shrink-0">
         <motion.button
-          whileHover={{ scale: 1.02, boxShadow: "0 20px 30px -5px rgba(245, 158, 11, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)" }}
+          whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => {
             useFunnelStore.getState().reset();
             navigate('/v1/genero');
           }}
           onMouseEnter={() => import('@/features/funnel/pages/Gender')}
-          className="w-full h-14 md:h-20 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] md:rounded-[30px] shadow-2xl shadow-orange-500/25 flex items-center justify-center gap-3 md:gap-4 text-white font-bold text-lg md:text-xl group transition-all relative overflow-hidden border border-white/20 outline-none focus:outline-none"
+          className="w-full h-14 md:h-20 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] md:rounded-[30px] shadow-lg flex items-center justify-center gap-3 md:gap-4 text-white font-bold text-lg md:text-xl group transition-all relative overflow-hidden border border-white/20 outline-none focus:outline-none"
         >
           {/* Button Shine Animation */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 translate-x-[-150%] animate-shine" />

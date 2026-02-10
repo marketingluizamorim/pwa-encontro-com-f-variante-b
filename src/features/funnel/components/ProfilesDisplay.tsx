@@ -18,12 +18,17 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
   const profiles = getProfilesData(gender, quizAnswers);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f9b8e] to-[#1e3a8a] relative overflow-hidden pb-48 flex flex-col items-center w-full">
-      {/* Mesh Gradient Background Blobs */}
-      {/* Optimized Static Background for Mobile Performance */}
+    <div className="min-h-screen bg-[#0f172a] relative overflow-hidden pb-48 flex flex-col items-center w-full">
+      {/* Background Ambience - Clean & Premium */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(20,184,166,0.1),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.05),transparent_50%)]" />
+        {/* Main ambient light - Top Center (Teal/Blue mix) */}
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[70%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/30 via-[#0f172a]/0 to-transparent blur-[90px]" />
+
+        {/* Bottom warm light - (Amber/Gold mix) for grounding */}
+        <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/15 via-[#0f172a]/0 to-transparent blur-[110px]" />
+
+        {/* Global Noise Texture for cinematic feel */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
       </div>
 
       <div className="w-full max-w-md mx-auto relative z-10">
@@ -179,7 +184,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
       </div>
 
       {/* Floating Sticky CTA - Redesigned for Conversion */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#1e3a8a] via-[#1e3a8a]/95 to-transparent pt-32 pb-10 px-6 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/95 to-transparent pt-32 pb-10 px-6 z-50">
         <div className="max-w-md mx-auto relative">
           {/* Social Proof label above button */}
           <motion.div
@@ -193,19 +198,18 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
             </p>
           </motion.div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={onViewPlans}
             onMouseEnter={() => import('@/features/funnel/pages/Plans')}
-            className="group relative w-full bg-gradient-to-r from-teal-500 to-amber-500 text-white rounded-2xl py-5 px-8 font-bold text-lg shadow-[0_20px_50px_rgba(20,184,166,0.3)] hover:shadow-[0_20px_50px_rgba(20,184,166,0.5)] transition-all duration-300 overflow-hidden"
+            className="w-full h-14 md:h-16 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] shadow-lg flex items-center justify-center gap-3 text-white font-bold text-lg group transition-all relative overflow-hidden border border-white/20 outline-none focus:outline-none"
           >
-            {/* Animated Shine Effect */}
-            <div className="absolute inset-0 w-full animate-shine bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-
-            <span className="relative flex items-center justify-center gap-3 tracking-tight">
-              VER QUEM QUER TE CONHECER
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
+            <span className="relative flex items-center justify-center gap-2 drop-shadow-md">
+              Ver Quem Quer Te Conhecer
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </span>
-          </button>
+          </motion.button>
 
           <p className="text-center text-white/30 text-[9px] font-bold tracking-[0.2em] mt-4 uppercase">
             Plataforma 100% Segura e Cristã

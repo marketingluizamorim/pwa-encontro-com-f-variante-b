@@ -106,7 +106,7 @@ export function OrderBumpDialog({
   const hasMultipleBumps = selectedBumps.length > 1;
 
   return <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2rem] bg-[#0f172a]/95 backdrop-blur-2xl border-white/10 text-white shadow-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+    <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2rem] bg-[#1e293b]/95 backdrop-blur-2xl border-white/10 text-white shadow-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
       {/* Content Area - Scrollable */}
       <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide min-h-0">
         {/* Header - Compact */}
@@ -123,15 +123,15 @@ export function OrderBumpDialog({
         <div className="space-y-3 pb-2">
           {ORDER_BUMPS.map(bump => {
             const isSelected = selectedBumps.includes(bump.id);
-            return <div key={bump.id} onClick={() => toggleBump(bump.id)} className={`relative p-3.5 rounded-xl cursor-pointer transition-all border duration-300 group ${isSelected ? 'bg-[#fcd34d]/10 border-[#fcd34d]/50 shadow-[0_0_15px_rgba(252,211,77,0.1)]' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'}`}>
-              <div className="flex items-center gap-3.5">
+            return <div key={bump.id} onClick={() => toggleBump(bump.id)} className={`relative p-4 rounded-xl cursor-pointer transition-all duration-300 border group ${isSelected ? 'bg-gradient-to-br from-[#fcd34d]/20 to-transparent border-[#fcd34d]/60 shadow-[0_4px_20px_-5px_rgba(252,211,77,0.25)] scale-[1.02] z-10 ring-1 ring-[#fcd34d]/30' : 'bg-[#0f172a]/50 border-white/5 hover:border-white/20 hover:bg-[#0f172a]/70'}`}>
+              <div className="flex items-center gap-4">
                 {/* Radio Button */}
-                <div className={`w-6 h-6 rounded-full border-[2px] flex items-center justify-center transition-colors flex-shrink-0 ${isSelected ? 'border-[#fcd34d] bg-[#fcd34d]' : 'border-white/30 group-hover:border-white/50'}`}>
-                  {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#0f172a]" />}
+                <div className={`w-6 h-6 rounded-full border-[2px] flex items-center justify-center transition-all duration-300 flex-shrink-0 ${isSelected ? 'border-[#fcd34d] bg-[#fcd34d] scale-110 shadow-[0_0_10px_rgba(252,211,77,0.4)]' : 'border-white/20 group-hover:border-white/40 bg-white/5'}`}>
+                  {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b]" />}
                 </div>
 
                 {/* Image */}
-                <div className="w-12 h-12 rounded-xl bg-black/20 p-0.5 border border-white/5 overflow-hidden flex-shrink-0">
+                <div className={`w-12 h-12 rounded-xl bg-black/30 p-0.5 border overflow-hidden flex-shrink-0 transition-colors ${isSelected ? 'border-[#fcd34d]/40' : 'border-white/5'}`}>
                   <img
                     src={bump.image}
                     alt={bump.name}
@@ -145,22 +145,22 @@ export function OrderBumpDialog({
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1 gap-2">
-                    <h4 className="text-white leading-tight text-base font-serif font-bold tracking-wide">
+                    <h4 className={`leading-tight text-base font-serif font-bold tracking-wide transition-colors ${isSelected ? 'text-white' : 'text-white/90'}`}>
                       {bump.name}
                     </h4>
-                    <p className="font-black text-[#fcd34d] text-sm whitespace-nowrap flex-shrink-0">
+                    <p className={`font-black text-sm whitespace-nowrap flex-shrink-0 transition-colors ${isSelected ? 'text-[#fcd34d]' : 'text-[#fcd34d]/80'}`}>
                       +R$ {bump.price.toFixed(2).replace('.', ',')}
                     </p>
                   </div>
-                  <p className="text-sm text-white/50 font-light leading-snug">
+                  <p className={`text-sm font-light leading-snug transition-colors ${isSelected ? 'text-white/70' : 'text-white/40'}`}>
                     {bump.description}
                   </p>
                 </div>
               </div>
 
               {/* Badge */}
-              {bump.badge && <div className="mt-2.5 pl-9 flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-300 uppercase tracking-wider leading-none">
+              {bump.badge && <div className="mt-3 pl-10 flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider leading-none transition-all bg-[#3f2e12] border-[#856627] text-[#fcd34d] shadow-sm">
                   {bump.badge}
                 </span>
               </div>}
@@ -170,13 +170,13 @@ export function OrderBumpDialog({
       </div>
 
       {/* Footer (Fixed) */}
-      <div className="p-3 bg-[#0f172a] border-t border-white/10 relative z-20">
-        {selectedPlan && <div className="bg-black/20 rounded-lg p-2.5 border border-white/5 backdrop-blur-sm mb-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-white/80 font-medium">
+      <div className="p-4 bg-[#1e293b] border-t border-white/10 relative z-20">
+        {selectedPlan && <div className="bg-black/20 rounded-xl p-3 border border-white/5 backdrop-blur-sm mb-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-white/90 font-bold text-sm uppercase tracking-wide">
               {selectedPlan.name}
             </span>
-            <span className="text-white font-bold">
+            <span className="text-white font-black text-lg">
               R$ {selectedPlan.price.toFixed(2).replace('.', ',')}
             </span>
           </div>
@@ -187,18 +187,18 @@ export function OrderBumpDialog({
               <>
                 <button
                   onClick={() => setExtrasExpanded(!extrasExpanded)}
-                  className="flex items-center justify-between w-full text-xs mt-1.5 py-1 group"
+                  className="flex items-center justify-between w-full text-xs mt-2 py-1 group"
                 >
-                  <span className="text-[#fcd34d]/80 text-[10px] flex items-center gap-1 group-hover:text-[#fcd34d] transition-colors">
+                  <span className="text-[#fcd34d]/80 text-xs flex items-center gap-1 group-hover:text-[#fcd34d] transition-colors">
                     + Extras ({selectedBumps.length})
-                    {extrasExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    {extrasExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                   </span>
                   <span className="font-medium text-[#fcd34d]">
                     R$ {calculateExtra().toFixed(2).replace('.', ',')}
                   </span>
                 </button>
                 {extrasExpanded && (
-                  <div className="pl-3 border-l-2 border-[#fcd34d]/30 ml-1 space-y-1 mt-1 max-h-20 overflow-y-auto">
+                  <div className="pl-3 border-l-2 border-[#fcd34d]/30 ml-1 space-y-1.5 mt-1 max-h-24 overflow-y-auto">
                     {selectedBumpsList.map(bump => (
                       <div key={bump.id} className="flex items-center justify-between text-xs">
                         <span className="text-white/60 text-[10px]">{bump.name}</span>
@@ -213,28 +213,28 @@ export function OrderBumpDialog({
             ) : (
               // Single bump - show directly
               selectedBumpsList.map(bump => (
-                <div key={bump.id} className="flex items-center justify-between text-xs mt-1">
-                  <span className="text-[#fcd34d]/80 text-[10px]">+ {bump.name}</span>
-                  <span className="font-large text-[#fcd34d]">
+                <div key={bump.id} className="flex items-center justify-between text-xs mt-1.5">
+                  <span className="text-[#fcd34d]/80 text-xs font-medium border-b border-dashed border-[#fcd34d]/30 pb-0.5">+ {bump.name}</span>
+                  <span className="font-bold text-[#fcd34d]">
                     R$ {bump.price.toFixed(2).replace('.', ',')}
                   </span>
                 </div>
               ))
             )}
-            <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-white/10">
-              <span className="font-medium text-white">Total</span>
-              <span className="font-black text-[#fcd34d] text-lg">
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
+              <span className="font-bold text-white text-sm uppercase">Total a Pagar</span>
+              <span className="font-black text-[#fcd34d] text-2xl drop-shadow-sm">
                 R$ {calculateTotal().toFixed(2).replace('.', ',')}
               </span>
             </div>
           </>}
         </div>}
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleDecline} className="flex-1 h-10 rounded-lg border-white/20 text-white bg-transparent hover:bg-white/10 hover:text-white transition-all uppercase tracking-wide text-[10px] font-bold">
+        <div className="flex gap-3 pt-1">
+          <Button variant="outline" onClick={handleDecline} className="flex-1 h-12 rounded-xl border-white/10 text-white/70 bg-transparent hover:bg-white/5 hover:text-white transition-all uppercase tracking-wide text-xs font-bold hover:border-white/30">
             Não, Obrigado
           </Button>
-          <Button onClick={handleContinue} className="flex-1 h-10 rounded-lg gradient-button text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition-all uppercase tracking-wide text-[10px] font-bold">
+          <Button onClick={handleContinue} className="flex-1 h-12 rounded-xl gradient-button text-white transition-all uppercase tracking-wide text-xs font-bold border-0 hover:opacity-90">
             Continuar
           </Button>
         </div>

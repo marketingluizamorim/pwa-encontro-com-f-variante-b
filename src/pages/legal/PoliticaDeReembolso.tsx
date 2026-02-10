@@ -8,61 +8,60 @@ export default function PoliticaDeReembolso() {
 
   const sections = [
     {
-      title: '1. Visão geral',
-      content: `Respeitamos o Código de Defesa do Consumidor (CDC). Para compras digitais realizadas online, o consumidor tem direito ao arrependimento em até 7 (sete) dias corridos a contar da contratação, podendo solicitar reembolso integral do valor pago.
+      title: '1. Sua Satisfação Garantida (7 Dias)',
+      content: `Queremos que você tenha certeza de que o Encontro com Fé é o lugar certo para você. Por isso, oferecemos uma Garantia Incondicional de 7 Dias.
 
-Após a compra e confirmação do pagamento, o acesso ao serviço é disponibilizado automaticamente por meio de redirecionamento, além de um e-mail de confirmação e uma mensagem no WhatsApp com as instruções de uso.`,
+Se por qualquer motivo você não ficar satisfeito(a) com a plataforma nos primeiros 7 dias após a assinatura do seu plano, você pode solicitar o reembolso total do valor pago. Sem letras miúdas, sem burocracia.`,
     },
     {
-      title: '2. Quem tem direito',
-      content: `Todos os planos (semanal, mensal e anual) são reembolsáveis em até 7 dias após a contratação.
+      title: '2. Como Funciona o Reembolso',
+      content: `O reembolso é válido para a primeira contratação de qualquer plano (Bronze, Prata ou Ouro).
 
-O Plano Adicional (Estado + Acesso Permanente à Comunidade) também segue esse mesmo prazo legal.`,
+1. Solicitação: Entre em contato conosco dentro do prazo de 7 dias corridos após a compra.
+2. Processamento: Nossa equipe confirmará seus dados e iniciará o estorno.
+3. Devolução:
+   • Cartão de Crédito: O estorno aparecerá na sua fatura (pode levar de 1 a 2 faturas dependendo do banco).
+   • PIX: Devolução na conta de origem em até 3 dias úteis.
+   
+Após o reembolso, seu acesso às funcionalidades pagas será encerrado e sua conta voltará ao status gratuito ou será inativada, a seu critério.`,
     },
     {
-      title: '3. Como solicitar',
-      content: `Para pedir reembolso, envie um e-mail para o nosso suporte com os seguintes dados:
+      title: '3. Cancelamento de Assinatura',
+      content: `Se você possui um plano com renovação automática (Mensal, Trimestral, Anual), você pode cancelar a renovação a qualquer momento para evitar futuras cobranças.
 
-Para: suporte@encontrocomfe.com
-Assunto: "Reembolso – [seu e-mail ou telefone cadastrado]"
+Como fazer: Acesse as Configurações do seu Perfil > Assinatura > Cancelar Renovação.
 
-Inclua no corpo do e-mail:
-• Nome completo
-• E-mail ou telefone usado na compra
-• Data da compra
-• Plano adquirido
-• Motivo do cancelamento (opcional)
-
-Após o envio, nossa equipe irá confirmar os dados e cancelar seu acesso.`,
+Importante: O cancelamento da renovação não gera reembolso dos dias restantes do período já pago. Você continuará tendo acesso normal ao plano até a data de expiração, e ele simplesmente não será renovado depois disso.`,
     },
     {
-      title: '4. Prazos de devolução',
-      content: `Após a confirmação do cancelamento:
-
-• PIX ou transferência: devolução em até 3 dias corridos
-• Cartão, boleto ou outros métodos (quando aplicável): conforme regras do intermediador de pagamento ou bandeira
-
-Sempre que possível, o reembolso será feito pelo mesmo meio utilizado na compra.`,
+      title: '4. Exceções',
+      content: `• Solicitações feitas após o prazo de 7 dias não são elegíveis para reembolso, exceto em casos de problemas técnicos comprovados que impeçam o uso da plataforma e que não puderam ser resolvidos pelo suporte.
+• Banimento por violação dos Termos de Uso (ex: comportamento ofensivo, nudez, golpes) anula o direito ao reembolso, pois constitui quebra de contrato.`,
     },
     {
-      title: '5. Após 7 dias',
-      content: `Passado o prazo legal de 7 dias, não há obrigatoriedade de reembolso, salvo em casos previstos em lei — por exemplo, falha comprovada na entrega do serviço ("vício").
+      title: '5. Canais de Solicitação',
+      content: `Para pedir seu reembolso ou tirar dúvidas sobre pagamentos, utilize exclusivamente nossos canais oficiais:
 
-Nessas situações, analisaremos o caso e aplicaremos a solução adequada conforme o CDC: correção da falha, abatimento proporcional ou cancelamento.`,
-    },
-    {
-      title: '6. Condutas vedadas',
-      content: 'Em caso de uso indevido, como spam, assédio, ofensas, violação das regras da comunidade ou da legislação, o acesso pode ser suspenso ou encerrado, sem direito a reembolso fora do prazo legal.',
-    },
-    {
-      title: '7. Suporte e dúvidas',
-      content: `E-mail: suporte@encontrocomfe.com
-WhatsApp: +55 62 9826-8199`,
+E-mail: suporte@encontrocomfe.com
+WhatsApp: +55 62 9826-8199
+
+Ao solicitar, informe seu e-mail de cadastro e o motivo (opcional, apenas para melhorarmos nosso serviço).`,
     },
   ];
 
   return (
-    <div className="min-h-screen gradient-welcome">
+    <div className="min-h-screen bg-[#0f172a] relative overflow-hidden font-sans">
+      {/* Background Ambience - Clean & Premium */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Main ambient light - Top Center (Teal/Blue mix) */}
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[70%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/30 via-[#0f172a]/0 to-transparent blur-[90px]" />
+
+        {/* Bottom warm light - (Amber/Gold mix) for grounding */}
+        <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/15 via-[#0f172a]/0 to-transparent blur-[110px]" />
+
+        {/* Global Noise Texture for cinematic feel */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
+      </div>
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
@@ -165,7 +164,7 @@ WhatsApp: +55 62 9826-8199`,
             </Button>
             <Button
               onClick={() => navigate('/v1/planos')}
-              className="gradient-button text-white"
+              className="bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] hover:opacity-90 text-white border border-white/20 shadow-lg shadow-orange-500/20"
             >
               Voltar para Planos
             </Button>

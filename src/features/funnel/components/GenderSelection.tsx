@@ -23,13 +23,18 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-[#0f9b8e] to-[#1e3a8a] relative overflow-hidden flex flex-col font-sans">
+    <div className="min-h-screen w-full bg-[#0f172a] relative overflow-hidden flex flex-col font-sans">
 
-      {/* Background Ambience */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[50%] bg-[#14b8a6] rounded-full blur-[100px] md:blur-[130px] opacity-20 animate-pulse-slow" style={{ animationDuration: '8s' }} />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[50%] bg-[#1e3a8a] rounded-full blur-[100px] md:blur-[130px] opacity-30 animate-pulse-slow" style={{ animationDuration: '10s', animationDelay: '1s' }} />
-        <div className="absolute inset-0 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+      {/* Background Ambience - Clean & Premium */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Main ambient light - Top Center (Teal/Blue mix) */}
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[70%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/40 via-[#0f172a]/0 to-transparent blur-[90px] animate-pulse-slow" style={{ animationDuration: '8s' }} />
+
+        {/* Bottom warm light - (Amber/Gold mix) for grounding */}
+        <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/20 via-[#0f172a]/0 to-transparent blur-[110px] animate-pulse-slow" style={{ animationDuration: '10s', animationDelay: '1s' }} />
+
+        {/* Global Noise Texture for cinematic feel */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
       </div>
 
       {/* Header: Progress & Back */}
