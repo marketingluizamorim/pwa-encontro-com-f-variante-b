@@ -198,7 +198,7 @@ export default function Matches() {
       // 3. Get Profiles with MORE fields
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, display_name, birth_date, avatar_url, photos, bio, city, state, religion, occupation, looking_for, christian_interests')
+        .select('user_id, display_name, birth_date, avatar_url, photos, bio, city, state, religion, looking_for')
         .in('user_id', pendingLikeUserIds);
 
       if (profilesError) throw profilesError;
@@ -223,9 +223,7 @@ export default function Matches() {
               city: profile.city,
               state: profile.state,
               religion: profile.religion,
-              occupation: profile.occupation,
               looking_for: profile.looking_for,
-              christian_interests: profile.christian_interests,
             }
           };
         })

@@ -81,7 +81,7 @@ export default function Chat() {
             const otherUserIds = matchesData.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
             const { data: profilesData } = await supabase
                 .from('profiles')
-                .select('user_id, display_name, avatar_url, photos, birth_date, bio, occupation, city, looking_for, christian_interests, religion')
+                .select('user_id, display_name, avatar_url, photos, birth_date, bio, city, looking_for, religion')
                 .in('user_id', otherUserIds);
 
             const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
@@ -111,10 +111,8 @@ export default function Chat() {
                         photos: profile.photos || [],
                         birth_date: profile.birth_date,
                         bio: profile.bio,
-                        occupation: profile.occupation,
                         city: profile.city,
                         looking_for: profile.looking_for,
-                        christian_interests: profile.christian_interests,
                         religion: profile.religion
                     },
                     last_message: lastMsg ? {

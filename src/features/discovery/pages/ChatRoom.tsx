@@ -425,10 +425,8 @@ export default function ChatRoom() {
     setMySocials(updatedSocials);
     setSocialModal({ isOpen: false, platform: null });
 
-    const { supabase } = await import('@/integrations/supabase/client');
-    await supabase.from('profiles').update({
-      social_media: JSON.stringify(updatedSocials)
-    }).eq('user_id', user.id);
+    // social_media column not available, store locally
+    localStorage.setItem(`social_media_${user.id}`, JSON.stringify(updatedSocials));
 
     await sendMediaMessage(`[profile-card:${JSON.stringify({ [socialModal.platform]: valueToSave })}]`);
   };
