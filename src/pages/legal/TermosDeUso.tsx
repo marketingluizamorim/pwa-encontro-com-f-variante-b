@@ -9,9 +9,9 @@ export default function TermosDeUso() {
   const sections = [
     {
       title: '1. Sobre o Encontro com Fé',
-      content: `O Encontro com Fé ("Plataforma") é um aplicativo de relacionamentos cristão dedicado a conectar pessoas que compartilham da mesma fé e valores, com o objetivo de construir relacionamentos sérios, namoro e casamento.
+      content: `O Encontro com Fé é um aplicativo de relacionamentos cristão operado como um PWA (Progressive Web App). Diferente de aplicativos tradicionais, ele funciona diretamente no seu navegador de internet e pode ser facilmente instalado na tela inicial do seu dispositivo sem a necessidade de baixar arquivos pesados em lojas oficiais como App Store ou Google Play. 
 
-Nossa missão é fornecer um ambiente seguro e respeitoso para que cristãos possam se conhecer. Não somos uma agência de casamentos e não garantimos que você encontrará um parceiro, mas fornecemos as ferramentas para facilitar essa busca.`,
+Nossa missão é oferecer um ambiente seguro, respeitoso e alinhado aos princípios bíblicos para que cristãos solteiros possam se conectar, compartilhar experiências e construir relacionamentos sérios com pessoas que possuem os mesmos valores.`,
     },
     {
       title: '2. Elegibilidade e Cadastro',
@@ -40,9 +40,9 @@ A descrição detalhada de cada plano e seus benefícios está disponível na p�
     },
     {
       title: '5. Pagamentos e Renovação',
-      content: `Os planos são oferecidos em modalidades de assinatura (mensal, trimestral, anual) ou pagamento único, conforme oferta selecionada.
+      content: `O acesso às funcionalidades premium da plataforma é realizado através de planos de assinatura recorrente. Atualmente, disponibilizamos modalidades de assinatura Semanal ou Mensal, cujos valores e benefícios específicos variam de acordo com a oferta selecionada no momento da adesão.
 
-Para assinaturas recorrentes, a renovação é automática ao final de cada período. Você pode cancelar a renovação automática a qualquer momento nas configurações da sua conta para evitar cobranças futuras. O cancelamento não gera reembolso proporcional do período já pago, mas mantém seu acesso até o fim do ciclo.`,
+As assinaturas possuem renovação automática ao final de cada período contratado (7 ou 30 dias). Você tem total liberdade para cancelar a renovação automática a qualquer momento através das configurações da sua conta para evitar cobranças futuras. O cancelamento interrompe cobranças futuras, mas seu acesso premium permanecerá ativo até o final do período já pago.`,
     },
     {
       title: '6. Segurança e Responsabilidade',
@@ -63,7 +63,7 @@ Para solicitar o cancelamento e reembolso dentro deste prazo, entre em contato c
     {
       title: '9. Contato',
       content: `Dúvidas, denúncias ou solicitações de suporte devem ser enviadas para:
-E-mail: suporte@encontrocomfe.com
+E-mail: suporte.encontrocomfe@gmail.com
 WhatsApp Oficial: +55 62 9826-8199`,
     },
   ];
@@ -164,7 +164,7 @@ WhatsApp Oficial: +55 62 9826-8199`,
             className="mt-6 flex items-center justify-center gap-2 text-white/60 text-sm"
           >
             <Mail className="w-4 h-4" />
-            <span>suporte@encontrocomfe.com</span>
+            <span>suporte.encontrocomfe@gmail.com</span>
           </motion.div>
 
           {/* Action Buttons */}

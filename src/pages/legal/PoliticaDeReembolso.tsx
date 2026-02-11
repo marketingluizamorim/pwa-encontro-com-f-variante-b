@@ -27,7 +27,7 @@ Após o reembolso, seu acesso às funcionalidades pagas será encerrado e sua co
     },
     {
       title: '3. Cancelamento de Assinatura',
-      content: `Se você possui um plano com renovação automática (Mensal, Trimestral, Anual), você pode cancelar a renovação a qualquer momento para evitar futuras cobranças.
+      content: `Se você possui um plano com renovação automática (Semanal, Mensal), você pode cancelar a renovação a qualquer momento para evitar futuras cobranças.
 
 Como fazer: Acesse as Configurações do seu Perfil > Assinatura > Cancelar Renovação.
 
@@ -42,7 +42,7 @@ Importante: O cancelamento da renovação não gera reembolso dos dias restantes
       title: '5. Canais de Solicitação',
       content: `Para pedir seu reembolso ou tirar dúvidas sobre pagamentos, utilize exclusivamente nossos canais oficiais:
 
-E-mail: suporte@encontrocomfe.com
+E-mail: suporte.encontrocomfe@gmail.com
 WhatsApp: +55 62 9826-8199
 
 Ao solicitar, informe seu e-mail de cadastro e o motivo (opcional, apenas para melhorarmos nosso serviço).`,
@@ -145,7 +145,7 @@ Ao solicitar, informe seu e-mail de cadastro e o motivo (opcional, apenas para m
             className="mt-6 flex items-center justify-center gap-2 text-white/60 text-sm"
           >
             <Mail className="w-4 h-4" />
-            <span>suporte@encontrocomfe.com</span>
+            <span>suporte.encontrocomfe@gmail.com</span>
           </motion.div>
 
           {/* Action Buttons */}
