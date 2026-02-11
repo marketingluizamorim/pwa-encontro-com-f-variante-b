@@ -792,8 +792,8 @@ export default function Explore() {
     const { data: subscription } = useSubscription();
     const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
     const [showCheckoutManager, setShowCheckoutManager] = useState(false);
-    const isGoldOrPlus = subscription?.tier === 'gold' || subscription?.tier === 'plus';
-    const hasCommunityAccess = subscription?.tier === 'silver' || isGoldOrPlus;
+    const isGold = subscription?.tier === 'gold';
+    const hasCommunityAccess = subscription?.tier === 'silver' || isGold;
 
     const containerRef = useRef<HTMLDivElement>(null);
 

@@ -268,7 +268,7 @@ export default function Chat() {
                         </div>
                         {/* New Matches Section */}
                         <div className="px-4 mb-8">
-                            <h2 className="font-bold text-lg mb-4">Novos matches</h2>
+                            <h2 className="font-bold text-lg mb-4">Novas conexões</h2>
                             <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
                                 {/* Gold Card - Likes Teaser */}
                                 <Link to="/app/matches" className="flex flex-col items-center gap-2 shrink-0 group">

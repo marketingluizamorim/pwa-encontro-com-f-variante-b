@@ -50,9 +50,8 @@ const PLANS: Plan[] = [
     features: [
       'Ver quem curtiu você',
       'Curtidas ilimitadas',
-      'Mensagens de texto ilimitadas',
+      'Enviar ou receber fotos e áudios na mensagem',
       'Filtro por cidade / região',
-      'Enviar e receber fotos e áudios',
       'Fazer chamadas de vídeo',
       'Comunidade cristã no WhatsApp'
     ],

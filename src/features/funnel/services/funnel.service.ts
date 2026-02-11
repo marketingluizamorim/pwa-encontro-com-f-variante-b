@@ -9,7 +9,6 @@ export interface PaymentRequest {
     userPhone: string;
     orderBumps: any;
     quizData: QuizAnswers;
-    utmParams: Record<string, string | undefined>;
     isSpecialOffer?: boolean;
     planName?: string;
 }
@@ -25,11 +24,6 @@ export const funnelService = {
                 userPhone: request.userPhone,
                 orderBumps: request.orderBumps,
                 quizData: request.quizData,
-                utmSource: request.utmParams.utm_source,
-                utmMedium: request.utmParams.utm_medium,
-                utmCampaign: request.utmParams.utm_campaign,
-                utmContent: request.utmParams.utm_content,
-                utmTerm: request.utmParams.utm_term,
                 isSpecialOffer: request.isSpecialOffer,
                 planName: request.planName,
             },

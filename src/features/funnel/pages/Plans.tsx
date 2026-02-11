@@ -7,14 +7,14 @@ import { ThankYouDialog } from '@/features/funnel/components/ThankYouDialog';
 import { ExitIntentDialog } from '@/features/funnel/components/ExitIntentDialog';
 import { SpecialOfferCheckoutDialog } from '@/features/funnel/components/SpecialOfferCheckoutDialog';
 import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
-import { useUTMTracking } from '@/hooks/useUTMTracking';
+
 import { funnelService } from '../services/funnel.service';
 import type { SelectedBumps } from '@/features/funnel/components/OrderBumpDialog';
 
 const SPECIAL_OFFER_PRICE = 9.90;
 const SPECIAL_OFFER_PLAN_ID = 'special-offer-lifetime';
-const PLUS_PLAN_PRICE = 49.90;
-const PLUS_PLAN_ID = 'gold';
+const GOLD_PLAN_PRICE = 49.90;
+const GOLD_PLAN_ID = 'gold';
 const DEV_MODE = true; // Set to false for real payments
 
 const PLAN_NAMES: Record<string, string> = {
@@ -25,7 +25,7 @@ const PLAN_NAMES: Record<string, string> = {
 
 export default function Plans() {
   const navigate = useNavigate();
-  const utmParams = useUTMTracking();
+
 
   const {
     quizAnswers,
@@ -64,13 +64,13 @@ export default function Plans() {
     setShowCheckout(true);
   };
 
-  // Handle Plan Plus auto-open from URL (Upgrade Strategy)
+  // Handle Plan Ouro auto-open from URL (Upgrade Strategy)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('plan') === 'plus') {
+    if (params.get('plan') === 'gold' || params.get('plan') === 'plus') {
       setIsUpgradeFlow(true);
       const bumps = { allRegions: true, grupoEvangelico: true, grupoCatolico: true, lifetime: true };
-      handleSelectPlan(PLUS_PLAN_ID, PLUS_PLAN_PRICE, bumps);
+      handleSelectPlan(GOLD_PLAN_ID, GOLD_PLAN_PRICE, bumps);
       // Clean URL to avoid reopening on refresh
       window.history.replaceState({}, '', window.location.pathname);
     }
@@ -131,7 +131,6 @@ export default function Plans() {
         userPhone: data.phone,
         orderBumps: currentOrderBumps,
         quizData: quizAnswers,
-        utmParams: utmParams as any,
         isSpecialOffer,
         planName: PLAN_NAMES[planId]
       });

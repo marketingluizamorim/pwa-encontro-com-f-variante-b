@@ -31,30 +31,25 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
   // Unique styles with better conversion optimization
   const config = {
     bronze: {
-      // Suavizado para um tom Cobre/Terra mais elegante, menos agressivo
-      bg: 'bg-[#2a1b12]/60 border-orange-900/40 backdrop-blur-xl',
+      bg: 'bg-[#0a0f1d] border-orange-900/40',
       badge: 'bg-orange-900/40 text-orange-200 border border-orange-700/30',
-      glow: 'bg-orange-500/5 opacity-30',
+      glow: 'bg-orange-500/5 opacity-20',
       button: 'bg-[#4a3425] text-orange-100 hover:bg-[#5c402d] border-0 shadow-sm',
       check: 'text-orange-300 bg-orange-900/20 border-orange-500/20',
       x: 'text-orange-900/40 bg-orange-900/10 border-orange-900/10'
     },
     silver: {
-      // O HERO: Azul Profundo + Destaque Prateado Brilhante
-      bg: 'bg-[#1e293b]/70 border-blue-400/30 backdrop-blur-2xl shadow-[0_0_40px_rgba(30,58,138,0.3)]',
+      bg: 'bg-[#0a0f1d] border-blue-400/30 shadow-[0_0_40px_rgba(30,58,138,0.2)]',
       badge: 'bg-blue-500/20 text-blue-100 border border-blue-400/30',
-      glow: 'bg-blue-500/20 opacity-40',
-      // Botão de Alta Conversão - Clean (Sem Sombra Excessiva)
+      glow: 'bg-blue-500/10 opacity-30',
       button: 'bg-gradient-to-r from-teal-500 to-amber-500 text-white font-bold hover:brightness-105 shadow-sm border-0',
       check: 'text-teal-300 bg-teal-900/30 border-teal-500/30',
       x: 'text-slate-600 bg-slate-800/20 border-slate-700/20'
     },
     gold: {
-      // O PREMIUM: Dourado Rico e Exclusivo
-      bg: 'bg-[#271a0c]/80 border-amber-500/40 backdrop-blur-xl shadow-[0_0_50px_rgba(245,158,11,0.15)]',
+      bg: 'bg-[#0a0f1d] border-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.15)]',
       badge: 'bg-amber-500/20 text-amber-200 border border-amber-500/30',
-      glow: 'bg-amber-500/10 opacity-60',
-      // Botão Dourado Premium - Clean (Sem Sombra Excessiva)
+      glow: 'bg-amber-500/5 opacity-50',
       button: 'bg-gradient-to-r from-amber-400 to-yellow-600 text-[#422006] font-bold hover:brightness-105 shadow-sm border-0',
       check: 'text-amber-300 bg-amber-900/30 border-amber-500/30',
       x: 'text-amber-900/40 bg-amber-900/10 border-amber-900/10'

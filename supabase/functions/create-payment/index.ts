@@ -13,14 +13,8 @@ interface CreatePaymentRequest {
   userPhone?: string;
   orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; lifetime: boolean };
   quizData?: Record<string, unknown>;
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  utmContent?: string;
-  utmTerm?: string;
-  src?: string;
-  sck?: string;
   isSpecialOffer?: boolean;
+  planName?: string;
 }
 
 const PLAN_NAMES: Record<string, string> = {
@@ -62,6 +56,8 @@ function formatDateForWebhook(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
+const DISABLE_WEBHOOKS = true; // Set to false to enable n8n integration
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -87,26 +83,18 @@ Deno.serve(async (req) => {
       userPhone,
       orderBumps,
       quizData,
-      utmSource,
-      utmMedium,
-      utmCampaign,
-      utmContent,
-      utmTerm,
-      src,
-      sck,
       isSpecialOffer,
+      planName,
     } = body;
 
     // Use fixed backend prices as source of truth (ignore frontend price)
     const basePlanPrice = PLAN_PRICES[planId] ?? planPrice;
 
     // Calculate total price with order bumps
-    // For special offer, bumps are already included in the price (R$ 9.90 fixed)
     let totalPrice = basePlanPrice;
     const orderBumpsList: string[] = [];
 
     if (!isSpecialOffer) {
-      // Only add bump prices for regular checkout
       if (orderBumps?.allRegions) {
         totalPrice += 5;
         orderBumpsList.push("allRegions");
@@ -124,23 +112,15 @@ Deno.serve(async (req) => {
         orderBumpsList.push("lifetime");
       }
     } else {
-      // For special offer, just track the bumps without adding to price
       if (orderBumps?.allRegions) orderBumpsList.push("allRegions");
       if (orderBumps?.grupoEvangelico) orderBumpsList.push("grupoEvangelico");
       if (orderBumps?.grupoCatolico) orderBumpsList.push("grupoCatolico");
       if (orderBumps?.lifetime) orderBumpsList.push("lifetime");
     }
 
-    console.log("Order bumps received:", JSON.stringify(orderBumps));
-    console.log("Total price calculated:", totalPrice);
-
-    // Convert to cents for Woovi (total price including bumps)
     const amountInCents = Math.round(totalPrice * 100);
-
-    // Generate unique correlation ID
     const correlationID = crypto.randomUUID();
 
-    // Create charge on Woovi/OpenPix (without additionalInfo to keep PIX clean)
     const wooviResponse = await fetch("https://api.openpix.com.br/api/openpix/v1/charge", {
       method: "POST",
       headers: {
@@ -166,17 +146,12 @@ Deno.serve(async (req) => {
     }
 
     const wooviData = await wooviResponse.json();
-    console.log("Woovi response:", JSON.stringify(wooviData));
-
-    // Extract payment info from Woovi response
     const charge = wooviData.charge || wooviData;
     const paymentId = charge.correlationID || correlationID;
     const pixCode = charge.brCode || "";
     const qrCodeImage = charge.qrCodeImage || "";
     const paymentLinkUrl = charge.paymentLinkUrl || "";
 
-
-    // Save purchase to database
     const { data: purchase, error: purchaseError } = await supabase
       .from("purchases")
       .insert({
@@ -192,111 +167,83 @@ Deno.serve(async (req) => {
         payment_method: "PIX",
         order_bumps: orderBumpsList,
         quiz_data: quizData || {},
-        utm_source: utmSource,
-        utm_medium: utmMedium,
-        utm_campaign: utmCampaign,
-        utm_content: utmContent,
-        utm_term: utmTerm,
-        src: src,
-        sck: sck,
       })
       .select()
       .single();
 
     if (purchaseError) {
       console.error("Error saving purchase:", purchaseError);
-      // Continue anyway - payment was created
     }
 
-    // Send webhook to n8n with structured payload matching expected format
-    try {
-      const createdAt = formatDateForWebhook(new Date());
+    const isTestUser = userEmail.includes("@test.com") ||
+      userEmail.includes("@temporario.com") ||
+      userName.toLowerCase().includes("dev") ||
+      planName?.toLowerCase().includes("dev");
 
-      // Build products array - for special offer, send single bundled product
-      let products: { id: string; name: string; price: number; quantity: number }[];
+    if (!isTestUser && !DISABLE_WEBHOOKS) {
+      try {
+        const createdAt = formatDateForWebhook(new Date());
+        let products: { id: string; name: string; price: number; quantity: number }[];
 
-      if (isSpecialOffer) {
-        // Special offer (backredirect): single bundled product
-        products = [
-          {
-            id: "special-offer-lifetime",
-            name: "Oferta Especial Vitalícia",
-            price: 9.90,
-            quantity: 1,
-          },
-        ];
-      } else {
-        // Regular checkout: plan + individual bumps
-        products = [
-          {
-            id: planId,
-            name: PLAN_NAMES[planId] || planId,
-            price: basePlanPrice,
-            quantity: 1,
-          },
-        ];
-
-        // Add order bumps as products
-        for (const bumpId of orderBumpsList) {
-          products.push({
-            id: bumpId,
-            name: BUMP_NAMES[bumpId] || bumpId,
-            price: BUMP_PRICE,
-            quantity: 1,
-          });
+        if (isSpecialOffer) {
+          products = [
+            {
+              id: "special-offer-lifetime",
+              name: "Oferta Especial Vitalícia",
+              price: 9.90,
+              quantity: 1,
+            },
+          ];
+        } else {
+          products = [
+            {
+              id: planId,
+              name: PLAN_NAMES[planId] || planId,
+              price: basePlanPrice,
+              quantity: 1,
+            },
+          ];
+          for (const bumpId of orderBumpsList) {
+            products.push({
+              id: bumpId,
+              name: BUMP_NAMES[bumpId] || bumpId,
+              price: BUMP_PRICE,
+              quantity: 1,
+            });
+          }
         }
+
+        const webhookPayload = {
+          orderId: purchase?.id || null,
+          platform: "encontrocomfe",
+          status: "waiting_payment",
+          createdAt: createdAt,
+          approvedDate: null,
+          customer: {
+            name: userName,
+            email: userEmail,
+            phone: userPhone || null,
+          },
+          products: products,
+          totalPrice: totalPrice,
+          paymentMethod: "PIX",
+          tracking: {
+            planId: isSpecialOffer ? "special-offer-lifetime" : planId,
+            planPrice: isSpecialOffer ? 9.90 : basePlanPrice,
+            orderBumps: isSpecialOffer ? [] : orderBumpsList,
+            isSpecialOffer: isSpecialOffer || false,
+            purchaseSource: isSpecialOffer ? "backredirect" : "checkout",
+          },
+        };
+
+        await fetch("https://n8n.srv1093629.hstgr.cloud/webhook/woovi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(webhookPayload),
+        });
+      } catch (webhookError) {
+        console.error("Error sending webhook:", webhookError);
       }
-
-      const webhookPayload = {
-        orderId: purchase?.id || null,
-        platform: "encontrocomfe",
-        status: "waiting_payment",
-        createdAt: createdAt,
-        approvedDate: null,
-        customer: {
-          name: userName,
-          email: userEmail,
-          phone: userPhone || null,
-        },
-        products: products,
-        totalPrice: totalPrice,
-        paymentMethod: "PIX",
-        tracking: {
-          planId: isSpecialOffer ? "special-offer-lifetime" : planId,
-          planPrice: isSpecialOffer ? 9.90 : basePlanPrice,
-          orderBumps: isSpecialOffer ? [] : orderBumpsList,
-          isSpecialOffer: isSpecialOffer || false,
-          purchaseSource: isSpecialOffer ? "backredirect" : "checkout",
-        },
-        utm: {
-          source: utmSource || null,
-          medium: utmMedium || null,
-          campaign: utmCampaign || null,
-          content: utmContent || null,
-          term: utmTerm || null,
-          src: src || null,
-          sck: sck || null,
-        },
-      };
-
-      console.log("Sending webhook payload:", JSON.stringify(webhookPayload));
-
-      const webhookResponse = await fetch("https://n8n.srv1093629.hstgr.cloud/webhook/woovi", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(webhookPayload),
-      });
-
-      if (!webhookResponse.ok) {
-        console.error("Webhook error:", await webhookResponse.text());
-      } else {
-        console.log("Webhook sent successfully");
-      }
-    } catch (webhookError) {
-      console.error("Error sending webhook:", webhookError);
-      // Continue anyway - don't fail the payment because of webhook
     }
 
     return new Response(
@@ -305,7 +252,6 @@ Deno.serve(async (req) => {
         paymentId,
         pixCode,
         qrCodeImage,
-        // Return totalPrice (the actual amount charged in Woovi including bumps)
         totalAmount: totalPrice,
         purchaseId: purchase?.id,
         checkoutUrl: paymentLinkUrl,

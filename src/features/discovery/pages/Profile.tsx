@@ -111,7 +111,7 @@ export default function Profile() {
     navigate('/login');
   };
 
-  const handleDevSetPlan = async (tier: 'bronze' | 'silver' | 'gold' | 'plus') => {
+  const handleDevSetPlan = async (tier: 'bronze' | 'silver' | 'gold') => {
     if (!user) return;
     const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
 
@@ -126,9 +126,9 @@ export default function Profile() {
           user_email: user.email,
           user_name: profile?.display_name || user.user_metadata?.display_name || 'Dev User',
           plan_id: tier,
-          plan_name: tier === 'plus' ? 'Plano Plus (Combo Dev)' : `Plano ${tier.toUpperCase()} (Dev)`,
-          plan_price: tier === 'plus' ? 24.90 : tier === 'bronze' ? 12.90 : tier === 'silver' ? 29.90 : 49.90,
-          total_price: tier === 'plus' ? 24.90 : tier === 'bronze' ? 12.90 : tier === 'silver' ? 29.90 : 49.90,
+          plan_name: `Plano ${tier.toUpperCase()} (Dev)`,
+          plan_price: tier === 'bronze' ? 12.90 : tier === 'silver' ? 29.90 : 49.90,
+          total_price: tier === 'bronze' ? 12.90 : tier === 'silver' ? 29.90 : 49.90,
           payment_status: 'PAID',
           payment_id: mockPaymentId,
           created_at: new Date().toISOString()
@@ -377,7 +377,7 @@ export default function Profile() {
           {/* Subscription Status Card */}
           {isOwnProfile && (
             <div className="space-y-4 px-4 mt-6">
-              {(subscription?.tier === 'gold' || subscription?.tier === 'plus') ? (
+              {(subscription?.tier === 'gold') ? (
                 <div className="bg-gradient-to-br from-[#d4af37]/20 via-[#b45309]/10 to-transparent border border-[#d4af37]/30 rounded-2xl p-6 relative overflow-hidden group">
                   <div className="absolute -top-6 -right-6 opacity-10 group-hover:opacity-20 transition-opacity">
                     <Crown className="w-32 h-32 text-[#d4af37]" />
@@ -398,13 +398,14 @@ export default function Profile() {
                   <div className="space-y-4">
                     <div className="space-y-2.5">
                       {[
-                        { icon: <MessageSquare className="w-3.5 h-3.5" />, text: "Enviar mensagem sem precisar curtir antes" },
-                        { icon: <CheckCircle2 className="w-3.5 h-3.5" />, text: "Ver perfis online recentemente" },
-                        { icon: <Sparkles className="w-3.5 h-3.5" />, text: "Filtro por distância e interesses" },
-                        { icon: <ShieldCheck className="w-3.5 h-3.5" />, text: "Perfil em destaque" },
-                        { icon: <Sparkles className="w-3.5 h-3.5" />, text: "Filtros avançados (idade e distância)" },
-                        { icon: <Heart className="w-3.5 h-3.5" />, text: "Filtro por objetivo (Namoro ou Casamento)" },
-                        { icon: <CheckCircle2 className="w-3.5 h-3.5" />, text: "Curtidas e Mensagens Ilimitadas" }
+                        { icon: <CheckCircle2 className="w-3.5 h-3.5" />, text: "Descubra quem curtiu seu perfil imediatamente" },
+                        { icon: <MessageSquare className="w-3.5 h-3.5" />, text: "Mande mensagens diretas antes mesmo do match" },
+                        { icon: <CheckCircle2 className="w-3.5 h-3.5" />, text: "Saiba quem está online no momento no app" },
+                        { icon: <Sparkles className="w-3.5 h-3.5" />, text: "Filtre por distância exata e interesses específicos" },
+                        { icon: <ShieldCheck className="w-3.5 h-3.5" />, text: "Destaque seu perfil no topo para 3x mais matches" },
+                        { icon: <Sparkles className="w-3.5 h-3.5" />, text: "Filtros exclusivos por idade e objetivos de vida" },
+                        { icon: <Heart className="w-3.5 h-3.5" />, text: "Busque por objetivos (Namoro ou Casamento)" },
+                        { icon: <CheckCircle2 className="w-3.5 h-3.5" />, text: "Tudo ilimitado e sem restrições" }
                       ].map((item, i) => (
                         <div key={i} className="flex items-center gap-3 text-white/80">
                           <div className="bg-[#d4af37]/20 p-1.5 rounded-lg text-[#d4af37]">
@@ -461,11 +462,11 @@ export default function Profile() {
 
                   <div className="space-y-2.5">
                     {[
-                      "Ver quem curtiu você",
-                      "Curtidas e Mensagens Ilimitadas",
-                      "Filtro por Estado e Cidade",
-                      "Vídeo Chamada Liberada",
-                      "Comunidade cristã no WhatsApp"
+                      "Descubra quem curtiu seu perfil imediatamente",
+                      "Envie mensagens e curta sem limites diários",
+                      "Filtre novos encontros por Estado e Cidade",
+                      "Chamadas de vídeo liberadas com seus matches",
+                      "Acesso à nossa comunidade VIP no WhatsApp"
                     ].map((text, i) => (
                       <div key={i} className="flex items-center gap-3 text-muted-foreground">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
@@ -478,6 +479,7 @@ export default function Profile() {
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">NÃO INCLUSO</p>
                     {[
                       'Enviar mensagem direta (sem curtir antes)',
+                      'Filtro por idade',
                       'Filtro por distância',
                       'Filtro por interesses cristãos',
                       'Filtro por atividade (online recentemente)',
@@ -516,9 +518,9 @@ export default function Profile() {
 
                   <div className="space-y-2.5">
                     {[
-                      "A conversa só começa quando ambos curtirem",
-                      "Enviar e receber mensagens de texto",
-                      "20 Curtidas por dia"
+                      "Conecte-se e converse após o interesse mútuo",
+                      "Envie e receba mensagens de texto ilimitadas",
+                      "Até 20 curtidas diárias para encontrar seu par"
                     ].map((text, i) => (
                       <div key={i} className="flex items-center gap-3 text-muted-foreground">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
@@ -618,7 +620,6 @@ export default function Profile() {
                   <Button size="sm" variant="outline" className="h-8 text-[10px] border-red-500/30 hover:bg-red-500/20 bg-background/50" onClick={() => handleDevSetPlan('bronze')}>BRONZE</Button>
                   <Button size="sm" variant="outline" className="h-8 text-[10px] border-red-500/30 hover:bg-red-500/20 bg-background/50" onClick={() => handleDevSetPlan('silver')}>PRATA</Button>
                   <Button size="sm" variant="outline" className="h-8 text-[10px] border-red-500/30 hover:bg-red-500/20 bg-background/50" onClick={() => handleDevSetPlan('gold')}>OURO</Button>
-                  <Button size="sm" variant="default" className="h-8 text-[10px] bg-amber-500 hover:bg-amber-600 text-white font-bold" onClick={() => handleDevSetPlan('plus')}>PLUS (COMBO)</Button>
                   <Button size="sm" variant="outline" className="h-8 text-[10px] border-amber-500/50 text-amber-500 hover:bg-amber-500/10 bg-background/50 col-span-2 font-bold" onClick={() => setShowLikeLimitTest(true)}>
                     🚀 LIMITE (POPUP)
                   </Button>

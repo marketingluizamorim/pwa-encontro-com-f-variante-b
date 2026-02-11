@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
-export type SubscriptionTier = 'none' | 'bronze' | 'silver' | 'gold' | 'plus';
+export type SubscriptionTier = 'none' | 'bronze' | 'silver' | 'gold';
 
 export interface Subscription {
     tier: SubscriptionTier;
@@ -78,12 +78,12 @@ export function useSubscription() {
                 tier,
                 isActive: data.is_active,
                 expiresAt: data.expires_at,
-                canSeeWhoLiked: tier === 'silver' || tier === 'gold' || tier === 'plus' || data.can_see_who_liked,
-                canUseAdvancedFilters: tier === 'gold' || tier === 'plus' || data.can_use_advanced_filters,
-                canVideoCall: tier === 'silver' || tier === 'gold' || tier === 'plus' || data.can_video_call,
-                canSendMedia: tier === 'silver' || tier === 'gold' || tier === 'plus',
-                canDirectMessage: tier === 'gold' || tier === 'plus',
-                isProfileBoosted: tier === 'gold' || tier === 'plus' || data.is_profile_boosted,
+                canSeeWhoLiked: tier === 'silver' || tier === 'gold' || data.can_see_who_liked,
+                canUseAdvancedFilters: tier === 'gold' || data.can_use_advanced_filters,
+                canVideoCall: tier === 'silver' || tier === 'gold' || data.can_video_call,
+                canSendMedia: tier === 'silver' || tier === 'gold',
+                canDirectMessage: tier === 'gold',
+                isProfileBoosted: tier === 'gold' || data.is_profile_boosted,
                 dailySwipesLimit: (tier === 'bronze' || tier === 'none') ? 20 : 999999,
                 swipesToday: swipesToday || 0,
             };

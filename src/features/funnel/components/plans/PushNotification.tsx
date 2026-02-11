@@ -59,7 +59,7 @@ const FEMALE_MESSAGES = [
   'virou novo membro',
   'está no seu estado',
   'está próxima de você',
-  'entrou na plataforma',
+  'entrou no aplicativo',
 ];
 
 const MALE_MESSAGES = [
@@ -72,7 +72,7 @@ const MALE_MESSAGES = [
   'virou novo membro',
   'está no seu estado',
   'está próximo de você',
-  'entrou na plataforma',
+  'entrou no aplicativo',
 ];
 
 interface PushNotificationProps {

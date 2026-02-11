@@ -106,7 +106,7 @@ export function FeatureGateDialog({
                                         <Button
                                             onClick={() => {
                                                 onOpenChange(false);
-                                                navigate(`/v1/planos?plan=${plan.id === 'gold' ? 'plus' : 'silver'}`);
+                                                navigate(`/v1/planos?plan=${plan.id === 'gold' ? 'gold' : 'silver'}`);
                                             }}
                                             className="w-full h-14 rounded-2xl gradient-button text-white font-bold text-sm tracking-wide border-0 shadow-lg shadow-amber-900/20 active:scale-[0.98] transition-all"
                                         >
@@ -136,7 +136,7 @@ export function FeatureGateDialog({
                 onOpenChange={setShowComparison}
                 onSelectPlan={(p) => {
                     setShowComparison(false);
-                    navigate(`/v1/planos?plan=${p.id === 'gold' ? 'plus' : 'silver'}`);
+                    navigate(`/v1/planos?plan=${p.id === 'gold' ? 'gold' : 'silver'}`);
                 }}
             />
         </Dialog>

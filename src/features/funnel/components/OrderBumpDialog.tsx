@@ -19,20 +19,20 @@ interface OrderBump {
 const ORDER_BUMPS: OrderBump[] = [{
   id: 'regions',
   name: 'Desbloquear Região',
-  description: 'Relacionamentos na sua cidade.',
+  description: 'Busque por relacionamento na sua cidade.',
   price: 5.0,
   image: regionsImage,
   badge: '🔥 67% das pessoas escolhem esta opção'
 }, {
   id: 'evangelico',
   name: 'Grupo Evangélico',
-  description: 'Conecte-se com outros cristãos.',
+  description: 'Junte-se a outros cristãos no Whatsapp.',
   price: 5.0,
   image: evangelicoImage
 }, {
   id: 'catolico',
   name: 'Grupo Católico',
-  description: 'Conecte-se com outros devotos.',
+  description: 'Junte-se a outros devotos no whatsapp.',
   price: 5.0,
   image: catolicoImage
 }];
@@ -115,7 +115,10 @@ export function OrderBumpDialog({
           <DialogTitle className="font-serif text-2xl font-bold text-white tracking-tight leading-none">
             Ofertas de Ano Novo 🎉
           </DialogTitle>
-          <DialogDescription className="text-white/60 text-xs font-light tracking-wide mt-1">
+          <DialogDescription
+            className="text-white/60 font-light tracking-wide mt-1"
+            style={{ fontSize: '0.85rem' }}
+          >
             Adicione junto e personalize sua experiência
           </DialogDescription>
         </div>
@@ -149,7 +152,10 @@ export function OrderBumpDialog({
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1 gap-2">
-                    <h4 className={`leading-tight text-base font-serif font-bold tracking-wide transition-colors ${isSelected ? 'text-white' : 'text-white/90'}`}>
+                    <h4
+                      className={`leading-tight font-serif font-bold tracking-wide transition-colors ${isSelected ? 'text-white' : 'text-white/90'}`}
+                      style={{ fontSize: '1.1rem' }}
+                    >
                       {bump.name}
                     </h4>
                     <p className={`font-black text-sm whitespace-nowrap flex-shrink-0 transition-colors ${isSelected ? 'text-[#fcd34d]' : 'text-[#fcd34d]/80'}`}>

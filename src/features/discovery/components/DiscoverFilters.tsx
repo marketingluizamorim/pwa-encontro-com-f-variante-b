@@ -116,7 +116,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
 
   const isBronze = subscription?.tier === 'bronze' || subscription?.tier === 'none';
   const isSilver = subscription?.tier === 'silver';
-  const isOuroOrPlus = subscription?.tier === 'gold' || subscription?.tier === 'plus';
+  const isGold = subscription?.tier === 'gold';
 
   const handleOpenFilters = (e: React.MouseEvent) => {
     setOpen(true);
@@ -322,21 +322,27 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
           <FilterSection
             title="Faixa de idade"
             icon="ri-user-line"
-            showUpgrade={isBronze}
+            showUpgrade={!isGold}
             onUpgradeClick={() => {
               setUpgradeData({
-                title: "Plano Prata",
-                description: "Migre para o Plano Prata para ajustar a faixa de idade!",
-                features: ["Filtro por cidade / região", "Curtidas Ilimitadas"],
-                planNeeded: 'silver',
+                title: "Plano Ouro",
+                description: "O filtro de idade é exclusivo para membros do Plano Ouro. Aproveite agora com 90% de desconto!",
+                features: [
+                  "Ver perfis online recentemente",
+                  "Enviar mensagem direta",
+                  "Filtros avançados completos",
+                  "Prioridade na fila",
+                  "Bônus: Cursos e Devocionais"
+                ],
+                planNeeded: 'gold',
                 icon: <Filter className="w-8 h-8" />,
-                price: 29.90,
-                planId: 'silver'
+                price: 49.90,
+                planId: 'gold'
               });
               setShowUpgradeDialog(true);
             }}
           >
-            <div className={cn("px-2 pt-2 transition-all", isBronze && "opacity-40 grayscale pointer-events-none")}>
+            <div className={cn("px-2 pt-2 transition-all", !isGold && "opacity-40 grayscale pointer-events-none")}>
               <Slider
                 value={[localFilters.minAge, localFilters.maxAge]}
                 onValueChange={handleAgeChange}
@@ -364,21 +370,25 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
           <FilterSection
             title="Distância máxima"
             icon="ri-road-map-line"
-            showUpgrade={isBronze}
+            showUpgrade={!isGold}
             onUpgradeClick={() => {
               setUpgradeData({
-                title: "Plano Prata",
-                description: "Migre para o Plano Prata para ajustar a distância máxima!",
-                features: ["Filtro por cidade / região", "Curtidas Ilimitadas"],
-                planNeeded: 'silver',
+                title: "Plano Ouro",
+                description: "O ajuste de distância é recurso exclusivo para membros do Plano Ouro.",
+                features: [
+                  "Filtro por distância física",
+                  "Prioridade na fila (Boost)",
+                  "Enviar Direct sem Match"
+                ],
+                planNeeded: 'gold',
                 icon: <MapPin className="w-8 h-8" />,
-                price: 29.90,
-                planId: 'silver'
+                price: 49.90,
+                planId: 'gold'
               });
               setShowUpgradeDialog(true);
             }}
           >
-            <div className={cn("px-2 pt-2 transition-all", isBronze && "opacity-40 grayscale")}>
+            <div className={cn("px-2 pt-2 transition-all", !isGold && "opacity-40 grayscale")}>
               <Slider
                 value={[localFilters.maxDistance]}
                 onValueChange={(values) => setLocalFilters(prev => ({ ...prev, maxDistance: values[0] }))}
@@ -419,12 +429,12 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               <div>
                 <Label className="text-xs text-muted-foreground mb-1.5 block">Estado</Label>
                 <Select
-                  value={localFilters.state}
+                  value={localFilters.state || 'all'}
                   onValueChange={(value) =>
                     setLocalFilters((prev) => ({ ...prev, state: value === 'all' ? '' : value, city: '' }))
                   }
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className={cn("h-10 transition-all", localFilters.state && "border-primary/40 text-foreground font-medium")}>
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] bg-background">
@@ -440,13 +450,13 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               <div>
                 <Label className="text-xs text-muted-foreground mb-1.5 block">Cidade</Label>
                 <Select
-                  value={localFilters.city}
+                  value={localFilters.city || 'all'}
                   onValueChange={(value) =>
                     setLocalFilters((prev) => ({ ...prev, city: value === 'all' ? '' : value }))
                   }
                   disabled={!localFilters.state}
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className={cn("h-10 transition-all", localFilters.city && "border-primary/40 text-foreground font-medium")}>
                     <SelectValue placeholder={!localFilters.state ? "Selecione um estado" : "Todas"} />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] bg-background">
@@ -468,19 +478,19 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
           <FilterSection
             title="Fé e Religião"
             icon="ri-heart-3-line"
-            showUpgrade={!isOuroOrPlus}
+            showUpgrade={!isGold}
             onUpgradeClick={() => handleAdvancedFilterClick("Fé e Religião", ["Filtro por religião", "Frequência na igreja", "Interesses cristãos específicos"], <Heart className="w-8 h-8" />)}
           >
-            <div className={cn("space-y-3 transition-all", !isOuroOrPlus && "opacity-40 grayscale pointer-events-none")}>
+            <div className={cn("space-y-3 transition-all", !isGold && "opacity-40 grayscale pointer-events-none")}>
               <div>
                 <Label className="text-xs text-muted-foreground mb-1.5 block">Religião</Label>
                 <Select
-                  value={localFilters.religion}
+                  value={localFilters.religion || 'all'}
                   onValueChange={(value) =>
                     setLocalFilters((prev) => ({ ...prev, religion: value === 'all' ? '' : value }))
                   }
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className={cn("h-10 transition-all", localFilters.religion && "border-primary/40 text-foreground font-medium")}>
                     <SelectValue placeholder="Todas as religiões" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] bg-background">
@@ -496,12 +506,12 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               <div>
                 <Label className="text-xs text-muted-foreground mb-1.5 block">Frequência na Igreja</Label>
                 <Select
-                  value={localFilters.churchFrequency}
+                  value={localFilters.churchFrequency || 'all'}
                   onValueChange={(value) =>
                     setLocalFilters((prev) => ({ ...prev, churchFrequency: value === 'all' ? '' : value }))
                   }
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className={cn("h-10 transition-all", localFilters.churchFrequency && "border-primary/40 text-foreground font-medium")}>
                     <SelectValue placeholder="Qualquer frequência" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[200px] bg-background">
@@ -517,7 +527,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               <div>
                 <Label className="text-sm font-medium mb-3 block">Filtrar por Interesses</Label>
                 <div className="flex flex-wrap gap-2">
-                  {(showAllInterests || !isOuroOrPlus ? CHRISTIAN_INTERESTS_OPTIONS.slice(0, 16) : CHRISTIAN_INTERESTS_OPTIONS).map(interest => {
+                  {(showAllInterests && isGold ? CHRISTIAN_INTERESTS_OPTIONS : CHRISTIAN_INTERESTS_OPTIONS.slice(0, 16)).map(interest => {
                     const isSelected = localFilters.christianInterests?.includes(interest);
                     return (
                       <button
@@ -540,7 +550,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
                     )
                   })}
 
-                  {!showAllInterests && isOuroOrPlus && (
+                  {!showAllInterests && isGold && (
                     <button
                       onClick={() => setShowAllInterests(true)}
                       className="px-3 py-1.5 rounded-full text-[10px] font-medium border bg-primary/10 border-primary/20 text-primary hover:bg-primary/20 transition-all flex items-center gap-1"
@@ -550,7 +560,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
                     </button>
                   )}
 
-                  {showAllInterests && isOuroOrPlus && (
+                  {showAllInterests && isGold && (
                     <button
                       onClick={() => setShowAllInterests(false)}
                       className="w-full py-2 text-[10px] font-medium text-primary hover:underline transition-all text-center mt-2 border-t border-dashed border-primary/20"
@@ -569,17 +579,17 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
           <FilterSection
             title="Relacionamento"
             icon="ri-search-heart-line"
-            showUpgrade={!isOuroOrPlus}
+            showUpgrade={!isGold}
             onUpgradeClick={() => handleAdvancedFilterClick("Relacionamento", ["Filtrar por objetivos em comum", "Interesses cristãos avançados", "Prioridade na fila"], <Target className="w-8 h-8" />)}
           >
-            <div className={cn("transition-all", !isOuroOrPlus && "opacity-40 grayscale pointer-events-none")}>
+            <div className={cn("transition-all", !isGold && "opacity-40 grayscale pointer-events-none")}>
               <Select
-                value={localFilters.lookingFor}
+                value={localFilters.lookingFor || 'all'}
                 onValueChange={(value) =>
                   setLocalFilters((prev) => ({ ...prev, lookingFor: value === 'all' ? '' : value }))
                 }
               >
-                <SelectTrigger className="h-10">
+                <SelectTrigger className={cn("h-10 transition-all", localFilters.lookingFor && "border-primary/40 text-foreground font-medium")}>
                   <SelectValue placeholder="Selecione o que busca" />
                 </SelectTrigger>
                 <SelectContent className="bg-background">
@@ -599,10 +609,10 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
           <FilterSection
             title="Filtros rápidos"
             icon="ri-filter-3-line"
-            showUpgrade={!isOuroOrPlus}
+            showUpgrade={!isGold}
             onUpgradeClick={() => handleAdvancedFilterClick("Filtros Rápidos", ["Apenas quem tem fotos", "Apenas quem está online", "Perfis verificados primeiro"], <Filter className="w-8 h-8" />)}
           >
-            <div className={cn("space-y-1 bg-muted/50 rounded-xl p-3 transition-all", !isOuroOrPlus && "opacity-40 grayscale pointer-events-none")}>
+            <div className={cn("space-y-1 bg-muted/50 rounded-xl p-3 transition-all", !isGold && "opacity-40 grayscale pointer-events-none")}>
               <ToggleFilter
                 icon="ri-time-line"
                 label="Online recentemente"

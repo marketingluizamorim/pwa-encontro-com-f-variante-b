@@ -5,7 +5,7 @@ import { PixPaymentDialog } from '@/features/funnel/components/PixPaymentDialog'
 import { ThankYouDialog } from '@/features/funnel/components/ThankYouDialog';
 import { funnelService } from '@/features/funnel/services/funnel.service';
 import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
-import { useUTMTracking } from '@/hooks/useUTMTracking';
+
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import type { SelectedBumps } from '@/features/funnel/components/OrderBumpDialog';
 
@@ -22,7 +22,6 @@ interface CheckoutManagerProps {
 export function CheckoutManager({ open, onOpenChange, planId, planPrice, planName }: CheckoutManagerProps) {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const utmParams = useUTMTracking();
     const { quizAnswers, setCheckoutInfo, setOrderBumps } = useFunnelStore();
 
     const [isProcessing, setIsProcessing] = useState(false);
@@ -80,7 +79,6 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
                 userPhone: data.phone,
                 orderBumps: currentBumps.current,
                 quizData: quizAnswers,
-                utmParams: utmParams as any,
                 planName: planName
             });
 

@@ -432,7 +432,7 @@ export default function Matches() {
           )}
 
           {/* Boost Button - Scrolled to Bottom */}
-          {(subscription?.tier !== 'gold' && subscription?.tier !== 'plus') && (
+          {(subscription?.tier !== 'gold') && (
             <div className="mt-8 px-4 pb-8 flex justify-center w-full z-20">
               <button
                 onClick={() => {
