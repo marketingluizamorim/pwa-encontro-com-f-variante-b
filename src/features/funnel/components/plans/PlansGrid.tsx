@@ -2,7 +2,22 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { PlanCard } from './PlanCard';
 
-const PLANS = [
+export interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice: number;
+  period: string;
+  gradient: string;
+  popular?: boolean;
+  savings?: string;
+  features: string[];
+  excludedFeatures?: string[];
+  bonus?: string[];
+  pricingDetails?: { label: string; price: string }[];
+}
+
+const PLANS: Plan[] = [
   {
     id: 'bronze',
     name: 'PLANO BRONZE',
@@ -11,14 +26,14 @@ const PLANS = [
     period: 'Teste por 7 dias',
     gradient: 'gradient-plan-1',
     features: [
-      'Conversa liberada se ambos curtirem',
-      'Enviar e receber mensagens',
+      'A conversa só começa quando ambos curtirem',
+      'Enviar e receber mensagens de texto',
       '20 curtidas por dia'
     ],
     excludedFeatures: [
       'Ver quem curtiu você',
       'Enviar mensagem direta',
-      'Enviar/receber fotos e áudios',
+      'Enviar ou receber fotos e áudios',
       'Chamadas de vídeo',
       'Destaque do perfil',
       'Uso de filtros'
@@ -32,24 +47,20 @@ const PLANS = [
     period: 'Mais escolhido',
     gradient: 'gradient-plan-2',
     popular: true,
-    pricingDetails: [
-      { label: 'Mensal', price: 'R$ 29,90' },
-      { label: 'Trimestral', price: 'R$ 79,90' },
-      { label: 'Anual', price: 'R$ 249,90' }
-    ],
     features: [
       'Ver quem curtiu você',
       'Curtidas ilimitadas',
       'Mensagens de texto ilimitadas',
       'Filtro por cidade / região',
-      'Enviar/receber fotos e áudios',
-      'Chamadas de vídeo'
+      'Enviar e receber fotos e áudios',
+      'Fazer chamadas de vídeo',
+      'Comunidade cristã no WhatsApp'
     ],
     excludedFeatures: [
-      'Mensagem direta',
+      'Enviar mensagem direta (sem curtir antes)',
       'Filtro por distância',
       'Filtro por interesses cristãos',
-      'Filtro por atividade',
+      'Filtro por atividade (online recentemente)',
       'Destaque do perfil'
     ]
   },
@@ -61,19 +72,14 @@ const PLANS = [
     period: 'Economia Completa',
     gradient: 'gradient-plan-3',
     savings: '90% DESCONTO',
-    pricingDetails: [
-      { label: 'Mensal', price: 'R$ 49,90' },
-      { label: 'Trimestral', price: 'R$ 129,90' },
-      { label: 'Anual', price: 'R$ 399,90' }
-    ],
     features: [
-      'Todos recursos do Prata',
-      'Envie mensagem sem precisar de curtida',
-      'Perfis Online Recentemente',
-      'Filtro Interesses Cristãos',
+      'Todos os recursos do Plano Prata',
+      'Enviar mensagem sem precisar curtir antes',
+      'Ver perfis online recentemente',
+      'Filtro por distância e interesses',
       'Perfil em destaque',
-      'Filtros avançados (Idade, Distância)',
-      'Filtro por Objetivo (Namoro/Casamento)'
+      'Filtros avançados (idade e distância)',
+      'Filtro por objetivo (Namoro ou Casamento)'
     ],
     bonus: [
       'Comunidade cristã no WhatsApp',

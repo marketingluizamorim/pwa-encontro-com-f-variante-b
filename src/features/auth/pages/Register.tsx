@@ -80,6 +80,41 @@ export default function Register() {
           console.error('Error creating profile row:', err);
         }
 
+        // 2. Check for existing PAID purchases and link them
+        try {
+          const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+          const { data: { user } } = await supabaseRuntime.auth.getUser();
+
+          if (user) {
+            // Find PAID purchases for this email that don't have a user_id yet
+            const { data: purchases } = await supabaseRuntime
+              .from('purchases')
+              .select('*')
+              .eq('user_email', email)
+              .eq('payment_status', 'PAID')
+              .is('user_id', null);
+
+            if (purchases && purchases.length > 0) {
+              console.log('Found paid purchases to link:', purchases.length);
+
+              for (const purchase of purchases) {
+                // Link purchase to user
+                await supabaseRuntime
+                  .from('purchases')
+                  .update({ user_id: user.id })
+                  .eq('id', purchase.id);
+
+                // Force subscription activation via Edge Function
+                await supabaseRuntime.functions.invoke('check-payment-status', {
+                  body: { paymentId: purchase.payment_id }
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error linking purchase after registration:', err);
+        }
+
         // Logged in! Show success dialog which will redirect to onboarding
         setShowSuccessDialog(true);
       } else {

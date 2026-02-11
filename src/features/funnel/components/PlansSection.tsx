@@ -25,8 +25,18 @@ export function PlansSection({ onSelectPlan, onBack, isDialogOpen = false }: Pla
   const handleSelectPlan = (planId: string, price: number) => {
     const plan = PLANS.find(p => p.id === planId);
     if (plan) {
-      setSelectedPlan(plan);
-      setShowOrderBump(true);
+      if (plan.id === 'gold') {
+        // Gold plan has everything, skip order bump
+        onSelectPlan(plan.id, plan.price, {
+          allRegions: true,
+          grupoEvangelico: true,
+          grupoCatolico: true,
+          lifetime: true
+        });
+      } else {
+        setSelectedPlan(plan);
+        setShowOrderBump(true);
+      }
     }
   };
 

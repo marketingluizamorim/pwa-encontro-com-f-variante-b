@@ -45,6 +45,7 @@ const ProfileSetup = lazy(() => import("@/features/discovery/pages/ProfileSetup"
 const ProfileEdit = lazy(() => import("@/features/discovery/pages/ProfileEdit"));
 const Onboarding = lazy(() => import("@/features/discovery/pages/Onboarding"));
 const Settings = lazy(() => import("@/features/discovery/pages/Settings"));
+const Explore = lazy(() => import("@/features/discovery/pages/Explore"));
 
 const queryClient = new QueryClient();
 
@@ -97,6 +98,7 @@ const AppContent = () => {
                 }
               >
                 <Route path="discover" element={<Discover />} />
+                <Route path="explore" element={<Explore />} />
                 <Route path="matches" element={<Matches />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="profile" element={<Profile />} />

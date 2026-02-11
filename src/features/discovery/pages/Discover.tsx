@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform, useDragControls } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -13,8 +14,14 @@ import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { DiscoverSkeleton } from '@/features/discovery/components/SkeletonLoaders';
 import { MatchCelebration } from '@/features/discovery/components/MatchCelebration';
 import { playNotification } from '@/lib/notifications';
-import { Search, MapPin } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useSubscription } from '@/hooks/useSubscription';
+import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
+import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
+import { LikeLimitDialog } from '@/features/discovery/components/LikeLimitDialog';
+import { MessageCircle, Zap, Search, MapPin } from 'lucide-react';
+import { useTheme } from '@/components/theme-provider';
+import { Header } from '@/features/discovery/components/Header';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Um compromisso sério': '💍',
@@ -56,6 +63,9 @@ export default function Discover() {
   const navigate = useNavigate();
   const dragControls = useDragControls();
   const { error: geoError, requestLocation } = useGeolocation();
+  const { theme, toggleTheme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<DiscoverFiltersState>(() => {
     const saved = localStorage.getItem('discover-filters');
@@ -74,6 +84,19 @@ export default function Discover() {
   const [matchData, setMatchData] = useState<{ name: string; photo: string; matchId: string } | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [showCompleteProfileDialog, setShowCompleteProfileDialog] = useState(false);
+  const { data: subscription } = useSubscription();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [upgradeData, setUpgradeData] = useState({
+    title: '',
+    description: '',
+    features: [],
+    planNeeded: 'silver' as 'silver' | 'gold' | 'bronze',
+    icon: null as React.ReactNode,
+    price: 0,
+    planId: ''
+  });
+  const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+  const [showLikeLimitDialog, setShowLikeLimitDialog] = useState(false);
 
   // Photo Navigation State
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -240,6 +263,15 @@ export default function Discover() {
   const handleSwipe = async (swipeDirection: 'like' | 'dislike' | 'super_like') => {
     if (!currentProfile || !user || swiping) return;
 
+    // Check daily limit for Bronze/None
+    if (subscription) {
+      const { swipesToday, dailySwipesLimit } = subscription;
+      if (swipesToday >= dailySwipesLimit) {
+        setShowLikeLimitDialog(true);
+        return;
+      }
+    }
+
     setSwiping(true);
     setExitDirection(swipeDirection === 'dislike' ? 'left' : swipeDirection === 'like' ? 'right' : 'up');
 
@@ -301,8 +333,9 @@ export default function Discover() {
     }
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setCurrentIndex(0);
+    await queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
     refetch();
   };
 
@@ -311,7 +344,18 @@ export default function Discover() {
   const isEmpty = profiles.length === 0 || currentIndex >= profiles.length;
 
   return (
-    <PageTransition className="relative w-full h-full flex flex-col items-center pt-6">
+    <PageTransition className="relative w-full h-full flex flex-col items-center">
+      <Header
+        isDiscover
+        action={
+          <button
+            onClick={toggleTheme}
+            className="w-10 h-10 rounded-full bg-background/20 backdrop-blur-md border border-border/10 flex items-center justify-center text-foreground/80 hover:bg-background/30 active:scale-95 transition-all"
+          >
+            <i className={cn('text-lg', isDarkMode ? 'ri-moon-line' : 'ri-sun-line text-amber-500')} />
+          </button>
+        }
+      />
       {/* DEBUG BANNER REMOVED */}
 
       {isEmpty ? (
@@ -691,6 +735,53 @@ export default function Discover() {
                     </div>
                   )}
 
+                  {/* Section: Direct Message (Direct Connect) */}
+                  <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
+                      <Zap className="w-12 h-12 text-amber-500" />
+                    </div>
+
+                    <h3 className="text-xl font-bold text-amber-500 mb-2 flex items-center gap-2">
+                      Mensagem Direta <Zap className="w-5 h-5 fill-amber-500" />
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                      Não espere pelo match! Envie uma mensagem direta agora mesmo para {currentProfile.display_name} e saia na frente.
+                    </p>
+
+                    <Button
+                      onClick={() => {
+                        if (subscription?.tier !== 'gold') {
+                          setUpgradeData({
+                            title: "Plano Ouro",
+                            description: "Quebre o gelo agora mesmo com 90% de desconto! O Plano Ouro libera tudo para você.",
+                            features: [
+                              "Todos os recursos do Plano Prata",
+                              "Enviar mensagem sem curtir antes",
+                              "Ver perfis online recentemente",
+                              "Filtro por distância e interesses",
+                              "Perfil em destaque",
+                              "Filtros avançados (idade e distância)",
+                              "Filtro por objetivo (Namoro/Casamento)",
+                              "BÔNUS: Comunidade VIP no WhatsApp",
+                              "BÔNUS: Cursos e Devocionais Diários"
+                            ],
+                            planNeeded: 'gold',
+                            icon: <i className="ri-chat-1-line text-4xl" />,
+                            price: 49.90,
+                            planId: 'gold'
+                          });
+                          setShowUpgradeDialog(true);
+                        } else {
+                          toast.info("Funcionalidade de DM Direta em breve para Plano Ouro!");
+                        }
+                      }}
+                      className="w-full h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      Enviar Mensagem
+                    </Button>
+                  </div>
+
                   {/* Bottom Spacer */}
                   <div className="h-10" />
                 </div>
@@ -775,6 +866,49 @@ export default function Discover() {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      <FeatureGateDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        title={upgradeData.title}
+        description={upgradeData.description}
+        features={upgradeData.features}
+        icon={upgradeData.icon}
+        price={upgradeData.price}
+        onUpgrade={() => setShowCheckoutManager(true)}
+      />
+
+      <CheckoutManager
+        open={showCheckoutManager}
+        onOpenChange={setShowCheckoutManager}
+        planId={upgradeData.planId}
+        planPrice={upgradeData.price}
+        planName={upgradeData.title}
+      />
+
+      <LikeLimitDialog
+        open={showLikeLimitDialog}
+        onOpenChange={setShowLikeLimitDialog}
+        onSeePlans={() => {
+          setUpgradeData({
+            title: "Plano Prata",
+            description: "Não pare sua busca! Assine o Plano Prata para ter curtidas ilimitadas e falar com quem você gosta!",
+            features: [
+              "Ver quem curtiu você",
+              "Curtidas ilimitadas",
+              "Mensagens de texto ilimitadas",
+              "Filtro por cidade / região",
+              "Enviar e receber fotos e áudios",
+              "Fazer chamadas de vídeo"
+            ],
+            planNeeded: 'silver',
+            icon: <i className="ri-heart-line text-4xl" />,
+            price: 29.90,
+            planId: 'silver'
+          });
+          setShowUpgradeDialog(true);
+        }}
+      />
 
     </PageTransition>
   );

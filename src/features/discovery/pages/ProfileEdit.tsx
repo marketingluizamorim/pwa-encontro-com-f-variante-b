@@ -689,7 +689,7 @@ export default function ProfileEdit() {
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="w-full h-12 text-base font-semibold gradient-button text-white shadow-lg hover:opacity-90 transition-opacity"
+          className="w-full h-12 rounded-xl gradient-button text-white font-bold shadow-lg shadow-primary/20 transition-transform active:scale-[0.98] border-0"
         >
           {saving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
           Salvar Alterações

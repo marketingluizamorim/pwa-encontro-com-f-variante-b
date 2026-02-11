@@ -48,6 +48,7 @@ interface OrderBumpDialogProps {
   onOpenChange: (open: boolean) => void;
   onComplete: (extraAmount: number, bumps: SelectedBumps) => void;
   selectedPlan?: {
+    id: string;
     name: string;
     price: number;
   } | null;
@@ -121,7 +122,10 @@ export function OrderBumpDialog({
 
         {/* Order Bump Cards */}
         <div className="space-y-3 pb-2">
-          {ORDER_BUMPS.map(bump => {
+          {ORDER_BUMPS.filter(bump => {
+            if (selectedPlan?.id === 'silver' && bump.id === 'regions') return false;
+            return true;
+          }).map(bump => {
             const isSelected = selectedBumps.includes(bump.id);
             return <div key={bump.id} onClick={() => toggleBump(bump.id)} className={`relative p-4 rounded-xl cursor-pointer transition-all duration-300 border group ${isSelected ? 'bg-gradient-to-br from-[#fcd34d]/20 to-transparent border-[#fcd34d]/60 shadow-[0_4px_20px_-5px_rgba(252,211,77,0.25)] scale-[1.02] z-10 ring-1 ring-[#fcd34d]/30' : 'bg-[#0f172a]/50 border-white/5 hover:border-white/20 hover:bg-[#0f172a]/70'}`}>
               <div className="flex items-center gap-4">

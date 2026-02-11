@@ -11,6 +11,7 @@ export interface PaymentRequest {
     quizData: QuizAnswers;
     utmParams: Record<string, string | undefined>;
     isSpecialOffer?: boolean;
+    planName?: string;
 }
 
 export const funnelService = {
@@ -30,6 +31,7 @@ export const funnelService = {
                 utmContent: request.utmParams.utm_content,
                 utmTerm: request.utmParams.utm_term,
                 isSpecialOffer: request.isSpecialOffer,
+                planName: request.planName,
             },
         });
 

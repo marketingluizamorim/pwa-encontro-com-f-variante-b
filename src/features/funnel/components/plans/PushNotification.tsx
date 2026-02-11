@@ -56,7 +56,7 @@ const FEMALE_MESSAGES = [
   'iniciou nova conversa',
   'encontrou nova conexão',
   'está buscando encontros',
-  'virou nova membro',
+  'virou novo membro',
   'está no seu estado',
   'está próxima de você',
   'entrou na plataforma',

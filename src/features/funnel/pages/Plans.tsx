@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlansSection } from '@/features/funnel/components/PlansSection';
 import { CheckoutDialog } from '@/features/funnel/components/CheckoutDialog';
@@ -13,6 +13,15 @@ import type { SelectedBumps } from '@/features/funnel/components/OrderBumpDialog
 
 const SPECIAL_OFFER_PRICE = 9.90;
 const SPECIAL_OFFER_PLAN_ID = 'special-offer-lifetime';
+const PLUS_PLAN_PRICE = 49.90;
+const PLUS_PLAN_ID = 'gold';
+const DEV_MODE = true; // Set to false for real payments
+
+const PLAN_NAMES: Record<string, string> = {
+  bronze: "Plano Bronze",
+  silver: "Plano Prata",
+  gold: "Plano Ouro",
+};
 
 export default function Plans() {
   const navigate = useNavigate();
@@ -45,6 +54,7 @@ export default function Plans() {
   const [pixQrCode, setPixQrCode] = useState('');
   const [paymentId, setPaymentId] = useState('');
   const [pixTotalAmount, setPixTotalAmount] = useState(0);
+  const [isUpgradeFlow, setIsUpgradeFlow] = useState(false);
 
   const handleSelectPlan = (planId: string, price: number, bumps: SelectedBumps) => {
     setSelectedPlanId(planId);
@@ -54,11 +64,26 @@ export default function Plans() {
     setShowCheckout(true);
   };
 
+  // Handle Plan Plus auto-open from URL (Upgrade Strategy)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('plan') === 'plus') {
+      setIsUpgradeFlow(true);
+      const bumps = { allRegions: true, grupoEvangelico: true, grupoCatolico: true, lifetime: true };
+      handleSelectPlan(PLUS_PLAN_ID, PLUS_PLAN_PRICE, bumps);
+      // Clean URL to avoid reopening on refresh
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   const handleCheckoutOpenChange = (open: boolean) => {
-    if (!open && !hasShownExitIntent && !isProcessing) {
+    if (!open) {
       setShowCheckout(false);
-      setShowExitIntent(true);
-      setHasShownExitIntent(true);
+      // Removed forced navigation to keep user context
+      // if (!hasShownExitIntent && !isProcessing) {
+      //   setShowExitIntent(true);
+      //   setHasShownExitIntent(true);
+      // }
     } else {
       setShowCheckout(open);
     }
@@ -89,17 +114,15 @@ export default function Plans() {
       const currentOrderBumps = explicitBumps
         || (isSpecialOffer ? { allRegions: true, grupoEvangelico: true, grupoCatolico: true, lifetime: true } : currentBumpsRef.current);
 
-      // --- MOCK PAYMENT FOR FREE TESTING (REQUESTED BY USER) ---
-      // We simulate a successful API response
-      const paymentData = {
-        pixCode: '00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-42661417400052040000530398654040.005802BR5913EncontroComFe6008Brasilia62070503***6304E2CA',
-        qrCodeImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Link_pra_pagina_principal_da_Wikipedia-PT_em_codigo_QR_b.svg/1200px-Link_pra_pagina_principal_da_Wikipedia-PT_em_codigo_QR_b.svg.png',
-        paymentId: 'mock-payment-id-' + Date.now(),
-        totalAmount: 0.00 // Free for testing
-      };
+      if (DEV_MODE) {
+        // --- MOCK PAYMENT FOR FREE TESTING (REQUESTED BY USER) ---
+        setPixCode('00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-42661417400052040000530398654040.005802BR5913EncontroComFe6008Brasilia62070503***6304E2CA');
+        setPixQrCode('https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Link_pra_pagina_principal_da_Wikipedia-PT_em_codigo_QR_b.svg/1200px-Link_pra_pagina_principal_da_Wikipedia-PT_em_codigo_QR_b.svg.png');
+        setPaymentId('mock-payment-id-' + Date.now());
+        setPixTotalAmount(0.00);
+        return true;
+      }
 
-      // In real scenario we would call:
-      /*
       const paymentData = await funnelService.createPayment({
         planId,
         planPrice,
@@ -109,15 +132,14 @@ export default function Plans() {
         orderBumps: currentOrderBumps,
         quizData: quizAnswers,
         utmParams: utmParams as any,
-        isSpecialOffer
+        isSpecialOffer,
+        planName: PLAN_NAMES[planId]
       });
-      */
 
       setPixCode(paymentData.pixCode || '');
-      setPixQrCode(paymentData.qrCodeImage || '');
+      setPixQrCode(paymentData.qrCode || ''); // Corrected from qrCodeImage to qrCode
       setPaymentId(paymentData.paymentId || '');
-      setPixTotalAmount(paymentData.totalAmount); // Expecting 0.00
-
+      setPixTotalAmount(paymentData.totalAmount || planPrice);
       return true;
     } catch (error) {
       console.error('Error creating payment:', error);
@@ -143,10 +165,9 @@ export default function Plans() {
     }
   };
 
-  // Always return PAID for testing purposes
   const checkPaymentStatus = useCallback(async () => {
-    // return funnelService.checkPaymentStatus(paymentId);
-    return Promise.resolve('PAID' as const);
+    if (DEV_MODE) return Promise.resolve('PAID' as const);
+    return funnelService.checkPaymentStatus(paymentId);
   }, [paymentId]);
 
   const handlePaymentConfirmed = () => {
@@ -154,19 +175,20 @@ export default function Plans() {
     setShowThankYou(true);
   };
 
-  const handleRedirectToRegister = () => {
-    navigate(`/register?email=${encodeURIComponent(checkoutInfo.email)}&name=${encodeURIComponent(checkoutInfo.name)}`);
+  const handleThankYouClose = () => {
+    setShowThankYou(false);
+    navigate(`/register?email=${encodeURIComponent(checkoutInfo.email)}&name=${encodeURIComponent(checkoutInfo.name)}`, {
+      state: { fromCheckout: true }
+    });
   };
-
-  const handleBack = () => {
-    navigate('/v1/perfis');
-  };
-
-  const isAnyDialogOpen = showCheckout || showPixPayment || showThankYou || showExitIntent || showSpecialOfferCheckout;
 
   return (
-    <>
-      <PlansSection onSelectPlan={handleSelectPlan} onBack={handleBack} isDialogOpen={isAnyDialogOpen} />
+    <div className="bg-[#0f172a]">
+      <PlansSection
+        onSelectPlan={handleSelectPlan}
+        onBack={() => navigate('/v1/quiz')}
+        isDialogOpen={showCheckout || showPixPayment || showThankYou || showExitIntent || showSpecialOfferCheckout}
+      />
 
       <CheckoutDialog
         open={showCheckout}
@@ -174,15 +196,8 @@ export default function Plans() {
         planPrice={selectedPlanPrice}
         onSubmit={handleCheckoutSubmit}
         isLoading={isProcessing}
-        planName={selectedPlanId === 'bronze' ? 'Plano Bronze' : selectedPlanId === 'silver' ? 'Plano Prata' : 'Plano Ouro'}
+        planName={PLAN_NAMES[selectedPlanId] || 'Plano Gold'}
         orderBumps={currentBumpsRef.current}
-      />
-
-      <ExitIntentDialog
-        open={showExitIntent}
-        onOpenChange={setShowExitIntent}
-        onAccept={handleAcceptSpecialOffer}
-        onDecline={handleDeclineSpecialOffer}
       />
 
       <SpecialOfferCheckoutDialog
@@ -190,6 +205,13 @@ export default function Plans() {
         onOpenChange={setShowSpecialOfferCheckout}
         onSubmit={handleSpecialOfferSubmit}
         isLoading={isProcessing}
+      />
+
+      <ExitIntentDialog
+        open={showExitIntent}
+        onOpenChange={setShowExitIntent}
+        onAccept={handleAcceptSpecialOffer}
+        onDecline={handleDeclineSpecialOffer}
       />
 
       <PixPaymentDialog
@@ -207,8 +229,8 @@ export default function Plans() {
         open={showThankYou}
         email={checkoutInfo.email}
         name={checkoutInfo.name}
-        onRedirect={handleRedirectToRegister}
+        onRedirect={handleThankYouClose}
       />
-    </>
+    </div>
   );
 }

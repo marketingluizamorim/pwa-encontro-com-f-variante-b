@@ -2,22 +2,9 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Sparkles, X, Gift, ChevronsDown, ChevronDown, ChevronUp } from 'lucide-react';
-
-export interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice: number;
-  period: string;
-  gradient: string;
-  popular?: boolean;
-  savings?: string;
-  features: string[];
-  excludedFeatures?: string[];
-  bonus?: string[];
-  pricingDetails?: { label: string; price: string }[];
-}
+import { Check, Sparkles, X, Gift, ChevronsDown, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { PlanComparison } from './PlanComparison';
+import { PLANS, Plan } from './PlansGrid';
 
 interface PlanCardProps {
   plan: Plan;
@@ -27,6 +14,7 @@ interface PlanCardProps {
 
 export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
 
   const formattedPrice = plan.price.toLocaleString('pt-BR', {
     minimumFractionDigits: 2,
@@ -47,7 +35,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
       bg: 'bg-[#2a1b12]/60 border-orange-900/40 backdrop-blur-xl',
       badge: 'bg-orange-900/40 text-orange-200 border border-orange-700/30',
       glow: 'bg-orange-500/5 opacity-30',
-      button: 'bg-[#4a3425] text-orange-100 hover:bg-[#5c402d] border border-orange-700/50 shadow-sm',
+      button: 'bg-[#4a3425] text-orange-100 hover:bg-[#5c402d] border-0 shadow-sm',
       check: 'text-orange-300 bg-orange-900/20 border-orange-500/20',
       x: 'text-orange-900/40 bg-orange-900/10 border-orange-900/10'
     },
@@ -198,6 +186,9 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
                     </div>
                   </div>
                 )}
+
+                {/* Horizontal scroll of upgrades for Bronze plan */}
+
               </motion.div>
             )}
 
@@ -222,6 +213,17 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
             >
               <span className="relative z-10">Assinar Agora</span>
             </Button>
+
+            {plan.id === 'gold' && (
+              <Button
+                variant="ghost"
+                onClick={(e) => { e.stopPropagation(); setShowComparison(true); }}
+                className="w-full h-12 mt-4 font-medium border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+              >
+                Compare os Planos
+              </Button>
+            )}
+
             <div className="flex items-center justify-center gap-2 mt-4 opacity-30 grayscale hover:grayscale-0 transition-all duration-500">
               {/* Simple Lock Icon for Trust */}
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
@@ -231,6 +233,14 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
         </div>
       </div>
 
+      <PlanComparison
+        open={showComparison}
+        onOpenChange={setShowComparison}
+        onSelectPlan={(p) => {
+          setShowComparison(false);
+          onSelect(p);
+        }}
+      />
     </div>
   );
 }

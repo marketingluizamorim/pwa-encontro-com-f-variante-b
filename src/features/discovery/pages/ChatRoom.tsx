@@ -20,7 +20,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AlertTriangle, Ban } from 'lucide-react';
+import { AlertTriangle, Ban, Lock, Video } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
+import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
+import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 interface Message {
   id: string;
@@ -77,6 +87,17 @@ export default function ChatRoom() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [showSocialBadges, setShowSocialBadges] = useState(false);
+  const { data: subscription } = useSubscription();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [upgradeData, setUpgradeData] = useState({
+    title: '',
+    description: '',
+    features: [],
+    icon: null as React.ReactNode,
+    price: 49.90,
+    planId: 'gold'
+  });
+  const [showCheckoutManager, setShowCheckoutManager] = useState(false);
 
   const [mySocials, setMySocials] = useState<SocialMediaLinks>({});
   const [socialModal, setSocialModal] = useState<{ isOpen: boolean; platform: keyof SocialMediaLinks | null }>({ isOpen: false, platform: null });
@@ -175,6 +196,25 @@ export default function ChatRoom() {
         .eq('match_id', matchId)
         .neq('sender_id', user.id)
         .eq('is_read', false);
+
+      // Fetch my own profile for social media links
+      const { data: myProfile } = await (supabase
+        .from('profiles')
+        .select('social_media')
+        .eq('user_id', user.id)
+        .single() as any);
+
+      if (myProfile?.social_media) {
+        let socials = {};
+        try {
+          socials = typeof myProfile.social_media === 'string'
+            ? JSON.parse(myProfile.social_media)
+            : myProfile.social_media;
+          setMySocials(socials || {});
+        } catch (e) {
+          console.error('Error parsing my socials:', e);
+        }
+      }
 
       setLoading(false);
     };
@@ -283,6 +323,20 @@ export default function ChatRoom() {
     const file = e.target.files?.[0];
     if (!file || !user || !matchId) return;
 
+    if (subscription?.tier === 'bronze' || subscription?.tier === 'none') {
+      setUpgradeData({
+        title: "Plano Prata",
+        description: "Envie fotos e áudios ilimitados! Assine o Plano Prata e tenha o controle total da sua conversa.",
+        features: [],
+        icon: <i className="ri-image-line text-4xl" />,
+        price: 29.90,
+        planId: 'silver'
+      });
+      setShowUpgradeDialog(true);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+      return;
+    }
+
     if (file.size > 10 * 1024 * 1024) {
       toast.error('Imagem muito grande (máx 10MB)');
       return;
@@ -316,9 +370,38 @@ export default function ChatRoom() {
     }
   };
 
+  const handleCameraClick = () => {
+    if (subscription?.tier === 'bronze' || subscription?.tier === 'none') {
+      setUpgradeData({
+        title: "Plano Prata",
+        description: "Envie fotos e áudios ilimitados! Assine o Plano Prata e tenha o controle total da sua conversa.",
+        features: [],
+        icon: <i className="ri-image-line text-4xl" />,
+        price: 29.90,
+        planId: 'silver'
+      });
+      setShowUpgradeDialog(true);
+    } else {
+      imageInputRef.current?.click();
+    }
+  };
+
   const startRecording = async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       toast.error('Seu navegador não suporta gravação de áudio.');
+      return;
+    }
+
+    if (subscription?.tier === 'bronze' || subscription?.tier === 'none') {
+      setUpgradeData({
+        title: "Plano Prata",
+        description: "Falar é melhor que digitar! Assine o Plano Prata para liberar áudios e vídeos ilimitados!",
+        features: [],
+        icon: <i className="ri-mic-line text-4xl" />,
+        price: 29.90,
+        planId: 'silver'
+      });
+      setShowUpgradeDialog(true);
       return;
     }
 
@@ -421,14 +504,26 @@ export default function ChatRoom() {
   const saveSocialLink = async () => {
     if (!user || !socialModal.platform) return;
     let valueToSave = socialInputValue.trim();
+    if (!valueToSave) return;
+
     const updatedSocials = { ...mySocials, [socialModal.platform]: valueToSave };
     setMySocials(updatedSocials);
-    setSocialModal({ isOpen: false, platform: null });
 
-    // social_media column not available, store locally
-    localStorage.setItem(`social_media_${user.id}`, JSON.stringify(updatedSocials));
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      await (supabase
+        .from('profiles')
+        .update({ social_media: JSON.stringify(updatedSocials) } as any) as any)
+        .eq('user_id', user.id);
 
-    await sendMediaMessage(`[profile-card:${JSON.stringify({ [socialModal.platform]: valueToSave })}]`);
+      toast.success('Rede social salva no seu perfil!');
+      await sendMediaMessage(`[profile-card:${JSON.stringify({ [socialModal.platform]: valueToSave })}]`);
+      setSocialModal({ isOpen: false, platform: null });
+      setShowSocialBadges(false);
+    } catch (err) {
+      console.error('Error saving social:', err);
+      toast.error('Erro ao salvar rede social');
+    }
   };
 
   const renderMessageContent = (content: string) => {
@@ -505,6 +600,26 @@ export default function ChatRoom() {
           <p className="font-semibold truncate">{matchProfile.display_name}</p>
           <p className="text-[10px] text-muted-foreground uppercase">Online</p>
         </div>
+        <button
+          onClick={() => {
+            if (subscription?.tier === 'bronze' || subscription?.tier === 'none') {
+              setUpgradeData({
+                title: "Plano Prata",
+                description: "Tenha encontros reais por vídeo! Recurso liberado para membros do Plano Prata.",
+                features: [],
+                icon: <i className="ri-video-line text-4xl" />,
+                price: 29.90,
+                planId: 'silver'
+              });
+              setShowUpgradeDialog(true);
+            } else {
+              toast.info("Chamada de vídeo em desenvolvimento");
+            }
+          }}
+          className="p-2 text-primary/80 hover:text-primary transition-colors"
+        >
+          <Video className="w-6 h-6" />
+        </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild><button className="p-2"><i className="ri-more-2-fill text-xl" /></button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -570,7 +685,7 @@ export default function ChatRoom() {
         </form>
         <div className="flex gap-4 mt-3">
           <button onClick={() => setShowSocialBadges(!showSocialBadges)} className="text-primary opacity-70 hover:opacity-100"><i className="ri-id-card-line text-xl" /></button>
-          <button onClick={() => imageInputRef.current?.click()} className="text-primary opacity-70 hover:opacity-100"><i className="ri-camera-line text-xl" /></button>
+          <button onClick={handleCameraClick} className="text-primary opacity-70 hover:opacity-100"><i className="ri-camera-line text-xl" /></button>
           <button onClick={handleRecordAudio} className={cn("transition-all", isRecording ? "text-red-500 scale-110" : "text-primary opacity-70 hover:opacity-100")}><i className="ri-mic-line text-xl" /></button>
           <input type="file" ref={imageInputRef} className="hidden" accept="image/*" onChange={handleFileSelect} />
         </div>
@@ -607,6 +722,65 @@ export default function ChatRoom() {
         </div>,
         document.body
       )}
+      {/* Upgrade Dialog */}
+      <FeatureGateDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        title={upgradeData.title}
+        description={upgradeData.description}
+        features={upgradeData.features}
+        icon={upgradeData.icon}
+        price={upgradeData.price}
+        onUpgrade={() => setShowCheckoutManager(true)}
+      />
+
+      <CheckoutManager
+        open={showCheckoutManager}
+        onOpenChange={setShowCheckoutManager}
+        planId={upgradeData.planId}
+        planPrice={upgradeData.price}
+        planName={upgradeData.title}
+      />
+
+      {/* Social Media Link Entry Modal */}
+      <Dialog open={socialModal.isOpen} onOpenChange={(open) => setSocialModal(prev => ({ ...prev, isOpen: open }))}>
+        <DialogContent className="max-w-[400px] rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <i className={`ri-${socialModal.platform}-line text-primary`} />
+              Compartilhar {socialModal.platform}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Você ainda não cadastrou seu {socialModal.platform} no perfil. Informe abaixo para compartilhar agora e salvar para as próximas vezes.
+            </p>
+            <div className="relative">
+              <Input
+                value={socialInputValue}
+                onChange={(e) => setSocialInputValue(e.target.value)}
+                placeholder={socialModal.platform === 'whatsapp' ? '(11) 99999-9999' : 'seu.usuario'}
+                className={cn(
+                  "h-12 bg-muted/50 rounded-2xl",
+                  socialModal.platform === 'whatsapp' ? "pl-14" : "pl-8"
+                )}
+                autoFocus
+              />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold opacity-50">
+                {socialModal.platform === 'whatsapp' ? '+55' : '@'}
+              </span>
+            </div>
+          </div>
+          <DialogFooter className="flex flex-col gap-2">
+            <Button onClick={saveSocialLink} className="w-full h-12 rounded-2xl font-bold gradient-button">
+              Salvar e Compartilhar
+            </Button>
+            <Button variant="ghost" onClick={() => setSocialModal({ isOpen: false, platform: null })} className="w-full h-11 rounded-2xl text-muted-foreground">
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SlideTransition>
   );
 }

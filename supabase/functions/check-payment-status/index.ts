@@ -10,6 +10,10 @@ interface CheckPaymentRequest {
 }
 
 const PLAN_NAMES: Record<string, string> = {
+  plus: "Plano Plus (Combo Ilimitado)",
+  bronze: "Plano Bronze (Semanal)",
+  silver: "Plano Prata (Mensal)",
+  gold: "Plano Ouro (Mensal)",
   weekly: "Plano Semanal",
   monthly: "Plano Mensal",
   annual: "Plano Anual",
@@ -56,38 +60,47 @@ Deno.serve(async (req) => {
       throw new Error("Payment ID is required");
     }
 
-    // Check charge status on Woovi/OpenPix
-    const wooviResponse = await fetch(
-      `https://api.openpix.com.br/api/openpix/v1/charge/${paymentId}`,
-      {
-        method: "GET",
-        headers: {
-          "Authorization": wooviApiKey,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    let status: "PENDING" | "PAID" | "FAILED" = "PENDING";
+    let wooviStatus = "PENDING";
 
-    if (!wooviResponse.ok) {
-      const errorText = await wooviResponse.text();
-      console.error("Woovi error:", errorText);
-      throw new Error(`Woovi API error: ${wooviResponse.status}`);
-    }
-
-    const wooviData = await wooviResponse.json();
-    console.log("Woovi status response:", JSON.stringify(wooviData));
-
-    // Map Woovi status to our status
-    const charge = wooviData.charge || wooviData;
-    const wooviStatus = charge.status;
-    
-    let status: "PENDING" | "PAID" | "FAILED";
-    if (wooviStatus === "COMPLETED" || wooviStatus === "CONFIRMED") {
+    // BREAKPOINT: Handle Dev Test payments without calling Woovi
+    if (paymentId.startsWith("dev-test-")) {
       status = "PAID";
-    } else if (wooviStatus === "EXPIRED" || wooviStatus === "ERROR") {
-      status = "FAILED";
+      wooviStatus = "COMPLETED";
+      console.log("Processing DEV TEST payment:", paymentId);
     } else {
-      status = "PENDING";
+      // Check charge status on Woovi/OpenPix
+      const wooviResponse = await fetch(
+        `https://api.openpix.com.br/api/openpix/v1/charge/${paymentId}`,
+        {
+          method: "GET",
+          headers: {
+            "Authorization": wooviApiKey,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!wooviResponse.ok) {
+        const errorText = await wooviResponse.text();
+        console.error("Woovi error:", errorText);
+        throw new Error(`Woovi API error: ${wooviResponse.status}`);
+      }
+
+      const wooviData = await wooviResponse.json();
+      console.log("Woovi status response:", JSON.stringify(wooviData));
+
+      // Map Woovi status to our status
+      const charge = wooviData.charge || wooviData;
+      wooviStatus = charge.status;
+
+      if (wooviStatus === "COMPLETED" || wooviStatus === "CONFIRMED") {
+        status = "PAID";
+      } else if (wooviStatus === "EXPIRED" || wooviStatus === "ERROR") {
+        status = "FAILED";
+      } else {
+        status = "PENDING";
+      }
     }
 
     // Update purchase status in database if not pending
@@ -123,14 +136,17 @@ Deno.serve(async (req) => {
           const now = new Date();
 
           switch (purchase.plan_id) {
+            case "bronze":
             case "weekly":
               expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
               break;
+            case "silver":
             case "monthly":
               expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
               break;
+            case "gold":
             case "annual":
-              expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+              expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // Gold is monthly too
               break;
             case "lifetime":
             case "special":
@@ -174,11 +190,11 @@ Deno.serve(async (req) => {
                   is_active: true,
                   is_lifetime: hasLifetime || isLifetimePlan,
                   has_all_regions: hasAllRegions,
-                  daily_swipes_limit: purchase.plan_id === "annual" || isLifetimePlan ? 999 : 50,
-                  can_see_who_liked: purchase.plan_id === "annual" || isLifetimePlan,
-                  is_profile_boosted: purchase.plan_id === "annual" || isLifetimePlan,
-                  can_video_call: isLifetimePlan,
-                  can_use_advanced_filters: true,
+                  daily_swipes_limit: (purchase.plan_id === 'bronze' || purchase.plan_id === 'weekly') ? 20 : 9999,
+                  can_see_who_liked: purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly',
+                  is_profile_boosted: purchase.plan_id === 'gold' || purchase.plan_id === 'annual' || isLifetimePlan || purchase.plan_id === 'plus',
+                  can_video_call: purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly',
+                  can_use_advanced_filters: purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly',
                 },
                 { onConflict: "user_id" }
               );
@@ -196,13 +212,13 @@ Deno.serve(async (req) => {
           try {
             const approvedDate = formatDateForWebhook(now);
             const createdAtFormatted = formatDateForWebhook(new Date(purchase.created_at));
-            
+
             // Check if this is a special offer purchase
             const isSpecialOfferPurchase = purchase.plan_id === "special" || purchase.plan_id === "special-offer-lifetime";
-            
+
             // Build products array - for special offer, send single bundled product
             let products: { id: string; name: string; price: number; quantity: number }[];
-            
+
             if (isSpecialOfferPurchase) {
               // Special offer (backredirect): single bundled product
               products = [
@@ -223,7 +239,7 @@ Deno.serve(async (req) => {
                   quantity: 1,
                 },
               ];
-              
+
               // Add order bumps as products
               for (const bumpId of orderBumpsArray) {
                 products.push({
@@ -234,7 +250,7 @@ Deno.serve(async (req) => {
                 });
               }
             }
-            
+
             const webhookPayload = {
               orderId: purchase.id,
               platform: "encontrocomfe",

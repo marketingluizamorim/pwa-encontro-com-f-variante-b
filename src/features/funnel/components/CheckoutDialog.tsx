@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -53,6 +53,7 @@ interface CheckoutDialogProps {
   isLoading?: boolean;
   planName?: string;
   orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean };
+  initialData?: { name: string; email: string; phone: string };
 }
 
 function generateTempEmail(): string {
@@ -75,11 +76,23 @@ export function CheckoutDialog({
   onSubmit,
   isLoading,
   planName,
-  orderBumps
+  orderBumps,
+  initialData
 }: CheckoutDialogProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+
+  // Update fields when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name || '');
+      setEmail(initialData.email || '');
+      // Remove +55 if it exists in the initial phone string for the input
+      const cleanPhone = initialData.phone.replace('+55 ', '').replace('+55', '');
+      setPhone(formatPhone(cleanPhone));
+    }
+  }, [initialData, open]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [extrasExpanded, setExtrasExpanded] = useState(false);
 
@@ -87,10 +100,17 @@ export function CheckoutDialog({
   const displayPhoto = getDisplayPhoto(gender, quizAnswers.age);
 
   // Calculate extras
+  const isOuroPlan = planName?.toLowerCase().includes('ouro') || planPrice === 49.9;
+  const isSilverPlan = planName?.toLowerCase().includes('prata') || planPrice === 29.9;
+  const isBronzePlan = planName?.toLowerCase().includes('bronze') || planPrice === 12.9;
+
   const hasExtras = orderBumps?.allRegions || orderBumps?.grupoEvangelico || orderBumps?.grupoCatolico;
   const extrasCount = (orderBumps?.allRegions ? 1 : 0) + (orderBumps?.grupoEvangelico ? 1 : 0) + (orderBumps?.grupoCatolico ? 1 : 0);
-  const extrasTotal = (orderBumps?.allRegions ? 5 : 0) + (orderBumps?.grupoEvangelico ? 5 : 0) + (orderBumps?.grupoCatolico ? 5 : 0);
-  const basePlanPrice = planPrice - extrasTotal;
+
+  // Se for Prata ou Ouro, não cobra extras (já estão inclusos)
+  const isPackagePlan = isOuroPlan || isSilverPlan;
+  const extrasTotal = isPackagePlan ? 0 : ((orderBumps?.allRegions ? 5 : 0) + (orderBumps?.grupoEvangelico ? 5 : 0) + (orderBumps?.grupoCatolico ? 5 : 0));
+  const basePlanPrice = isPackagePlan ? planPrice : (planPrice - extrasTotal);
 
   const handleGenerateTempEmail = () => {
     setEmail(generateTempEmail());
@@ -155,7 +175,7 @@ export function CheckoutDialog({
             <div className="space-y-1 text-xs">
               {planName && (
                 <div className="flex justify-between">
-                  <span className="text-white/70">{planName}</span>
+                  <span className="text-white/70">{planName} {planName.toLowerCase().includes('bronze') ? '(Semanal)' : '(Mensal)'}</span>
                   <span className="text-white font-medium">R$ {basePlanPrice.toFixed(2).replace('.', ',')}</span>
                 </div>
               )}
@@ -167,34 +187,47 @@ export function CheckoutDialog({
                     className="flex justify-between items-center w-full text-left hover:bg-white/5 -mx-1 px-1 rounded transition-colors group"
                   >
                     <span className="text-[#fcd34d]/80 text-[10px] flex items-center gap-1 group-hover:text-[#fcd34d] transition-colors font-medium">
-                      Extras ({extrasCount})
+                      {isPackagePlan ? 'Recursos Incluídos' : `Extras (${extrasCount})`}
                       {extrasExpanded ? (
                         <ChevronUp className="w-3 h-3" />
                       ) : (
                         <ChevronDown className="w-3 h-3" />
                       )}
                     </span>
-                    <span className="text-[#fcd34d] font-medium text-[10px]">R$ {extrasTotal.toFixed(2).replace('.', ',')}</span>
+                    {!isPackagePlan && <span className="text-[#fcd34d] font-medium text-[10px]">R$ {extrasTotal.toFixed(2).replace('.', ',')}</span>}
                   </button>
                   {extrasExpanded && (
                     <div className="pl-2 space-y-1 border-l-2 border-[#fcd34d]/20 ml-1 py-0.5">
                       {orderBumps?.allRegions && (
                         <div className="flex justify-between text-white/60 text-[10px]">
-                          <span>Desbloquear Região</span>
-                          <span>R$ 5,00</span>
+                          <span>{isPackagePlan ? 'Desbloqueio de todas as regiões' : 'Desbloquear Região'}</span>
+                          {!isPackagePlan && <span>R$ 5,00</span>}
                         </div>
                       )}
                       {orderBumps?.grupoEvangelico && (
                         <div className="flex justify-between text-white/60 text-[10px]">
-                          <span>Grupo Evangélico</span>
-                          <span>R$ 5,00</span>
+                          <span>{isPackagePlan ? 'Acesso ao Grupo VIP' : 'Grupo Evangélico'}</span>
+                          {!isPackagePlan && <span>R$ 5,00</span>}
                         </div>
                       )}
                       {orderBumps?.grupoCatolico && (
                         <div className="flex justify-between text-white/60 text-[10px]">
-                          <span>Grupo Católico</span>
-                          <span>R$ 5,00</span>
+                          <span>{isPackagePlan ? 'Acesso à Comunidade VIP' : 'Grupo Católico'}</span>
+                          {!isPackagePlan && <span>R$ 5,00</span>}
                         </div>
+                      )}
+                      {isOuroPlan && (
+                        <>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Comunidade VIP no WhatsApp</span>
+                          </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Cursos e Devocionais Diários</span>
+                          </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Perfil em Destaque</span>
+                          </div>
+                        </>
                       )}
                     </div>
                   )}

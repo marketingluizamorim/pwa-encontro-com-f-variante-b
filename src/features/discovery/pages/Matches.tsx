@@ -10,9 +10,14 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useDragControls, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { useSwipeMutation } from '@/features/discovery/hooks/useDiscoverProfiles';
 import { MatchCelebration } from '@/features/discovery/components/MatchCelebration';
-import { triggerHaptic } from '@/lib/haptics';
 import { playNotification } from '@/lib/notifications';
-import { Search } from 'lucide-react';
+import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
+import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
+import { Header } from '@/features/discovery/components/Header';
+import { HelpDrawer } from '@/features/discovery/components/HelpDrawer';
+import { triggerHaptic } from '@/lib/haptics';
+import { Search, Lock } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Um compromisso sério': '💍',
@@ -57,12 +62,17 @@ const calculateAge = (birthDate?: string) => {
 const SwipeableMatchCard = ({
   like,
   onSwipe,
-  onExpand
+  onExpand,
+  isLocked
 }: {
   like: LikeProfile,
   onSwipe: (id: string, dir: 'like' | 'dislike' | 'super_like') => void,
-  onExpand: () => void
+  onExpand: () => void,
+  isLocked?: boolean
 }) => {
+  const { data: subscription } = useSubscription();
+  const locked = isLocked ?? !subscription?.canSeeWhoLiked;
+
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-150, 0, 150], [-10, 0, 10]);
@@ -109,7 +119,10 @@ const SwipeableMatchCard = ({
       <img
         src={like.profile.photos[0] || like.profile.avatar_url}
         alt={like.profile.display_name}
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none"
+        className={cn(
+          "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none",
+          locked && "blur-2xl scale-125 grayscale-[0.5]"
+        )}
         draggable={false}
       />
 
@@ -118,19 +131,34 @@ const SwipeableMatchCard = ({
 
       {/* Content */}
       <div className="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
-        <div className="flex items-center gap-1 mb-0.5">
-          <span className="font-bold text-lg leading-tight">
-            {like.profile.display_name}, {calculateAge(like.profile.birth_date)}
-          </span>
-        </div>
+        {locked ? (
+          <div className="flex flex-col items-center justify-center gap-1 text-center py-2">
+            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-1">
+              <Lock className="w-4 h-4 text-white" />
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/90">
+              Alguém te curtiu!
+            </p>
+            <p className="text-[8px] font-medium text-white/60">
+              Assine para ver
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="font-bold text-lg leading-tight">
+                {like.profile.display_name}, {calculateAge(like.profile.birth_date)}
+              </span>
+            </div>
 
-        {/* Looking For / Bio Snippet */}
-        <div className="flex items-start gap-1.5 opacity-90">
-          <Search className="w-3.5 h-3.5 mt-0.5 text-accent" strokeWidth={2.5} />
-          <p className="text-xs font-medium leading-snug text-white/90">
-            {like.profile.looking_for || (like.profile.bio ? like.profile.bio : "Conhecer pessoas")}
-          </p>
-        </div>
+            <div className="flex items-start gap-1.5 opacity-90">
+              <Search className="w-3.5 h-3.5 mt-0.5 text-accent" strokeWidth={2.5} />
+              <p className="text-xs font-medium leading-snug text-white/90">
+                {like.profile.looking_for || (like.profile.bio ? like.profile.bio : "Conhecer pessoas")}
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* STAMPS (Escalados para cards menores) */}
@@ -159,7 +187,19 @@ export default function Matches() {
   const [showMatchCelebration, setShowMatchCelebration] = useState(false);
   const [matchData, setMatchData] = useState<{ name: string; photo: string; matchId: string } | null>(null);
 
+  const { data: subscription } = useSubscription();
   const swipeMutation = useSwipeMutation();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [upgradeData, setUpgradeData] = useState({
+    title: '',
+    description: '',
+    features: [],
+    icon: null as React.ReactNode,
+    price: 0,
+    planId: ''
+  });
+  const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const fetchLikes = useCallback(async () => {
     if (!user) return;
@@ -309,12 +349,18 @@ export default function Matches() {
   return (
     <PageTransition className="h-[calc(100vh-8rem)] relative">
       <PullToRefresh onRefresh={handleRefresh} className="h-full">
-        <div className="flex flex-col min-h-full pb-24 px-4 pt-6">
-
-
+        <div className="flex flex-col min-h-full pb-24">
+          <Header action={
+            <button
+              onClick={() => setShowHelp(true)}
+              className="w-10 h-10 rounded-full bg-background/20 backdrop-blur-md border border-border/10 flex items-center justify-center text-foreground/80 hover:bg-background/30 active:scale-95 transition-all outline-none"
+            >
+              <i className="ri-question-line text-xl" />
+            </button>
+          } />
 
           {/* Stats Header */}
-          <div className="flex items-center justify-center px-2 mb-4">
+          <div className="flex items-center justify-center px-4 mb-4">
             <span className="text-sm font-bold text-foreground relative">
               {likes.length} curtida{likes.length !== 1 && 's'}
               <div className="absolute -bottom-2 left-0 w-full h-0.5 bg-foreground rounded-full" />
@@ -323,7 +369,7 @@ export default function Matches() {
 
           {/* Grid Content */}
           {likes.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center opacity-60 mt-10">
+            <div className="flex-1 flex flex-col items-center justify-center text-center opacity-60 mt-10 px-4">
               <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
                 <i className="ri-heart-pulse-line text-4xl"></i>
               </div>
@@ -331,26 +377,81 @@ export default function Matches() {
               <p className="text-sm">Use o Boost para aparecer mais!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 px-4">
               <AnimatePresence mode="popLayout">
                 {likes.map((like) => (
                   <SwipeableMatchCard
                     key={like.id}
                     like={like}
-                    onSwipe={handleSwipe}
-                    onExpand={() => setSelectedLike(like)}
+                    onSwipe={(id, dir) => {
+                      if (!subscription?.canSeeWhoLiked) {
+                        setUpgradeData({
+                          title: "Plano Prata",
+                          description: "Veja agora mesmo quem curtiu seu perfil e dê o primeiro passo para um novo encontro!",
+                          features: [
+                            "Ver quem curtiu você",
+                            "Curtidas ilimitadas",
+                            "Mensagens de texto ilimitadas",
+                            "Filtro por cidade / região",
+                            "Enviar e receber fotos e áudios",
+                            "Fazer chamadas de vídeo"
+                          ],
+                          icon: <i className="ri-heart-fill text-4xl" />,
+                          price: 29.90,
+                          planId: 'silver'
+                        });
+                        setShowUpgradeDialog(true);
+                      } else {
+                        handleSwipe(id, dir);
+                      }
+                    }}
+                    onExpand={() => {
+                      if (!subscription?.canSeeWhoLiked) {
+                        setUpgradeData({
+                          title: "Plano Prata",
+                          description: "Assine o Plano Prata para ver todos os perfis que já te deram like e dar o match instantâneo!",
+                          features: [
+                            "Ver quem curtiu você",
+                            "Curtidas ilimitadas",
+                            "Mensagens de texto ilimitadas",
+                            "Filtro por cidade / região"
+                          ],
+                          icon: <i className="ri-heart-fill text-4xl" />,
+                          price: 29.90,
+                          planId: 'silver'
+                        });
+                        setShowUpgradeDialog(true);
+                      } else {
+                        setSelectedLike(like);
+                      }
+                    }}
                   />
                 ))}
               </AnimatePresence>
             </div>
           )}
 
-          {/* Boost Button Fixed Bottom */}
-          <div className="fixed bottom-40 left-0 right-0 px-8 flex justify-center pointer-events-none z-20">
-            <button className="pointer-events-auto gradient-button text-white font-bold py-3 px-8 rounded-full shadow-2xl active:scale-95 transition-transform flex items-center gap-2 border border-white/20">
-              Dar um boost no meu perfil
-            </button>
-          </div>
+          {/* Boost Button - Scrolled to Bottom */}
+          {(subscription?.tier !== 'gold' && subscription?.tier !== 'plus') && (
+            <div className="mt-8 px-4 pb-8 flex justify-center w-full z-20">
+              <button
+                onClick={() => {
+                  setUpgradeData({
+                    title: "Escolha seu Plano",
+                    description: "Dê um boost no seu perfil e apareça para mais pessoas!",
+                    features: [],
+                    icon: <i className="ri-rocket-2-fill text-4xl" />,
+                    price: 0,
+                    planId: ''
+                  });
+                  setShowUpgradeDialog(true);
+                }}
+                className="gradient-button text-white font-bold py-3 px-10 rounded-full shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2 border border-white/20"
+              >
+                Dar um boost no meu perfil
+              </button>
+            </div>
+          )}
 
         </div>
       </PullToRefresh>
@@ -531,6 +632,26 @@ export default function Matches() {
         }}
       />
 
+      <FeatureGateDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        title={upgradeData.title}
+        description={upgradeData.description}
+        features={upgradeData.features}
+        icon={upgradeData.icon}
+        price={upgradeData.price}
+        onUpgrade={() => setShowCheckoutManager(true)}
+      />
+
+      <CheckoutManager
+        open={showCheckoutManager}
+        onOpenChange={setShowCheckoutManager}
+        planId={upgradeData.planId}
+        planPrice={upgradeData.price}
+        planName={upgradeData.title}
+      />
+
+      <HelpDrawer open={showHelp} onOpenChange={setShowHelp} />
     </PageTransition>
   );
 }

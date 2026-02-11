@@ -24,6 +24,10 @@ interface CreatePaymentRequest {
 }
 
 const PLAN_NAMES: Record<string, string> = {
+  plus: "Plano Plus (Combo Ilimitado)",
+  bronze: "Plano Bronze (Semanal)",
+  silver: "Plano Prata (Mensal)",
+  gold: "Plano Ouro (Mensal)",
   weekly: "Plano Semanal",
   monthly: "Plano Mensal",
   annual: "Plano Anual",
@@ -33,9 +37,13 @@ const PLAN_NAMES: Record<string, string> = {
 
 // Fixed prices as source of truth (in BRL)
 const PLAN_PRICES: Record<string, number> = {
-  weekly: 9.90,
-  monthly: 14.90,
-  annual: 20,
+  plus: 24.90,
+  bronze: 12.90,
+  silver: 29.90,
+  gold: 49.90,
+  weekly: 12.90,
+  monthly: 29.90,
+  annual: 49.90,
   special: 9.90,
 };
 
@@ -91,7 +99,7 @@ Deno.serve(async (req) => {
 
     // Use fixed backend prices as source of truth (ignore frontend price)
     const basePlanPrice = PLAN_PRICES[planId] ?? planPrice;
-    
+
     // Calculate total price with order bumps
     // For special offer, bumps are already included in the price (R$ 9.90 fixed)
     let totalPrice = basePlanPrice;
@@ -203,10 +211,10 @@ Deno.serve(async (req) => {
     // Send webhook to n8n with structured payload matching expected format
     try {
       const createdAt = formatDateForWebhook(new Date());
-      
+
       // Build products array - for special offer, send single bundled product
       let products: { id: string; name: string; price: number; quantity: number }[];
-      
+
       if (isSpecialOffer) {
         // Special offer (backredirect): single bundled product
         products = [
@@ -227,7 +235,7 @@ Deno.serve(async (req) => {
             quantity: 1,
           },
         ];
-        
+
         // Add order bumps as products
         for (const bumpId of orderBumpsList) {
           products.push({
@@ -238,7 +246,7 @@ Deno.serve(async (req) => {
           });
         }
       }
-      
+
       const webhookPayload = {
         orderId: purchase?.id || null,
         platform: "encontrocomfe",
