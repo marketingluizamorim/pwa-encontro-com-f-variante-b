@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles, X, Check, Lock } from "lucide-react";
+import { X, Check, Lock, Star, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PLANS, Plan } from "@/features/funnel/components/plans/PlansGrid";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -72,8 +72,15 @@ export function FeatureGateDialog({
                                         {plan.id === 'silver' ? 'MAIS ESCOLHIDO' : '90% DESCONTO'}
                                     </div>
 
-                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mb-6 shadow-xl shadow-amber-500/20 transform rotate-3">
-                                        <Sparkles className="w-8 h-8 text-[#422006]" strokeWidth={2.5} />
+                                    <div className={`w-16 h-15 rounded-2xl flex items-center justify-center mb-6 shadow-xl transform rotate-3 ${plan.id === 'silver'
+                                        ? 'bg-gradient-to-br from-slate-300 to-slate-500 shadow-slate-500/20'
+                                        : 'bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/20'
+                                        }`}>
+                                        {plan.id === 'silver' ? (
+                                            <Star className="w-8 h-8 text-slate-900" strokeWidth={2.5} />
+                                        ) : (
+                                            <Crown className="w-8 h-8 text-[#422006]" strokeWidth={2.5} />
+                                        )}
                                     </div>
 
                                     <h3 className="text-2xl font-serif font-bold text-white mb-2">{plan.name}</h3>
