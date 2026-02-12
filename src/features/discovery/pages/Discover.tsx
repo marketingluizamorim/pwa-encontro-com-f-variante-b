@@ -22,6 +22,7 @@ import { LikeLimitDialog } from '@/features/discovery/components/LikeLimitDialog
 import { MessageCircle, Zap, Search, MapPin } from 'lucide-react';
 import { useTheme } from '@/components/theme-provider';
 import { Header } from '@/features/discovery/components/Header';
+import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Um compromisso sério': '💍',
@@ -96,6 +97,7 @@ export default function Discover() {
     planId: ''
   });
   const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+  const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
   const [showLikeLimitDialog, setShowLikeLimitDialog] = useState(false);
 
   // Photo Navigation State
@@ -366,7 +368,7 @@ export default function Discover() {
             </div>
           </div>
 
-          <h2 className="font-serif text-2xl font-bold text-foreground mb-2">Sem novos perfis</h2>
+          <h2 className="font-serif text-2xl font-semibold text-foreground mb-2">Sem novos perfis</h2>
           <p className="text-muted-foreground mb-8 text-sm max-w-xs mx-auto">
             Tente expandir seus filtros para encontrar mais pessoas.
           </p>
@@ -469,7 +471,7 @@ export default function Discover() {
                 {/* Text Info */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
                   <div className="flex items-end gap-3 mb-4">
-                    <h1 className="font-display text-4xl font-bold tracking-tight drop-shadow-md">
+                    <h1 className="font-display text-4xl font-semibold tracking-tight drop-shadow-md">
                       {currentProfile.display_name}
                     </h1>
                     {currentProfile.birth_date && (
@@ -481,7 +483,7 @@ export default function Discover() {
                   <div>
                     <div className="flex items-center gap-1.5 mb-1 opacity-90">
                       <Search className="w-3.5 h-3.5 text-white/80" strokeWidth={3} />
-                      <span className="text-sm font-bold text-white/90">Tô procurando</span>
+                      <span className="text-sm font-semibold text-white/90">Tô procurando</span>
                     </div>
 
                     {currentProfile.looking_for ? (
@@ -492,14 +494,14 @@ export default function Discover() {
                             {LOOKING_FOR_EMOJIS[currentProfile.looking_for] || '💘'}
                           </span>
                         </div>
-                        <span className="text-lg font-bold text-white tracking-wide">
+                        <span className="text-lg font-semibold text-white tracking-wide">
                           {currentProfile.looking_for}
                         </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 opacity-50">
                         <span className="text-xl">✨</span>
-                        <span className="text-lg font-bold text-white tracking-wide">
+                        <span className="text-lg font-semibold text-white tracking-wide">
                           Buscando conexões
                         </span>
                       </div>
@@ -508,13 +510,13 @@ export default function Discover() {
                 </div>
 
                 {/* Stamps */}
-                <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-6 z-30 border-4 border-emerald-500 text-emerald-500 px-4 py-1 rounded-lg font-black text-3xl -rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
+                <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-6 z-30 border-4 border-emerald-500 text-emerald-500 px-4 py-1 rounded-lg font-bold text-3xl -rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
                   LIKE
                 </motion.div>
-                <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-6 z-30 border-4 border-red-500 text-red-500 px-4 py-1 rounded-lg font-black text-3xl rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
+                <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-6 z-30 border-4 border-red-500 text-red-500 px-4 py-1 rounded-lg font-bold text-3xl rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
                   NOPE
                 </motion.div>
-                <motion.div style={{ opacity: superLikeOpacity }} className="absolute bottom-40 left-1/2 -translate-x-1/2 z-30 border-4 border-blue-500 text-blue-500 px-4 py-1 rounded-lg font-black text-3xl tracking-widest uppercase bg-black/20 backdrop-blur-sm">
+                <motion.div style={{ opacity: superLikeOpacity }} className="absolute bottom-40 left-1/2 -translate-x-1/2 z-30 border-4 border-blue-500 text-blue-500 px-4 py-1 rounded-lg font-bold text-3xl tracking-widest uppercase bg-black/20 backdrop-blur-sm">
                   SUPER
                 </motion.div>
 
@@ -537,7 +539,7 @@ export default function Discover() {
                 onClick={() => handleSwipe('dislike')}
                 className="w-14 h-14 rounded-full bg-card/80 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
               >
-                <i className="ri-close-line text-3xl font-bold" />
+                <i className="ri-close-line text-3xl font-semibold" />
               </button>
 
               {/* Super Like */}
@@ -624,7 +626,7 @@ export default function Discover() {
                   {/* Header: Name & Age */}
                   <div>
                     <div className="flex items-center gap-3">
-                      <h1 className="text-4xl font-display font-bold text-foreground">
+                      <h1 className="text-4xl font-display font-semibold text-foreground">
                         {currentProfile.display_name}
                       </h1>
                       <span className="text-3xl font-light text-muted-foreground">
@@ -679,7 +681,7 @@ export default function Discover() {
                   {/* Section: About Me */}
                   {currentProfile.bio && (
                     <div className="space-y-2">
-                      <h3 className="text-lg font-bold">Sobre mim</h3>
+                      <h3 className="text-lg font-semibold">Sobre mim</h3>
                       <p className="text-muted-foreground leading-relaxed text-base">
                         {currentProfile.bio}
                       </p>
@@ -688,7 +690,7 @@ export default function Discover() {
 
                   {/* Section: Basic Info */}
                   <div className="space-y-3">
-                    <h3 className="text-lg font-bold">Informações básicas</h3>
+                    <h3 className="text-lg font-semibold">Informações básicas</h3>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
                         <i className="ri-ruler-line text-foreground/50 text-xl" />
@@ -724,7 +726,7 @@ export default function Discover() {
                   {/* Section: Interests */}
                   {(currentProfile.christian_interests && currentProfile.christian_interests.length > 0) && (
                     <div className="space-y-3">
-                      <h3 className="text-lg font-bold">Interesses</h3>
+                      <h3 className="text-lg font-semibold">Interesses</h3>
                       <div className="flex flex-wrap gap-2">
                         {currentProfile.christian_interests.map((tag: string) => (
                           <span key={tag} className="px-4 py-2 rounded-full border border-primary/30 text-primary bg-primary/5 text-sm font-medium">
@@ -741,7 +743,7 @@ export default function Discover() {
                       <Zap className="w-12 h-12 text-amber-500" />
                     </div>
 
-                    <h3 className="text-xl font-bold text-amber-500 mb-2 flex items-center gap-2">
+                    <h3 className="text-xl font-semibold text-amber-500 mb-2 flex items-center gap-2">
                       Mensagem Direta <Zap className="w-5 h-5 fill-amber-500" />
                     </h3>
                     <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
@@ -754,20 +756,10 @@ export default function Discover() {
                           setUpgradeData({
                             title: "Plano Ouro",
                             description: "Quebre o gelo agora mesmo com 90% de desconto! O Plano Ouro libera tudo para você.",
-                            features: [
-                              "Todos os recursos do Plano Prata",
-                              "Enviar mensagem sem curtir antes",
-                              "Ver perfis online recentemente",
-                              "Filtro por distância e interesses",
-                              "Perfil em destaque",
-                              "Filtros avançados (idade e distância)",
-                              "Filtro por objetivo (Namoro/Casamento)",
-                              "BÔNUS: Comunidade VIP no WhatsApp",
-                              "BÔNUS: Cursos e Devocionais Diários"
-                            ],
+                            features: PLANS.find(p => p.id === 'gold')?.features || [],
                             planNeeded: 'gold',
                             icon: <i className="ri-chat-1-line text-4xl" />,
-                            price: 49.90,
+                            price: PLANS.find(p => p.id === 'gold')?.price || 49.90,
                             planId: 'gold'
                           });
                           setShowUpgradeDialog(true);
@@ -775,7 +767,7 @@ export default function Discover() {
                           toast.info("Funcionalidade de DM Direta em breve para Plano Ouro!");
                         }
                       }}
-                      className="w-full h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+                      className="w-full h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
                     >
                       <MessageCircle className="w-5 h-5" />
                       Enviar Mensagem
@@ -794,7 +786,7 @@ export default function Discover() {
                   onClick={() => handleSwipe('dislike')}
                   className="w-14 h-14 rounded-full bg-card/80 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
                 >
-                  <i className="ri-close-line text-3xl font-bold" />
+                  <i className="ri-close-line text-3xl font-semibold" />
                 </button>
 
                 {/* Super Like */}
@@ -840,7 +832,7 @@ export default function Discover() {
             <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
               <i className="ri-user-star-line text-2xl text-primary animate-pulse" />
             </div>
-            <AlertDialogTitle className="text-center text-xl font-display font-bold">
+            <AlertDialogTitle className="text-center text-xl font-display font-semibold">
               Complete seu Perfil!
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-sm text-muted-foreground leading-relaxed">
@@ -875,16 +867,35 @@ export default function Discover() {
         features={upgradeData.features}
         icon={upgradeData.icon}
         price={upgradeData.price}
-        onUpgrade={() => setShowCheckoutManager(true)}
+        onUpgrade={(planData) => {
+          setSelectedCheckoutPlan({
+            id: planData.id,
+            name: planData.name,
+            price: planData.price
+          });
+          setShowUpgradeDialog(false);
+          setShowCheckoutManager(true);
+        }}
       />
 
-      <CheckoutManager
-        open={showCheckoutManager}
-        onOpenChange={setShowCheckoutManager}
-        planId={upgradeData.planId}
-        planPrice={upgradeData.price}
-        planName={upgradeData.title}
-      />
+      {showCheckoutManager && selectedCheckoutPlan && (
+        <CheckoutManager
+          key={`discover-checkout-v1-${selectedCheckoutPlan.id}`}
+          open={showCheckoutManager}
+          onOpenChange={(open) => {
+            setShowCheckoutManager(open);
+            if (!open) {
+              setTimeout(() => {
+                setSelectedCheckoutPlan(null);
+                setShowUpgradeDialog(true);
+              }, 50);
+            }
+          }}
+          planId={selectedCheckoutPlan.id}
+          planPrice={selectedCheckoutPlan.price}
+          planName={selectedCheckoutPlan.name}
+        />
+      )}
 
       <LikeLimitDialog
         open={showLikeLimitDialog}
@@ -896,10 +907,10 @@ export default function Discover() {
             features: [
               "Ver quem curtiu você",
               "Curtidas ilimitadas",
-              "Mensagens de texto ilimitadas",
+              "Enviar ou receber fotos e áudios",
               "Filtro por cidade / região",
-              "Enviar e receber fotos e áudios",
-              "Fazer chamadas de vídeo"
+              "Fazer chamadas de vídeo",
+              "Comunidade cristã no WhatsApp"
             ],
             planNeeded: 'silver',
             icon: <i className="ri-heart-line text-4xl" />,

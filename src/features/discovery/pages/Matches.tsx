@@ -199,6 +199,7 @@ export default function Matches() {
     planId: ''
   });
   const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+  const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
 
   const fetchLikes = useCallback(async () => {
@@ -391,10 +392,10 @@ export default function Matches() {
                           features: [
                             "Ver quem curtiu você",
                             "Curtidas ilimitadas",
-                            "Mensagens de texto ilimitadas",
+                            "Enviar ou receber fotos e áudios",
                             "Filtro por cidade / região",
-                            "Enviar e receber fotos e áudios",
-                            "Fazer chamadas de vídeo"
+                            "Fazer chamadas de vídeo",
+                            "Comunidade cristã no WhatsApp"
                           ],
                           icon: <i className="ri-heart-fill text-4xl" />,
                           price: 29.90,
@@ -413,8 +414,10 @@ export default function Matches() {
                           features: [
                             "Ver quem curtiu você",
                             "Curtidas ilimitadas",
-                            "Mensagens de texto ilimitadas",
-                            "Filtro por cidade / região"
+                            "Enviar ou receber fotos e áudios",
+                            "Filtro por cidade / região",
+                            "Fazer chamadas de vídeo",
+                            "Comunidade cristã no WhatsApp"
                           ],
                           icon: <i className="ri-heart-fill text-4xl" />,
                           price: 29.90,
@@ -640,16 +643,35 @@ export default function Matches() {
         features={upgradeData.features}
         icon={upgradeData.icon}
         price={upgradeData.price}
-        onUpgrade={() => setShowCheckoutManager(true)}
+        onUpgrade={(planData) => {
+          setSelectedCheckoutPlan({
+            id: planData.id,
+            name: planData.name,
+            price: planData.price
+          });
+          setShowUpgradeDialog(false);
+          setShowCheckoutManager(true);
+        }}
       />
 
-      <CheckoutManager
-        open={showCheckoutManager}
-        onOpenChange={setShowCheckoutManager}
-        planId={upgradeData.planId}
-        planPrice={upgradeData.price}
-        planName={upgradeData.title}
-      />
+      {showCheckoutManager && selectedCheckoutPlan && (
+        <CheckoutManager
+          key={`matches-checkout-v1-${selectedCheckoutPlan.id}`}
+          open={showCheckoutManager}
+          onOpenChange={(open) => {
+            setShowCheckoutManager(open);
+            if (!open) {
+              setTimeout(() => {
+                setSelectedCheckoutPlan(null);
+                setShowUpgradeDialog(true);
+              }, 50);
+            }
+          }}
+          planId={selectedCheckoutPlan.id}
+          planPrice={selectedCheckoutPlan.price}
+          planName={selectedCheckoutPlan.name}
+        />
+      )}
 
       <HelpDrawer open={showHelp} onOpenChange={setShowHelp} />
     </PageTransition>

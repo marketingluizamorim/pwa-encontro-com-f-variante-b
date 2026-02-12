@@ -9,7 +9,7 @@ import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import type { SelectedBumps } from '@/features/funnel/components/OrderBumpDialog';
 
-const DEV_MODE = true; // Simular pagamento para testes
+const DEV_MODE = false; // Simular pagamento para testes
 
 interface CheckoutManagerProps {
     open: boolean;
@@ -139,6 +139,7 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
 
             <ThankYouDialog
                 open={showThankYou}
+                onOpenChange={setShowThankYou}
                 email={initialData.email}
                 name={initialData.name}
                 onRedirect={() => {

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
-import { ChevronDown, ChevronUp, Lock, ShieldCheck } from 'lucide-react';
+import { ChevronDown, ChevronUp, Lock, ShieldCheck, Check } from 'lucide-react';
 
 // Female display photos by age range
 import femaleDisplay18_25 from '@/assets/match-female-18-25-display.jpg';
@@ -84,15 +84,20 @@ export function CheckoutDialog({
   const [phone, setPhone] = useState('');
 
   // Update fields when initialData changes
+  // Resetar estados internos quando o plano ou a abertura mudarem
   useEffect(() => {
-    if (initialData) {
-      setName(initialData.name || '');
-      setEmail(initialData.email || '');
-      // Remove +55 if it exists in the initial phone string for the input
-      const cleanPhone = initialData.phone.replace('+55 ', '').replace('+55', '');
-      setPhone(formatPhone(cleanPhone));
+    if (open) {
+      setErrors({});
+      setExtrasExpanded(false);
+
+      if (initialData) {
+        setName(initialData.name || '');
+        setEmail(initialData.email || '');
+        const cleanPhone = initialData.phone.replace('+55 ', '').replace('+55', '');
+        setPhone(formatPhone(cleanPhone));
+      }
     }
-  }, [initialData, open]);
+  }, [open, initialData, planPrice, planName]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [extrasExpanded, setExtrasExpanded] = useState(false);
 
@@ -100,9 +105,11 @@ export function CheckoutDialog({
   const displayPhoto = getDisplayPhoto(gender, quizAnswers.age);
 
   // Calculate extras
-  const isOuroPlan = planName?.toLowerCase().includes('ouro') || planPrice === 49.9;
-  const isSilverPlan = planName?.toLowerCase().includes('prata') || planPrice === 29.9;
-  const isBronzePlan = planName?.toLowerCase().includes('bronze') || planPrice === 12.9;
+  // Identificação robusta do plano
+  const cleanPlanName = planName?.toLowerCase() || '';
+  const isOuroPlan = cleanPlanName.includes('ouro') || planPrice >= 40;
+  const isSilverPlan = cleanPlanName.includes('prata') || (planPrice >= 20 && planPrice < 40);
+  const isBronzePlan = cleanPlanName.includes('bronze') || planPrice < 20;
 
   const hasExtras = orderBumps?.allRegions || orderBumps?.grupoEvangelico || orderBumps?.grupoCatolico;
   const extrasCount = (orderBumps?.allRegions ? 1 : 0) + (orderBumps?.grupoEvangelico ? 1 : 0) + (orderBumps?.grupoCatolico ? 1 : 0);
@@ -110,6 +117,8 @@ export function CheckoutDialog({
   // Se for Prata ou Ouro, não cobra extras (já estão inclusos)
   const isPackagePlan = isOuroPlan || isSilverPlan;
   const extrasTotal = isPackagePlan ? 0 : ((orderBumps?.allRegions ? 5 : 0) + (orderBumps?.grupoEvangelico ? 5 : 0) + (orderBumps?.grupoCatolico ? 5 : 0));
+
+  // O basePlanPrice deve ser o preço do plano sem os bumps opcionais (apenas se não for pacote)
   const basePlanPrice = isPackagePlan ? planPrice : (planPrice - extrasTotal);
 
   const handleGenerateTempEmail = () => {
@@ -143,7 +152,7 @@ export function CheckoutDialog({
       <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2rem] bg-[#0f172a]/95 backdrop-blur-2xl border-white/10 text-white shadow-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden top-[5%] translate-y-0 data-[state=open]:slide-in-from-top-[0%] data-[state=closed]:slide-out-to-top-[0%]">
         <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide">
           <DialogHeader className="mb-2">
-            <DialogTitle className="font-serif text-center text-2xl font-bold text-white tracking-tight">
+            <DialogTitle className="font-serif text-center text-2xl font-semibold text-white tracking-tight">
               Finalizar Assinatura
             </DialogTitle>
           </DialogHeader>
@@ -164,14 +173,14 @@ export function CheckoutDialog({
               <div className="absolute bottom-0 right-0 z-20 bg-green-500 w-2.5 h-2.5 rounded-full border-2 border-[#0f172a] shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
             </div>
             <div className="flex-1 leading-tight">
-              <p className="text-sm font-bold text-white">+5 perfis esperando</p>
+              <p className="text-sm font-semibold text-white">+5 perfis esperando</p>
               <p className="text-[10px] text-white/60 font-light mt-0.5">Desbloqueie para conversar</p>
             </div>
           </div>
 
           {/* Order Summary - Compact */}
           <div className="bg-black/20 rounded-xl p-3 mb-3 border border-white/5">
-            <h4 className="text-xs font-bold text-white/90 mb-2 border-b border-white/5 pb-1">Resumo:</h4>
+            <h4 className="text-xs font-semibold text-white/90 mb-2 border-b border-white/5 pb-1">Resumo:</h4>
             <div className="space-y-1 text-xs">
               {planName && (
                 <div className="flex justify-between">
@@ -197,36 +206,95 @@ export function CheckoutDialog({
                     {!isPackagePlan && <span className="text-[#fcd34d] font-medium text-[10px]">R$ {extrasTotal.toFixed(2).replace('.', ',')}</span>}
                   </button>
                   {extrasExpanded && (
-                    <div className="pl-2 space-y-1 border-l-2 border-[#fcd34d]/20 ml-1 py-0.5">
-                      {orderBumps?.allRegions && (
-                        <div className="flex justify-between text-white/60 text-[10px]">
-                          <span>{isPackagePlan ? 'Desbloqueio de todas as regiões' : 'Desbloquear Região'}</span>
-                          {!isPackagePlan && <span>R$ 5,00</span>}
-                        </div>
-                      )}
-                      {orderBumps?.grupoEvangelico && (
-                        <div className="flex justify-between text-white/60 text-[10px]">
-                          <span>{isPackagePlan ? 'Acesso ao Grupo VIP' : 'Grupo Evangélico'}</span>
-                          {!isPackagePlan && <span>R$ 5,00</span>}
-                        </div>
-                      )}
-                      {orderBumps?.grupoCatolico && (
-                        <div className="flex justify-between text-white/60 text-[10px]">
-                          <span>{isPackagePlan ? 'Acesso à Comunidade VIP' : 'Grupo Católico'}</span>
-                          {!isPackagePlan && <span>R$ 5,00</span>}
-                        </div>
-                      )}
-                      {isOuroPlan && (
+                    <div className="pl-2 space-y-1 border-l-2 border-[#fcd34d]/20 ml-1 py-1 mt-1">
+                      {isOuroPlan ? (
                         <>
                           <div className="flex justify-between text-white/60 text-[10px]">
-                            <span>Comunidade VIP no WhatsApp</span>
+                            <span>Todos os recursos do Plano Prata</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
                           </div>
                           <div className="flex justify-between text-white/60 text-[10px]">
-                            <span>Cursos e Devocionais Diários</span>
+                            <span>Enviar mensagem sem precisar curtir antes</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
                           </div>
                           <div className="flex justify-between text-white/60 text-[10px]">
-                            <span>Perfil em Destaque</span>
+                            <span>Ver perfis online recentemente</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
                           </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Filtro por distância e interesses</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Perfil em destaque</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Filtros avançados (idade e distância)</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Filtro por objetivo (Namoro ou Casamento)</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          </div>
+                          {/* Bônus Exclusivos Ouro */}
+                          <div className="mt-2 pt-2 border-t border-white/5">
+                            <p className="text-[#fcd34d] text-[9px] font-bold uppercase tracking-wider mb-1">Bônus Exclusivos:</p>
+                            <div className="space-y-1">
+                              <p className="text-white/40 text-[9px]">• Comunidade cristã no WhatsApp</p>
+                              <p className="text-white/40 text-[9px]">• Cursos bíblicos exclusivos</p>
+                              <p className="text-white/40 text-[9px]">• Devocionais diários</p>
+                              <p className="text-white/40 text-[9px]">• Dicas de relacionamento cristão</p>
+                            </div>
+                          </div>
+                        </>
+                      ) : isSilverPlan ? (
+                        <>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Ver quem curtiu você</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Curtidas ilimitadas</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Enviar ou receber fotos e áudios</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Filtro por cidade / região</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Fazer chamadas de vídeo</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          </div>
+                          <div className="flex justify-between text-white/60 text-[10px]">
+                            <span>Comunidade cristã no WhatsApp</span>
+                            <Check className="w-3 h-3 text-emerald-500" />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {orderBumps?.allRegions && (
+                            <div className="flex justify-between text-white/60 text-[10px]">
+                              <span>Desbloquear Região</span>
+                              <span>R$ 5,00</span>
+                            </div>
+                          )}
+                          {orderBumps?.grupoEvangelico && (
+                            <div className="flex justify-between text-white/60 text-[10px]">
+                              <span>Grupo Evangélico</span>
+                              <span>R$ 5,00</span>
+                            </div>
+                          )}
+                          {orderBumps?.grupoCatolico && (
+                            <div className="flex justify-between text-white/60 text-[10px]">
+                              <span>Grupo Católico</span>
+                              <span>R$ 5,00</span>
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
@@ -288,12 +356,12 @@ export function CheckoutDialog({
         <div className="p-3 bg-[#0f172a] border-t border-white/10 absolute bottom-0 left-0 right-0 z-20">
           <div className="flex items-center justify-between mb-4">
             <span className="text-white/80 font-medium text-sm">Total:</span>
-            <span className="text-xl font-sans font-bold text-[#fcd34d] drop-shadow-md">R$ {planPrice.toFixed(2).replace('.', ',')}</span>
+            <span className="text-xl font-sans font-semibold text-[#fcd34d] drop-shadow-md">R$ {planPrice.toFixed(2).replace('.', ',')}</span>
           </div>
           <Button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="w-full h-14 rounded-2xl gradient-button text-white transition-all uppercase tracking-wide text-sm font-bold border-0 hover:opacity-90"
+            className="w-full h-14 rounded-2xl gradient-button text-white transition-all uppercase tracking-wide text-sm font-semibold border-0 hover:opacity-90"
           >
             {isLoading ? (
               <><i className="ri-loader-4-line animate-spin mr-2" /> Processando...</>

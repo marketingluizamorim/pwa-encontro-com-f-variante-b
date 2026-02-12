@@ -92,7 +92,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
         <div className={`p-6 md:p-8 ${plan.popular ? 'pt-10 md:pt-12' : ''} relative z-10 flex flex-col flex-1`}>
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h3 className="text-white font-serif text-2xl font-black tracking-tight mb-1">{plan.name}</h3>
+              <h3 className="text-white font-serif text-xl md:text-2xl font-semibold tracking-normal mb-1">{plan.name}</h3>
               <p className="text-amber-400 text-sm font-bold tracking-wide uppercase mb-4">{plan.period}</p>
             </div>
             {plan.savings && (
@@ -111,7 +111,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-slate-400 text-lg font-light">R$</span>
-              <span className="text-white text-4xl font-black font-sans tracking-tight drop-shadow-sm">{formattedPrice}</span>
+              <span className="text-white text-4xl font-extrabold font-sans tracking-tight drop-shadow-sm">{formattedPrice}</span>
               <span className="text-slate-500 text-sm font-bold ml-1">{plan.id === 'bronze' ? '/semana' : '/mês'}</span>
             </div>
 

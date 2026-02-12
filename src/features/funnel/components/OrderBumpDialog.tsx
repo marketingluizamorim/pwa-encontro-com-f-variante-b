@@ -154,7 +154,7 @@ export function OrderBumpDialog({
                   <div className="flex items-center justify-between mb-1 gap-2">
                     <h4
                       className={`leading-tight font-serif font-bold tracking-wide transition-colors ${isSelected ? 'text-white' : 'text-white/90'}`}
-                      style={{ fontSize: '1.1rem' }}
+                      style={{ fontSize: (bump.id === 'evangelico' || bump.id === 'catolico') ? '1.05rem' : '1.1rem' }}
                     >
                       {bump.name}
                     </h4>

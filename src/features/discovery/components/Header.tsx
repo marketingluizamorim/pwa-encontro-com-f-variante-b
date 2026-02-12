@@ -11,16 +11,18 @@ export function Header({ action, className, isDiscover }: HeaderProps) {
     return (
         <header className={cn("relative z-50 px-6 py-4 flex justify-between items-center shrink-0 w-full", className)}>
             <div className="flex items-center gap-3">
-                {/* Logo Brand from Landing Page - Scaled Down */}
-                <div className="relative w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_0_15px_rgba(212,175,55,0.2)]">
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-white/20 to-black/10 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner overflow-hidden relative">
-                        <Heart className="w-5 h-5 text-white fill-white drop-shadow-md" />
+                {/* Logo Brand from Landing Page - Translucent Watermark Effect */}
+                <div className="flex items-center gap-3 opacity-40 grayscale-[0.2] hover:opacity-100 hover:grayscale-0 transition-all duration-500 cursor-default">
+                    <div className="relative w-8 h-8 rounded-full p-[1.5px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309]">
+                        <div className="w-full h-full rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center border border-white/10 overflow-hidden relative">
+                            <Heart className="w-4 h-4 text-white fill-white" />
+                        </div>
                     </div>
-                </div>
 
-                <h1 className="font-serif font-bold text-xl text-foreground drop-shadow-md tracking-tight">
-                    Encontro <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd34d] to-[#d4af37]">com Fé</span>
-                </h1>
+                    <h1 className="font-serif font-bold text-lg text-foreground tracking-tight">
+                        Encontro <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd34d] to-[#d4af37]">com Fé</span>
+                    </h1>
+                </div>
 
                 {isDiscover && (
                     <div className="hidden xs:flex items-center gap-2 px-2 py-1 rounded-full bg-background/40 backdrop-blur-md border border-border/50 ml-2">

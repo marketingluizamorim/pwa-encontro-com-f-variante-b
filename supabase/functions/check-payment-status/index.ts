@@ -44,11 +44,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const wooviApiKey = Deno.env.get("WOOVI_API_KEY");
-    if (!wooviApiKey) {
-      throw new Error("Woovi API key not configured");
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -80,6 +75,11 @@ Deno.serve(async (req) => {
       status = "PAID";
       wooviStatus = "COMPLETED";
     } else {
+      const wooviApiKey = Deno.env.get("WOOVI_API_KEY");
+      if (!wooviApiKey) {
+        throw new Error("Woovi API key not configured for production payments");
+      }
+
       const wooviResponse = await fetch(`https://api.openpix.com.br/api/openpix/v1/charge/${paymentId}`, {
         method: "GET",
         headers: { "Authorization": wooviApiKey, "Content-Type": "application/json" },

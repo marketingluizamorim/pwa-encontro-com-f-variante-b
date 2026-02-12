@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
-import { Crown, CheckCircle2, MessageSquare, BookOpen, GraduationCap, Heart, Star, Sparkles, LogOut, Settings, ShieldCheck, XCircle } from 'lucide-react';
+import { Crown, CheckCircle2, MessageSquare, BookOpen, GraduationCap, Heart, Star, Sparkles, LogOut, ShieldCheck, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -18,8 +18,8 @@ import { ProfileSkeleton } from '@/features/discovery/components/SkeletonLoaders
 import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
 import { Header } from '@/features/discovery/components/Header';
 import { PullToRefresh } from '@/features/discovery/components/PullToRefresh';
-import { LikeLimitDialog } from '@/features/discovery/components/LikeLimitDialog';
 import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
+import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
 
 interface UserProfile {
   display_name: string;
@@ -55,17 +55,16 @@ export default function Profile() {
   const [bioText, setBioText] = useState('');
   const [isSavingBio, setIsSavingBio] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [showLikeLimitTest, setShowLikeLimitTest] = useState(false);
   const [upgradeData, setUpgradeData] = useState({
-    title: '',
-    description: '',
-    features: [] as string[],
-    planNeeded: 'silver' as 'silver' | 'gold' | 'bronze',
-    icon: null as React.ReactNode,
-    price: 0,
-    planId: ''
+    title: 'Faça Upgrade',
+    description: 'Desbloqueie recursos premium',
+    features: PLANS.find(p => p.id === 'gold')?.features || [],
+    icon: <Crown className="w-12 h-12 text-amber-500" />,
+    price: PLANS.find(p => p.id === 'gold')?.price || 49.90,
+    planId: 'gold'
   });
   const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+  const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string; name: string; price: number } | null>(null);
   const { data: subscription } = useSubscription();
 
   const isOwnProfile = !userId || userId === user?.id;
@@ -109,47 +108,6 @@ export default function Profile() {
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
-  };
-
-  const handleDevSetPlan = async (tier: 'bronze' | 'silver' | 'gold') => {
-    if (!user) return;
-    const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-
-    setLoading(true);
-    const mockPaymentId = `dev-test-${tier}-${Date.now()}`;
-
-    try {
-      const { error: purchaseError } = await supabaseRuntime
-        .from('purchases')
-        .insert({
-          user_id: user.id,
-          user_email: user.email,
-          user_name: profile?.display_name || user.user_metadata?.display_name || 'Dev User',
-          plan_id: tier,
-          plan_name: `Plano ${tier.toUpperCase()} (Dev)`,
-          plan_price: tier === 'bronze' ? 12.90 : tier === 'silver' ? 29.90 : 49.90,
-          total_price: tier === 'bronze' ? 12.90 : tier === 'silver' ? 29.90 : 49.90,
-          payment_status: 'PAID',
-          payment_id: mockPaymentId,
-          created_at: new Date().toISOString()
-        });
-
-      if (purchaseError) throw purchaseError;
-
-      const { error: funcError } = await supabaseRuntime.functions.invoke('check-payment-status', {
-        body: { paymentId: mockPaymentId }
-      });
-
-      if (funcError) throw funcError;
-
-      toast.success(`Plano ${tier.toUpperCase()} ativado via backend!`);
-      setTimeout(() => window.location.reload(), 1500);
-    } catch (err) {
-      console.error('Dev Plan Error:', err);
-      toast.error('Erro ao processar plano dev no servidor');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleSaveBio = async () => {
@@ -461,13 +419,7 @@ export default function Profile() {
 
 
                   <div className="space-y-2.5">
-                    {[
-                      "Descubra quem curtiu seu perfil imediatamente",
-                      "Envie mensagens e curta sem limites diários",
-                      "Filtre novos encontros por Estado e Cidade",
-                      "Chamadas de vídeo liberadas com seus matches",
-                      "Acesso à nossa comunidade VIP no WhatsApp"
-                    ].map((text, i) => (
+                    {PLANS.find(p => p.id === 'silver')?.features.map((text, i) => (
                       <div key={i} className="flex items-center gap-3 text-muted-foreground">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                         <span className="text-xs font-medium">{text}</span>
@@ -477,14 +429,7 @@ export default function Profile() {
 
                   <div className="mt-4 pt-4 border-t border-border/40 space-y-2.5 opacity-50">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">NÃO INCLUSO</p>
-                    {[
-                      'Enviar mensagem direta (sem curtir antes)',
-                      'Filtro por idade',
-                      'Filtro por distância',
-                      'Filtro por interesses cristãos',
-                      'Filtro por atividade (online recentemente)',
-                      'Destaque do perfil'
-                    ].map((text, i) => (
+                    {PLANS.find(p => p.id === 'silver')?.excludedFeatures?.map((text, i) => (
                       <div key={`excluded-${i}`} className="flex items-center gap-3 text-muted-foreground">
                         <XCircle className="w-3.5 h-3.5 text-muted-foreground" />
                         <span className="text-xs font-medium line-through decoration-muted-foreground/50">{text}</span>
@@ -517,11 +462,7 @@ export default function Profile() {
 
 
                   <div className="space-y-2.5">
-                    {[
-                      "Conecte-se e converse após o interesse mútuo",
-                      "Envie e receba mensagens de texto ilimitadas",
-                      "Até 20 curtidas diárias para encontrar seu par"
-                    ].map((text, i) => (
+                    {PLANS.find(p => p.id === 'bronze')?.features.map((text, i) => (
                       <div key={i} className="flex items-center gap-3 text-muted-foreground">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                         <span className="text-xs font-medium">{text}</span>
@@ -531,14 +472,7 @@ export default function Profile() {
 
                   <div className="mt-4 pt-4 border-t border-border/40 space-y-2.5 opacity-50">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">NÃO INCLUSO</p>
-                    {[
-                      'Ver quem curtiu você',
-                      'Enviar mensagem direta',
-                      'Enviar ou receber fotos e áudios',
-                      'Chamadas de vídeo',
-                      'Destaque do perfil',
-                      'Uso de filtros'
-                    ].map((text, i) => (
+                    {PLANS.find(p => p.id === 'bronze')?.excludedFeatures?.map((text, i) => (
                       <div key={`excluded-${i}`} className="flex items-center gap-3 text-muted-foreground">
                         <XCircle className="w-3.5 h-3.5 text-muted-foreground" />
                         <span className="text-xs font-medium line-through decoration-muted-foreground/50">{text}</span>
@@ -609,22 +543,6 @@ export default function Profile() {
                   </div>
                 </button>
               </div>
-
-              {/* DEV MODE PANEL */}
-              <div className="mt-12 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-red-500/20" />
-                <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest text-center mb-3 flex items-center justify-center gap-2">
-                  <Settings className="w-3 h-3" /> Dev Tools: Testar Planos
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button size="sm" variant="outline" className="h-8 text-[10px] border-red-500/30 hover:bg-red-500/20 bg-background/50" onClick={() => handleDevSetPlan('bronze')}>BRONZE</Button>
-                  <Button size="sm" variant="outline" className="h-8 text-[10px] border-red-500/30 hover:bg-red-500/20 bg-background/50" onClick={() => handleDevSetPlan('silver')}>PRATA</Button>
-                  <Button size="sm" variant="outline" className="h-8 text-[10px] border-red-500/30 hover:bg-red-500/20 bg-background/50" onClick={() => handleDevSetPlan('gold')}>OURO</Button>
-                  <Button size="sm" variant="outline" className="h-8 text-[10px] border-amber-500/50 text-amber-500 hover:bg-amber-500/10 bg-background/50 col-span-2 font-bold" onClick={() => setShowLikeLimitTest(true)}>
-                    🚀 LIMITE (POPUP)
-                  </Button>
-                </div>
-              </div>
             </div>
           )}
 
@@ -677,40 +595,40 @@ export default function Profile() {
             features={upgradeData.features}
             icon={upgradeData.icon}
             price={upgradeData.price}
-            onUpgrade={() => setShowCheckoutManager(true)}
-          />
-
-          <CheckoutManager
-            open={showCheckoutManager}
-            onOpenChange={setShowCheckoutManager}
-            planId={upgradeData.planId}
-            planPrice={upgradeData.price}
-            planName={upgradeData.title}
-          />
-
-          <LikeLimitDialog
-            open={showLikeLimitTest}
-            onOpenChange={setShowLikeLimitTest}
-            onSeePlans={() => {
-              setUpgradeData({
-                title: "Plano Prata",
-                description: "Não pare sua busca! Assine o Plano Prata para ter curtidas ilimitadas e falar com quem você gosta!",
-                features: [
-                  "Ver quem curtiu você",
-                  "Curtidas ilimitadas",
-                  "Mensagens de texto ilimitadas",
-                  "Filtro por cidade / região",
-                  "Enviar e receber fotos e áudios",
-                  "Fazer chamadas de vídeo"
-                ],
-                planNeeded: 'silver',
-                icon: <i className="ri-heart-line text-4xl" />,
-                price: 29.90,
-                planId: 'silver'
+            onUpgrade={(planData) => {
+              // 1. Define os dados específicos do checkout IMEDIATAMENTE
+              setSelectedCheckoutPlan({
+                id: planData.id,
+                name: planData.name,
+                price: planData.price
               });
-              setShowUpgradeDialog(true);
+
+              // 2. Fecha o seletor e abre o checkout de forma síncrona
+              setShowUpgradeDialog(false);
+              setShowCheckoutManager(true);
             }}
           />
+
+          {showCheckoutManager && selectedCheckoutPlan && (
+            <CheckoutManager
+              key={`checkout-v1-${selectedCheckoutPlan.id}`}
+              open={showCheckoutManager}
+              onOpenChange={(open) => {
+                setShowCheckoutManager(open);
+                if (!open) {
+                  // Pequeno delay para permitir a animação de fechamento antes de reabrir o seletor
+                  // e limpar o estado, evitando o 'piscado' do fundo
+                  setTimeout(() => {
+                    setSelectedCheckoutPlan(null);
+                    setShowUpgradeDialog(true);
+                  }, 50);
+                }
+              }}
+              planId={selectedCheckoutPlan.id}
+              planPrice={selectedCheckoutPlan.price}
+              planName={selectedCheckoutPlan.name}
+            />
+          )}
         </div>
       </PullToRefresh>
     </PageTransition>

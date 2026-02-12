@@ -65,11 +65,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const wooviApiKey = Deno.env.get("WOOVI_API_KEY");
-    if (!wooviApiKey) {
-      throw new Error("Woovi API key not configured");
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -86,6 +81,11 @@ Deno.serve(async (req) => {
       isSpecialOffer,
       planName,
     } = body;
+
+    const isTestUser = userEmail.includes("@test.com") ||
+      userEmail.includes("@temporario.com") ||
+      userName.toLowerCase().includes("dev") ||
+      planName?.toLowerCase().includes("dev");
 
     // Use fixed backend prices as source of truth (ignore frontend price)
     const basePlanPrice = PLAN_PRICES[planId] ?? planPrice;
@@ -121,36 +121,48 @@ Deno.serve(async (req) => {
     const amountInCents = Math.round(totalPrice * 100);
     const correlationID = crypto.randomUUID();
 
-    const wooviResponse = await fetch("https://api.openpix.com.br/api/openpix/v1/charge", {
-      method: "POST",
-      headers: {
-        "Authorization": wooviApiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        correlationID,
-        value: amountInCents,
-        comment: PLAN_NAMES[planId] || `Plano ${planId}`,
-        customer: {
-          name: userName,
-          email: userEmail,
-          phone: userPhone?.replace(/\D/g, ""),
+    let pixCode = "";
+    let qrCodeImage = "";
+    let paymentLinkUrl = "";
+    let paymentId = correlationID;
+
+    if (!isTestUser) {
+      const wooviApiKey = Deno.env.get("WOOVI_API_KEY");
+      if (!wooviApiKey) {
+        throw new Error("Woovi API key not configured for production payments");
+      }
+
+      const wooviResponse = await fetch("https://api.openpix.com.br/api/openpix/v1/charge", {
+        method: "POST",
+        headers: {
+          "Authorization": wooviApiKey,
+          "Content-Type": "application/json",
         },
-      }),
-    });
+        body: JSON.stringify({
+          correlationID,
+          value: amountInCents,
+          comment: PLAN_NAMES[planId] || `Plano ${planId}`,
+          customer: {
+            name: userName,
+            email: userEmail,
+            phone: userPhone?.replace(/\D/g, ""),
+          },
+        }),
+      });
 
-    if (!wooviResponse.ok) {
-      const errorText = await wooviResponse.text();
-      console.error("Woovi error:", errorText);
-      throw new Error(`Woovi API error: ${wooviResponse.status}`);
+      if (!wooviResponse.ok) {
+        const errorText = await wooviResponse.text();
+        console.error("Woovi error:", errorText);
+        throw new Error(`Woovi API error: ${wooviResponse.status}`);
+      }
+
+      const wooviData = await wooviResponse.json();
+      const charge = wooviData.charge || wooviData;
+      paymentId = charge.correlationID || correlationID;
+      pixCode = charge.brCode || "";
+      qrCodeImage = charge.qrCodeImage || "";
+      paymentLinkUrl = charge.paymentLinkUrl || "";
     }
-
-    const wooviData = await wooviResponse.json();
-    const charge = wooviData.charge || wooviData;
-    const paymentId = charge.correlationID || correlationID;
-    const pixCode = charge.brCode || "";
-    const qrCodeImage = charge.qrCodeImage || "";
-    const paymentLinkUrl = charge.paymentLinkUrl || "";
 
     const { data: purchase, error: purchaseError } = await supabase
       .from("purchases")
@@ -174,11 +186,6 @@ Deno.serve(async (req) => {
     if (purchaseError) {
       console.error("Error saving purchase:", purchaseError);
     }
-
-    const isTestUser = userEmail.includes("@test.com") ||
-      userEmail.includes("@temporario.com") ||
-      userName.toLowerCase().includes("dev") ||
-      planName?.toLowerCase().includes("dev");
 
     if (!isTestUser && !DISABLE_WEBHOOKS) {
       try {

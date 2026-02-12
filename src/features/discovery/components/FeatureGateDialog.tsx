@@ -6,6 +6,7 @@ import { PLANS, Plan } from "@/features/funnel/components/plans/PlansGrid";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PlanComparison } from "@/features/funnel/components/plans/PlanComparison";
 import { useState } from "react";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 interface FeatureGateDialogProps {
     open: boolean;
@@ -15,7 +16,7 @@ interface FeatureGateDialogProps {
     features: string[];
     icon?: React.ReactNode;
     price: number;
-    onUpgrade?: () => void;
+    onUpgrade?: (plan: { id: string; name: string; price: number }) => void;
 }
 
 export function FeatureGateDialog({
@@ -31,6 +32,7 @@ export function FeatureGateDialog({
     const navigate = useNavigate();
     const { data: subscription } = useSubscription();
     const [showComparison, setShowComparison] = useState(false);
+    const { user } = useAuth();
 
     const isBronzeUser = subscription?.tier === 'bronze' || subscription?.tier === 'none';
 
@@ -39,7 +41,7 @@ export function FeatureGateDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-none w-full h-auto bg-transparent border-none shadow-none p-0 overflow-visible">
+            <DialogContent hideClose className="w-[calc(100%-2rem)] max-w-md mx-auto border-none bg-transparent shadow-none p-0 overflow-hidden">
                 <div
                     className="w-full h-full min-h-screen overflow-x-auto snap-x snap-mandatory flex gap-4 px-6 pb-12 pt-12 items-center"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -105,19 +107,28 @@ export function FeatureGateDialog({
 
                                         <Button
                                             onClick={() => {
-                                                onOpenChange(false);
-                                                navigate(`/v1/planos?plan=${plan.id === 'gold' ? 'gold' : 'silver'}`);
+                                                if (onUpgrade) {
+                                                    onUpgrade({
+                                                        id: plan.id,
+                                                        name: plan.name,
+                                                        price: plan.price
+                                                    });
+                                                } else {
+                                                    onOpenChange(false);
+                                                    navigate(`/v1/planos?plan=${plan.id === 'gold' ? 'gold' : 'silver'}`);
+                                                }
                                             }}
                                             className="w-full h-14 rounded-2xl gradient-button text-white font-bold text-sm tracking-wide border-0 shadow-lg shadow-amber-900/20 active:scale-[0.98] transition-all"
                                         >
                                             Assinar Agora
                                         </Button>
 
+
                                         {plan.id === 'gold' && (
                                             <Button
                                                 variant="ghost"
                                                 onClick={(e) => { e.stopPropagation(); setShowComparison(true); }}
-                                                className="w-full h-10 mt-2 font-medium bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-xl transition-all text-xs"
+                                                className="w-full h-10 mt-1 font-medium bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-xl transition-all text-xs"
                                             >
                                                 Compare os Planos
                                             </Button>
@@ -139,6 +150,8 @@ export function FeatureGateDialog({
                     navigate(`/v1/planos?plan=${p.id === 'gold' ? 'gold' : 'silver'}`);
                 }}
             />
+
+
         </Dialog>
     );
 }

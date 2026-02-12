@@ -61,7 +61,7 @@ const WelcomeScreen = () => {
         </div>
 
         <div className="text-center space-y-1 md:space-y-2">
-          <h1 className="text-3xl md:text-6xl font-serif text-white font-bold tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]">
+          <h1 className="text-3xl md:text-6xl font-serif text-white font-semibold tracking-tight drop-shadow-[0_4px_4px_rgba(0,0,0,0.3)]">
             Encontro <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd34d] to-[#d4af37] drop-shadow-[0_2px_10px_rgba(245,158,11,0.4)]">com Fé</span>
           </h1>
           <p className="text-white/90 text-sm md:text-xl font-light tracking-wide drop-shadow-md">
@@ -143,10 +143,10 @@ const WelcomeScreen = () => {
 
           </div>
 
-          <p className="text-white/90 text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] mb-0.5 md:mb-1 drop-shadow-sm">
+          <p className="text-white/90 text-[10px] md:text-xs font-semibold uppercase tracking-[0.25em] mb-0.5 md:mb-1 drop-shadow-sm">
             Usuários no aplicativo
           </p>
-          <h2 className="text-4xl md:text-6xl font-black !font-sans text-white tracking-tighter drop-shadow-md">
+          <h2 className="text-4xl md:text-6xl font-bold !font-sans text-white tracking-tighter drop-shadow-md">
             92.000+
           </h2>
         </div>

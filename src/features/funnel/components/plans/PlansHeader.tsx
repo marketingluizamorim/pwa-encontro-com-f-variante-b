@@ -22,12 +22,9 @@ export function PlansHeader({ onBack }: PlansHeaderProps) {
         </div>
       )}
 
-      <div className="flex items-center gap-2 fade-in-fast">
-        <div className="relative group">
-          {/* Divine Halo Effect */}
-          <div className="absolute inset-0 bg-[#d4af37]/20 blur-xl rounded-full scale-150 animate-pulse-slow" style={{ animationDuration: '4s' }} />
-
-          <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_0_20px_rgba(212,175,55,0.2)] relative z-10 transition-transform hover:scale-105 active:scale-95">
+      <div className="flex items-center gap-2 fade-in-fast opacity-40 select-none">
+        <div className="relative">
+          <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_0_20px_rgba(212,175,55,0.2)] relative z-10">
             <div className="w-full h-full rounded-full bg-gradient-to-br from-white/20 to-black/10 backdrop-blur-xl flex items-center justify-center border border-white/20 overflow-hidden">
               <Heart className="w-5 h-5 text-white fill-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
             </div>

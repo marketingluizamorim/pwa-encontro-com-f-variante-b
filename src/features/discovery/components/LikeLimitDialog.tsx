@@ -15,7 +15,7 @@ export function LikeLimitDialog({ open, onOpenChange, onSeePlans }: LikeLimitDia
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-[340px] p-0 bg-transparent border-none shadow-none focus:ring-0">
+            <DialogContent hideClose className="max-w-[340px] p-0 bg-transparent border-none shadow-none focus:ring-0">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}

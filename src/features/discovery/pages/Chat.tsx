@@ -8,8 +8,10 @@ import { toast } from 'sonner';
 import { AnimatePresence, motion, useDragControls } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
+import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
 import { Header } from '@/features/discovery/components/Header';
 import { SafetyToolkitDrawer } from '@/features/discovery/components/SafetyToolkitDrawer';
+import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
     'Um compromisso sério': '💍',
@@ -76,6 +78,16 @@ export default function Chat() {
     const [loading, setLoading] = useState(true);
     const [selectedProfile, setSelectedProfile] = useState<Conversation['profile'] | null>(null);
     const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+    const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+    const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
+    const [upgradeData, setUpgradeData] = useState({
+        title: "Destaque seu Perfil",
+        description: "Chame atenção mais rápido e aumente as suas chances de encontrar alguém em até 30%.",
+        features: PLANS.find(p => p.id === 'silver')?.features || [],
+        icon: <i className="ri-fire-fill text-4xl" />,
+        price: PLANS.find(p => p.id === 'silver')?.price || 29.90,
+        planId: 'silver'
+    });
     const [showSafety, setShowSafety] = useState(false);
     const dragControls = useDragControls();
 
@@ -84,7 +96,7 @@ export default function Chat() {
         try {
             const { supabase } = await import('@/integrations/supabase/client');
 
-            // 1. Get Matches
+            // 1. Buscar Matches (Combinações)
             const { data: matchesData, error: matchesError } = await supabase
                 .from('matches')
                 .select('id, user1_id, user2_id')
@@ -97,7 +109,7 @@ export default function Chat() {
                 return;
             }
 
-            // 2. Get Profiles
+            // 2. Buscar Perfis
             const otherUserIds = matchesData.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
             const { data: profilesData } = await supabase
                 .from('profiles')
@@ -106,7 +118,7 @@ export default function Chat() {
 
             const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
 
-            // 3. Get Last Messages
+            // 3. Buscar Últimas Mensagens
             const matchesWithMessages = await Promise.all(matchesData.map(async (m) => {
                 const { data: msgs } = await supabase
                     .from('messages')
@@ -168,7 +180,7 @@ export default function Chat() {
         localStorage.setItem('viewed-matches', JSON.stringify(Array.from(newViewed)));
     };
 
-    // Fetch like count for the "Gold Card"
+    // Buscar contagem de curtidas para o "Cartão Gold"
     const [likesCount, setLikesCount] = useState(0);
     const [likesPhoto, setLikesPhoto] = useState<string | null>(null);
 
@@ -176,7 +188,7 @@ export default function Chat() {
         if (!user) return;
         const { supabase } = await import('@/integrations/supabase/client');
 
-        // 1. Get all users who LIKED me
+        // 1. Buscar todos os usuários que me CURTIRAM
         const { data: incomingLikes } = await supabase
             .from('swipes')
             .select('swiper_id')
@@ -188,7 +200,7 @@ export default function Chat() {
             return;
         }
 
-        // 2. Get all users I have already SWIPED on (Like or Dislike)
+        // 2. Buscar todos os usuários que eu já DESLIZEI (Curti ou Descurti)
         const { data: mySwipes } = await supabase
             .from('swipes')
             .select('swiped_id')
@@ -196,12 +208,12 @@ export default function Chat() {
 
         const mySwipedIds = new Set(mySwipes?.map(s => s.swiped_id));
 
-        // 3. Filter: Only count likes from people I haven't swiped on yet
+        // 3. Filtrar: Contar apenas curtidas de pessoas que eu ainda não deslizei
         const pendingLikes = incomingLikes.filter(like => !mySwipedIds.has(like.swiper_id));
 
         setLikesCount(pendingLikes.length);
 
-        // 4. Get a photo from one of those users to show blurred
+        // 4. Pegar uma foto de um desses usuários para mostrar borrada
         if (pendingLikes.length > 0) {
             const firstPendingId = pendingLikes[0].swiper_id;
             const { data: profile } = await supabase
@@ -231,7 +243,7 @@ export default function Chat() {
         return <ChatListSkeleton />;
     }
 
-    // Filter conversations into "New Matches" (no messages) and "Messages"
+    // Filtrar conversas em "Novos Matches" (sem mensagens) e "Mensagens"
     const newMatches = conversations.filter(c => !c.last_message);
     const existingChats = conversations.filter(c => !!c.last_message);
 
@@ -249,7 +261,7 @@ export default function Chat() {
                             </button>
                         } />
 
-                        {/* Promotional Banner */}
+                        {/* Banner Promocional */}
                         <div
                             onClick={() => setShowUpgradeDialog(true)}
                             className="mx-4 mt-4 mb-6 p-4 rounded-xl relative overflow-hidden bg-gradient-to-r from-gray-900 to-black border border-white/10 shadow-lg cursor-pointer active:scale-95 transition-transform"
@@ -259,18 +271,18 @@ export default function Chat() {
                                     <i className="ri-fire-fill text-2xl text-white"></i>
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-bold text-sm">Saia na frente com as curtidas prioritárias e filtros personalizados</h3>
+                                    <h3 className="text-white font-bold text-sm">Saia na frente e encontre a pessoa ideal</h3>
                                     <p className="text-gray-400 text-xs mt-1">
-                                        Chame atenção mais rápido e aumente as suas chances de encontrar alguém em até 30%.
+                                        Perfil em destaque, mensagens diretas e filtros avançados. Aumente em até 3x suas chances.
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        {/* New Matches Section */}
+                        {/* Seção de Novos Matches */}
                         <div className="px-4 mb-8">
                             <h2 className="font-bold text-lg mb-4">Novas conexões</h2>
                             <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-                                {/* Gold Card - Likes Teaser */}
+                                {/* Cartão Gold - Teaser de Curtidas */}
                                 <Link to="/app/matches" className="flex flex-col items-center gap-2 shrink-0 group">
                                     <div className="relative w-24 h-32 rounded-xl border-2 border-[#d4af37] bg-gray-900 flex items-center justify-center">
                                         <div className="absolute inset-0 rounded-[10px] overflow-hidden">
@@ -313,12 +325,12 @@ export default function Chat() {
                                                 />
                                             </div>
 
-                                            {/* Red Dot if unread message (though newMatches usually don't have messages) */}
+                                            {/* Ponto vermelho se houver mensagem não lida */}
                                             {conv.last_message && !conv.last_message.is_read && conv.last_message.sender_id !== user?.id && (
                                                 <div className="absolute right-1 top-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background z-20"></div>
                                             )}
 
-                                            {/* Floating Heart for NEW matches the user hasn't clicked yet */}
+                                            {/* Coração flutuante para NOVOS matches que o usuário ainda não clicou */}
                                             {!viewedMatches.has(conv.match_id) && <FloatingHeart />}
                                         </div>
                                         <span className="text-sm font-medium truncate max-w-[96px] mt-1">{conv.profile.display_name}</span>
@@ -327,7 +339,7 @@ export default function Chat() {
                             </div>
                         </div>
 
-                        {/* Messages List */}
+                        {/* Lista de Mensagens */}
                         <div className="px-4">
                             <h2 className="font-bold text-lg mb-4">Mensagens</h2>
 
@@ -392,7 +404,7 @@ export default function Chat() {
                 </div>
             </PullToRefresh >
 
-            {/* Expanded Profile View (Interactive) */}
+            {/* Visualização Expandida de Perfil (Interativa) */}
             {
                 typeof document !== 'undefined' && createPortal(
                     <AnimatePresence>
@@ -416,7 +428,7 @@ export default function Chat() {
                             >
                                 {/* Scrollable Content */}
                                 <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
-                                    {/* Close Button */}
+                                    {/* Botão Fechar */}
                                     <button
                                         onClick={() => setSelectedProfile(null)}
                                         className="fixed top-4 right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
@@ -424,7 +436,7 @@ export default function Chat() {
                                         <i className="ri-arrow-down-s-line text-2xl" />
                                     </button>
 
-                                    {/* Hero Image */}
+                                    {/* Imagem Hero */}
                                     <div
                                         className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
                                         onPointerDown={(e) => dragControls.start(e)}
@@ -437,9 +449,9 @@ export default function Chat() {
                                         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
                                     </div>
 
-                                    {/* Profile Info Content */}
+                                    {/* Conteúdo de Informações do Perfil */}
                                     <div className="px-5 -mt-20 relative z-10 space-y-6">
-                                        {/* Header: Name & Age */}
+                                        {/* Cabeçalho: Nome e Idade */}
                                         <div>
                                             <div className="flex items-center gap-3">
                                                 <h1 className="text-4xl font-display font-bold text-foreground">
@@ -450,7 +462,7 @@ export default function Chat() {
                                                 </span>
                                             </div>
 
-                                            {/* Main Badges */}
+                                            {/* Selos Principais */}
                                             <div className="flex items-center gap-3 mt-3 text-sm text-foreground/80">
                                                 {selectedProfile.occupation && (
                                                     <div className="flex items-center gap-1.5">
@@ -467,7 +479,7 @@ export default function Chat() {
                                             </div>
                                         </div>
 
-                                        {/* Section: Looking For */}
+                                        {/* Seção: Procurando */}
                                         <div className="bg-card/50 border border-border/50 rounded-2xl p-4 backdrop-blur-sm">
                                             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tô procurando</h3>
                                             <div className="flex items-center gap-3">
@@ -478,7 +490,7 @@ export default function Chat() {
                                             </div>
                                         </div>
 
-                                        {/* Section: About Me */}
+                                        {/* Seção: Sobre Mim */}
                                         {selectedProfile.bio && (
                                             <div className="space-y-2">
                                                 <h3 className="text-lg font-bold">Sobre mim</h3>
@@ -488,7 +500,7 @@ export default function Chat() {
                                             </div>
                                         )}
 
-                                        {/* Section: Interests */}
+                                        {/* Seção: Interesses */}
                                         {(selectedProfile.christian_interests && selectedProfile.christian_interests.length > 0) && (
                                             <div className="space-y-3">
                                                 <h3 className="text-lg font-bold">Interesses</h3>
@@ -506,7 +518,7 @@ export default function Chat() {
                                     </div>
                                 </div>
 
-                                {/* Action Button */}
+                                {/* Botão de Ação */}
                                 <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center items-center px-4 pointer-events-none">
                                     <button
                                         onClick={() => {
@@ -533,11 +545,40 @@ export default function Chat() {
             <FeatureGateDialog
                 open={showUpgradeDialog}
                 onOpenChange={setShowUpgradeDialog}
-                title="Escolha seu Plano"
-                description="Desbloqueie todo o potencial do app"
-                features={[]}
-                price={0}
+                title={upgradeData.title}
+                description={upgradeData.description}
+                features={upgradeData.features}
+                icon={upgradeData.icon}
+                price={upgradeData.price}
+                onUpgrade={(planData) => {
+                    setSelectedCheckoutPlan({
+                        id: planData.id,
+                        name: planData.name,
+                        price: planData.price
+                    });
+                    setShowUpgradeDialog(false);
+                    setShowCheckoutManager(true);
+                }}
             />
+
+            {showCheckoutManager && selectedCheckoutPlan && (
+                <CheckoutManager
+                    key={`chat-checkout-v1-${selectedCheckoutPlan.id}`}
+                    open={showCheckoutManager}
+                    onOpenChange={(open) => {
+                        setShowCheckoutManager(open);
+                        if (!open) {
+                            setTimeout(() => {
+                                setSelectedCheckoutPlan(null);
+                                setShowUpgradeDialog(true);
+                            }, 50);
+                        }
+                    }}
+                    planId={selectedCheckoutPlan.id}
+                    planPrice={selectedCheckoutPlan.price}
+                    planName={selectedCheckoutPlan.name}
+                />
+            )}
             <SafetyToolkitDrawer open={showSafety} onOpenChange={setShowSafety} />
         </PageTransition >
     );

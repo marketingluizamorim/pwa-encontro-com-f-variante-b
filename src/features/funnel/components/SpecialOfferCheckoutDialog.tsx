@@ -69,7 +69,7 @@ export function SpecialOfferCheckoutDialog({
       <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2rem] bg-[#0f172a]/95 backdrop-blur-2xl border-white/10 text-white shadow-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden top-[5%] translate-y-0 data-[state=open]:slide-in-from-top-[0%] data-[state=closed]:slide-out-to-top-[0%]">
         <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide">
           <DialogHeader className="mb-2">
-            <DialogTitle className="font-serif text-center text-2xl font-bold text-white tracking-tight">
+            <DialogTitle className="font-serif text-center text-2xl font-semibold text-white tracking-tight">
               Finalizar Oferta Especial
             </DialogTitle>
           </DialogHeader>
@@ -77,9 +77,9 @@ export function SpecialOfferCheckoutDialog({
           {/* Offer Summary */}
           <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mb-4 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-3">
-              <span className="font-bold text-white/90">Pacote Completo</span>
+              <span className="font-semibold text-white/90">Pacote Completo</span>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-sans font-bold text-[#fcd34d] drop-shadow-md">R$ 9,90</span>
+                <span className="text-xl font-sans font-semibold text-[#fcd34d] drop-shadow-md">R$ 9,90</span>
                 <span className="text-xs text-white/40 line-through">R$ 24,90</span>
               </div>
             </div>
@@ -146,12 +146,12 @@ export function SpecialOfferCheckoutDialog({
         <div className="p-3 bg-[#0f172a] border-t border-white/10 absolute bottom-0 left-0 right-0 z-20">
           <div className="flex items-center justify-between mb-4">
             <span className="text-white/80 font-medium text-sm">Total:</span>
-            <span className="text-xl font-sans font-bold text-[#fcd34d] drop-shadow-md">R$ 9,90</span>
+            <span className="text-xl font-sans font-semibold text-[#fcd34d] drop-shadow-md">R$ 9,90</span>
           </div>
           <Button
             onClick={() => handleSubmit()}
             disabled={isLoading}
-            className="w-full h-14 rounded-2xl gradient-button text-white transition-all uppercase tracking-wide text-sm font-bold border-0 hover:opacity-90"
+            className="w-full h-14 rounded-2xl gradient-button text-white transition-all uppercase tracking-wide text-sm font-semibold border-0 hover:opacity-90"
           >
             {isLoading ? (
               <><i className="ri-loader-4-line animate-spin mr-2" /> Processando...</>

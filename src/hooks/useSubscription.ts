@@ -52,7 +52,6 @@ export function useSubscription() {
 
             if (error) {
                 console.error('Error fetching subscription:', error);
-                return defaultSubscription;
             }
 
             // Count today's swipes
@@ -67,6 +66,24 @@ export function useSubscription() {
 
             if (swipesError) {
                 console.error('Error counting swipes:', swipesError);
+            }
+
+            // Developer Override for testing - Acts as fallback if no active subscription found in DB
+            const hasActiveDbPlan = data && data.is_active && data.plan_id !== 'none';
+            if (!hasActiveDbPlan && user.email === 'marketing.luizamorim@gmail.com') {
+                return {
+                    tier: 'gold',
+                    isActive: true,
+                    expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                    canSeeWhoLiked: true,
+                    canUseAdvancedFilters: true,
+                    canVideoCall: true,
+                    canSendMedia: true,
+                    canDirectMessage: true,
+                    isProfileBoosted: true,
+                    dailySwipesLimit: 999999,
+                    swipesToday: swipesToday || 0,
+                };
             }
 
             if (!data) return { ...defaultSubscription, swipesToday: swipesToday || 0 };

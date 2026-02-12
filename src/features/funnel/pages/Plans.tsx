@@ -7,6 +7,8 @@ import { ThankYouDialog } from '@/features/funnel/components/ThankYouDialog';
 import { ExitIntentDialog } from '@/features/funnel/components/ExitIntentDialog';
 import { SpecialOfferCheckoutDialog } from '@/features/funnel/components/SpecialOfferCheckoutDialog';
 import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
 import { funnelService } from '../services/funnel.service';
 import type { SelectedBumps } from '@/features/funnel/components/OrderBumpDialog';
@@ -15,7 +17,7 @@ const SPECIAL_OFFER_PRICE = 9.90;
 const SPECIAL_OFFER_PLAN_ID = 'special-offer-lifetime';
 const GOLD_PLAN_PRICE = 49.90;
 const GOLD_PLAN_ID = 'gold';
-const DEV_MODE = true; // Set to false for real payments
+const DEV_MODE = false; // Set to false for real payments
 
 const PLAN_NAMES: Record<string, string> = {
   bronze: "Plano Bronze",
@@ -33,6 +35,7 @@ export default function Plans() {
     setCheckoutInfo,
     setOrderBumps,
   } = useFunnelStore();
+  const { user } = useAuth();
 
   const currentBumpsRef = useRef<SelectedBumps>({
     allRegions: false,
@@ -230,6 +233,7 @@ export default function Plans() {
         name={checkoutInfo.name}
         onRedirect={handleThankYouClose}
       />
+
     </div>
   );
 }

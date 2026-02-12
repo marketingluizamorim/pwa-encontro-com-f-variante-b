@@ -792,6 +792,15 @@ export default function Explore() {
     const { data: subscription } = useSubscription();
     const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
     const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+    const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
+    const [upgradeData, setUpgradeData] = useState({
+        title: '',
+        description: '',
+        features: [] as string[],
+        icon: null as React.ReactNode,
+        price: 0,
+        planId: ''
+    });
     const isGold = subscription?.tier === 'gold';
     const hasCommunityAccess = subscription?.tier === 'silver' || isGold;
 
@@ -831,8 +840,26 @@ export default function Explore() {
         return () => clearInterval(interval);
     }, [currentBrazilDate]);
 
+    // Handle Daily Devotional Fetching with Cache & Error Handling
     useEffect(() => {
         const fetchDevotional = async () => {
+            const CACHE_KEY = `devotional-cache-${currentBrazilDate}`;
+
+            // 1. Try Cache First
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (parsed && parsed.date && parsed.content) {
+                        setTodayDevotional(parsed);
+                        return; // Successfully loaded from cache
+                    }
+                }
+            } catch (e) {
+                console.error("Cache read error", e);
+            }
+
+            // 2. Fetch from API if no valid cache
             try {
                 const response = await fetch('https://micromab.com/wp-json/openheavens/v1/today');
                 const data = await response.json();
@@ -854,7 +881,7 @@ export default function Explore() {
                         });
                     };
 
-                    const translateText = async (text: string) => {
+                    const translateText = async (text: string): Promise<string | null> => {
                         if (!text || text.length < 3) return text;
                         try {
                             const paragraphs = text.split('\n\n');
@@ -862,11 +889,14 @@ export default function Explore() {
                                 if (p.length < 3) return p;
                                 const encoded = encodeURIComponent(p.substring(0, 500));
                                 const res = await fetch(`https://lingva.ml/api/v1/en/pt/${encoded}`);
+                                if (!res.ok) throw new Error('Translation failed');
                                 const resData = await res.json();
-                                return resData.translation || p;
+                                return resData.translation;
                             }));
+
+                            if (translatedParagraphs.some(p => !p)) return null;
                             return translatedParagraphs.join('\n\n');
-                        } catch { return text; }
+                        } catch { return null; }
                     };
 
                     const rawVerse = extract('MEMORY VERSE:', 'OPEN HEAVENS FOR TODAY BIBLE TEXT');
@@ -875,6 +905,7 @@ export default function Explore() {
                     const apiTitle = data.title.split(' \u2013 ')[1] || data.title;
                     const apiVerseTxt = verseParts[1]?.trim() || verseParts[0]?.trim() || '...';
                     const apiVerseRef = verseParts[0]?.trim() || 'Escritura';
+
                     const apiMessage = extract('OPEN HEAVENS FOR TODAY MESSAGE', 'open heavens today');
                     const apiReflection = extract('Open Heavens Devotional For Today Reflection', 'Open Heavens For Today Reflection Questions');
                     const apiAction = extract('Open Heavens Devotional  Application', 'PRAYER POINTS');
@@ -890,21 +921,28 @@ export default function Explore() {
                         translateText(apiPrayer)
                     ]);
 
-                    const newDevotional: Devotional = {
-                        id: `api-${data.id}`,
-                        date: new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', timeZone: 'America/Sao_Paulo' }).format(new Date()),
-                        title: tTitle,
-                        verse: { text: tVerse, ref: apiVerseRef },
-                        content: tContent,
-                        reflection: tReflection,
-                        action: tAction,
-                        prayer: tPrayer
-                    };
+                    // Only update and cache if translation succeeded for key fields
+                    if (tTitle && tContent) {
+                        const newDevotional: Devotional = {
+                            id: `api-${data.id}`,
+                            date: new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', timeZone: 'America/Sao_Paulo' }).format(new Date()),
+                            title: tTitle,
+                            verse: { text: tVerse || apiVerseTxt, ref: apiVerseRef },
+                            content: tContent,
+                            reflection: tReflection || apiReflection,
+                            action: tAction || apiAction,
+                            prayer: tPrayer || apiPrayer
+                        };
 
-                    setTodayDevotional(newDevotional);
+                        setTodayDevotional(newDevotional);
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(newDevotional));
+                    } else {
+                        console.warn("Translation failed or returned empty content. Using local fallback.");
+                    }
                 }
             } catch (error) {
-                console.error('Error fetching today\'s devotional:', error);
+                console.error('Error fetching/translating devotional:', error);
+                // Keep local fallback on error
             }
         };
 
@@ -1006,7 +1044,7 @@ export default function Explore() {
                             {/* Massive Typographic Header */}
                             <motion.div variants={itemFadeUp} className="mb-12 relative">
                                 <div className="absolute -top-10 -left-10 w-40 h-40 bg-accent/10 blur-[100px] rounded-full -z-10" />
-                                <h2 className="text-5xl font-serif font-bold text-white leading-tight">
+                                <h2 className="text-5xl font-serif font-semibold text-white leading-tight">
                                     Conteúdos <br />
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd34d] to-[#d4af37] italic">Inspiradores</span>
                                 </h2>
@@ -1026,17 +1064,17 @@ export default function Explore() {
                                     </div>
 
                                     <div className="flex items-center gap-2 mb-4">
-                                        <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black uppercase tracking-widest rounded-full">
+                                        <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-widest rounded-full">
                                             Devocional de Hoje
                                         </span>
-                                        <span className="text-white/40 text-[10px] font-bold uppercase tracking-widest">{todayDevotional.date}</span>
+                                        <span className="text-white/40 text-[10px] font-semibold uppercase tracking-widest">{todayDevotional.date}</span>
                                     </div>
 
-                                    <h3 className="text-2xl font-serif font-bold text-white mb-2 italic">"{todayDevotional.title}"</h3>
+                                    <h3 className="text-2xl font-serif font-semibold text-white mb-2 italic">"{todayDevotional.title}"</h3>
                                     <p className="text-white/60 text-base leading-relaxed mb-6 max-w-[85%] line-clamp-2">
                                         {todayDevotional.content}
                                     </p>
-                                    <div className="flex items-center gap-3 text-amber-500 font-bold text-sm tracking-widest uppercase group-hover:translate-x-2 transition-transform">
+                                    <div className="flex items-center gap-3 text-amber-500 font-semibold text-sm tracking-widest uppercase group-hover:translate-x-2 transition-transform">
                                         Ler Agora <ChevronRight className="w-4 h-4" />
                                     </div>
                                 </div>
@@ -1060,7 +1098,7 @@ export default function Explore() {
                                                 {cat.icon}
                                             </div>
                                             <div>
-                                                <h4 className="text-xl font-serif font-bold text-white tracking-tight">{cat.title}</h4>
+                                                <h4 className="text-xl font-serif font-semibold text-white tracking-tight">{cat.title}</h4>
                                                 <p className="text-sm text-white/40 font-medium">{cat.description}</p>
                                             </div>
                                         </div>
@@ -1074,7 +1112,7 @@ export default function Explore() {
                                 <p className="text-sm font-serif italic text-white/80 leading-relaxed">
                                     "Lâmpada para os meus pés é tua palavra, e luz para o meu caminho."
                                 </p>
-                                <span className="text-[10px] uppercase tracking-widest font-bold mt-2 block">Salmo 119:105</span>
+                                <span className="text-[10px] uppercase tracking-widest font-semibold mt-2 block">Salmo 119:105</span>
                             </motion.div>
                         </div>
                     </motion.div>
@@ -1102,7 +1140,7 @@ export default function Explore() {
                             </button>
                             <div className="bg-white/5 backdrop-blur-2xl border border-white/10 px-4 py-2 rounded-full flex items-center gap-2">
                                 <Coffee className="w-4 h-4 text-amber-400" />
-                                <span className="text-[10px] font-black uppercase text-white/80 tracking-widest">{todayDevotional.date}</span>
+                                <span className="text-[10px] font-bold uppercase text-white/80 tracking-widest">{todayDevotional.date}</span>
                             </div>
                             <div className="w-12" />
                         </div>
@@ -1114,8 +1152,8 @@ export default function Explore() {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="mt-12 text-center"
                             >
-                                <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.4em] mb-4 block">Meditação Diária</span>
-                                <h2 className="text-4xl font-serif font-bold text-white leading-tight mb-8">
+                                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.4em] mb-4 block">Meditação Diária</span>
+                                <h2 className="text-4xl font-serif font-semibold text-white leading-tight mb-8">
                                     {todayDevotional.title}
                                 </h2>
                                 <div className="w-8 h-1 bg-amber-500/50 mx-auto rounded-full" />
@@ -1133,7 +1171,7 @@ export default function Explore() {
                                     "{todayDevotional.verse.text}"
                                 </blockquote>
                                 <div className="text-center">
-                                    <span className="text-xs font-black text-amber-500/60 uppercase tracking-widest">{todayDevotional.verse.ref}</span>
+                                    <span className="text-xs font-bold text-amber-500/60 uppercase tracking-widest">{todayDevotional.verse.ref}</span>
                                 </div>
                             </motion.div>
 
@@ -1152,7 +1190,7 @@ export default function Explore() {
 
                                 {/* Reflection Fragment */}
                                 <div className="pl-6 border-l-2 border-amber-500/30 py-2">
-                                    <h4 className="text-amber-400 text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <h4 className="text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                                         <Lightbulb className="w-3 h-3" /> Para Refletir
                                     </h4>
                                     <p className="text-white/70 italic font-medium">{todayDevotional.reflection}</p>
@@ -1160,7 +1198,7 @@ export default function Explore() {
 
                                 {/* Action Step */}
                                 <div className="glass-dark p-6 rounded-3xl border border-amber-500/10">
-                                    <h4 className="text-amber-400 text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <h4 className="text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                                         <Sparkle className="w-3 h-3" /> Passo Prático
                                     </h4>
                                     <p className="text-white/80">{todayDevotional.action}</p>
@@ -1171,7 +1209,7 @@ export default function Explore() {
                                     <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-8">
                                         <HandHeart className="w-8 h-8 text-amber-500" />
                                     </div>
-                                    <h4 className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em] mb-6">Momento de Oração</h4>
+                                    <h4 className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mb-6">Momento de Oração</h4>
                                     <p className="text-white/80 text-xl font-serif italic max-w-[90%] mx-auto leading-relaxed">
                                         "{todayDevotional.prayer}"
                                     </p>
@@ -1195,7 +1233,7 @@ export default function Explore() {
                             <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
                                 <ArrowLeft className="w-5 h-5 text-white" />
                             </button>
-                            <h2 className="text-xl font-serif font-bold text-white italic tracking-tight">Conselhos com Fé</h2>
+                            <h2 className="text-xl font-serif font-semibold text-white italic tracking-tight">Conselhos com Fé</h2>
                             <div className="w-12" />
                         </div>
 
@@ -1209,8 +1247,8 @@ export default function Explore() {
                                                 <i className={cn(topic.icon, "text-2xl")} />
                                             </div>
                                             <div>
-                                                <h3 className="text-2xl font-serif font-bold text-white leading-none mb-1">{topic.title}</h3>
-                                                <span className="text-[10px] text-accent font-bold uppercase tracking-[0.2em] opacity-60">
+                                                <h3 className="text-2xl font-serif font-semibold text-white leading-none mb-1">{topic.title}</h3>
+                                                <span className="text-[10px] text-accent font-semibold uppercase tracking-[0.2em] opacity-60">
                                                     {topic.tips.length < 10 ? `0${topic.tips.length}` : topic.tips.length} Artigos Premium
                                                 </span>
                                             </div>
@@ -1240,7 +1278,7 @@ export default function Explore() {
                                                         </div>
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <h4 className="text-white text-base font-bold truncate group-hover:text-accent transition-colors">{tip.title}</h4>
+                                                        <h4 className="text-white text-base font-semibold truncate group-hover:text-accent transition-colors">{tip.title}</h4>
                                                         <p className="text-white/40 text-xs mt-1 leading-snug">{tip.shortDesc}</p>
                                                     </div>
                                                     <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 group-hover:bg-accent/20 transition-colors">
@@ -1284,7 +1322,7 @@ export default function Explore() {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="bg-black/20 backdrop-blur-2xl border border-white/5 px-4 py-2 rounded-full"
                             >
-                                <span className="text-[10px] font-black uppercase text-accent tracking-[0.3em]">{selectedTopic.title}</span>
+                                <span className="text-[10px] font-bold uppercase text-accent tracking-[0.3em]">{selectedTopic.title}</span>
                             </motion.div>
                             <div className="w-12" />
                         </div>
@@ -1295,7 +1333,7 @@ export default function Explore() {
                                 initial={{ opacity: 0, filter: 'blur(10px)' }}
                                 animate={{ opacity: 1, filter: 'blur(0px)' }}
                                 transition={{ delay: 0.2, duration: 0.8 }}
-                                className="text-5xl font-serif font-bold text-white mb-8 leading-[1.1] italic"
+                                className="text-5xl font-serif font-semibold text-white mb-8 leading-[1.1] italic"
                             >
                                 {selectedTip.title}
                             </motion.h2>
@@ -1329,7 +1367,7 @@ export default function Explore() {
                                         <Lightbulb className="w-32 h-32 text-accent" />
                                     </div>
 
-                                    <h4 className="text-accent text-sm font-black uppercase tracking-[0.2em] mb-10 flex items-center gap-3">
+                                    <h4 className="text-accent text-sm font-bold uppercase tracking-[0.2em] mb-10 flex items-center gap-3">
                                         <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
                                         Pilares de Prática
                                     </h4>
@@ -1338,7 +1376,7 @@ export default function Explore() {
                                         {selectedTip.points.map((point, i) => (
                                             <div key={i} className="flex gap-4 items-start group">
                                                 <div className="w-6 h-6 rounded-full border border-accent/40 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-accent/20 transition-colors">
-                                                    <span className="text-[10px] font-bold text-accent">{i + 1}</span>
+                                                    <span className="text-[10px] font-semibold text-accent">{i + 1}</span>
                                                 </div>
                                                 <p className="text-white/80 text-base leading-snug group-hover:text-white transition-colors">
                                                     {point}
@@ -1363,7 +1401,7 @@ export default function Explore() {
                                     </blockquote>
                                     <div className="flex flex-col items-center gap-2">
                                         <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent mb-2" />
-                                        <span className="text-xs font-black text-accent uppercase tracking-[0.4em]">
+                                        <span className="text-xs font-bold text-accent uppercase tracking-[0.4em]">
                                             {selectedTip.verse.ref}
                                         </span>
                                     </div>
@@ -1388,7 +1426,7 @@ export default function Explore() {
                             <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
                                 <ArrowLeft className="w-5 h-5 text-white" />
                             </button>
-                            <h2 className="text-xl font-serif font-bold text-white italic tracking-tight">Cursos Bíblicos</h2>
+                            <h2 className="text-xl font-serif font-semibold text-white italic tracking-tight">Cursos Bíblicos</h2>
                             <div className="w-12" />
                         </div>
 
@@ -1411,12 +1449,12 @@ export default function Explore() {
                                                 <i className={cn(study.icon, "text-2xl")} />
                                             </div>
                                             <div className="flex flex-col items-end">
-                                                <span className="text-[10px] text-white/40 font-black uppercase tracking-widest">{study.level}</span>
-                                                <span className="text-emerald-400 text-xs font-bold">{study.duration}</span>
+                                                <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{study.level}</span>
+                                                <span className="text-emerald-400 text-xs font-semibold">{study.duration}</span>
                                             </div>
                                         </div>
 
-                                        <h3 className="text-xl font-serif font-bold text-white mb-2">{study.title}</h3>
+                                        <h3 className="text-xl font-serif font-semibold text-white mb-2">{study.title}</h3>
                                         <p className="text-white/40 text-sm leading-relaxed mb-4">{study.description}</p>
 
                                         <div className="flex items-center gap-2">
@@ -1427,7 +1465,7 @@ export default function Explore() {
                                                 )} />
                                             </div>
                                             <span className={cn(
-                                                "text-[10px] font-bold uppercase",
+                                                "text-[10px] font-semibold uppercase",
                                                 completedStudies.includes(study.id) ? "text-emerald-400" : "text-white/20"
                                             )}>
                                                 {completedStudies.includes(study.id) ? 'Concluído' : 'Começar'}
@@ -1453,7 +1491,7 @@ export default function Explore() {
                             <button onClick={goBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
                                 <ArrowLeft className="w-5 h-5" />
                             </button>
-                            <span className="text-[10px] font-black uppercase text-accent tracking-widest">{selectedStudy.title}</span>
+                            <span className="text-[10px] font-bold uppercase text-accent tracking-widest">{selectedStudy.title}</span>
                             <div className="w-12" />
                         </div>
 
@@ -1465,7 +1503,7 @@ export default function Explore() {
                                         key={lesson.id}
                                         onClick={() => setSelectedLesson(lesson)}
                                         className={cn(
-                                            "shrink-0 px-6 py-3 rounded-2xl border text-xs font-bold transition-all",
+                                            "shrink-0 px-6 py-3 rounded-2xl border text-xs font-semibold transition-all",
                                             selectedLesson.id === lesson.id
                                                 ? "bg-emerald-500 border-emerald-400 text-black scale-105 shadow-lg shadow-emerald-500/20"
                                                 : "bg-white/5 border-white/10 text-white/40"
@@ -1482,7 +1520,7 @@ export default function Explore() {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="space-y-12"
                             >
-                                <h2 className="text-3xl font-serif font-bold text-white mt-8 leading-tight italic">
+                                <h2 className="text-3xl font-serif font-semibold text-white mt-8 leading-tight italic">
                                     {selectedLesson.title}
                                 </h2>
 
@@ -1491,7 +1529,7 @@ export default function Explore() {
                                     <p className="text-xl font-serif italic text-white/90 leading-relaxed mb-4 text-center">
                                         "{selectedLesson.verse.text}"
                                     </p>
-                                    <p className="text-center text-xs font-black text-emerald-400/60 tracking-widest uppercase">
+                                    <p className="text-center text-xs font-bold text-emerald-400/60 tracking-widest uppercase">
                                         {selectedLesson.verse.ref}
                                     </p>
                                 </div>
@@ -1503,7 +1541,7 @@ export default function Explore() {
                                 </div>
 
                                 <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5">
-                                    <h4 className="text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <h4 className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                                         <Lightbulb className="w-3 h-3" /> Ponto de Reflexão
                                     </h4>
                                     <p className="text-white/80 font-medium italic">
@@ -1513,7 +1551,7 @@ export default function Explore() {
 
                                 <button
                                     onClick={handleNextLesson}
-                                    className="w-full py-5 rounded-[2rem] bg-emerald-500 text-black font-black uppercase tracking-widest text-sm shadow-2xl shadow-emerald-500/20 active:scale-95 transition-transform"
+                                    className="w-full py-5 rounded-[2rem] bg-emerald-500 text-black font-bold uppercase tracking-widest text-sm shadow-2xl shadow-emerald-500/20 active:scale-95 transition-transform"
                                 >
                                     {selectedStudy.lessons.findIndex(l => l.id === selectedLesson.id) === selectedStudy.lessons.length - 1
                                         ? 'Finalizar Curso'
@@ -1538,7 +1576,7 @@ export default function Explore() {
                             <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
                                 <ArrowLeft className="w-5 h-5 text-white" />
                             </button>
-                            <h2 className="text-xl font-serif font-bold text-white italic tracking-tight">Comunidade</h2>
+                            <h2 className="text-xl font-serif font-semibold text-white italic tracking-tight">Comunidade</h2>
                             <div className="w-12" />
                         </div>
 
@@ -1557,9 +1595,9 @@ export default function Explore() {
                                     <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-6 text-blue-400">
                                         <i className="ri-global-line text-2xl" />
                                     </div>
-                                    <h3 className="text-2xl font-serif font-bold text-white mb-2">{COMMUNITY_DATA.main.title}</h3>
+                                    <h3 className="text-2xl font-serif font-semibold text-white mb-2">{COMMUNITY_DATA.main.title}</h3>
                                     <p className="text-white/40 text-sm leading-relaxed mb-6">{COMMUNITY_DATA.main.description}</p>
-                                    <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase tracking-widest">
+                                    <div className="flex items-center gap-2 text-blue-400 font-semibold text-xs uppercase tracking-widest">
                                         Acessar Portal <ChevronRight className="w-4 h-4" />
                                     </div>
                                 </div>
@@ -1573,8 +1611,8 @@ export default function Explore() {
                                             <i className={cn(cat.icon, "text-xl")} />
                                         </div>
                                         <div>
-                                            <h4 className="text-xl font-serif font-bold text-white leading-none mb-1">{cat.title}</h4>
-                                            <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{cat.description}</span>
+                                            <h4 className="text-xl font-serif font-semibold text-white leading-none mb-1">{cat.title}</h4>
+                                            <span className="text-[10px] text-white/40 font-semibold uppercase tracking-widest">{cat.description}</span>
                                         </div>
                                     </div>
 
@@ -1590,7 +1628,7 @@ export default function Explore() {
                                                     <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/20 group-hover:text-emerald-400 transition-colors">
                                                         <MessageCircle className="w-4 h-4" />
                                                     </div>
-                                                    <span className="text-sm font-bold tracking-tight">{group.name}</span>
+                                                    <span className="text-sm font-semibold tracking-tight">{group.name}</span>
                                                 </div>
                                                 <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white transition-colors" />
                                             </motion.div>
@@ -1627,7 +1665,7 @@ export default function Explore() {
                                     <Bell className="w-6 h-6" />
                                 </div>
 
-                                <h3 className="text-xl font-serif font-bold text-white mb-2">Compromisso de Respeito</h3>
+                                <h3 className="text-xl font-serif font-semibold text-white mb-2">Compromisso de Respeito</h3>
                                 <p className="text-white/60 text-[11px] mb-6 leading-relaxed">
                                     Esta é uma comunidade com propósito. Ao acessar o grupo, você concorda em se apresentar com:
                                 </p>
@@ -1647,7 +1685,7 @@ export default function Explore() {
                                                 <Check className="w-3 h-3 text-emerald-400" />
                                             </div>
                                             <span className="text-white/40 text-sm mr-2">{item.icon}</span>
-                                            <span className="text-white/80 text-sm font-bold tracking-tight">{item.text}</span>
+                                            <span className="text-white/80 text-sm font-semibold tracking-tight">{item.text}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -1655,13 +1693,13 @@ export default function Explore() {
                                 <div className="flex flex-col gap-3">
                                     <button
                                         onClick={confirmJoinGroup}
-                                        className="w-full py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-xs rounded-2xl active:scale-95 transition-all shadow-xl shadow-white/5"
+                                        className="w-full py-4 bg-white text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl active:scale-95 transition-all shadow-xl shadow-white/5"
                                     >
                                         Entendi e Aceito
                                     </button>
                                     <button
                                         onClick={() => setIsRuleModalOpen(false)}
-                                        className="w-full py-4 text-white/40 font-bold uppercase tracking-widest text-[10px] active:opacity-50 transition-all"
+                                        className="w-full py-4 text-white/40 font-semibold uppercase tracking-widest text-[10px] active:opacity-50 transition-all"
                                     >
                                         Cancelar
                                     </button>
@@ -1675,38 +1713,59 @@ export default function Explore() {
             <FeatureGateDialog
                 open={showUpgradeDialog}
                 onOpenChange={setShowUpgradeDialog}
-                title={subscription?.tier === 'bronze' ? "Plano Prata ou Ouro" : "Plano Ouro"}
-                description={subscription?.tier === 'bronze'
+                title={upgradeData.title || (subscription?.tier === 'bronze' ? "Acesso à Comunidade" : "Conteúdo Ouro")}
+                description={upgradeData.description || (subscription?.tier === 'bronze'
                     ? "O acesso aos nossos grupos exclusivos no WhatsApp é um benefício para membros do Plano Prata e Ouro."
-                    : "Este conteúdo é exclusivo para membros do Plano Ouro."}
-                features={subscription?.tier === 'bronze'
+                    : "Este conteúdo é exclusivo para membros do Plano Ouro.")
+                }
+                features={upgradeData.features.length > 0 ? upgradeData.features : (subscription?.tier === 'bronze'
                     ? [
                         "Acesso à Comunidade no WhatsApp",
                         "Curtidas Ilimitadas",
-                        "Ver quem te curtiu",
-                        "Filtro por Cidade",
-                        "Fotos e Áudios no Chat"
+                        "Ver quem curtiu você",
+                        "Filtro por cidade / região",
+                        "Fotos e Áudios no Chat",
+                        "Comunidade cristã no WhatsApp"
                     ]
                     : [
                         "Dicas de relacionamento cristão",
                         "Enviar mensagem sem curtir antes",
                         "Perfil em destaque",
-                        "Ver Perfis Online",
-                        "Filtros Avançados de Fé"
-                    ]
+                        "Ver perfis online recentemente",
+                        "Filtros avançados (idade e distância)"
+                    ])
                 }
-                icon={<i className="ri-community-line text-4xl" />}
-                price={49.90}
-                onUpgrade={() => setShowCheckoutManager(true)}
+                icon={upgradeData.icon || <i className="ri-community-line text-4xl" />}
+                price={upgradeData.price || 49.90}
+                onUpgrade={(planData) => {
+                    setSelectedCheckoutPlan({
+                        id: planData.id,
+                        name: planData.name,
+                        price: planData.price
+                    });
+                    setShowUpgradeDialog(false);
+                    setShowCheckoutManager(true);
+                }}
             />
 
-            <CheckoutManager
-                open={showCheckoutManager}
-                onOpenChange={setShowCheckoutManager}
-                planId="gold"
-                planPrice={49.90}
-                planName="Plano Ouro"
-            />
+            {showCheckoutManager && selectedCheckoutPlan && (
+                <CheckoutManager
+                    key={`explore-checkout-v1-${selectedCheckoutPlan.id}`}
+                    open={showCheckoutManager}
+                    onOpenChange={(open) => {
+                        setShowCheckoutManager(open);
+                        if (!open) {
+                            setTimeout(() => {
+                                setSelectedCheckoutPlan(null);
+                                setShowUpgradeDialog(true);
+                            }, 50);
+                        }
+                    }}
+                    planId={selectedCheckoutPlan.id}
+                    planPrice={selectedCheckoutPlan.price}
+                    planName={selectedCheckoutPlan.name}
+                />
+            )}
         </PageTransition>
     );
 }

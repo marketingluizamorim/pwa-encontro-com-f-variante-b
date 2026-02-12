@@ -188,7 +188,7 @@ export default function ProfileSetup() {
                 </button>
               ) : <div className="w-6" />}
 
-              <span className="text-xs font-bold tracking-widest text-[#d4af37] uppercase">
+              <span className="text-xs font-semibold tracking-widest text-[#d4af37] uppercase">
                 {step === 'basics' ? 'Básico' : step === 'faith' ? 'Fé & Valores' : 'Fotos'}
               </span>
               <div className="w-6" />
@@ -215,7 +215,7 @@ export default function ProfileSetup() {
                 className="space-y-6"
               >
                 <div className="text-center mb-8">
-                  <h1 className="text-3xl font-serif font-bold text-white mb-2">Sobre Você</h1>
+                  <h1 className="text-3xl font-serif font-semibold text-white mb-2">Sobre Você</h1>
                   <p className="text-white/60 text-sm">Vamos começar pelo essencial</p>
                 </div>
                 {/* ... fields ... */}
@@ -323,7 +323,7 @@ export default function ProfileSetup() {
                 className="space-y-8"
               >
                 <div className="text-center mb-6">
-                  <h1 className="text-3xl font-serif font-bold text-white mb-2">Sua Fé e Valores</h1>
+                  <h1 className="text-3xl font-serif font-semibold text-white mb-2">Sua Fé e Valores</h1>
                   <p className="text-white/60 text-sm">O que torna você único(a)?</p>
                 </div>
 
@@ -376,7 +376,7 @@ export default function ProfileSetup() {
                 className="space-y-6"
               >
                 <div className="text-center mb-8">
-                  <h1 className="text-3xl font-serif font-bold text-white mb-2">Suas Melhores Fotos</h1>
+                  <h1 className="text-3xl font-serif font-semibold text-white mb-2">Suas Melhores Fotos</h1>
                   <p className="text-white/60 text-sm">A primeira foto será seu cartão de visita</p>
                 </div>
 
@@ -407,14 +407,14 @@ export default function ProfileSetup() {
                   </div>
                 </div>
 
-                <h1 className="text-4xl font-serif font-bold text-white mb-4">Perfil Criado!</h1>
+                <h1 className="text-4xl font-serif font-semibold text-white mb-4">Perfil Criado!</h1>
                 <p className="text-white/70 max-w-xs mx-auto mb-12 leading-relaxed">
                   Tudo pronto. Agora você faz parte de uma comunidade exclusiva de pessoas que compartilham seus valores.
                 </p>
 
                 <Button
                   onClick={() => setShowInstallDrawer(true)}
-                  className="w-full h-14 rounded-xl gradient-button text-white font-bold tracking-wide text-lg shadow-lg shadow-amber-500/20"
+                  className="w-full h-14 rounded-xl gradient-button text-white font-semibold tracking-wide text-lg shadow-lg shadow-amber-500/20"
                 >
                   Começar a Explorar
                 </Button>
@@ -446,7 +446,7 @@ export default function ProfileSetup() {
             <Button
               onClick={handleNext}
               disabled={saving}
-              className="w-full h-14 rounded-xl gradient-button text-white font-bold tracking-wide text-lg shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all active:scale-[0.98]"
+              className="w-full h-14 rounded-xl gradient-button text-white font-semibold tracking-wide text-lg shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all active:scale-[0.98]"
             >
               {saving ? <AlertCircle className="animate-spin" /> : (step === 'photos' ? 'Finalizar Perfil' : 'Continuar')}
             </Button>

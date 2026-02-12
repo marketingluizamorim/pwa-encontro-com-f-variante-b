@@ -92,12 +92,13 @@ export default function ChatRoom() {
   const [upgradeData, setUpgradeData] = useState({
     title: '',
     description: '',
-    features: [],
+    features: [] as string[],
     icon: null as React.ReactNode,
     price: 49.90,
     planId: 'gold'
   });
   const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+  const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
 
   const [mySocials, setMySocials] = useState<SocialMediaLinks>({});
   const [socialModal, setSocialModal] = useState<{ isOpen: boolean; platform: keyof SocialMediaLinks | null }>({ isOpen: false, platform: null });
@@ -197,7 +198,7 @@ export default function ChatRoom() {
         .neq('sender_id', user.id)
         .eq('is_read', false);
 
-      // Fetch my own profile for social media links
+      // Buscar meu próprio perfil para links de redes sociais
       const { data: myProfile } = await (supabase
         .from('profiles')
         .select('social_media')
@@ -310,8 +311,8 @@ export default function ChatRoom() {
     const content = newMessage.trim();
     setNewMessage('');
 
-    // Do not wait with setSending(true) if it causes the input to disable and lose focus
-    // Instead, send immediately and keep focus
+    // Não esperar com setSending(true) se isso causar a desativação e perda de foco do input
+    // Em vez disso, enviar imediatamente e manter o foco
     sendMediaMessage(content);
 
     setTimeout(() => {
@@ -327,7 +328,14 @@ export default function ChatRoom() {
       setUpgradeData({
         title: "Plano Prata",
         description: "Envie fotos e áudios ilimitados! Assine o Plano Prata e tenha o controle total da sua conversa.",
-        features: [],
+        features: [
+          "Ver quem curtiu você",
+          "Curtidas ilimitadas",
+          "Enviar ou receber fotos e áudios",
+          "Filtro por cidade / região",
+          "Fazer chamadas de vídeo",
+          "Comunidade cristã no WhatsApp"
+        ],
         icon: <i className="ri-image-line text-4xl" />,
         price: 29.90,
         planId: 'silver'
@@ -375,7 +383,14 @@ export default function ChatRoom() {
       setUpgradeData({
         title: "Plano Prata",
         description: "Envie fotos e áudios ilimitados! Assine o Plano Prata e tenha o controle total da sua conversa.",
-        features: [],
+        features: [
+          "Ver quem curtiu você",
+          "Curtidas ilimitadas",
+          "Enviar ou receber fotos e áudios",
+          "Filtro por cidade / região",
+          "Fazer chamadas de vídeo",
+          "Comunidade cristã no WhatsApp"
+        ],
         icon: <i className="ri-image-line text-4xl" />,
         price: 29.90,
         planId: 'silver'
@@ -396,7 +411,14 @@ export default function ChatRoom() {
       setUpgradeData({
         title: "Plano Prata",
         description: "Falar é melhor que digitar! Assine o Plano Prata para liberar áudios e vídeos ilimitados!",
-        features: [],
+        features: [
+          "Ver quem curtiu você",
+          "Curtidas ilimitadas",
+          "Enviar ou receber fotos e áudios",
+          "Filtro por cidade / região",
+          "Fazer chamadas de vídeo",
+          "Comunidade cristã no WhatsApp"
+        ],
         icon: <i className="ri-mic-line text-4xl" />,
         price: 29.90,
         planId: 'silver'
@@ -606,7 +628,14 @@ export default function ChatRoom() {
               setUpgradeData({
                 title: "Plano Prata",
                 description: "Tenha encontros reais por vídeo! Recurso liberado para membros do Plano Prata.",
-                features: [],
+                features: [
+                  "Ver quem curtiu você",
+                  "Curtidas ilimitadas",
+                  "Enviar ou receber fotos e áudios",
+                  "Filtro por cidade / região",
+                  "Fazer chamadas de vídeo",
+                  "Comunidade cristã no WhatsApp"
+                ],
                 icon: <i className="ri-video-line text-4xl" />,
                 price: 29.90,
                 planId: 'silver'
@@ -640,7 +669,16 @@ export default function ChatRoom() {
                 <div key={m.id} className={cn('flex', isOwn ? 'justify-end' : 'justify-start')}>
                   <div className={cn('max-w-[80%] p-3 rounded-2xl shadow-sm', isOwn ? 'bg-primary text-primary-foreground rounded-tr-none' : 'bg-muted rounded-tl-none')}>
                     {renderMessageContent(m.content)}
-                    <p className={cn('text-[9px] mt-1 text-right opacity-70', isOwn ? 'text-primary-foreground' : 'text-muted-foreground')}>{formatTime(m.created_at)}</p>
+                    <div className={cn('flex items-center justify-end gap-1 mt-1', isOwn ? 'text-primary-foreground' : 'text-muted-foreground')}>
+                      <p className="text-[9px] opacity-70">{formatTime(m.created_at)}</p>
+                      {isOwn && (
+                        <MessageStatus
+                          isRead={m.is_read}
+                          isSending={m.id.startsWith('temp-')}
+                          className={cn("text-[16px] opacity-100", m.is_read ? "text-blue-600" : "text-white")}
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -692,13 +730,13 @@ export default function ChatRoom() {
       </div>
 
       {otherUserId && (
-        <>
-          <ReportDialog open={showReport} onOpenChange={setShowReport} userId={otherUserId} userName={matchProfile.display_name} />
-          <BlockDialog open={showBlock} onOpenChange={setShowBlock} userId={otherUserId} userName={matchProfile.display_name} onBlocked={() => navigate('/app/chat')} />
-        </>
+        <ReportDialog open={showReport} onOpenChange={setShowReport} userId={otherUserId} userName={matchProfile.display_name} />
+      )}
+      {otherUserId && (
+        <BlockDialog open={showBlock} onOpenChange={setShowBlock} userId={otherUserId} userName={matchProfile.display_name} onBlocked={() => navigate('/app/chat')} />
       )}
 
-      {/* Profile Info Overlay */}
+      {/* Overlay de Informações do Perfil */}
       {showProfileInfo && matchProfile && createPortal(
         <div className="fixed inset-0 z-[100] bg-background overflow-y-auto">
           <div className="relative h-96 w-full">
@@ -722,7 +760,8 @@ export default function ChatRoom() {
         </div>,
         document.body
       )}
-      {/* Upgrade Dialog */}
+
+      {/* Diálogo de Upgrade */}
       <FeatureGateDialog
         open={showUpgradeDialog}
         onOpenChange={setShowUpgradeDialog}
@@ -731,18 +770,37 @@ export default function ChatRoom() {
         features={upgradeData.features}
         icon={upgradeData.icon}
         price={upgradeData.price}
-        onUpgrade={() => setShowCheckoutManager(true)}
+        onUpgrade={(planData) => {
+          setSelectedCheckoutPlan({
+            id: planData.id,
+            name: planData.name,
+            price: planData.price
+          });
+          setShowUpgradeDialog(false);
+          setShowCheckoutManager(true);
+        }}
       />
 
-      <CheckoutManager
-        open={showCheckoutManager}
-        onOpenChange={setShowCheckoutManager}
-        planId={upgradeData.planId}
-        planPrice={upgradeData.price}
-        planName={upgradeData.title}
-      />
+      {showCheckoutManager && selectedCheckoutPlan && (
+        <CheckoutManager
+          key={`chatroom-checkout-v1-${selectedCheckoutPlan.id}`}
+          open={showCheckoutManager}
+          onOpenChange={(open) => {
+            setShowCheckoutManager(open);
+            if (!open) {
+              setTimeout(() => {
+                setSelectedCheckoutPlan(null);
+                setShowUpgradeDialog(true);
+              }, 50);
+            }
+          }}
+          planId={selectedCheckoutPlan.id}
+          planPrice={selectedCheckoutPlan.price}
+          planName={selectedCheckoutPlan.name}
+        />
+      )}
 
-      {/* Social Media Link Entry Modal */}
+      {/* Modal de Entrada de Link de Rede Social */}
       <Dialog open={socialModal.isOpen} onOpenChange={(open) => setSocialModal(prev => ({ ...prev, isOpen: open }))}>
         <DialogContent className="max-w-[400px] rounded-3xl p-6">
           <DialogHeader>

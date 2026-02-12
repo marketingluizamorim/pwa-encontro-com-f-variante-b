@@ -113,6 +113,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
     planId: ''
   });
   const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+  const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
 
   const isBronze = subscription?.tier === 'bronze' || subscription?.tier === 'none';
   const isSilver = subscription?.tier === 'silver';
@@ -130,10 +131,10 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
         features: [
           "Ver quem curtiu você",
           "Curtidas ilimitadas",
-          "Mensagens de texto ilimitadas",
-          "Filtro por cidade / região",
           "Enviar e receber fotos e áudios",
-          "Fazer chamadas de vídeo"
+          "Filtro por cidade / região",
+          "Fazer chamadas de vídeo",
+          "Comunidade cristã no WhatsApp"
         ],
         planNeeded: 'silver',
         icon: <Sliders className="w-8 h-8" />,
@@ -184,10 +185,10 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
         features: [
           "Ver quem curtiu você",
           "Curtidas ilimitadas",
-          "Mensagens de texto ilimitadas",
-          "Filtro por cidade / região",
           "Enviar e receber fotos e áudios",
-          "Fazer chamadas de vídeo"
+          "Filtro por cidade / região",
+          "Fazer chamadas de vídeo",
+          "Comunidade cristã no WhatsApp"
         ],
         planNeeded: 'silver',
         icon: <Sliders className="w-8 h-8" />,
@@ -656,16 +657,35 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
         features={upgradeData.features}
         icon={upgradeData.icon}
         price={upgradeData.price}
-        onUpgrade={() => setShowCheckoutManager(true)}
+        onUpgrade={(planData) => {
+          setSelectedCheckoutPlan({
+            id: planData.id,
+            name: planData.name,
+            price: planData.price
+          });
+          setShowUpgradeDialog(false);
+          setShowCheckoutManager(true);
+        }}
       />
 
-      <CheckoutManager
-        open={showCheckoutManager}
-        onOpenChange={setShowCheckoutManager}
-        planId={upgradeData.planId}
-        planPrice={upgradeData.price}
-        planName={upgradeData.title}
-      />
+      {showCheckoutManager && selectedCheckoutPlan && (
+        <CheckoutManager
+          key={`filters-checkout-v1-${selectedCheckoutPlan.id}`}
+          open={showCheckoutManager}
+          onOpenChange={(open) => {
+            setShowCheckoutManager(open);
+            if (!open) {
+              setTimeout(() => {
+                setSelectedCheckoutPlan(null);
+                setShowUpgradeDialog(true);
+              }, 50);
+            }
+          }}
+          planId={selectedCheckoutPlan.id}
+          planPrice={selectedCheckoutPlan.price}
+          planName={selectedCheckoutPlan.name}
+        />
+      )}
     </Sheet>
   );
 }

@@ -68,7 +68,7 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
         className="flex-1 flex flex-col items-center justify-center px-6 pb-40 w-full max-w-md mx-auto z-10"
       >
         <motion.div variants={itemVariants} className="text-center mb-10 space-y-3">
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-white drop-shadow-md leading-tight">
+          <h1 className="text-3xl md:text-4xl font-serif font-semibold text-white drop-shadow-md leading-tight">
             Seja bem-vindo(a).<br />
             <span className="text-amber-400">Qual o seu gênero?</span>
           </h1>
@@ -101,7 +101,7 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             </div>
 
             <div className="space-y-1">
-              <span className="text-2xl font-serif font-bold text-white tracking-wide block md:group-hover:text-[#fcd34d] transition-colors">Sou Homem</span>
+              <span className="text-2xl font-serif font-semibold text-white tracking-wide block md:group-hover:text-[#fcd34d] transition-colors">Sou Homem</span>
               <p className="text-white/40 text-xs font-medium tracking-widest uppercase opacity-0 md:group-hover:opacity-100 transform translate-y-2 md:group-hover:translate-y-0 transition-all duration-300">
                 Selecionar
               </p>
@@ -130,7 +130,7 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
             </div>
 
             <div className="space-y-1">
-              <span className="text-2xl font-serif font-bold text-white tracking-wide block md:group-hover:text-[#fcd34d] transition-colors">Sou Mulher</span>
+              <span className="text-2xl font-serif font-semibold text-white tracking-wide block md:group-hover:text-[#fcd34d] transition-colors">Sou Mulher</span>
               <p className="text-white/40 text-xs font-medium tracking-widest uppercase opacity-0 md:group-hover:opacity-100 transform translate-y-2 md:group-hover:translate-y-0 transition-all duration-300">
                 Selecionar
               </p>

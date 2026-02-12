@@ -32,10 +32,11 @@ const PLANS: Plan[] = [
     ],
     excludedFeatures: [
       'Ver quem curtiu você',
-      'Enviar mensagem direta',
+      'Enviar mensagem sem curtir antes',
       'Enviar ou receber fotos e áudios',
       'Chamadas de vídeo',
       'Destaque do perfil',
+      'Comunidade cristã no WhatsApp',
       'Uso de filtros'
     ]
   },
@@ -52,15 +53,15 @@ const PLANS: Plan[] = [
       'Curtidas ilimitadas',
       'Enviar ou receber fotos e áudios na mensagem',
       'Filtro por cidade / região',
-      'Fazer chamadas de vídeo',
-      'Comunidade cristã no WhatsApp'
+      'Fazer chamadas de vídeo'
     ],
     excludedFeatures: [
-      'Enviar mensagem direta (sem curtir antes)',
-      'Filtro por distância',
+      'Enviar mensagem sem curtir antes',
+      'Filtro por idade e distância',
+      'Destaque do perfil',
       'Filtro por interesses cristãos',
-      'Filtro por atividade (online recentemente)',
-      'Destaque do perfil'
+      'Filtro por online recentemente',
+      'Comunidade cristã no WhatsApp'
     ]
   },
   {
@@ -75,10 +76,9 @@ const PLANS: Plan[] = [
       'Todos os recursos do Plano Prata',
       'Enviar mensagem sem precisar curtir antes',
       'Ver perfis online recentemente',
-      'Filtro por distância e interesses',
-      'Perfil em destaque',
-      'Filtros avançados (idade e distância)',
-      'Filtro por objetivo (Namoro ou Casamento)'
+      'Filtro por distância e idade',
+      'Filtro por objetivo de relacionamento e interesses',
+      'Perfil em destaque'
     ],
     bonus: [
       'Comunidade cristã no WhatsApp',
