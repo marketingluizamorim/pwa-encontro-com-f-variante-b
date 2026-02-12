@@ -74,7 +74,7 @@ const PLANS: Plan[] = [
     savings: '90% DESCONTO',
     features: [
       'Todos os recursos do Plano Prata',
-      'Enviar mensagem sem precisar curtir antes',
+      'Enviar mensagem sem curtir antes',
       'Ver perfis online recentemente',
       'Filtro por distância e idade',
       'Filtro por objetivo de relacionamento e interesses',

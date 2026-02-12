@@ -18,6 +18,7 @@ import { HelpDrawer } from '@/features/discovery/components/HelpDrawer';
 import { triggerHaptic } from '@/lib/haptics';
 import { Search, Lock } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Um compromisso sério': '💍',
@@ -118,10 +119,10 @@ const SwipeableMatchCard = ({
     >
       <img
         src={like.profile.photos[0] || like.profile.avatar_url}
-        alt={like.profile.display_name}
+        alt="Foto oculta"
         className={cn(
           "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none",
-          locked && "blur-2xl scale-125 grayscale-[0.5]"
+          locked && "blur-lg scale-110"
         )}
         draggable={false}
       />
@@ -132,16 +133,20 @@ const SwipeableMatchCard = ({
       {/* Content */}
       <div className="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
         {locked ? (
-          <div className="flex flex-col items-center justify-center gap-1 text-center py-2">
-            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-1">
-              <Lock className="w-4 h-4 text-white" />
+          <div className="flex flex-col items-start justify-end h-full">
+            <div className="flex items-center gap-2 mb-1">
+              {/* Nome Borrado - Simulando texto */}
+              <div className="h-6 w-24 bg-white/50 backdrop-blur-sm rounded-md animate-pulse" />
+              {/* Idade Visível */}
+              <span className="text-xl font-bold text-white drop-shadow-md">
+                {calculateAge(like.profile.birth_date)}
+              </span>
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/90">
-              Alguém te curtiu!
-            </p>
-            <p className="text-[8px] font-medium text-white/60">
-              Assine para ver
-            </p>
+            {/* Distância ou Localização Genérica */}
+            <div className="flex items-center gap-1 opacity-80">
+              <i className="ri-map-pin-line text-sm" />
+              <span className="text-xs font-medium">Perto de você</span>
+            </div>
           </div>
         ) : (
           <>
@@ -371,12 +376,30 @@ export default function Matches() {
             </button>
           } />
 
-          {/* Stats Header */}
-          <div className="flex items-center justify-center px-4 mb-4">
-            <span className="text-sm font-bold text-foreground relative">
-              {likes.length} curtida{likes.length !== 1 && 's'}
-              <div className="absolute -bottom-2 left-0 w-full h-0.5 bg-foreground rounded-full" />
-            </span>
+          {/* Stats Header - New Style */}
+          <div className="flex flex-col items-center justify-center px-4 mb-6 mt-2 text-center">
+            <h2 className="text-xl font-display font-bold text-foreground">
+              Curtidas
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+              {likes.length > 0 ? (
+                subscription?.canSeeWhoLiked
+                  ? "Você tem acesso total para ver quem curtiu."
+                  : "Faça um upgrade de plano para ver as pessoas que já curtiram você."
+              ) : (
+                "Ninguém curtiu ainda. Use o Boost para aparecer mais!"
+              )}
+            </p>
+
+            {/* Likes Count Badge - Below Text */}
+            {likes.length > 0 && !subscription?.canSeeWhoLiked && (
+              <div className="mt-4 flex items-center gap-2 bg-card border border-border/50 px-4 py-1.5 rounded-full shadow-sm">
+                <i className="ri-heart-fill text-amber-500" />
+                <span className="font-bold text-foreground">
+                  {likes.length} {likes.length === 1 ? 'curtida' : 'curtidas'}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Grid Content */}
@@ -386,10 +409,9 @@ export default function Matches() {
                 <i className="ri-heart-pulse-line text-4xl"></i>
               </div>
               <p className="font-medium">Nenhuma curtida nova</p>
-              <p className="text-sm">Use o Boost para aparecer mais!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 px-4">
+            <div className="grid grid-cols-2 gap-3 px-4 pb-32">
               <AnimatePresence mode="popLayout">
                 {likes.map((like) => (
                   <SwipeableMatchCard
@@ -445,8 +467,32 @@ export default function Matches() {
             </div>
           )}
 
-          {/* Boost Button - Scrolled to Bottom */}
-          {(subscription?.tier !== 'gold') && (
+
+
+          {/* Floating 'See Who Liked You' Button - ONLY for non-premium with likes */}
+          {(!subscription?.canSeeWhoLiked && likes.length > 0) && (
+            <div className="fixed bottom-40 left-0 right-0 z-50 flex justify-center px-4 animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
+              <button
+                onClick={() => {
+                  setUpgradeData({
+                    title: "Plano Prata",
+                    description: "Veja agora mesmo quem curtiu seu perfil e dê o primeiro passo para um novo encontro!",
+                    features: PLANS.find(p => p.id === 'silver')?.features || [],
+                    icon: <i className="ri-heart-fill text-4xl text-amber-500" />,
+                    price: PLANS.find(p => p.id === 'silver')?.price || 29.90,
+                    planId: 'silver'
+                  });
+                  setShowUpgradeDialog(true);
+                }}
+                className="bg-[#fcd34d] hover:bg-[#fbbf24] text-amber-950 px-8 py-3.5 rounded-full font-bold shadow-lg shadow-amber-500/30 border border-[#fbbf24]/50 flex items-center gap-2 transform transition-all active:scale-95 pointer-events-auto"
+              >
+                <span className="underline decoration-amber-950/30 underline-offset-2">Veja quem Curtiu Você</span>
+              </button>
+            </div>
+          )}
+
+          {/* Boost Button - Only show if NO likes AND not gold plan */}
+          {(subscription?.tier !== 'gold' && likes.length === 0) && (
             <div className="mt-8 px-4 pb-8 flex justify-center w-full z-20">
               <button
                 onClick={() => {

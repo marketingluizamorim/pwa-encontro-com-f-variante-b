@@ -23,6 +23,7 @@ import { MessageCircle, Zap, Search, MapPin } from 'lucide-react';
 import { useTheme } from '@/components/theme-provider';
 import { Header } from '@/features/discovery/components/Header';
 import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
+import { SuperLikeExplainerDialog } from '@/features/discovery/components/SuperLikeExplainerDialog';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Um compromisso sério': '💍',
@@ -99,6 +100,7 @@ export default function Discover() {
   const [showCheckoutManager, setShowCheckoutManager] = useState(false);
   const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
   const [showLikeLimitDialog, setShowLikeLimitDialog] = useState(false);
+  const [showSuperLikeExplainer, setShowSuperLikeExplainer] = useState(false);
 
   // Photo Navigation State
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -264,6 +266,16 @@ export default function Discover() {
 
   const handleSwipe = async (swipeDirection: 'like' | 'dislike' | 'super_like') => {
     if (!currentProfile || !user || swiping) return;
+
+    // Check if Super Like requires upgrade (EXCLUSIVE TO GOLD PLAN)
+    if (swipeDirection === 'super_like') {
+      const tier = subscription?.tier || 'none';
+      if (tier !== 'gold') {
+        // Show explainer dialog first
+        setShowSuperLikeExplainer(true);
+        return;
+      }
+    }
 
     // Check daily limit for Bronze/None
     if (subscription) {
@@ -858,6 +870,25 @@ export default function Discover() {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      <SuperLikeExplainerDialog
+        open={showSuperLikeExplainer}
+        onOpenChange={setShowSuperLikeExplainer}
+        profileName={currentProfile?.display_name}
+        onViewPlans={() => {
+          setShowSuperLikeExplainer(false);
+          setUpgradeData({
+            title: "Super Like - Exclusivo Plano Ouro",
+            description: "Destaque-se e envie uma mensagem direta! O Super Like é exclusivo do Plano Ouro e mostra que você está realmente interessado.",
+            features: PLANS.find(p => p.id === 'gold')?.features || [],
+            planNeeded: 'gold',
+            icon: <i className="ri-star-fill text-4xl text-blue-500" />,
+            price: PLANS.find(p => p.id === 'gold')?.price || 49.90,
+            planId: 'gold'
+          });
+          setShowUpgradeDialog(true);
+        }}
+      />
 
       <FeatureGateDialog
         open={showUpgradeDialog}

@@ -192,12 +192,22 @@ export default function ChatRoom() {
       setMessages(messagesData || []);
       setTimeout(scrollToBottom, 50); // Double check scroll after messages are set
 
-      await supabase
-        .from('messages')
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq('match_id', matchId)
-        .neq('sender_id', user.id)
-        .eq('is_read', false);
+      // Get current user's privacy settings
+      const { data: myPrivacySettings } = await supabase
+        .from('profiles')
+        .select('show_read_receipts')
+        .eq('user_id', user.id)
+        .single();
+
+      // Only mark as read if user has read receipts enabled
+      if (myPrivacySettings?.show_read_receipts !== false) {
+        await supabase
+          .from('messages')
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq('match_id', matchId)
+          .neq('sender_id', user.id)
+          .eq('is_read', false);
+      }
 
       // Buscar meu próprio perfil para links de redes sociais
       const { data: myProfile } = await (supabase
@@ -253,11 +263,23 @@ export default function ChatRoom() {
 
             if (newMsg.sender_id !== user?.id) {
               playNotification('message');
+
+              // Check user's privacy settings before marking as read
               supabase
-                .from('messages')
-                .update({ is_read: true, read_at: new Date().toISOString() })
-                .eq('id', newMsg.id)
-                .then(() => { });
+                .from('profiles')
+                .select('show_read_receipts')
+                .eq('user_id', user.id)
+                .single()
+                .then(({ data: privacySettings }) => {
+                  // Only mark as read if user has read receipts enabled
+                  if (privacySettings?.show_read_receipts !== false) {
+                    supabase
+                      .from('messages')
+                      .update({ is_read: true, read_at: new Date().toISOString() })
+                      .eq('id', newMsg.id)
+                      .then(() => { });
+                  }
+                });
             }
           }
         )

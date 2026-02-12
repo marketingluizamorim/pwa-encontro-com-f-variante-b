@@ -30,7 +30,7 @@ export function PlanComparison({ open, onOpenChange, onSelectPlan }: PlanCompari
         { name: 'Mandar Mensagem Direta', values: [false, false, true] },
         { name: 'Perfil em Destaque', values: [false, false, true] },
         { name: 'Ver Perfis Online', values: [false, false, true] },
-        { name: 'Filtros de Fé e Interesse', values: [false, false, true] },
+        { name: 'Filtros: Idade, Distância e Interesses', values: [false, false, true] },
         { name: 'Comunidade WhatsApp', values: [false, true, true] },
         { name: 'Cursos e Devocionais', values: [true, true, true] },
     ];

@@ -2,20 +2,22 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useNotifications } from '@/features/discovery/hooks/useNotifications';
 // import { motion } from 'framer-motion';
 
 const navItems = [
-  { to: '/app/discover', icon: 'ri-compass-3-fill', inactiveIcon: 'ri-compass-3-line', label: 'Descobrir' },
-  { to: '/app/explore', icon: 'ri-magic-line', inactiveIcon: 'ri-magic-line', label: 'Explorar' },
-  { to: '/app/matches', icon: 'ri-heart-3-fill', inactiveIcon: 'ri-heart-3-line', label: 'Curtidas' },
-  { to: '/app/chat', icon: 'ri-chat-3-fill', inactiveIcon: 'ri-chat-3-line', label: 'Mensagens' },
-  { to: '/app/profile', icon: 'ri-user-3-fill', inactiveIcon: 'ri-user-3-line', label: 'Perfil' },
+  { to: '/app/discover', icon: 'ri-compass-3-fill', inactiveIcon: 'ri-compass-3-line', label: 'Descobrir', notificationKey: 'discover' as const },
+  { to: '/app/explore', icon: 'ri-star-fill', inactiveIcon: 'ri-star-line', label: 'Explorar', notificationKey: 'explore' as const },
+  { to: '/app/matches', icon: 'ri-heart-3-fill', inactiveIcon: 'ri-heart-3-line', label: 'Curtidas', notificationKey: 'matches' as const },
+  { to: '/app/chat', icon: 'ri-chat-3-fill', inactiveIcon: 'ri-chat-3-line', label: 'Mensagens', notificationKey: 'chat' as const },
+  { to: '/app/profile', icon: 'ri-user-3-fill', inactiveIcon: 'ri-user-3-line', label: 'Perfil', notificationKey: null },
 ];
 
 export function AppLayout() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { notifications, clearNotification } = useNotifications();
 
   const handleSignOut = async () => {
     await signOut();
@@ -24,6 +26,19 @@ export function AppLayout() {
 
   // Check if we are in the Discover page to apply special layout rules
   const isDiscover = location.pathname.includes('/discover');
+
+  // Limpar notificações quando usuário visita uma seção
+  useEffect(() => {
+    if (location.pathname.includes('/discover')) {
+      clearNotification('discover');
+    } else if (location.pathname.includes('/explore')) {
+      clearNotification('explore');
+    } else if (location.pathname.includes('/matches')) {
+      clearNotification('matches');
+    } else if (location.pathname.includes('/chat')) {
+      clearNotification('chat');
+    }
+  }, [location.pathname]);
 
   // Track and update user activity
   useEffect(() => {
@@ -77,27 +92,51 @@ export function AppLayout() {
 
       {/* Floating Bottom Navigation */}
       <nav className="relative z-50 py-6 shrink-0 flex justify-center px-4 pointer-events-none">
-        <div className="pointer-events-auto bg-background/80 dark:bg-[#0f172a]/95 backdrop-blur-xl dark:backdrop-blur-2xl border border-border/40 dark:border-white/10 rounded-full px-4 py-2 shadow-lg dark:shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-between w-full max-w-[360px] ring-1 ring-black/5 dark:ring-white/10 transition-colors duration-500">
+        <div className="pointer-events-auto bg-[#1e293b]/95 backdrop-blur-2xl border border-white/10 rounded-full px-5 py-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-between w-full max-w-[380px] gap-1 ring-1 ring-white/10 transition-all duration-500">
           {navItems.map((item) => {
             const isActive = location.pathname.includes(item.to);
+
+            // Determinar se há notificação para este item usando a chave direta
+            const hasNotification = item.notificationKey ? notifications[item.notificationKey] : false;
+
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className="relative group flex flex-col items-center justify-center p-2 min-w-[4rem]"
+                className="relative group flex flex-col items-center justify-center flex-1"
               >
-                <div className={cn(
-                  'text-2xl transition-all duration-300 flex items-center justify-center mb-0.5',
-                  isActive
-                    ? 'text-accent drop-shadow-[0_0_8px_rgba(212,175,55,0.5)]'
-                    : 'text-muted-foreground group-hover:text-foreground'
-                )}>
-                  <i className={isActive ? item.icon : item.inactiveIcon} />
+                {/* Indicador de Notificação */}
+                {hasNotification && !isActive && (
+                  <div className="absolute top-0 right-[28%] w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse z-10" />
+                )}
+
+                {/* Container do Ícone com Destaque Circular */}
+                <div className="relative flex items-center justify-center mb-1">
+                  {/* Círculo de Destaque para Ícone Ativo */}
+                  {isActive && (
+                    <div className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/30 to-amber-600/20 rounded-full blur-sm" />
+                  )}
+                  {isActive && (
+                    <div className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/40 to-amber-600/30 rounded-full" />
+                  )}
+
+                  {/* Ícone */}
+                  <div className={cn(
+                    'relative text-2xl transition-all duration-300 flex items-center justify-center w-10 h-10',
+                    isActive
+                      ? 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)] scale-105'
+                      : 'text-slate-400 group-hover:text-slate-200 group-hover:scale-105'
+                  )}>
+                    <i className={isActive ? item.icon : item.inactiveIcon} />
+                  </div>
                 </div>
 
+                {/* Label */}
                 <span className={cn(
-                  "text-[10px] font-medium tracking-wide transition-all duration-300",
-                  isActive ? "text-accent" : "text-muted-foreground group-hover:text-foreground"
+                  "text-[9px] font-medium tracking-wide transition-all duration-300",
+                  isActive
+                    ? "text-amber-400 font-semibold"
+                    : "text-slate-400 group-hover:text-slate-200"
                 )}>
                   {item.label}
                 </span>
