@@ -8,7 +8,7 @@ const navItems = [
   { to: '/app/discover', icon: 'ri-compass-3-fill', inactiveIcon: 'ri-compass-3-line', label: 'Descobrir' },
   { to: '/app/explore', icon: 'ri-magic-line', inactiveIcon: 'ri-magic-line', label: 'Explorar' },
   { to: '/app/matches', icon: 'ri-heart-3-fill', inactiveIcon: 'ri-heart-3-line', label: 'Curtidas' },
-  { to: '/app/chat', icon: 'ri-chat-3-fill', inactiveIcon: 'ri-chat-3-line', label: 'Chat' },
+  { to: '/app/chat', icon: 'ri-chat-3-fill', inactiveIcon: 'ri-chat-3-line', label: 'Mensagens' },
   { to: '/app/profile', icon: 'ri-user-3-fill', inactiveIcon: 'ri-user-3-line', label: 'Perfil' },
 ];
 
@@ -55,16 +55,16 @@ export function AppLayout() {
   }, [user, location.pathname]);
 
   return (
-    // Force dark mode for premium feel and use 100dvh for mobile browsers
-    <div className={cn("relative w-full h-[100dvh] overflow-hidden bg-[#0f172a] text-foreground flex flex-col font-sans")}>
+    // Use theme-aware background colors
+    <div className={cn("relative w-full h-[100dvh] overflow-hidden bg-background text-foreground flex flex-col font-sans transition-colors duration-500")}>
 
       {/* Background Ambience (Global - Clean & Premium) */}
       <div className="fixed inset-0 pointer-events-none z-0">
         {/* Main ambient light - Top Center (Teal/Blue mix) */}
-        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[60%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/30 via-[#0f172a]/0 to-transparent blur-[80px]" />
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[60%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-500/10 dark:from-teal-900/30 via-background/0 to-transparent blur-[80px]" />
 
         {/* Bottom warm light - (Amber/Gold mix) for grounding */}
-        <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/15 via-[#0f172a]/0 to-transparent blur-[100px]" />
+        <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/10 dark:from-amber-900/15 via-background/0 to-transparent blur-[100px]" />
 
         {/* Global Noise Texture for cinematic feel */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
@@ -76,9 +76,8 @@ export function AppLayout() {
       </main>
 
       {/* Floating Bottom Navigation */}
-      {/* Floating Bottom Navigation */}
       <nav className="relative z-50 py-6 shrink-0 flex justify-center px-4 pointer-events-none">
-        <div className="pointer-events-auto bg-[#0f172a]/90 dark:bg-[#0f172a]/95 backdrop-blur-xl dark:backdrop-blur-2xl border border-white/10 rounded-full px-4 py-2 shadow-lg dark:shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-between w-full max-w-[360px] ring-1 ring-black/5 dark:ring-white/10">
+        <div className="pointer-events-auto bg-background/80 dark:bg-[#0f172a]/95 backdrop-blur-xl dark:backdrop-blur-2xl border border-border/40 dark:border-white/10 rounded-full px-4 py-2 shadow-lg dark:shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-between w-full max-w-[360px] ring-1 ring-black/5 dark:ring-white/10 transition-colors duration-500">
           {navItems.map((item) => {
             const isActive = location.pathname.includes(item.to);
             return (
@@ -91,14 +90,14 @@ export function AppLayout() {
                   'text-2xl transition-all duration-300 flex items-center justify-center mb-0.5',
                   isActive
                     ? 'text-accent drop-shadow-[0_0_8px_rgba(212,175,55,0.5)]'
-                    : 'text-muted-foreground group-hover:text-white/80'
+                    : 'text-muted-foreground group-hover:text-foreground'
                 )}>
                   <i className={isActive ? item.icon : item.inactiveIcon} />
                 </div>
 
                 <span className={cn(
                   "text-[10px] font-medium tracking-wide transition-all duration-300",
-                  isActive ? "text-accent" : "text-muted-foreground group-hover:text-white/80"
+                  isActive ? "text-accent" : "text-muted-foreground group-hover:text-foreground"
                 )}>
                   {item.label}
                 </span>

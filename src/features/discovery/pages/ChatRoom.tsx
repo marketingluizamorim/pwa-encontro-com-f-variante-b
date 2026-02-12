@@ -12,7 +12,7 @@ import { TypingIndicator } from '@/features/discovery/components/TypingIndicator
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { MessageStatus } from '@/features/discovery/components/MessageStatus';
 import { playNotification } from '@/lib/notifications';
-import { ReportDialog, BlockDialog } from '@/features/discovery/components/UserActions';
+import { ReportDialog, BlockDialog, DeleteConversationDialog } from '@/features/discovery/components/UserActions';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,6 +83,7 @@ export default function ChatRoom() {
   const [otherUserId, setOtherUserId] = useState<string | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [showProfileInfo, setShowProfileInfo] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -655,6 +656,8 @@ export default function ChatRoom() {
             <DropdownMenuItem onClick={() => setShowReport(true)} className="text-amber-600">Denunciar</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setShowBlock(true)} className="text-destructive">Bloquear</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setShowDelete(true)} className="text-destructive">Excluir conversa</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -734,6 +737,9 @@ export default function ChatRoom() {
       )}
       {otherUserId && (
         <BlockDialog open={showBlock} onOpenChange={setShowBlock} userId={otherUserId} userName={matchProfile.display_name} onBlocked={() => navigate('/app/chat')} />
+      )}
+      {matchId && (
+        <DeleteConversationDialog open={showDelete} onOpenChange={setShowDelete} matchId={matchId} onDeleted={() => navigate('/app/chat')} />
       )}
 
       {/* Overlay de Informações do Perfil */}

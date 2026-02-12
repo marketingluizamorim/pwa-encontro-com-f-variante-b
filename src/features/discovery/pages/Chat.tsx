@@ -12,6 +12,14 @@ import { CheckoutManager } from '@/features/discovery/components/CheckoutManager
 import { Header } from '@/features/discovery/components/Header';
 import { SafetyToolkitDrawer } from '@/features/discovery/components/SafetyToolkitDrawer';
 import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
+import { ReportDialog, BlockDialog, DeleteConversationDialog } from '@/features/discovery/components/UserActions';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
     'Um compromisso sério': '💍',
@@ -91,10 +99,28 @@ export default function Chat() {
     const [showSafety, setShowSafety] = useState(false);
     const dragControls = useDragControls();
 
+    // Estado para ações do usuário (Denunciar, Bloquear, Excluir)
+    const [actionProfileId, setActionProfileId] = useState<string | null>(null);
+    const [actionMatchId, setActionMatchId] = useState<string | null>(null);
+    const [showReport, setShowReport] = useState(false);
+    const [showBlock, setShowBlock] = useState(false);
+    const [showDelete, setShowDelete] = useState(false);
+
     const fetchConversations = useCallback(async () => {
         if (!user) return;
         try {
             const { supabase } = await import('@/integrations/supabase/client');
+
+
+            // 1.5. Buscar Bloqueios
+            const { data: blocks } = await supabase
+                .from('user_blocks')
+                .select('blocker_id, blocked_id')
+                .or(`blocker_id.eq.${user.id},blocked_id.eq.${user.id}`);
+
+            const blockedUserIds = new Set(blocks?.map(b =>
+                b.blocker_id === user.id ? b.blocked_id : b.blocker_id
+            ));
 
             // 1. Buscar Matches (Combinações)
             const { data: matchesData, error: matchesError } = await supabase
@@ -104,13 +130,21 @@ export default function Chat() {
                 .eq('is_active', true);
 
             if (matchesError) throw matchesError;
-            if (!matchesData || matchesData.length === 0) {
+
+            // Filter out matches with blocked users
+            const activeMatches = (matchesData || []).filter(m => {
+                const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
+                return !blockedUserIds.has(otherId);
+            });
+
+            if (activeMatches.length === 0) {
                 setConversations([]);
                 return;
             }
 
+
             // 2. Buscar Perfis
-            const otherUserIds = matchesData.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
+            const otherUserIds = activeMatches.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
             const { data: profilesData } = await supabase
                 .from('profiles')
                 .select('user_id, display_name, avatar_url, photos, birth_date, bio, city, looking_for, religion')
@@ -119,7 +153,7 @@ export default function Chat() {
             const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
 
             // 3. Buscar Últimas Mensagens
-            const matchesWithMessages = await Promise.all(matchesData.map(async (m) => {
+            const matchesWithMessages = await Promise.all(activeMatches.map(async (m) => {
                 const { data: msgs } = await supabase
                     .from('messages')
                     .select('content, created_at, sender_id, is_read')
@@ -436,6 +470,51 @@ export default function Chat() {
                                         <i className="ri-arrow-down-s-line text-2xl" />
                                     </button>
 
+                                    {/* Botão de Ações (3 pontinhos - Topo Esquerdo) */}
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button className="fixed top-4 left-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors">
+                                                <i className="ri-more-2-fill text-xl" />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="start" className="w-56 bg-background/95 backdrop-blur-xl border-white/10 z-[10000]">
+                                            <DropdownMenuItem
+                                                onClick={() => {
+                                                    setActionProfileId(selectedProfile.id);
+                                                    setShowReport(true);
+                                                }}
+                                                className="text-amber-500 focus:text-amber-500 cursor-pointer"
+                                            >
+                                                <i className="ri-flag-line mr-2" />
+                                                Denunciar
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator className="bg-white/10" />
+                                            <DropdownMenuItem
+                                                onClick={() => {
+                                                    setActionProfileId(selectedProfile.id);
+                                                    setShowBlock(true);
+                                                }}
+                                                className="text-red-500 focus:text-red-500 cursor-pointer"
+                                            >
+                                                <i className="ri-prohibited-line mr-2" />
+                                                Bloquear
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={() => {
+                                                    const match = conversations.find(c => c.profile.id === selectedProfile.id);
+                                                    if (match) {
+                                                        setActionMatchId(match.match_id);
+                                                        setShowDelete(true);
+                                                    }
+                                                }}
+                                                className="text-red-500 focus:text-red-500 cursor-pointer"
+                                            >
+                                                <i className="ri-delete-bin-line mr-2" />
+                                                Desfazer Match
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+
                                     {/* Imagem Hero */}
                                     <div
                                         className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
@@ -580,6 +659,50 @@ export default function Chat() {
                 />
             )}
             <SafetyToolkitDrawer open={showSafety} onOpenChange={setShowSafety} />
+
+            {/* Dialogs de Ações */}
+            {actionProfileId && (
+                <>
+                    <ReportDialog
+                        open={showReport}
+                        onOpenChange={setShowReport}
+                        userId={actionProfileId}
+                        userName={selectedProfile?.display_name || 'Usuário'}
+                        onReported={() => {
+                            toast.success('Denúncia enviada com sucesso');
+                            setSelectedProfile(null);
+                            setActionProfileId(null);
+                            setShowReport(false);
+                        }}
+                    />
+                    <BlockDialog
+                        open={showBlock}
+                        onOpenChange={setShowBlock}
+                        userId={actionProfileId}
+                        userName={selectedProfile?.display_name || 'Usuário'}
+                        onBlocked={() => {
+                            setSelectedProfile(null);
+                            setActionProfileId(null);
+                            setShowBlock(false);
+                            handleRefresh(); // Atualiza a lista para remover o usuário
+                        }}
+                    />
+                </>
+            )}
+
+            {actionMatchId && (
+                <DeleteConversationDialog
+                    open={showDelete}
+                    onOpenChange={setShowDelete}
+                    matchId={actionMatchId}
+                    onDeleted={() => {
+                        setSelectedProfile(null);
+                        setActionMatchId(null);
+                        setShowDelete(false);
+                        handleRefresh(); // Atualiza a lista para remover a conversa
+                    }}
+                />
+            )}
         </PageTransition >
     );
 }

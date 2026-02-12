@@ -225,10 +225,21 @@ export default function Matches() {
 
       if (swipesError) throw swipesError;
 
-      // Filter out users I have acted upon
+      // 1.5. Get Blocked Users (Both directions)
+      const { data: blocks } = await supabase
+        .from('user_blocks')
+        .select('blocker_id, blocked_id')
+        .or(`blocker_id.eq.${user.id},blocked_id.eq.${user.id}`);
+
+      const blockedUserIds = new Set(blocks?.map(b =>
+        b.blocker_id === user.id ? b.blocked_id : b.blocker_id
+      ));
+
+      // Filter out users I have acted upon AND blocked users
       const pendingLikeUserIds = (swipesData || [])
         .map(s => s.swiper_id)
-        .filter(id => !mySwipedIds.has(id));
+        .filter(id => !mySwipedIds.has(id))
+        .filter(id => !blockedUserIds.has(id));
 
       if (pendingLikeUserIds.length === 0) {
         setLikes([]);
