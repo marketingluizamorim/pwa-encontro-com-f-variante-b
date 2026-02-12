@@ -562,7 +562,7 @@ const BIBLE_STUDIES: BibleStudy[] = [
         description: 'Uma imersão profunda nos ensinos mais revolucionários de Jesus sobre a ética do Reino de Deus.',
         duration: '14 Dias',
         level: 'Intermediário',
-        icon: 'ri-mountain-line',
+        icon: 'ri-landscape-line',
         color: 'from-blue-500/20 to-indigo-500/10',
         accent: 'text-blue-400',
         lessons: [
