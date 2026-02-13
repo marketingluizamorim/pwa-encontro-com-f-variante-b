@@ -79,6 +79,7 @@ export default function Login() {
                 placeholder="seu@email.com"
                 className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
                 required
+                autoComplete="username"
               />
             </div>
 
@@ -91,6 +92,7 @@ export default function Login() {
                 placeholder="••••••••"
                 className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
                 required
+                autoComplete="current-password"
               />
             </div>
 
