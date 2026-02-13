@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
         name: "Encontro com Fé",
-        short_name: "EncontroFé",
+        short_name: "Encontro c/Fé",
         description: "Encontre pessoas que compartilham seus valores e sua fé. Conexões cristãs genuínas para relacionamentos duradouros.",
         theme_color: "#d4af37",
         background_color: "#0f172a",
