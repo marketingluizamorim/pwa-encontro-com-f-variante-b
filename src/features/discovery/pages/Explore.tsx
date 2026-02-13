@@ -806,6 +806,13 @@ export default function Explore() {
 
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // Force scroll to top when view changes
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.scrollTo(0, 0);
+        }
+    }, [view]);
+
     // --- Animation Variants ---
     const staggerContainer = {
         initial: { opacity: 1 },
@@ -953,20 +960,16 @@ export default function Explore() {
     const handleCategoryClick = (id: string) => {
         if (id === 'tips') {
             setView('tips-list');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         } else if (id === 'devotionals') {
             setView('devotional-detail');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         } else if (id === 'courses') {
             setView('courses-list');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         } else if (id === 'community') {
             if (!hasCommunityAccess) {
                 setShowUpgradeDialog(true);
                 return;
             }
             setView('community-list');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -987,7 +990,6 @@ export default function Explore() {
         setSelectedStudy(study);
         setSelectedLesson(study.lessons[0]); // Start with first lesson
         setView('course-detail');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleNextLesson = () => {
@@ -996,7 +998,6 @@ export default function Explore() {
         const currentIndex = selectedStudy.lessons.findIndex(l => l.id === selectedLesson.id);
         if (currentIndex < selectedStudy.lessons.length - 1) {
             setSelectedLesson(selectedStudy.lessons[currentIndex + 1]);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
             // Last lesson reached - Mark as complete
             const newCompleted = [...new Set([...completedStudies, selectedStudy.id])];
@@ -1010,7 +1011,6 @@ export default function Explore() {
         setSelectedTopic(topic);
         setSelectedTip(tip);
         setView('tip-detail');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const goBack = () => {
@@ -1021,11 +1021,13 @@ export default function Explore() {
             setSelectedTopic(null);
             setSelectedStudy(null);
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (
-        <PageTransition className="flex flex-col min-h-screen bg-[#0f172a] pb-32 overflow-x-hidden">
+        <PageTransition
+            ref={containerRef}
+            className="flex flex-col h-[100dvh] bg-[#0f172a] overflow-y-auto overflow-x-hidden"
+        >
             <AnimatePresence mode="wait">
 
                 {/* --- VIEW: CATEGORIES (Sacred Mosaic Style) --- */}
@@ -1036,7 +1038,7 @@ export default function Explore() {
                         initial="initial"
                         animate="animate"
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex flex-col"
+                        className="flex flex-col pb-32"
                     >
                         <Header />
 
@@ -1134,7 +1136,7 @@ export default function Explore() {
                         </div>
 
                         {/* Detail Nav */}
-                        <div className="px-6 py-6 flex items-center justify-between sticky top-0 z-50">
+                        <div className="px-6 py-6 flex items-center justify-between z-50">
                             <button onClick={goBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-white active:scale-75 transition-transform backdrop-blur-3xl">
                                 <ArrowLeft className="w-5 h-5" />
                             </button>

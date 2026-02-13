@@ -81,7 +81,6 @@ const SwipeableMatchCard = ({
   // Opacities for stamps
   const likeOpacity = useTransform(x, [20, 100], [0, 1]);
   const nopeOpacity = useTransform(x, [-20, -100], [0, 1]);
-  const superLikeOpacity = useTransform(y, [-20, -100], [0, 1]);
 
   const [isDragging, setIsDragging] = useState(false);
 
@@ -94,22 +93,22 @@ const SwipeableMatchCard = ({
       onSwipe(like.user_id, 'like');
     } else if (offset.x < -swipeThreshold || velocity.x < -500) {
       onSwipe(like.user_id, 'dislike');
-    } else if (offset.y < -swipeThreshold || velocity.y < -500) {
-      onSwipe(like.user_id, 'super_like');
+    } else if (offset.x < -swipeThreshold || velocity.x < -500) {
+      onSwipe(like.user_id, 'dislike');
     }
   };
 
   return (
     <motion.div
       layout
-      drag
-      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.7}
       dragSnapToOrigin
       onDragStart={() => setIsDragging(true)}
       onDragEnd={handleDragEnd}
       style={{ x, y, rotate, zIndex: isDragging ? 50 : 1 }}
-      className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-muted group cursor-grab active:cursor-grabbing touch-none select-none"
+      className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-muted group cursor-grab active:cursor-grabbing touch-pan-y select-none"
       onClick={() => {
         if (!isDragging) onExpand();
       }}
@@ -173,9 +172,7 @@ const SwipeableMatchCard = ({
       <motion.div style={{ opacity: nopeOpacity }} className="absolute top-2 right-2 z-30 border-2 border-red-500 text-red-500 px-2 py-0.5 rounded-md font-black text-lg rotate-12 tracking-wider uppercase bg-black/20 backdrop-blur-sm pointer-events-none">
         NOPE
       </motion.div>
-      <motion.div style={{ opacity: superLikeOpacity }} className="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 z-30 border-2 border-blue-500 text-blue-500 px-2 py-0.5 rounded-md font-black text-lg tracking-wider uppercase bg-black/20 backdrop-blur-sm pointer-events-none">
-        SUPER
-      </motion.div>
+
     </motion.div>
   );
 };
@@ -470,8 +467,8 @@ export default function Matches() {
 
 
           {/* Floating 'See Who Liked You' Button - ONLY for non-premium with likes */}
-          {(!subscription?.canSeeWhoLiked && likes.length > 0) && (
-            <div className="fixed bottom-40 left-0 right-0 z-50 flex justify-center px-4 animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
+          {(!subscription?.canSeeWhoLiked && likes.length > 0 && !showUpgradeDialog) && typeof document !== 'undefined' && createPortal(
+            <div className="fixed bottom-40 left-0 right-0 z-[100] flex justify-center px-4 animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
               <button
                 onClick={() => {
                   setUpgradeData({
@@ -488,7 +485,8 @@ export default function Matches() {
               >
                 <span className="underline decoration-amber-950/30 underline-offset-2">Veja quem Curtiu Você</span>
               </button>
-            </div>
+            </div>,
+            document.body
           )}
 
           {/* Boost Button - Only show if NO likes AND not gold plan */}

@@ -1,7 +1,7 @@
-import { motion, Transition } from 'framer-motion';
-import { ReactNode } from 'react';
+import { motion, Transition, HTMLMotionProps } from 'framer-motion';
+import { ReactNode, forwardRef } from 'react';
 
-interface PageTransitionProps {
+interface PageTransitionProps extends HTMLMotionProps<"div"> {
   children: ReactNode;
   className?: string;
 }
@@ -27,20 +27,24 @@ const pageTransition: Transition = {
   duration: 0.25,
 };
 
-export function PageTransition({ children, className = '' }: PageTransitionProps) {
+export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({ children, className = '', ...props }, ref) => {
   return (
     <motion.div
+      ref={ref}
       initial="initial"
       animate="enter"
       exit="exit"
       variants={pageVariants}
       transition={pageTransition}
       className={className}
+      {...props}
     >
       {children}
     </motion.div>
   );
-}
+});
+
+PageTransition.displayName = 'PageTransition';
 
 // Slide from right variant for navigation forward
 export function SlideTransition({ children, className = '' }: PageTransitionProps) {
