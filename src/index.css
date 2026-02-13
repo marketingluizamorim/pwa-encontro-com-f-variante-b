@@ -44,7 +44,7 @@
     --radius: 0.75rem;
 
     /* Gradients - Adjusted for contrast on light background or with white text */
-    --gradient-welcome: linear-gradient(to bottom, #d97706, #92400e);
+    --gradient-welcome: linear-gradient(to bottom, #0f172a, #1e293b);
     --gradient-gender: linear-gradient(135deg, hsl(35 85% 40%) 0%, hsl(25 90% 45%) 100%);
     --gradient-button: linear-gradient(135deg, #b45309, #78350f);
     /* Bronze to Dark Bronze */
@@ -108,7 +108,7 @@
     --ring: 168 80% 35%;
 
     /* Restore Original Gradients for Dark Mode */
-    --gradient-welcome: linear-gradient(to bottom, #d97706, #92400e);
+    --gradient-welcome: linear-gradient(to bottom, #0f172a, #1e293b);
     --gradient-gender: linear-gradient(135deg, hsl(35 85% 40%) 0%, hsl(25 90% 45%) 100%);
     --gradient-button: linear-gradient(to right, #14b8a6, #0d9488, #f59e0b);
     --gradient-male: linear-gradient(135deg, hsl(217 90% 60%) 0%, hsl(245 80% 60%) 100%);

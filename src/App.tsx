@@ -51,10 +51,10 @@ const queryClient = new QueryClient();
 
 // Loading Fallback Component
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen bg-background">
+  <div className="flex items-center justify-center min-h-screen bg-[#0f172a]">
     <div className="flex flex-col items-center gap-4">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      <p className="text-sm text-muted-foreground animate-pulse">Carregando...</p>
+      <Loader2 className="w-8 h-8 animate-spin text-[#d4af37]" />
+      <p className="text-sm text-white/80 animate-pulse">Carregando...</p>
     </div>
   </div>
 );
@@ -71,7 +71,7 @@ const AppContent = () => {
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               {/* Root redirect */}
-              <Route path="/" element={<Construction />} />
+              <Route path="/" element={<Login />} />
 
               {/* Funnel V1 routes */}
               <Route path="/v1" element={<Landing />} />
