@@ -6,7 +6,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
-import { Heart, AlertTriangle } from 'lucide-react';
+import { Heart, AlertTriangle, Loader2 } from 'lucide-react';
 import { AccountCreatedDialog } from '@/features/auth/components/AccountCreatedDialog';
 
 export default function Register() {
@@ -15,9 +15,9 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, user, loading } = useAuth();
   const navigate = useNavigate();
 
   // Pre-fill from checkout redirect
@@ -27,6 +27,20 @@ export default function Register() {
     if (emailParam) setEmail(decodeURIComponent(emailParam));
     if (nameParam) setName(decodeURIComponent(nameParam));
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/app/discover', { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#d4af37]" />
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +55,7 @@ export default function Register() {
       return;
     }
 
-    setLoading(true);
+    setIsSubmitting(true);
 
     const { error } = await signUp(email, password, name);
 
@@ -57,7 +71,7 @@ export default function Register() {
       }
 
       toast.error(errorMessage);
-      setLoading(false);
+      setIsSubmitting(false);
     } else {
       // Account created successfully.
       // 1. Try to auto-login immediately for better UX
@@ -125,7 +139,7 @@ export default function Register() {
         toast.success('Conta criada com sucesso!');
         setShowSuccessDialog(true);
       }
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -223,10 +237,10 @@ export default function Register() {
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
               className="w-full h-14 rounded-2xl gradient-button text-white font-bold uppercase tracking-wider text-sm border-0 shadow-none hover:opacity-90 transition-all"
             >
-              {loading ? (
+              {isSubmitting ? (
                 <i className="ri-loader-4-line animate-spin mr-2" />
               ) : null}
               Criar Conta
