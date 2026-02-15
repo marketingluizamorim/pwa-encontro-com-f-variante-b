@@ -295,173 +295,171 @@ export default function Chat() {
     return (
         <PageTransition className="h-[calc(100vh-8rem)]">
             <PullToRefresh onRefresh={handleRefresh} className="h-full">
-                <div className="flex flex-col h-full bg-background">
-                    <div className="flex-1 overflow-y-auto pb-24">
-                        <Header action={
-                            <button
-                                onClick={() => setShowSafety(true)}
-                                className="w-10 h-10 rounded-full bg-background/20 backdrop-blur-md border border-border/10 flex items-center justify-center text-foreground/80 hover:bg-background/30 active:scale-95 transition-all outline-none"
-                            >
-                                <i className="ri-shield-check-line text-xl" />
-                            </button>
-                        } />
+                <div className="flex flex-col min-h-full bg-background pb-24">
+                    <Header action={
+                        <button
+                            onClick={() => setShowSafety(true)}
+                            className="w-10 h-10 rounded-full bg-background/20 backdrop-blur-md border border-border/10 flex items-center justify-center text-foreground/80 hover:bg-background/30 active:scale-95 transition-all outline-none"
+                        >
+                            <i className="ri-shield-check-line text-xl" />
+                        </button>
+                    } />
 
-                        {/* Banner Promocional */}
-                        {subscription?.tier !== 'gold' && (
-                            <div
-                                onClick={() => setShowUpgradeDialog(true)}
-                                className="mx-4 mt-4 mb-6 p-4 rounded-xl relative overflow-hidden bg-gradient-to-r from-gray-900 to-black border border-white/10 shadow-lg cursor-pointer active:scale-95 transition-transform"
-                            >
-                                <div className="relative z-10 flex gap-4 items-center">
-                                    <div className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center bg-gray-800 shrink-0">
-                                        <i className="ri-fire-fill text-2xl text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-white font-bold text-sm">Saia na frente e encontre a pessoa ideal</h3>
-                                        <p className="text-gray-400 text-xs mt-1">
-                                            Perfil em destaque, mensagens diretas e filtros avançados. Aumente em até 3x suas chances.
-                                        </p>
-                                    </div>
+                    {/* Banner Promocional */}
+                    {subscription?.tier !== 'gold' && (
+                        <div
+                            onClick={() => setShowUpgradeDialog(true)}
+                            className="mx-4 mt-4 mb-6 p-4 rounded-xl relative overflow-hidden bg-gradient-to-r from-gray-900 to-black border border-white/10 shadow-lg cursor-pointer active:scale-95 transition-transform"
+                        >
+                            <div className="relative z-10 flex gap-4 items-center">
+                                <div className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center bg-gray-800 shrink-0">
+                                    <i className="ri-fire-fill text-2xl text-white"></i>
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-bold text-sm">Saia na frente e encontre a pessoa ideal</h3>
+                                    <p className="text-gray-400 text-xs mt-1">
+                                        Perfil em destaque, mensagens diretas e filtros avançados. Aumente em até 3x suas chances.
+                                    </p>
                                 </div>
                             </div>
-                        )}
-                        {/* Seção de Novos Matches */}
-                        <div className="px-4 mb-8">
-                            <h2 className="font-bold text-lg mb-4">Novas conexões</h2>
-                            <div className="flex gap-4 overflow-x-auto pb-2 pt-4 -mx-4 px-4 scrollbar-hide">
-                                {/* Cartão Gold - Teaser de Curtidas */}
-                                <Link to="/app/matches" className="flex flex-col items-center gap-2 shrink-0 group">
-                                    <div className="relative w-24 h-32 rounded-xl border-2 border-[#d4af37] bg-gray-900 flex items-center justify-center">
-                                        <div className="absolute inset-0 rounded-[10px] overflow-hidden">
-                                            {likesPhoto ? (
-                                                <div
-                                                    className="absolute inset-0 bg-cover bg-center opacity-60 blur-xl scale-125 transition-transform duration-700 group-hover:scale-150"
-                                                    style={{ backgroundImage: `url(${likesPhoto})` }}
-                                                />
-                                            ) : (
-                                                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 opacity-50"></div>
-                                            )}
-                                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                                        </div>
-
-                                        <div className="relative z-10 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center shadow-lg border border-white/20">
-                                            <span className="text-black font-bold text-xs">{likesCount}</span>
-                                        </div>
-
-                                        <FloatingHeart />
+                        </div>
+                    )}
+                    {/* Seção de Novos Matches */}
+                    <div className="px-4 mb-8">
+                        <h2 className="font-bold text-lg mb-4">Novas conexões</h2>
+                        <div className="flex gap-4 overflow-x-auto pb-2 pt-4 -mx-4 px-4 scrollbar-hide">
+                            {/* Cartão Gold - Teaser de Curtidas */}
+                            <Link to="/app/matches" className="flex flex-col items-center gap-2 shrink-0 group">
+                                <div className="relative w-24 h-32 rounded-xl border-2 border-[#d4af37] bg-gray-900 flex items-center justify-center">
+                                    <div className="absolute inset-0 rounded-[10px] overflow-hidden">
+                                        {likesPhoto ? (
+                                            <div
+                                                className="absolute inset-0 bg-cover bg-center opacity-60 blur-xl scale-125 transition-transform duration-700 group-hover:scale-150"
+                                                style={{ backgroundImage: `url(${likesPhoto})` }}
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 opacity-50"></div>
+                                        )}
+                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
                                     </div>
-                                    <span className="text-sm font-medium mt-1">Curtidas</span>
-                                </Link>
 
-                                {/* Actual New Matches */}
-                                {newMatches.map((conv) => (
-                                    <div
-                                        key={'match-' + conv.id}
-                                        onClick={() => {
-                                            markMatchAsViewed(conv.match_id);
-                                            setSelectedProfile(conv.profile);
-                                        }}
-                                        className="flex flex-col items-center gap-2 shrink-0 cursor-pointer"
+                                    <div className="relative z-10 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center shadow-lg border border-white/20">
+                                        <span className="text-black font-bold text-xs">{likesCount}</span>
+                                    </div>
+
+                                    <FloatingHeart />
+                                </div>
+                                <span className="text-sm font-medium mt-1">Curtidas</span>
+                            </Link>
+
+                            {/* Actual New Matches */}
+                            {newMatches.map((conv) => (
+                                <div
+                                    key={'match-' + conv.id}
+                                    onClick={() => {
+                                        markMatchAsViewed(conv.match_id);
+                                        setSelectedProfile(conv.profile);
+                                    }}
+                                    className="flex flex-col items-center gap-2 shrink-0 cursor-pointer"
+                                >
+                                    <div className={cn(
+                                        "relative w-24 h-32 rounded-xl border overflow-visible bg-muted shadow-sm transition-all",
+                                        conv.is_super_like
+                                            ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] ring-1 ring-blue-500/50"
+                                            : "border-white/10"
+                                    )}>
+                                        <div className="absolute inset-0 rounded-xl overflow-hidden">
+                                            <img
+                                                src={conv.profile.photos[0] || conv.profile.avatar_url}
+                                                className="w-full h-full object-cover"
+                                                alt={conv.profile.display_name}
+                                            />
+                                        </div>
+
+                                        {/* Super Like Badge */}
+                                        {conv.is_super_like && (
+                                            <div className="absolute -top-2 -right-2 z-30 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center shadow-md border border-white/10">
+                                                <i className="ri-star-fill text-white text-[10px]" />
+                                            </div>
+                                        )}
+
+                                        {/* Ponto vermelho se houver mensagem não lida */}
+                                        {conv.last_message && !conv.last_message.is_read && conv.last_message.sender_id !== user?.id && (
+                                            <div className="absolute right-1 top-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background z-20"></div>
+                                        )}
+
+                                        {/* Coração flutuante para NOVOS matches que o usuário ainda não clicou */}
+                                        {!viewedMatches.has(conv.match_id) && !conv.is_super_like && <FloatingHeart />}
+                                    </div>
+                                    <span className="text-sm font-medium truncate max-w-[96px] mt-1 flex items-center gap-1">
+                                        {conv.profile.display_name}
+                                        {conv.is_super_like && <i className="ri-star-fill text-blue-500 text-[10px]" />}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Lista de Mensagens */}
+                    <div className="px-4">
+                        <h2 className="font-bold text-lg mb-4">Mensagens</h2>
+
+                        {existingChats.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center text-center opacity-60 py-10">
+                                <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
+                                    <i className="ri-chat-smile-2-line text-4xl"></i>
+                                </div>
+                                <p className="font-medium">Nenhuma conversa ainda</p>
+                                <p className="text-sm">Envie uma mensagem para seus matches!</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {existingChats.map((conv) => (
+                                    <Link
+                                        key={conv.id}
+                                        to={`/app/chat/${conv.match_id}`}
+                                        className="flex items-center gap-4 active:bg-muted/50 rounded-lg transition-colors -mx-2 px-2 py-2"
                                     >
-                                        <div className={cn(
-                                            "relative w-24 h-32 rounded-xl border overflow-visible bg-muted shadow-sm transition-all",
-                                            conv.is_super_like
-                                                ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] ring-1 ring-blue-500/50"
-                                                : "border-white/10"
-                                        )}>
-                                            <div className="absolute inset-0 rounded-xl overflow-hidden">
+                                        <div className="relative">
+                                            <div className="w-16 h-16 rounded-full overflow-hidden border border-border">
                                                 <img
                                                     src={conv.profile.photos[0] || conv.profile.avatar_url}
-                                                    className="w-full h-full object-cover"
                                                     alt={conv.profile.display_name}
+                                                    className="w-full h-full object-cover"
                                                 />
                                             </div>
-
-                                            {/* Super Like Badge */}
-                                            {conv.is_super_like && (
-                                                <div className="absolute -top-2 -right-2 z-30 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center shadow-md border border-white/10">
-                                                    <i className="ri-star-fill text-white text-[10px]" />
-                                                </div>
-                                            )}
-
-                                            {/* Ponto vermelho se houver mensagem não lida */}
                                             {conv.last_message && !conv.last_message.is_read && conv.last_message.sender_id !== user?.id && (
-                                                <div className="absolute right-1 top-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background z-20"></div>
+                                                <div className="absolute right-0 top-0 w-4 h-4 bg-red-500 rounded-full border-2 border-background"></div>
                                             )}
-
-                                            {/* Coração flutuante para NOVOS matches que o usuário ainda não clicou */}
-                                            {!viewedMatches.has(conv.match_id) && !conv.is_super_like && <FloatingHeart />}
                                         </div>
-                                        <span className="text-sm font-medium truncate max-w-[96px] mt-1 flex items-center gap-1">
-                                            {conv.profile.display_name}
-                                            {conv.is_super_like && <i className="ri-star-fill text-blue-500 text-[10px]" />}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
 
-                        {/* Lista de Mensagens */}
-                        <div className="px-4">
-                            <h2 className="font-bold text-lg mb-4">Mensagens</h2>
-
-                            {existingChats.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center text-center opacity-60 py-10">
-                                    <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
-                                        <i className="ri-chat-smile-2-line text-4xl"></i>
-                                    </div>
-                                    <p className="font-medium">Nenhuma conversa ainda</p>
-                                    <p className="text-sm">Envie uma mensagem para seus matches!</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {existingChats.map((conv) => (
-                                        <Link
-                                            key={conv.id}
-                                            to={`/app/chat/${conv.match_id}`}
-                                            className="flex items-center gap-4 active:bg-muted/50 rounded-lg transition-colors -mx-2 px-2 py-2"
-                                        >
-                                            <div className="relative">
-                                                <div className="w-16 h-16 rounded-full overflow-hidden border border-border">
-                                                    <img
-                                                        src={conv.profile.photos[0] || conv.profile.avatar_url}
-                                                        alt={conv.profile.display_name}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                </div>
-                                                {conv.last_message && !conv.last_message.is_read && conv.last_message.sender_id !== user?.id && (
-                                                    <div className="absolute right-0 top-0 w-4 h-4 bg-red-500 rounded-full border-2 border-background"></div>
+                                        <div className="flex-1 min-w-0 border-b border-border/40 pb-4">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <h3 className="font-bold text-base flex items-center gap-1">
+                                                    {conv.profile.display_name}
+                                                </h3>
+                                                {conv.last_message?.sender_id !== user?.id && (
+                                                    <span className="px-3 py-1 bg-muted rounded-full text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+                                                        Sua vez
+                                                    </span>
                                                 )}
                                             </div>
-
-                                            <div className="flex-1 min-w-0 border-b border-border/40 pb-4">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <h3 className="font-bold text-base flex items-center gap-1">
-                                                        {conv.profile.display_name}
-                                                    </h3>
-                                                    {conv.last_message?.sender_id !== user?.id && (
-                                                        <span className="px-3 py-1 bg-muted rounded-full text-[10px] font-medium text-muted-foreground whitespace-nowrap">
-                                                            Sua vez
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className={`text-sm truncate ${!conv.last_message?.is_read && conv.last_message?.sender_id !== user?.id ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                                                    {conv.last_message?.sender_id === user?.id && 'Você: '}
-                                                    {(() => {
-                                                        const content = conv.last_message?.content;
-                                                        if (!content) return 'Começou uma conversa';
-                                                        if (content.startsWith('[image:')) return '📷 Imagem';
-                                                        if (content.startsWith('[audio:')) return '🎤 Mensagem de áudio';
-                                                        if (content.startsWith('[profile-card')) return '👤 Cartão de Perfil';
-                                                        return content;
-                                                    })()}
-                                                </p>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                                            <p className={`text-sm truncate ${!conv.last_message?.is_read && conv.last_message?.sender_id !== user?.id ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                                                {conv.last_message?.sender_id === user?.id && 'Você: '}
+                                                {(() => {
+                                                    const content = conv.last_message?.content;
+                                                    if (!content) return 'Começou uma conversa';
+                                                    if (content.startsWith('[image:')) return '📷 Imagem';
+                                                    if (content.startsWith('[audio:')) return '🎤 Mensagem de áudio';
+                                                    if (content.startsWith('[profile-card')) return '👤 Cartão de Perfil';
+                                                    return content;
+                                                })()}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </PullToRefresh >
