@@ -93,9 +93,7 @@ const SwipeableMatchCard = ({
     const { offset, velocity } = info;
     const swipeThreshold = 80;
 
-    if (offset.y < -swipeThreshold || velocity.y < -500) {
-      onSwipe(like.user_id, 'super_like');
-    } else if (offset.x > swipeThreshold || velocity.x > 500) {
+    if (offset.x > swipeThreshold || velocity.x > 500) {
       onSwipe(like.user_id, 'like');
     } else if (offset.x < -swipeThreshold || velocity.x < -500) {
       onSwipe(like.user_id, 'dislike');
@@ -105,8 +103,8 @@ const SwipeableMatchCard = ({
   return (
     <motion.div
       layout
-      drag
-      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.7}
       dragSnapToOrigin
       onDragStart={() => setIsDragging(true)}
@@ -119,7 +117,7 @@ const SwipeableMatchCard = ({
       onClick={() => {
         if (!isDragging) onExpand();
       }}
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={false}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
     >
@@ -201,9 +199,7 @@ const SwipeableMatchCard = ({
       <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-4 z-30 border-4 border-red-500 text-red-500 px-2 py-1 rounded-lg font-black text-2xl rotate-12 tracking-wider uppercase bg-black/20 backdrop-blur-sm pointer-events-none">
         NOPE
       </motion.div>
-      <motion.div style={{ opacity: superOpacity }} className="absolute bottom-20 left-1/2 -translate-x-1/2 z-30 border-4 border-blue-500 text-blue-500 px-2 py-1 rounded-lg font-black text-2xl tracking-wider uppercase bg-black/20 backdrop-blur-sm pointer-events-none">
-        SUPER
-      </motion.div>
+
 
     </motion.div>
   );
@@ -390,7 +386,7 @@ export default function Matches() {
   }
 
   return (
-    <PageTransition className="h-[calc(100vh-8rem)] relative">
+    <PageTransition className="h-full relative">
       <PullToRefresh onRefresh={handleRefresh} className="h-full">
         <div className="flex flex-col min-h-full pb-24">
           <Header action={
@@ -506,7 +502,7 @@ export default function Matches() {
 
           {/* Floating 'See Who Liked You' Button - ONLY for non-premium with likes */}
           {(!subscription?.canSeeWhoLiked && likes.length > 0 && !showUpgradeDialog) && typeof document !== 'undefined' && createPortal(
-            <div className="fixed bottom-[calc(10rem+env(safe-area-inset-bottom))] left-0 right-0 z-[100] flex justify-center px-4 animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
+            <div className="fixed bottom-[calc(10rem+env(safe-area-inset-bottom))] left-0 right-0 z-[100] flex justify-center px-4 pointer-events-none">
               <button
                 onClick={() => {
                   setUpgradeData({
@@ -558,7 +554,7 @@ export default function Matches() {
           {selectedLike && (
             <motion.div
               key="expanded-match-profile"
-              initial={{ y: '100%' }}
+              initial={false}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
@@ -692,13 +688,7 @@ export default function Matches() {
                   <i className="ri-close-line text-3xl font-bold" />
                 </button>
 
-                {/* Super Like */}
-                <button
-                  onClick={() => handleExpandedSwipe('super_like')}
-                  className="w-11 h-11 mb-2 rounded-full bg-card/80 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
-                >
-                  <i className="ri-star-fill text-xl" />
-                </button>
+
 
                 {/* Like */}
                 <button

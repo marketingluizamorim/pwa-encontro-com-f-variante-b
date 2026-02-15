@@ -157,9 +157,9 @@ export default function Register() {
         {/* Logo */}
         {/* Logo */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0 }}
           className="flex flex-col items-center gap-6 mb-8"
         >
           <div className="relative group cursor-pointer">
@@ -250,9 +250,9 @@ export default function Register() {
 
         {/* Disclaimer Area */}
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ duration: 0 }}
           className="mt-6 text-center px-4"
         >
           <p className="text-white/40 text-[11px] flex items-center justify-center gap-2 bg-black/20 rounded-full py-1.5 px-4 backdrop-blur-sm inline-flex border border-white/5 mx-auto">

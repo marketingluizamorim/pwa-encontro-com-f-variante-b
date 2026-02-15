@@ -208,10 +208,9 @@ export default function ProfileSetup() {
           <AnimatePresence mode="wait">
             {step === 'basics' && (
               <motion.div
-                key="basics"
-                initial={{ opacity: 0, x: 20 }}
+                initial={false}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0 }}
                 className="space-y-6"
               >
                 <div className="text-center mb-8">
@@ -316,10 +315,9 @@ export default function ProfileSetup() {
 
             {step === 'faith' && (
               <motion.div
-                key="faith"
-                initial={{ opacity: 0, x: 20 }}
+                initial={false}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0 }}
                 className="space-y-8"
               >
                 <div className="text-center mb-6">
@@ -369,10 +367,9 @@ export default function ProfileSetup() {
 
             {step === 'photos' && (
               <motion.div
-                key="photos"
-                initial={{ opacity: 0, x: 20 }}
+                initial={false}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0 }}
                 className="space-y-6"
               >
                 <div className="text-center mb-8">
@@ -397,8 +394,9 @@ export default function ProfileSetup() {
             {step === 'complete' && (
               <motion.div
                 key="complete"
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={false}
                 animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0 }}
                 className="flex flex-col items-center justify-center min-h-[50vh] py-12 text-center"
               >
                 <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-[#d4af37] to-[#fcd34d] p-[3px] mb-8 shadow-[0_0_50px_rgba(212,175,55,0.4)]">
@@ -427,9 +425,9 @@ export default function ProfileSetup() {
         <AnimatePresence>
           {showErrorBanner && Object.keys(errors).length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0 }}
               className="absolute bottom-[calc(6rem+env(safe-area-inset-bottom))] left-6 right-6 z-50 pointer-events-none"
             >
               <div className="bg-red-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-center gap-3 backdrop-blur-md bg-opacity-90 border border-red-400/30">

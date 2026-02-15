@@ -31,11 +31,12 @@ export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({
   return (
     <motion.div
       ref={ref}
-      initial="initial"
-      animate="enter"
-      exit="exit"
-      variants={pageVariants}
-      transition={pageTransition}
+      // animation disabled for performance
+      initial={undefined}
+      animate={undefined}
+      exit={undefined}
+      variants={undefined}
+      transition={{ duration: 0 }}
       className={className}
       {...props}
     >
@@ -50,10 +51,10 @@ PageTransition.displayName = 'PageTransition';
 export function SlideTransition({ children, className = '' }: PageTransitionProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
+      initial={false}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ type: 'tween', ease: 'easeOut', duration: 0.25 } as Transition}
+      exit={undefined}
+      transition={{ duration: 0 }}
       className={className}
     >
       {children}
@@ -65,10 +66,10 @@ export function SlideTransition({ children, className = '' }: PageTransitionProp
 export function ScaleTransition({ children, className = '' }: PageTransitionProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
+      initial={false}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ type: 'tween', ease: 'easeOut', duration: 0.2 } as Transition}
+      exit={undefined}
+      transition={{ duration: 0 }}
       className={className}
     >
       {children}

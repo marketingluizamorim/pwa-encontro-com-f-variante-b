@@ -55,9 +55,9 @@ export default function Login() {
       <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0 }}
           className="flex flex-col items-center gap-6 mb-8"
         >
           <div className="relative group cursor-pointer">

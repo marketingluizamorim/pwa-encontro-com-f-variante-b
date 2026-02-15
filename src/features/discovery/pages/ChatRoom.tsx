@@ -785,7 +785,7 @@ export default function ChatRoom() {
       <div className="p-4 border-t bg-background shrink-0">
         <AnimatePresence>
           {showSocialBadges && (
-            <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="flex gap-2 overflow-x-auto pb-3">
+            <motion.div initial={false} animate={{ height: 'auto' }} transition={{ duration: 0 }} className="flex gap-2 overflow-x-auto pb-3">
               <Button size="sm" onClick={() => shareSocialLink('instagram')} className="bg-pink-600 hover:bg-pink-700">Instagram</Button>
               <Button size="sm" onClick={() => shareSocialLink('whatsapp')} className="bg-green-600 hover:bg-green-700">WhatsApp</Button>
               <Button size="sm" onClick={() => shareSocialLink('facebook')} className="bg-blue-600 hover:bg-blue-700">Facebook</Button>

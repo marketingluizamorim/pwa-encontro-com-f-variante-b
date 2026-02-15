@@ -517,7 +517,7 @@ export default function Discover() {
               dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
               onDragEnd={handleDragEnd}
               className="w-full h-full absolute inset-0 px-4 pt-4 pb-24 z-20 cursor-grab active:cursor-grabbing touch-none"
-              initial={{ scale: 0.95, opacity: 0, y: 50 }}
+              initial={false}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{
                 x: exitDirection === 'left' ? -1000 : exitDirection === 'right' ? 1000 : 0,
@@ -671,7 +671,7 @@ export default function Discover() {
           {showInfo && currentProfile && (
             <motion.div
               key="expanded-profile-view"
-              initial={{ y: '100%' }}
+              initial={false}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}

@@ -145,15 +145,9 @@ export default function Onboarding() {
           <motion.div
             key={currentSlide}
             custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.3 },
-              scale: { duration: 0.3 }
-            }}
+            initial={false}
+            animate={{ x: 0, opacity: 1, scale: 1 }}
+            transition={{ duration: 0 }}
             className="absolute inset-0 flex flex-col items-center justify-center px-8"
           >
             {/* Background gradient */}
@@ -163,9 +157,8 @@ export default function Onboarding() {
             <div className="relative z-10 text-center max-w-sm">
               {/* Animated icon */}
               <motion.div
-                variants={iconVariants}
-                initial="initial"
-                animate="animate"
+                initial={false}
+                animate={{ scale: 1, rotate: 0 }}
                 className="mx-auto mb-8 w-28 h-28 rounded-full bg-primary/10 flex items-center justify-center text-primary"
               >
                 {slides[currentSlide].icon}
@@ -173,9 +166,8 @@ export default function Onboarding() {
 
               {/* Text content */}
               <motion.div
-                variants={textVariants}
-                initial="initial"
-                animate="animate"
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
               >
                 <h1 className="font-display text-2xl font-bold text-foreground mb-4">
                   {slides[currentSlide].title}

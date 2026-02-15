@@ -28,7 +28,10 @@ export function PullToRefresh({ children, onRefresh, className = '' }: PullToRef
     if (isRefreshing) return;
     
     const scrollTop = containerRef.current?.scrollTop || 0;
-    if (scrollTop > 0) return;
+    if (scrollTop > 0) {
+      setIsPulling(false);
+      return;
+    }
     
     startY.current = e.touches[0].clientY;
     setIsPulling(true);
@@ -39,6 +42,7 @@ export function PullToRefresh({ children, onRefresh, className = '' }: PullToRef
     
     const scrollTop = containerRef.current?.scrollTop || 0;
     if (scrollTop > 0) {
+      setIsPulling(false);
       pullDistance.set(0);
       return;
     }

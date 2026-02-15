@@ -86,7 +86,7 @@ export function AppLayout() {
       </div>
 
       {/* Main Content Area */}
-      <main className="relative z-10 flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-hide">
+      <main className="relative z-10 flex-1 w-full overflow-hidden scrollbar-hide">
         <Outlet />
       </main>
 
