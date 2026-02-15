@@ -94,7 +94,13 @@ export function AppLayout() {
       <nav className="relative z-50 py-6 shrink-0 flex justify-center px-4 pointer-events-none">
         <div className="pointer-events-auto bg-[#1e293b]/95 backdrop-blur-2xl border border-white/10 rounded-full px-5 py-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-between w-full max-w-[380px] gap-1 ring-1 ring-white/10 transition-all duration-500">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.to || location.pathname.startsWith(item.to + '/');
+            {/* 
+               IMPORTANT: isActive check using strict segment matching to prevent multiple highlights.
+               We check the 3rd segment of the path (e.g., 'discover', 'explore') to ensure precision.
+            */}
+            const pathSegments = location.pathname.split('/');
+            const itemSegments = item.to.split('/');
+            const isActive = pathSegments[2] === itemSegments[2];
 
             // Determinar se há notificação para este item usando a chave direta
             const hasNotification = item.notificationKey ? notifications[item.notificationKey] : false;
@@ -105,7 +111,7 @@ export function AppLayout() {
                 to={item.to}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
                 className={cn(
-                  "relative group flex flex-col items-center justify-center flex-1 py-1 outline-none ring-0 focus:ring-0 focus:outline-none select-none active:bg-transparent touch-none",
+                  "relative group flex flex-col items-center justify-center flex-1 py-1 outline-none ring-0 focus:ring-0 focus:outline-none select-none active:bg-transparent touch-none transition-transform active:scale-90",
                   isActive && "pointer-events-none"
                 )}
               >
@@ -118,30 +124,38 @@ export function AppLayout() {
                   <div className="absolute top-0 right-[28%] w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse z-10" />
                 )}
 
-                {/* Container do Ícone com Destaque Circular */}
+                {/* Container do Ícone com Destaque Circular Móvel */}
                 <div className="relative flex items-center justify-center mb-1">
-                  <AnimatePresence>
-                    {isActive && (
-                      <motion.div
-                        key={`nav-glow-${item.to}`}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute inset-x-[-6px] inset-y-[-6px] bg-amber-500/15 rounded-full blur-lg z-0 pointer-events-none"
-                      />
-                    )}
-                    {isActive && (
-                      <motion.div
-                        key={`nav-circle-${item.to}`}
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/40 to-amber-600/20 rounded-full z-0 pointer-events-none shadow-[0_0_15px_rgba(251,191,36,0.2)]"
-                      />
-                    )}
-                  </AnimatePresence>
+                  {/* 
+                     Highlight Único: Usamos layoutId para "mover" o brilho entre os ícones.
+                     Isso garante que apenas UM destaque exista no DOM ao mesmo tempo.
+                  */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-active-highlight"
+                      initial={false}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 35,
+                        mass: 1
+                      }}
+                      className="absolute inset-x-[-8px] inset-y-[-8px] bg-amber-500/15 rounded-full blur-lg z-0 pointer-events-none"
+                    />
+                  )}
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-active-circle"
+                      initial={false}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 35,
+                        mass: 1
+                      }}
+                      className="absolute inset-x-[-1px] inset-y-[-1px] bg-gradient-to-br from-amber-500/40 to-amber-600/20 rounded-full z-0 pointer-events-none shadow-[0_0_15px_rgba(251,191,36,0.15)] ring-1 ring-white/10"
+                    />
+                  )}
 
                   {/* Ícone */}
                   <div className={cn(
