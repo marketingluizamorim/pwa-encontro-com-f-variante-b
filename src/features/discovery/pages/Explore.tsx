@@ -1225,7 +1225,7 @@ export default function Explore() {
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 touch-pan-y overscroll-contain"
                     >
                         {/* Unconventional Nav Header */}
-                        <div className="px-6 pb-6 flex items-center justify-between sticky top-0 bg-[#0f172a]/80 backdrop-blur-3xl z-50 py-4">
+                        <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
                             <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
                                 <ArrowLeft className="w-5 h-5 text-white" />
                             </button>
@@ -1237,7 +1237,7 @@ export default function Explore() {
                             {RELATIONSHIP_TOPICS.map((topic, topicIdx) => (
                                 <div key={topic.id} id={`topic-${topic.id}`} className="relative">
                                     {/* Floating Fragment Header */}
-                                    <div className="sticky top-20 z-10 py-4 bg-transparent mb-6">
+                                    <div className="relative z-10 py-4 bg-transparent mb-6">
                                         <div className="flex items-center gap-4">
                                             <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl border border-white/10", topic.color, topic.accent)}>
                                                 <i className={cn(topic.icon, "text-2xl")} />
@@ -1306,7 +1306,7 @@ export default function Explore() {
                         </div>
 
                         {/* Detail Nav */}
-                        <div className="px-6 py-6 flex items-center justify-between sticky top-0 z-50">
+                        <div className="px-6 py-6 flex items-center justify-between relative z-50">
                             <button
                                 onClick={goBack}
                                 className="w-12 h-12 rounded-full glass border border-white/20 flex items-center justify-center text-white active:scale-75 transition-transform backdrop-blur-3xl"
@@ -1417,7 +1417,7 @@ export default function Explore() {
                         exit={{ opacity: 0, x: -20 }}
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 touch-pan-y overscroll-contain"
                     >
-                        <div className="px-6 pb-6 flex items-center justify-between sticky top-0 bg-[#0f172a]/80 backdrop-blur-3xl z-50 py-4">
+                        <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
                             <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
                                 <ArrowLeft className="w-5 h-5 text-white" />
                             </button>
@@ -1482,7 +1482,7 @@ export default function Explore() {
                         exit={{ opacity: 0 }}
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 touch-pan-y overscroll-contain"
                     >
-                        <div className="px-6 py-6 flex items-center justify-between sticky top-0 z-50 bg-[#0f172a]/80 backdrop-blur-3xl">
+                        <div className="px-6 py-6 flex items-center justify-between relative z-50 bg-transparent">
                             <button onClick={goBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
                                 <ArrowLeft className="w-5 h-5" />
                             </button>
@@ -1567,7 +1567,7 @@ export default function Explore() {
                         exit={{ opacity: 0, x: -20 }}
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 touch-pan-y overscroll-contain"
                     >
-                        <div className="px-6 pb-6 flex items-center justify-between sticky top-0 bg-[#0f172a]/80 backdrop-blur-3xl z-50 py-4">
+                        <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
                             <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
                                 <ArrowLeft className="w-5 h-5 text-white" />
                             </button>
