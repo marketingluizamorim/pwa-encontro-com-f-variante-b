@@ -787,6 +787,10 @@ export default function Explore() {
         const saved = localStorage.getItem('completed_studies');
         return saved ? JSON.parse(saved) : [];
     });
+    const [completedLessons, setCompletedLessons] = useState<string[]>(() => {
+        const saved = localStorage.getItem('completed_lessons');
+        return saved ? JSON.parse(saved) : [];
+    });
     const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
     const [pendingGroupLink, setPendingGroupLink] = useState<string | null>(null);
     const { data: subscription } = useSubscription();
@@ -994,6 +998,11 @@ export default function Explore() {
 
     const handleNextLesson = () => {
         if (!selectedStudy || !selectedLesson) return;
+
+        // Mark current lesson as completed
+        const newCompletedLessons = [...new Set([...completedLessons, selectedLesson.id])];
+        setCompletedLessons(newCompletedLessons);
+        localStorage.setItem('completed_lessons', JSON.stringify(newCompletedLessons));
 
         const currentIndex = selectedStudy.lessons.findIndex(l => l.id === selectedLesson.id);
         if (currentIndex < selectedStudy.lessons.length - 1) {
@@ -1493,20 +1502,36 @@ export default function Explore() {
                         <div className="px-8 pb-64">
                             {/* Lesson Navigation (Compact Horizontal Scroll) */}
                             <div className="grid grid-cols-4 gap-3 py-8">
-                                {selectedStudy.lessons.map((lesson, idx) => (
-                                    <button
-                                        key={lesson.id}
-                                        onClick={() => setSelectedLesson(lesson)}
-                                        className={cn(
-                                            "px-2 py-4 rounded-2xl border text-[11px] font-bold uppercase tracking-tighter transition-all text-center",
-                                            selectedLesson.id === lesson.id
-                                                ? "bg-emerald-500 border-emerald-400 text-black shadow-lg shadow-emerald-500/20"
-                                                : "bg-white/5 border-white/10 text-white/40"
-                                        )}
-                                    >
-                                        Aula {idx + 1}
-                                    </button>
-                                ))}
+                                {selectedStudy.lessons.map((lesson, idx) => {
+                                    const isCompleted = completedLessons.includes(lesson.id);
+                                    const isCurrent = selectedLesson.id === lesson.id;
+                                    const isLocked = idx > 0 && !completedLessons.includes(selectedStudy.lessons[idx - 1].id);
+
+                                    return (
+                                        <button
+                                            key={lesson.id}
+                                            disabled={isLocked}
+                                            onClick={() => setSelectedLesson(lesson)}
+                                            className={cn(
+                                                "px-2 py-4 rounded-2xl border text-[11px] font-bold uppercase tracking-tighter transition-all text-center",
+                                                isCurrent
+                                                    ? "bg-emerald-500 border-emerald-400 text-black shadow-lg shadow-emerald-500/20"
+                                                    : isLocked
+                                                        ? "bg-white/5 border-white/5 text-white/10 opacity-40 cursor-not-allowed"
+                                                        : "bg-white/5 border-white/10 text-white/40 active:scale-95"
+                                            )}
+                                        >
+                                            {isLocked ? (
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <i className="ri-lock-2-line text-xs" />
+                                                    <span>Aula {idx + 1}</span>
+                                                </div>
+                                            ) : (
+                                                <span>Aula {idx + 1}</span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             <motion.div
