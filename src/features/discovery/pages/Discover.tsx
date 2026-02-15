@@ -886,33 +886,35 @@ export default function Discover() {
                 </div>
               </div>
 
-              {/* Floating Action Controls (Expanded View) - Matching Main View Style */}
-              <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center items-center gap-6 pointer-events-none">
-                {/* Nope */}
-                <button
-                  onClick={() => handleSwipe('dislike')}
-                  className="w-14 h-14 rounded-full bg-card/80 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
-                >
-                  <i className="ri-close-line text-3xl font-semibold" />
-                </button>
+              {/* Floating Action Controls (Expanded View) - Matching Bottom Nav Style */}
+              <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[env(safe-area-inset-bottom)] pointer-events-none">
+                <div className="pointer-events-auto bg-[#1e293b]/95 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-center gap-8 ring-1 ring-white/10">
+                  {/* Nope */}
+                  <button
+                    onClick={() => handleSwipe('dislike')}
+                    className="w-14 h-14 rounded-full bg-card/40 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                  >
+                    <i className="ri-close-line text-3xl font-semibold" />
+                  </button>
 
-                {/* Super Like */}
-                <button
-                  onClick={() => handleSwipe('super_like')}
-                  className="w-11 h-11 mb-2 rounded-full bg-card/80 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
-                >
-                  <i className="ri-star-fill text-xl" />
-                </button>
+                  {/* Super Like */}
+                  <button
+                    onClick={() => handleSwipe('super_like')}
+                    className="w-11 h-11 rounded-full bg-card/40 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                  >
+                    <i className="ri-star-fill text-xl" />
+                  </button>
 
-                {/* Like */}
-                <button
-                  onClick={() => handleSwipe('like')}
-                  className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all pointer-events-auto"
-                >
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center border border-white/20 shadow-inner group-hover:from-[#fcd34d] group-hover:to-[#d4af37] transition-colors">
-                    <i className="ri-heart-fill text-3xl text-white drop-shadow-md" />
-                  </div>
-                </button>
+                  {/* Like */}
+                  <button
+                    onClick={() => handleSwipe('like')}
+                    className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
+                  >
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center border border-white/20 shadow-inner group-hover:from-[#fcd34d] group-hover:to-[#d4af37] transition-colors">
+                      <i className="ri-heart-fill text-3xl text-white drop-shadow-md" />
+                    </div>
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}

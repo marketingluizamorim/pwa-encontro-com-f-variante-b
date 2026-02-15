@@ -13,6 +13,7 @@
     --background: 35 25% 97%;
     /* Warm Cream */
     --foreground: 220 20% 15%;
+    -webkit-tap-highlight-color: transparent;
 
     --card: 0 0% 100%;
     --card-foreground: 220 20% 15%;
