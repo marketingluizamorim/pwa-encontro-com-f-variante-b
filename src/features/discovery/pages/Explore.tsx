@@ -1034,7 +1034,7 @@ export default function Explore() {
                 {view === 'categories' && (
                     <div
                         key="categories"
-                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pb-48 touch-pan-y overscroll-contain"
+                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pb-64 touch-pan-y overscroll-contain"
                     >
                         <Header />
 
@@ -1121,7 +1121,7 @@ export default function Explore() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-40 touch-pan-y overscroll-contain"
+                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
                     >
                         {/* Soft Ambient Background */}
                         <div className="fixed inset-0 -z-10 bg-[#0f172a]">
@@ -1141,7 +1141,7 @@ export default function Explore() {
                             <div className="w-12" />
                         </div>
 
-                        <div className="px-8 pb-40">
+                        <div className="px-8 pb-64">
                             {/* Morning Header */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -1222,7 +1222,7 @@ export default function Explore() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-40 touch-pan-y overscroll-contain"
+                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
                     >
                         {/* Unconventional Nav Header */}
                         <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
@@ -1233,7 +1233,7 @@ export default function Explore() {
                             <div className="w-12" />
                         </div>
 
-                        <div className="px-6 pb-32 space-y-12">
+                        <div className="px-6 pb-40 space-y-12">
                             {RELATIONSHIP_TOPICS.map((topic, topicIdx) => (
                                 <div key={topic.id} id={`topic-${topic.id}`} className="relative">
                                     {/* Floating Fragment Header */}
@@ -1323,7 +1323,7 @@ export default function Explore() {
                             <div className="w-12" />
                         </div>
 
-                        <div className="px-6 pb-40 mt-10">
+                        <div className="px-6 pb-64 mt-10">
                             {/* Massive Typographic Reveal */}
                             <motion.h2
                                 initial={{ opacity: 0, filter: 'blur(10px)' }}
@@ -1425,7 +1425,7 @@ export default function Explore() {
                             <div className="w-12" />
                         </div>
 
-                        <div className="px-6 pb-32 space-y-6">
+                        <div className="px-6 pb-40 space-y-6">
                             {BIBLE_STUDIES.map((study) => (
                                 <motion.div
                                     key={study.id}
@@ -1490,17 +1490,17 @@ export default function Explore() {
                             <div className="w-12" />
                         </div>
 
-                        <div className="px-8 pb-40">
+                        <div className="px-8 pb-64">
                             {/* Lesson Navigation (Compact Horizontal Scroll) */}
-                            <div className="flex gap-3 overflow-x-auto py-8 no-scrollbar">
+                            <div className="grid grid-cols-4 gap-3 py-8">
                                 {selectedStudy.lessons.map((lesson, idx) => (
                                     <button
                                         key={lesson.id}
                                         onClick={() => setSelectedLesson(lesson)}
                                         className={cn(
-                                            "shrink-0 px-6 py-3 rounded-2xl border text-xs font-semibold transition-all",
+                                            "px-2 py-4 rounded-2xl border text-[11px] font-bold uppercase tracking-tighter transition-all text-center",
                                             selectedLesson.id === lesson.id
-                                                ? "bg-emerald-500 border-emerald-400 text-black scale-105 shadow-lg shadow-emerald-500/20"
+                                                ? "bg-emerald-500 border-emerald-400 text-black shadow-lg shadow-emerald-500/20"
                                                 : "bg-white/5 border-white/10 text-white/40"
                                         )}
                                     >
@@ -1565,7 +1565,7 @@ export default function Explore() {
                         initial="initial"
                         animate="animate"
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-40 touch-pan-y overscroll-contain"
+                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
                     >
                         <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
                             <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
@@ -1575,7 +1575,7 @@ export default function Explore() {
                             <div className="w-12" />
                         </div>
 
-                        <div className="px-6 pb-32 space-y-12">
+                        <div className="px-6 pb-40 space-y-12">
                             {/* Main Portal Card */}
                             <motion.div
                                 variants={itemFadeUp}
