@@ -1130,6 +1130,14 @@ export default function Explore() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={{ left: 0.1, right: 0.8 }}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.x > 100 || info.velocity.x > 500) {
+                                goBack();
+                            }
+                        }}
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
                     >
                         {/* Soft Ambient Background */}
@@ -1231,6 +1239,14 @@ export default function Explore() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={{ left: 0.1, right: 0.8 }}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.x > 100 || info.velocity.x > 500) {
+                                goBack();
+                            }
+                        }}
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
                     >
                         {/* Unconventional Nav Header */}
@@ -1306,7 +1322,15 @@ export default function Explore() {
                         initial={{ opacity: 0, scale: 1.1 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="fixed inset-0 z-50 bg-[#0f172a] overflow-y-auto no-scrollbar pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={{ left: 0, right: 0.8 }}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.x > 100 || info.velocity.x > 500) {
+                                goBack();
+                            }
+                        }}
+                        className="fixed inset-0 z-50 bg-[#0f172a] overflow-y-auto no-scrollbar pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] touch-pan-y overscroll-contain"
                     >
                         {/* Cinematic Header Overlay */}
                         <div className="fixed top-0 left-0 w-full h-80 pointer-events-none -z-10">
@@ -1424,6 +1448,14 @@ export default function Explore() {
                         initial="initial"
                         animate="animate"
                         exit={{ opacity: 0, x: -20 }}
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={{ left: 0, right: 0.8 }}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.x > 100 || info.velocity.x > 500) {
+                                goBack();
+                            }
+                        }}
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-40 touch-pan-y overscroll-contain"
                     >
                         <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
@@ -1489,6 +1521,14 @@ export default function Explore() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={{ left: 0.1, right: 0.8 }}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.x > 100 || info.velocity.x > 500) {
+                                goBack();
+                            }
+                        }}
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 touch-pan-y overscroll-contain"
                     >
                         <div className="px-6 py-6 flex items-center justify-between relative z-50 bg-transparent">
@@ -1590,6 +1630,14 @@ export default function Explore() {
                         initial="initial"
                         animate="animate"
                         exit={{ opacity: 0, x: -20 }}
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={{ left: 0.1, right: 0.8 }}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.x > 100 || info.velocity.x > 500) {
+                                goBack();
+                            }
+                        }}
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
                     >
                         <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">

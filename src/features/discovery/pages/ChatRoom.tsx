@@ -689,7 +689,17 @@ export default function ChatRoom() {
   if (!matchProfile) return <div className="p-8 text-center">Match não encontrado. <Link to="/app/chat" className="text-primary underline">Voltar</Link></div>;
 
   return (
-    <SlideTransition className="flex flex-col w-full h-[100dvh] bg-background overflow-hidden font-sans pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <SlideTransition
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={{ left: 0.1, right: 0.8 }}
+      onDragEnd={(_, info) => {
+        if (info.offset.x > 100 || info.velocity.x > 500) {
+          navigate('/app/chat');
+        }
+      }}
+      className="flex flex-col w-full h-[100dvh] bg-background overflow-hidden font-sans pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] touch-pan-y overscroll-contain"
+    >
       <div className="flex items-center gap-3 px-4 py-3 border-b shrink-0 h-16 bg-background/80 backdrop-blur">
         <Link to="/app/chat" className="text-muted-foreground"><i className="ri-arrow-left-line text-xl" /></Link>
         <div className="w-10 h-10 rounded-full overflow-hidden" onClick={() => setShowProfileInfo(true)}>

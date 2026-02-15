@@ -48,7 +48,7 @@ export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({
 PageTransition.displayName = 'PageTransition';
 
 // Slide from right variant for navigation forward
-export function SlideTransition({ children, className = '' }: PageTransitionProps) {
+export function SlideTransition({ children, className = '', ...props }: PageTransitionProps) {
   return (
     <motion.div
       initial={false}
@@ -56,6 +56,7 @@ export function SlideTransition({ children, className = '' }: PageTransitionProp
       exit={undefined}
       transition={{ duration: 0 }}
       className={className}
+      {...props}
     >
       {children}
     </motion.div>
