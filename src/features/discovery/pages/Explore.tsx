@@ -1121,7 +1121,7 @@ export default function Explore() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="flex flex-col min-h-screen"
+                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4"
                     >
                         {/* Soft Ambient Background */}
                         <div className="fixed inset-0 -z-10 bg-[#0f172a]">
@@ -1222,7 +1222,7 @@ export default function Explore() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex flex-col pt-4"
+                        className="flex flex-col h-full overflow-y-auto pt-4 scroll-smooth"
                     >
                         {/* Unconventional Nav Header */}
                         <div className="px-6 pb-6 flex items-center justify-between sticky top-0 bg-[#0f172a]/80 backdrop-blur-3xl z-50 py-4">
@@ -1415,7 +1415,7 @@ export default function Explore() {
                         initial="initial"
                         animate="animate"
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex flex-col pt-4"
+                        className="flex flex-col h-full overflow-y-auto pt-4 scroll-smooth"
                     >
                         <div className="px-6 pb-6 flex items-center justify-between sticky top-0 bg-[#0f172a]/80 backdrop-blur-3xl z-50 py-4">
                             <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
@@ -1565,7 +1565,7 @@ export default function Explore() {
                         initial="initial"
                         animate="animate"
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex flex-col pt-4"
+                        className="flex flex-col h-full overflow-y-auto pt-4 scroll-smooth"
                     >
                         <div className="px-6 pb-6 flex items-center justify-between sticky top-0 bg-[#0f172a]/80 backdrop-blur-3xl z-50 py-4">
                             <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">

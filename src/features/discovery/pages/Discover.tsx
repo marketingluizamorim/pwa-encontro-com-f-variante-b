@@ -853,13 +853,13 @@ export default function Discover() {
                   )}
 
                   {/* Section: Direct Message (Direct Connect) */}
-                  <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group">
+                  <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
-                      <Zap className="w-12 h-12 text-amber-500" />
+                      <Zap className="w-12 h-12 text-blue-500" />
                     </div>
 
-                    <h3 className="text-xl font-semibold text-amber-500 mb-2 flex items-center gap-2">
-                      Mensagem Direta <Zap className="w-5 h-5 fill-amber-500" />
+                    <h3 className="text-xl font-semibold text-blue-500 mb-2 flex items-center gap-2">
+                      Mensagem Direta <Zap className="w-5 h-5 fill-blue-500" />
                     </h3>
                     <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
                       Não espere pela conexão! Envie uma mensagem direta agora mesmo para {currentProfile.display_name} e saia na frente.
@@ -874,7 +874,7 @@ export default function Discover() {
                           setShowSuperLikeMessageDialog(true);
                         }
                       }}
-                      className="w-full h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+                      className="w-full h-12 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
                     >
                       <MessageCircle className="w-5 h-5" />
                       Enviar Mensagem

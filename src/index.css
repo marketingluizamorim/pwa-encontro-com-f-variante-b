@@ -36,13 +36,13 @@
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 65% 55%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 35 15% 85%;
-    --input: 35 15% 85%;
-    --ring: 35 85% 35%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     /* Gradients - Adjusted for contrast on light background or with white text */
     --gradient-welcome: linear-gradient(to bottom, #0f172a, #1e293b);
@@ -129,6 +129,13 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+  }
+
+  *:focus {
+    outline: none !important;
+    box-shadow: none !important;
   }
 
   body {

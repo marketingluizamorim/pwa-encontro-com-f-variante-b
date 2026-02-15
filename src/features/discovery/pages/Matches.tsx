@@ -170,7 +170,7 @@ const SwipeableMatchCard = ({
           <>
             {/* Super Like Message */}
             {like.is_super_like && like.message && (
-              <div className="mb-3 bg-blue-600/90 backdrop-blur-md p-2.5 rounded-tl-xl rounded-tr-xl rounded-br-xl rounded-bl-none border border-white/10 shadow-lg animate-in slide-in-from-bottom-2 fade-in duration-500">
+              <div className="mb-3 bg-blue-600/90 backdrop-blur-md p-2.5 rounded-tl-xl rounded-tr-xl rounded-br-xl rounded-bl-none border border-white/10 shadow-lg">
                 <p className="text-xs text-white leading-relaxed line-clamp-3 italic">
                   "{like.message}"
                 </p>
