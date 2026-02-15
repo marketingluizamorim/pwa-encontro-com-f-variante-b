@@ -42,6 +42,10 @@ export function useGeolocation() {
                 const { latitude, longitude } = position.coords;
                 setLocation({ latitude, longitude });
                 updateProfileLocation(latitude, longitude);
+
+                // Save timestamp to prevent frequent requests
+                localStorage.setItem('last-geo-update', Date.now().toString());
+
                 setLoading(false);
                 setError(null);
             },
@@ -59,11 +63,18 @@ export function useGeolocation() {
     }, [updateProfileLocation]);
 
     useEffect(() => {
-        // Check if we should auto-request
-        const hasAsked = localStorage.getItem('geo-permission-asked');
-        if (!hasAsked && user) {
+        if (!user) return;
+
+        const lastUpdate = localStorage.getItem('last-geo-update');
+        const now = Date.now();
+        const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+        // Check if we need to update location (first time or expired)
+        if (!lastUpdate || (now - parseInt(lastUpdate)) > TWENTY_FOUR_HOURS) {
             requestLocation();
-            localStorage.setItem('geo-permission-asked', 'true');
+        } else {
+            // Optional: try to recover last known good location from minimal stored user data or just rely on profile
+            console.log('Using recent location data, skipping auto-request.');
         }
     }, [user, requestLocation]);
 

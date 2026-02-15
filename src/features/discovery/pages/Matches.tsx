@@ -117,8 +117,9 @@ const SwipeableMatchCard = ({
       onClick={() => {
         if (!isDragging) onExpand();
       }}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+      // Entrance animation removed for instant loading
+      initial={false}
+      animate={undefined}
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
     >
       <img
@@ -413,25 +414,16 @@ export default function Matches() {
               )}
             </p>
 
-            {/* Likes Count Badge - Below Text */}
+            {/* Likes Count Badge - Below Text - Enhanced Style */}
             {likes.length > 0 && !subscription?.canSeeWhoLiked && (
-              <div className="mt-4 flex items-center gap-2 bg-card border border-border/50 px-4 py-1.5 rounded-full shadow-sm">
-                <i className="ri-heart-fill text-amber-500" />
-                <span className="font-bold text-foreground">
-                  {likes.length} {likes.length === 1 ? 'curtida' : 'curtidas'}
+              <div className="mt-5 flex items-center gap-2.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 px-6 py-2 rounded-full shadow-[0_0_15px_-3px_rgba(245,158,11,0.15)] backdrop-blur-sm">
+                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <span className="font-bold text-amber-500 text-sm tracking-wide uppercase">
+                  {likes.length} {likes.length === 1 ? 'Pessoa curtiu' : 'Pessoas curtiram'}
                 </span>
               </div>
             )}
           </div>
-
-          {/* Grid Content */}
-          {likes.length > 0 && (
-            <div className="w-full px-4 mb-2 flex justify-start animate-fade-in">
-              <span className="text-lg text-muted-foreground">
-                {likes.length} {likes.length === 1 ? 'curtida' : 'curtidas'}
-              </span>
-            </div>
-          )}
 
           {/* Grid Content */}
           {likes.length === 0 ? (

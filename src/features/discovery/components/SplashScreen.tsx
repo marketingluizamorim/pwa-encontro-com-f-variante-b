@@ -6,173 +6,84 @@ interface SplashScreenProps {
 }
 
 export default function SplashScreen({ onComplete }: SplashScreenProps) {
-  const [showTagline, setShowTagline] = useState(false);
-  const [fadeOut, setFadeOut] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Show tagline after logo animation
-    const taglineTimer = setTimeout(() => setShowTagline(true), 800);
-    
-    // Start fade out
-    const fadeTimer = setTimeout(() => setFadeOut(true), 2200);
-    
-    // Complete splash screen
-    const completeTimer = setTimeout(() => onComplete(), 2800);
+    // Reduce total splash time for a snappier feel
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+    }, 2000); // 2 seconds total display
 
-    return () => {
-      clearTimeout(taglineTimer);
-      clearTimeout(fadeTimer);
-      clearTimeout(completeTimer);
-    };
-  }, [onComplete]);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <AnimatePresence>
-      {!fadeOut && (
+    <AnimatePresence onExitComplete={onComplete}>
+      {isVisible && (
         <motion.div
+          key="splash"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center gradient-welcome"
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-b from-[#0f172a] to-[#1e293b]"
         >
-          {/* Animated background circles */}
-          <div className="absolute inset-0 overflow-hidden">
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 2.5, opacity: 0.1 }}
-              transition={{ duration: 1.5, ease: 'easeOut' }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-white"
-            />
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 2, opacity: 0.08 }}
-              transition={{ duration: 1.2, delay: 0.2, ease: 'easeOut' }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-white"
-            />
-          </div>
-
-          {/* Logo container */}
+          {/* Main Logo Container - Simplified Animation */}
           <motion.div
-            initial={{ scale: 0.5, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            transition={{
-              type: 'spring',
-              stiffness: 200,
-              damping: 15,
-              duration: 0.8,
-            }}
-            className="relative z-10 flex flex-col items-center"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="flex flex-col items-center"
           >
-            {/* App icon with glow effect */}
-            <motion.div
-              initial={{ boxShadow: '0 0 0 rgba(255,255,255,0)' }}
-              animate={{ 
-                boxShadow: [
-                  '0 0 20px rgba(255,255,255,0.3)',
-                  '0 0 40px rgba(255,255,255,0.5)',
-                  '0 0 20px rgba(255,255,255,0.3)',
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-28 h-28 rounded-3xl overflow-hidden mb-8"
-            >
+            {/* App Icon */}
+            <div className="w-24 h-24 rounded-3xl overflow-hidden mb-6 shadow-2xl shadow-black/50">
               <img
                 src="/pwa-192x192.png"
                 alt="Encontro com Fé"
                 className="w-full h-full object-cover"
               />
-            </motion.div>
+            </div>
 
-            {/* App name with staggered letter animation */}
+            {/* App Title - Simple Fade In */}
             <motion.h1
-              className="font-display text-4xl font-bold text-white tracking-tight"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
+              className="font-serif text-3xl font-bold text-white tracking-tight text-center"
             >
-              <motion.span
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                Encontro
-              </motion.span>
-              <motion.span
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-white/80"
-              >
-                {' '}com{' '}
-              </motion.span>
-              <motion.span
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                Fé
-              </motion.span>
+              Encontro <span className="text-amber-400 font-italic">com Fé</span>
             </motion.h1>
 
-            {/* Tagline */}
-            <AnimatePresence>
-              {showTagline && (
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="mt-4 text-white/70 text-lg tracking-wide"
-                >
-                  Conexões que Transformam
-                </motion.p>
-              )}
-            </AnimatePresence>
+            {/* Tagline - Simple Fade In */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="mt-3 text-white/50 text-sm tracking-wide uppercase font-medium"
+            >
+              Conexões que Transformam
+            </motion.p>
           </motion.div>
 
-          {/* Loading indicator */}
+          {/* Simple Loading Dots */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.3 }}
-            className="absolute bottom-16 left-1/2 -translate-x-1/2"
+            transition={{ delay: 0.8 }}
+            className="absolute bottom-16 flex gap-2"
           >
-            <div className="flex gap-2">
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="w-2 h-2 rounded-full bg-white/60"
-                  animate={{
-                    scale: [1, 1.3, 1],
-                    opacity: [0.5, 1, 0.5],
-                  }}
-                  transition={{
-                    duration: 0.8,
-                    repeat: Infinity,
-                    delay: i * 0.15,
-                    ease: 'easeInOut',
-                  }}
-                />
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Cross icon decorative element */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 0.1, scale: 1, rotate: 15 }}
-            transition={{ delay: 0.6, duration: 0.8, ease: 'easeOut' }}
-            className="absolute top-20 right-8 text-white"
-          >
-            <i className="ri-add-line text-8xl" />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 0.08, scale: 1, rotate: -10 }}
-            transition={{ delay: 0.8, duration: 0.8, ease: 'easeOut' }}
-            className="absolute bottom-32 left-8 text-white"
-          >
-            <i className="ri-heart-line text-7xl" />
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-1.5 h-1.5 rounded-full bg-white/40"
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  delay: i * 0.2,
+                  ease: "easeInOut"
+                }}
+              />
+            ))}
           </motion.div>
         </motion.div>
       )}

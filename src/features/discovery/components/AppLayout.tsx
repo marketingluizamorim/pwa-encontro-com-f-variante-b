@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -100,13 +100,16 @@ export function AppLayout() {
             const hasNotification = item.notificationKey ? notifications[item.notificationKey] : false;
 
             return (
-              <NavLink
+              <Link
                 key={item.to}
                 to={item.to}
-                className="relative group flex flex-col items-center justify-center flex-1"
+                className={cn(
+                  "relative group flex flex-col items-center justify-center flex-1 py-1",
+                  isActive && "pointer-events-none" // Optional: disable click if already active
+                )}
               >
                 {/* Indicador de Notificação */}
-                {item.notificationKey === 'matches' && notifications.likesCount > 0 ? (
+                {item.notificationKey === 'matches' && notifications && notifications.likesCount > 0 ? (
                   <div className="absolute top-0 right-[22%] min-w-[16px] h-[16px] bg-red-500 text-white text-[9px] leading-none font-bold rounded-full flex items-center justify-center border border-[#1e293b] z-20 shadow-sm px-1 animate-in zoom-in duration-300">
                     {notifications.likesCount > 99 ? '99+' : notifications.likesCount}
                   </div>
@@ -118,10 +121,10 @@ export function AppLayout() {
                 <div className="relative flex items-center justify-center mb-1">
                   {/* Círculo de Destaque para Ícone Ativo */}
                   {isActive && (
-                    <div className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/30 to-amber-600/20 rounded-full blur-sm" />
+                    <div className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/30 to-amber-600/20 rounded-full blur-sm animate-in fade-in zoom-in duration-300" />
                   )}
                   {isActive && (
-                    <div className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/40 to-amber-600/30 rounded-full" />
+                    <div className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/40 to-amber-600/30 rounded-full animate-in fade-in zoom-in duration-300" />
                   )}
 
                   {/* Ícone */}
@@ -144,7 +147,7 @@ export function AppLayout() {
                 )}>
                   {item.label}
                 </span>
-              </NavLink>
+              </Link>
             );
           })}
         </div>
