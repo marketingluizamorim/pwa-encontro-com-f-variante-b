@@ -1034,7 +1034,7 @@ export default function Explore() {
                 {view === 'categories' && (
                     <div
                         key="categories"
-                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pb-32 touch-pan-y overscroll-contain"
+                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pb-48 touch-pan-y overscroll-contain"
                     >
                         <Header />
 
