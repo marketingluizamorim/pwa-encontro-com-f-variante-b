@@ -193,7 +193,7 @@ export default function Profile() {
   }
 
   return (
-    <PageTransition className="h-full">
+    <PageTransition className="h-[calc(100vh-8rem)]">
       <PullToRefresh onRefresh={async () => { await loadProfile(); }} className="h-full">
         <div className="flex flex-col pb-24 relative">
           <Header action={

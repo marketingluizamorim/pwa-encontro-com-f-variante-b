@@ -117,7 +117,7 @@ const SwipeableMatchCard = ({
       onClick={() => {
         if (!isDragging) onExpand();
       }}
-      initial={false}
+      initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
     >
@@ -386,7 +386,7 @@ export default function Matches() {
   }
 
   return (
-    <PageTransition className="h-full relative">
+    <PageTransition className="h-[calc(100vh-8rem)] relative">
       <PullToRefresh onRefresh={handleRefresh} className="h-full">
         <div className="flex flex-col min-h-full pb-24">
           <Header action={
@@ -502,7 +502,7 @@ export default function Matches() {
 
           {/* Floating 'See Who Liked You' Button - ONLY for non-premium with likes */}
           {(!subscription?.canSeeWhoLiked && likes.length > 0 && !showUpgradeDialog) && typeof document !== 'undefined' && createPortal(
-            <div className="fixed bottom-[calc(10rem+env(safe-area-inset-bottom))] left-0 right-0 z-[100] flex justify-center px-4 pointer-events-none">
+            <div className="fixed bottom-[calc(10rem+env(safe-area-inset-bottom))] left-0 right-0 z-[100] flex justify-center px-4 animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
               <button
                 onClick={() => {
                   setUpgradeData({
@@ -554,7 +554,7 @@ export default function Matches() {
           {selectedLike && (
             <motion.div
               key="expanded-match-profile"
-              initial={false}
+              initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}

@@ -1026,32 +1026,36 @@ export default function Explore() {
     return (
         <PageTransition
             ref={containerRef}
-            className="flex flex-col h-full bg-[#0f172a] overflow-y-auto overflow-x-hidden"
+            className="flex flex-col h-[100dvh] bg-[#0f172a] overflow-y-auto overflow-x-hidden"
         >
             <AnimatePresence mode="wait">
 
                 {/* --- VIEW: CATEGORIES (Sacred Mosaic Style) --- */}
                 {view === 'categories' && (
-                    <div
+                    <motion.div
                         key="categories"
+                        variants={staggerContainer}
+                        initial="initial"
+                        animate="animate"
+                        exit={{ opacity: 0, x: -20 }}
                         className="flex flex-col pb-32"
                     >
                         <Header />
 
                         <div className="px-6 py-4">
                             {/* Massive Typographic Header */}
-                            <div className="mb-12 relative">
+                            <motion.div variants={itemFadeUp} className="mb-12 relative">
                                 <div className="absolute -top-10 -left-10 w-40 h-40 bg-accent/10 blur-[100px] rounded-full -z-10" />
                                 <h2 className="text-5xl font-serif font-semibold text-white leading-tight">
                                     Conteúdos <br />
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd34d] to-[#d4af37] italic">Inspiradores</span>
                                 </h2>
                                 <div className="w-12 h-1 bg-accent mt-4 rounded-full opacity-50" />
-                            </div>
+                            </motion.div>
 
                             {/* Main Spotlight Fragment (Extreme Asymmetry for Devotional) */}
-                            {/* Main Spotlight Fragment (Extreme Asymmetry for Devotional) */}
-                            <div
+                            <motion.div
+                                variants={itemFadeUp}
                                 onClick={() => handleCategoryClick('devotionals')}
                                 className="relative mb-12 ml-4 mr-0 group cursor-pointer"
                             >
@@ -1076,13 +1080,14 @@ export default function Explore() {
                                         Ler Agora <ChevronRight className="w-4 h-4" />
                                     </div>
                                 </div>
-                            </div>
+                            </motion.div>
 
                             {/* Staggered Grid (Topological Betrayal) */}
                             <div className="space-y-6">
                                 {MAIN_CATEGORIES.filter(c => c.id !== 'devotionals').map((cat, idx) => (
-                                    <div
+                                    <motion.div
                                         key={cat.id}
+                                        variants={itemFadeUp}
                                         onClick={() => handleCategoryClick(cat.id)}
                                         className={cn(
                                             "relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-white/[0.02] backdrop-blur-md p-6 group cursor-pointer transition-all",
@@ -1099,26 +1104,29 @@ export default function Explore() {
                                                 <p className="text-sm text-white/40 font-medium">{cat.description}</p>
                                             </div>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 ))}
                             </div>
 
                             {/* Divine Scroll Quote */}
-                            <div className="mt-16 text-center px-4 opacity-30">
+                            <motion.div variants={itemFadeUp} className="mt-16 text-center px-4 opacity-30">
                                 <Quote className="w-8 h-8 mx-auto mb-4 text-accent/50" />
                                 <p className="text-sm font-serif italic text-white/80 leading-relaxed">
                                     "Lâmpada para os meus pés é tua palavra, e luz para o meu caminho."
                                 </p>
                                 <span className="text-[10px] uppercase tracking-widest font-semibold mt-2 block">Salmo 119:105</span>
-                            </div>
+                            </motion.div>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* --- VIEW: DEVOTIONAL DETAIL (Meditation Flow) --- */}
                 {view === 'devotional-detail' && (
-                    <div
+                    <motion.div
                         key="devotional-detail"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         className="flex flex-col min-h-screen"
                     >
                         {/* Soft Ambient Background */}
@@ -1141,7 +1149,9 @@ export default function Explore() {
 
                         <div className="px-8 pb-40">
                             {/* Morning Header */}
-                            <div
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 className="mt-12 text-center"
                             >
                                 <span className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.4em] mb-4 block">Meditação Diária</span>
@@ -1149,10 +1159,13 @@ export default function Explore() {
                                     {todayDevotional.title}
                                 </h2>
                                 <div className="w-8 h-1 bg-amber-500/50 mx-auto rounded-full" />
-                            </div>
+                            </motion.div>
 
                             {/* The Scripture (Floating Paper Style) */}
-                            <div
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.2 }}
                                 className="mt-16 p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/10 relative"
                             >
                                 <BookMarked className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 text-amber-500" />
@@ -1162,10 +1175,13 @@ export default function Explore() {
                                 <div className="text-center">
                                     <span className="text-xs font-bold text-amber-500/60 uppercase tracking-widest">{todayDevotional.verse.ref}</span>
                                 </div>
-                            </div>
+                            </motion.div>
 
                             {/* Main Content (Typographic focus) */}
-                            <div
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                viewport={{ once: true }}
                                 className="mt-20 space-y-12"
                             >
                                 <div className="prose prose-invert max-w-none">
@@ -1200,15 +1216,18 @@ export default function Explore() {
                                         "{todayDevotional.prayer}"
                                     </p>
                                 </div>
-                            </div>
+                            </motion.div>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* --- VIEW: TIPS LIST (Vertical Stream) --- */}
                 {view === 'tips-list' && (
-                    <div
+                    <motion.div
                         key="tips-list"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
                         className="flex flex-col pt-4"
                     >
                         {/* Unconventional Nav Header */}
@@ -1241,8 +1260,12 @@ export default function Explore() {
                                     {/* Asymmetric Tips Flow */}
                                     <div className="space-y-4 pl-4 border-l border-white/5 ml-6">
                                         {topic.tips.map((tip, tipIdx) => (
-                                            <div
+                                            <motion.div
                                                 key={tip.id}
+                                                initial={{ opacity: 0, x: 10 }}
+                                                whileInView={{ opacity: 1, x: 0 }}
+                                                viewport={{ once: true, margin: "-50px" }}
+                                                transition={{ delay: 0.1 }}
                                                 onClick={() => handleTipClick(topic, tip)}
                                                 className={cn(
                                                     "group relative cursor-pointer active:scale-[0.98] transition-transform",
@@ -1264,19 +1287,22 @@ export default function Explore() {
                                                         <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-accent" />
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </motion.div>
                                         ))}
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* --- VIEW: TIP DETAIL (Sacred Detail Style) --- */}
                 {view === 'tip-detail' && selectedTip && selectedTopic && (
-                    <div
+                    <motion.div
                         key="tip-detail"
+                        initial={{ opacity: 0, scale: 1.1 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
                         className="fixed inset-0 z-50 bg-[#0f172a] overflow-y-auto no-scrollbar pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
                     >
                         {/* Cinematic Header Overlay */}
@@ -1293,36 +1319,50 @@ export default function Explore() {
                             >
                                 <ArrowLeft className="w-5 h-5 shadow-2xl" />
                             </button>
-                            <div
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 className="bg-black/20 backdrop-blur-2xl border border-white/5 px-4 py-2 rounded-full"
                             >
                                 <span className="text-[10px] font-bold uppercase text-accent tracking-[0.3em]">{selectedTopic.title}</span>
-                            </div>
+                            </motion.div>
                             <div className="w-12" />
                         </div>
 
                         <div className="px-6 pb-40 mt-10">
                             {/* Massive Typographic Reveal */}
-                            <h2
+                            <motion.h2
+                                initial={{ opacity: 0, filter: 'blur(10px)' }}
+                                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                                transition={{ delay: 0.2, duration: 0.8 }}
                                 className="text-5xl font-serif font-semibold text-white mb-8 leading-[1.1] italic"
                             >
                                 {selectedTip.title}
-                            </h2>
+                            </motion.h2>
 
-                            <div
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.4 }}
                                 className="w-20 h-1.5 bg-accent mb-12 rounded-full"
                             />
 
                             {/* Fragmented Content Layout */}
                             <div className="space-y-12 mb-16">
-                                <p
+                                <motion.p
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.5 }}
                                     className="text-white/80 text-lg leading-relaxed font-medium first-letter:text-6xl first-letter:font-serif first-letter:float-left first-letter:mr-3 first-letter:text-accent first-letter:mt-1"
                                 >
                                     {selectedTip.fullDesc}
-                                </p>
+                                </motion.p>
 
                                 {/* Main Points Box (Layered Depth) */}
-                                <div
+                                <motion.div
+                                    initial={{ opacity: 0, y: 30 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
                                     className="relative p-8 rounded-[3rem] bg-white/[0.03] border border-white/10 overflow-hidden"
                                 >
                                     <div className="absolute top-0 right-0 p-8 opacity-5">
@@ -1346,11 +1386,14 @@ export default function Explore() {
                                             </div>
                                         ))}
                                     </div>
-                                </div>
+                                </motion.div>
                             </div>
 
                             {/* Final Verse (High Tension Layout) */}
-                            <div
+                            <motion.div
+                                initial={{ opacity: 0, y: 50 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
                                 className="relative mt-24"
                             >
                                 <div className="absolute -top-12 left-0 text-7xl font-serif text-accent/10 pointer-events-none select-none">"</div>
@@ -1366,14 +1409,18 @@ export default function Explore() {
                                     </div>
                                 </div>
                                 <div className="absolute -bottom-10 right-0 text-7xl font-serif text-accent/10 pointer-events-none select-none translate-y-4">"</div>
-                            </div>
+                            </motion.div>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
                 {/* --- VIEW: BIBLE STUDIES LIST --- */}
                 {view === 'courses-list' && (
-                    <div
+                    <motion.div
                         key="courses-list"
+                        variants={staggerContainer}
+                        initial="initial"
+                        animate="animate"
+                        exit={{ opacity: 0, x: -20 }}
                         className="flex flex-col pt-4"
                     >
                         <div className="px-6 pb-6 flex items-center justify-between sticky top-0 bg-[#0f172a]/80 backdrop-blur-3xl z-50 py-4">
@@ -1386,8 +1433,9 @@ export default function Explore() {
 
                         <div className="px-6 space-y-6">
                             {BIBLE_STUDIES.map((study) => (
-                                <div
+                                <motion.div
                                     key={study.id}
+                                    variants={itemFadeUp}
                                     onClick={() => handleStudyClick(study)}
                                     className="relative group cursor-pointer"
                                 >
@@ -1425,16 +1473,19 @@ export default function Explore() {
                                             </span>
                                         </div>
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* --- VIEW: BIBLE STUDY DETAIL --- */}
                 {view === 'course-detail' && selectedStudy && selectedLesson && (
-                    <div
+                    <motion.div
                         key="course-detail"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         className="flex flex-col min-h-screen"
                     >
                         <div className="px-6 py-6 flex items-center justify-between sticky top-0 z-50 bg-[#0f172a]/80 backdrop-blur-3xl">
@@ -1464,8 +1515,10 @@ export default function Explore() {
                                 ))}
                             </div>
 
-                            <div
+                            <motion.div
                                 key={selectedLesson.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 className="space-y-12"
                             >
                                 <h2 className="text-3xl font-serif font-semibold text-white mt-8 leading-tight italic">
@@ -1505,15 +1558,19 @@ export default function Explore() {
                                         ? 'Finalizar Curso'
                                         : 'Próxima Lição'}
                                 </button>
-                            </div>
+                            </motion.div>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* --- VIEW: COMMUNITY LIST --- */}
                 {view === 'community-list' && (
-                    <div
+                    <motion.div
                         key="community-list"
+                        variants={staggerContainer}
+                        initial="initial"
+                        animate="animate"
+                        exit={{ opacity: 0, x: -20 }}
                         className="flex flex-col pt-4"
                     >
                         <div className="px-6 pb-6 flex items-center justify-between sticky top-0 bg-[#0f172a]/80 backdrop-blur-3xl z-50 py-4">
@@ -1526,7 +1583,8 @@ export default function Explore() {
 
                         <div className="px-6 pb-20 space-y-12">
                             {/* Main Portal Card */}
-                            <div
+                            <motion.div
+                                variants={itemFadeUp}
                                 onClick={() => handleGroupClick(COMMUNITY_DATA.main.link)}
                                 className="relative group cursor-pointer"
                             >
@@ -1544,7 +1602,7 @@ export default function Explore() {
                                         Acessar Portal <ChevronRight className="w-4 h-4" />
                                     </div>
                                 </div>
-                            </div>
+                            </motion.div>
 
                             {/* Categories Grid */}
                             {COMMUNITY_DATA.categories.map((cat) => (
@@ -1561,8 +1619,9 @@ export default function Explore() {
 
                                     <div className="grid grid-cols-1 gap-3">
                                         {cat.groups.map((group, idx) => (
-                                            <div
+                                            <motion.div
                                                 key={idx}
+                                                whileHover={{ x: 5 }}
                                                 onClick={() => handleGroupClick(group.link)}
                                                 className="glass-dark rounded-2xl border border-white/5 p-4 flex items-center justify-between group cursor-pointer hover:border-white/20 transition-all"
                                             >
@@ -1573,13 +1632,13 @@ export default function Explore() {
                                                     <span className="text-sm font-semibold tracking-tight">{group.name}</span>
                                                 </div>
                                                 <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white transition-colors" />
-                                            </div>
+                                            </motion.div>
                                         ))}
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
 
@@ -1587,11 +1646,17 @@ export default function Explore() {
             <AnimatePresence>
                 {isRuleModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-                        <div
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
                             onClick={() => setIsRuleModalOpen(false)}
                             className="absolute inset-0 bg-black/80 backdrop-blur-md"
                         />
-                        <div
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
                             className="relative w-full max-w-[320px] glass rounded-[2rem] p-6 border border-white/10 shadow-2xl overflow-hidden"
                         >
                             <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-emerald-500/10 to-transparent" />
@@ -1641,7 +1706,7 @@ export default function Explore() {
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 )}
             </AnimatePresence>

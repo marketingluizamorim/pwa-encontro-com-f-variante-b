@@ -185,7 +185,7 @@ export default function Settings() {
   );
 
   return (
-    <div className="h-full overflow-y-auto bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur pt-[env(safe-area-inset-top)] min-h-[calc(3.5rem+env(safe-area-inset-top))]">
         <div className="container flex h-14 items-center px-4">
@@ -200,7 +200,7 @@ export default function Settings() {
       </header>
 
       <motion.div
-        initial={false}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="container px-4 py-6 space-y-6 pb-24" // Extra padding for visual breathing
       >

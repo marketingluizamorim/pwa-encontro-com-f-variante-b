@@ -262,7 +262,7 @@ export default function ProfileEdit() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur pt-[env(safe-area-inset-top)] min-h-[calc(3.5rem+env(safe-area-inset-top))]">
         <div className="container flex h-14 items-center justify-between px-4">
@@ -279,9 +279,8 @@ export default function ProfileEdit() {
       </header>
 
       <motion.div
-        initial={false}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0 }}
         className="container px-4 py-6 space-y-6 pb-32"
       >
         {/* Photo Upload */}
@@ -532,9 +531,9 @@ export default function ProfileEdit() {
               <AnimatePresence mode="wait">
                 {activeSocial && (
                   <motion.div
-                    initial={false}
+                    initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    transition={{ duration: 0 }}
+                    exit={{ opacity: 0, height: 0 }}
                     className="overflow-hidden"
                   >
                     <div className="bg-muted/30 rounded-xl p-3 border border-border mt-2">

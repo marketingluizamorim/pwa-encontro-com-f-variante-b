@@ -293,10 +293,10 @@ export default function Chat() {
         });
 
     return (
-        <PageTransition className="h-full">
+        <PageTransition className="h-[calc(100vh-8rem)]">
             <PullToRefresh onRefresh={handleRefresh} className="h-full">
-                <div className="flex flex-col bg-background">
-                    <div className="flex-1 pb-24">
+                <div className="flex flex-col h-full bg-background">
+                    <div className="flex-1 overflow-y-auto pb-24">
                         <Header action={
                             <button
                                 onClick={() => setShowSafety(true)}
@@ -473,7 +473,7 @@ export default function Chat() {
                         {selectedProfile && (
                             <motion.div
                                 key="expanded-chat-profile"
-                                initial={false}
+                                initial={{ y: '100%' }}
                                 animate={{ y: 0 }}
                                 exit={{ y: '100%' }}
                                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
