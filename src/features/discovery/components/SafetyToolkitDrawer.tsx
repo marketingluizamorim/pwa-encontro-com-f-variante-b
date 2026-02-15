@@ -43,11 +43,11 @@ export function SafetyToolkitDrawer({ open, onOpenChange }: SafetyToolkitDrawerP
 
                 if (data) {
                     // Use type assertion to bypass lint errors if columns are missing from generated types but exist in DB
-                    const profile = data as any;
+                    const profile = data as Record<string, unknown>;
                     setSettings({
-                        show_read_receipts: profile.show_read_receipts ?? true,
-                        show_online_status: profile.show_online_status ?? true,
-                        show_last_active: profile.show_last_active ?? true
+                        show_read_receipts: (profile.show_read_receipts as boolean) ?? true,
+                        show_online_status: (profile.show_online_status as boolean) ?? true,
+                        show_last_active: (profile.show_last_active as boolean) ?? true,
                     });
                 }
             };
@@ -66,7 +66,7 @@ export function SafetyToolkitDrawer({ open, onOpenChange }: SafetyToolkitDrawerP
         const { supabase } = await import('@/integrations/supabase/client');
         const { error } = await supabase
             .from('profiles')
-            .update({ [key]: value } as any)
+            .update({ [key]: value } as Record<string, unknown>)
             .eq('user_id', user.id);
 
         if (error) {

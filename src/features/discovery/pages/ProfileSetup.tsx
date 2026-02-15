@@ -161,9 +161,10 @@ export default function ProfileSetup() {
 
       if (error) throw error;
       setStep('complete');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving profile:', error);
-      toast.error('Erro ao salvar perfil: ' + (error.message || 'Tente novamente'));
+      const errorMessage = error instanceof Error ? error.message : 'Tente novamente';
+      toast.error('Erro ao salvar perfil: ' + errorMessage);
     } finally {
       setSaving(false);
     }
@@ -249,7 +250,7 @@ export default function ProfileSetup() {
                       ].map((opt) => (
                         <button
                           key={opt.value}
-                          onClick={() => { setGender(opt.value as any); delete errors.gender; }}
+                          onClick={() => { setGender(opt.value as 'male' | 'female'); delete errors.gender; }}
                           className={cn(
                             "h-14 rounded-xl border transition-all font-medium relative overflow-hidden",
                             gender === opt.value

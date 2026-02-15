@@ -243,7 +243,7 @@ export default function Discover() {
 
       console.log('Discover: Profile Data:', data);
 
-      const profileData = data as any || {};
+      const profileData = (data as Record<string, unknown>) || {};
 
       const fields = [
         profileData.display_name,
@@ -256,8 +256,8 @@ export default function Discover() {
         profileData.looking_for,
         profileData.gender,
         profileData.occupation,
-        (profileData.photos && profileData.photos.length > 0),
-        ((profileData.christian_interests && profileData.christian_interests.length > 0) || (profileData.interests && profileData.interests.length > 0))
+        (Array.isArray(profileData.photos) && profileData.photos.length > 0),
+        ((Array.isArray(profileData.christian_interests) && profileData.christian_interests.length > 0) || (Array.isArray(profileData.interests) && profileData.interests.length > 0))
       ];
 
       const filled = fields.filter(Boolean).length;
@@ -399,7 +399,7 @@ export default function Discover() {
     );
   };
 
-  const handleDragEnd = (event: any, info: PanInfo) => {
+  const handleDragEnd = (_event: unknown, info: PanInfo) => {
     if (swiping) return;
     const { offset, velocity } = info;
 

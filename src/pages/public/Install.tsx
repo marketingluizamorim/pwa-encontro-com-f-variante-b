@@ -22,7 +22,7 @@ export default function Install() {
     }
 
     // Detect iOS
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as unknown as { MSStream: unknown }).MSStream;
     setIsIOS(isIOSDevice);
 
     // Listen for install prompt

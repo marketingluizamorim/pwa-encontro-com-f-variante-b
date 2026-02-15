@@ -11,7 +11,7 @@ let audioContext: AudioContext | null = null;
 
 function getAudioContext(): AudioContext {
   if (!audioContext) {
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
   }
   return audioContext;
 }
@@ -20,7 +20,7 @@ function getAudioContext(): AudioContext {
 function playNotificationBeep(frequency = 800, duration = 0.15) {
   try {
     const ctx = getAudioContext();
-    
+
     // Resume context if suspended (required for user interaction policy)
     if (ctx.state === 'suspended') {
       ctx.resume();
@@ -51,7 +51,7 @@ function playNotificationBeep(frequency = 800, duration = 0.15) {
 function playTwoToneNotification() {
   try {
     const ctx = getAudioContext();
-    
+
     if (ctx.state === 'suspended') {
       ctx.resume();
     }
@@ -90,26 +90,26 @@ function playTwoToneNotification() {
 function playMatchSound() {
   try {
     const ctx = getAudioContext();
-    
+
     if (ctx.state === 'suspended') {
       ctx.resume();
     }
 
     const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
-    
+
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.type = 'sine';
-      
+
       const startTime = ctx.currentTime + i * 0.08;
       osc.frequency.setValueAtTime(freq, startTime);
       gain.gain.setValueAtTime(0, startTime);
       gain.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
-      
+
       osc.start(startTime);
       osc.stop(startTime + 0.2);
     });
@@ -124,7 +124,7 @@ export type NotificationType = 'message' | 'match' | 'like';
 export function playNotification(type: NotificationType = 'message') {
   // Always trigger haptic feedback, only skip sound if muted
   const muted = isMuted();
-  
+
   switch (type) {
     case 'message':
       if (!muted) playTwoToneNotification();
@@ -151,7 +151,7 @@ export function initializeAudio() {
     document.removeEventListener('click', handleInteraction);
     document.removeEventListener('touchstart', handleInteraction);
   };
-  
+
   document.addEventListener('click', handleInteraction, { once: true });
   document.addEventListener('touchstart', handleInteraction, { once: true });
 }

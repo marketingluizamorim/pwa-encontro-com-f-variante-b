@@ -38,7 +38,7 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
         if (open && user) {
             const fetchProfile = async () => {
                 const { supabase } = await import('@/integrations/supabase/client');
-                const { data } = await (supabase.from('profiles').select('display_name, phone').eq('user_id', user.id).maybeSingle() as any);
+                const { data } = await (supabase.from('profiles').select('display_name, phone').eq('user_id', user.id).maybeSingle() as unknown as Promise<{ data: { display_name: string; phone: string } | null, error: unknown }>);
 
                 setInitialData({
                     name: data?.display_name || user.user_metadata?.display_name || '',

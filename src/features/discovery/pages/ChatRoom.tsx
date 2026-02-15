@@ -58,7 +58,7 @@ interface MatchProfile {
   show_distance?: boolean;
   christian_interests?: string[];
   interests?: string[];
-  social_media?: string | any;
+  social_media?: string | Record<string, string>;
   last_active_at?: string;
   show_online_status?: boolean;
   show_last_active?: boolean;
@@ -114,27 +114,27 @@ export default function ChatRoom() {
 
       let mProfile: MatchProfile | null = null;
       if (profile) {
-        const p: any = profile;
+        const p = profile as Record<string, unknown>;
         mProfile = {
-          id: p.user_id,
-          display_name: p.display_name || 'Usuário',
-          avatar_url: p.avatar_url || undefined,
-          photos: p.photos || [],
-          bio: p.bio,
-          birth_date: p.birth_date,
-          city: p.city,
-          state: p.state,
-          religion: p.religion,
-          church_frequency: p.church_frequency,
-          looking_for: p.looking_for,
-          occupation: p.occupation,
-          is_verified: p.is_verified,
-          show_distance: p.show_distance,
-          christian_interests: p.christian_interests,
-          interests: p.interests,
-          last_active_at: p.last_active_at,
-          show_online_status: p.show_online_status,
-          show_last_active: p.show_last_active
+          id: String(p.user_id),
+          display_name: String(p.display_name || 'Usuário'),
+          avatar_url: p.avatar_url ? String(p.avatar_url) : undefined,
+          photos: Array.isArray(p.photos) ? p.photos.map(String) : [],
+          bio: p.bio ? String(p.bio) : undefined,
+          birth_date: p.birth_date ? String(p.birth_date) : undefined,
+          city: p.city ? String(p.city) : undefined,
+          state: p.state ? String(p.state) : undefined,
+          religion: p.religion ? String(p.religion) : undefined,
+          church_frequency: p.church_frequency ? String(p.church_frequency) : undefined,
+          looking_for: p.looking_for ? String(p.looking_for) : undefined,
+          occupation: p.occupation ? String(p.occupation) : undefined,
+          is_verified: !!p.is_verified,
+          show_distance: !!p.show_distance,
+          christian_interests: Array.isArray(p.christian_interests) ? p.christian_interests.map(String) : [],
+          interests: Array.isArray(p.interests) ? p.interests.map(String) : [],
+          last_active_at: p.last_active_at ? String(p.last_active_at) : undefined,
+          show_online_status: !!p.show_online_status,
+          show_last_active: !!p.show_last_active
         };
       }
 
@@ -171,7 +171,7 @@ export default function ChatRoom() {
         .from('profiles')
         .select('social_media')
         .eq('user_id', user.id)
-        .single() as any);
+        .single() as unknown as Promise<{ data: { social_media?: string } | null }>);
 
       if (myProfile?.social_media) {
         try {
@@ -191,7 +191,7 @@ export default function ChatRoom() {
   const otherUserId = matchDetails?.otherUserId || null;
   const isSuperLikeMatch = matchDetails?.isSuperLikeMatch || false;
 
-  const setMessages = useCallback((updater: any) => {
+  const setMessages = useCallback((updater: Message[] | ((prev: Message[]) => Message[])) => {
     queryClient.setQueryData(['chat-messages', matchId], (old: Message[] | undefined) => {
       const prev = old || [];
       if (typeof updater === 'function') {
@@ -202,7 +202,7 @@ export default function ChatRoom() {
     });
   }, [queryClient, matchId]);
 
-  const setMySocials = useCallback((updater: any) => {
+  const setMySocials = useCallback((updater: SocialMediaLinks | ((prev: SocialMediaLinks) => SocialMediaLinks)) => {
     queryClient.setQueryData(['my-socials', user?.id], (old: SocialMediaLinks | undefined) => {
       const prev = old || {};
       if (typeof updater === 'function') {
@@ -290,8 +290,8 @@ export default function ChatRoom() {
   useEffect(() => {
     if (!matchId) return;
 
-    let channel: any = null;
-    let supabaseClient: any = null;
+    let channel: { unsubscribe: () => void } | null = null;
+    let supabaseClient: { removeChannel: (ch: unknown) => void } | null = null;
 
     (async () => {
       const { supabase } = await import('@/integrations/supabase/client');
@@ -525,11 +525,12 @@ export default function ChatRoom() {
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error starting recording:', err);
-      if (err.name === 'NotAllowedError') {
+      const error = err as { name?: string };
+      if (error.name === 'NotAllowedError') {
         toast.error('Acesso ao microfone negado. Ative as permissões nas configurações do seu navegador.');
-      } else if (err.name === 'NotFoundError') {
+      } else if (error.name === 'NotFoundError') {
         toast.error('Nenhum microfone encontrado no seu dispositivo.');
       } else {
         toast.error('Erro ao acessar microfone. Verifique se ele está sendo usado por outro app.');
@@ -601,7 +602,7 @@ export default function ChatRoom() {
 
   const saveSocialLink = async () => {
     if (!user || !socialModal.platform) return;
-    let valueToSave = socialInputValue.trim();
+    const valueToSave = socialInputValue.trim();
     if (!valueToSave) return;
 
     const updatedSocials = { ...mySocials, [socialModal.platform]: valueToSave };
@@ -611,7 +612,7 @@ export default function ChatRoom() {
       const { supabase } = await import('@/integrations/supabase/client');
       await (supabase
         .from('profiles')
-        .update({ social_media: JSON.stringify(updatedSocials) } as any) as any)
+        .update({ social_media: JSON.stringify(updatedSocials) } as { social_media: string }) as unknown as { eq: (k: string, v: string) => Promise<unknown> })
         .eq('user_id', user.id);
 
       toast.success('Rede social salva no seu perfil!');

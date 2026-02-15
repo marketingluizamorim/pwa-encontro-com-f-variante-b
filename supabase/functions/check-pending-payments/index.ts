@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
             default: expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
           }
 
-          let orderBumpsArray: string[] = Array.isArray(purchase.order_bumps) ? purchase.order_bumps : [];
+          const orderBumpsArray: string[] = Array.isArray(purchase.order_bumps) ? purchase.order_bumps : [];
           const hasLifetime = orderBumpsArray.includes("lifetime") || ["lifetime", "special", "special-offer-lifetime"].includes(purchase.plan_id);
 
           if (purchase.user_id) {
@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
             try {
               const approvedDate = formatDateForWebhook(now);
               const createdAtFormatted = formatDateForWebhook(new Date(purchase.created_at));
-              let products = [{ id: purchase.plan_id, name: PLAN_NAMES[purchase.plan_id] || purchase.plan_name, price: Number(purchase.plan_price), quantity: 1 }];
+              const products = [{ id: purchase.plan_id, name: PLAN_NAMES[purchase.plan_id] || purchase.plan_name, price: Number(purchase.plan_price), quantity: 1 }];
 
               if (!purchase.plan_id.includes("special")) {
                 for (const bumpId of orderBumpsArray) {

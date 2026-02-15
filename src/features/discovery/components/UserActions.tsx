@@ -320,7 +320,7 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
       if (matchData) {
         await supabase
           .from('matches')
-          .update({ is_active: false } as any)
+          .update({ is_active: false } as { is_active: boolean })
           .eq('id', matchData.id);
       }
 
@@ -443,7 +443,7 @@ export function DeleteConversationDialog({ open, onOpenChange, matchId, onDelete
       // "Excluir" a conversa = Desativar o Match
       const { error } = await supabase
         .from('matches')
-        .update({ is_active: false } as any)
+        .update({ is_active: false } as { is_active: boolean })
         .eq('id', matchId);
 
       if (error) throw error;

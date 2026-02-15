@@ -69,9 +69,9 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
         .getPublicUrl(fileName);
 
       return publicUrl;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error details:', error);
-      const msg = error?.message || 'Erro desconhecido';
+      const msg = (error as Error)?.message || 'Erro desconhecido';
       toast.error(`Erro ao enviar foto: ${msg}. Tente novamente.`);
       return null;
     }

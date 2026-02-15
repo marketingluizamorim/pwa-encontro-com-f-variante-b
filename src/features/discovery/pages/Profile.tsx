@@ -677,9 +677,10 @@ export default function Profile() {
                       if (error) throw error;
                       toast.success('Alterado para Bronze!', { id: toastId });
                       setTimeout(() => window.location.reload(), 1000);
-                    } catch (err: any) {
+                    } catch (err: unknown) {
                       console.error(err);
-                      toast.error(`Erro: ${err.message}`, { id: toastId });
+                      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+                      toast.error(`Erro: ${errorMessage}`, { id: toastId });
                     }
                   }}
                   className="bg-orange-950/30 border-orange-500/20 text-orange-200 hover:bg-orange-900/50"
@@ -709,9 +710,10 @@ export default function Profile() {
                       if (error) throw error;
                       toast.success('Alterado para Prata!', { id: toastId });
                       setTimeout(() => window.location.reload(), 1000);
-                    } catch (err: any) {
+                    } catch (err: unknown) {
                       console.error(err);
-                      toast.error(`Erro: ${err.message}`, { id: toastId });
+                      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+                      toast.error(`Erro: ${errorMessage}`, { id: toastId });
                     }
                   }}
                   className="bg-slate-800/50 border-slate-400/20 text-slate-200 hover:bg-slate-700/50"
@@ -741,9 +743,10 @@ export default function Profile() {
                       if (error) throw error;
                       toast.success('Alterado para Ouro!', { id: toastId });
                       setTimeout(() => window.location.reload(), 1000);
-                    } catch (err: any) {
+                    } catch (err: unknown) {
                       console.error(err);
-                      toast.error(`Erro: ${err.message}`, { id: toastId });
+                      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+                      toast.error(`Erro: ${errorMessage}`, { id: toastId });
                     }
                   }}
                   className="bg-yellow-950/30 border-yellow-500/20 text-yellow-200 hover:bg-yellow-900/50"

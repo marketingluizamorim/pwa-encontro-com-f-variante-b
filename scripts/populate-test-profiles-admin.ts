@@ -228,8 +228,9 @@ async function createTestProfile(profileData: ReturnType<typeof generateProfile>
 
         console.log(`   ✅ Concluído`);
 
-    } catch (error: any) {
-        console.error(`   ❌ Erro: ${error.message}`);
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`   ❌ Erro: ${errorMessage}`);
     }
 }
 

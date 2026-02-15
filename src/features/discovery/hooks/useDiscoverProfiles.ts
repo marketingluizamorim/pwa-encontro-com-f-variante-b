@@ -71,11 +71,11 @@ async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams
     .eq('user_id', userId)
     .single();
 
-  const userLat = currentUserProfile?.latitude ? parseFloat(currentUserProfile.latitude as any) : null;
-  const userLon = currentUserProfile?.longitude ? parseFloat(currentUserProfile.longitude as any) : null;
+  const userLat = currentUserProfile?.latitude ? parseFloat(String(currentUserProfile.latitude)) : null;
+  const userLon = currentUserProfile?.longitude ? parseFloat(String(currentUserProfile.longitude)) : null;
 
   // Use RPC for advanced discovery (supports PostGIS distance and complex filters)
-  const { data: profilesData, error } = await (supabase as any).rpc('get_profiles_discovery', {
+  const { data: profilesData, error } = await (supabase as unknown as { rpc: (name: string, params: unknown) => Promise<{ data: unknown, error: unknown }> }).rpc('get_profiles_discovery', {
     user_lat: userLat,
     user_lon: userLon,
     min_age: filters.minAge,
@@ -101,7 +101,7 @@ async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams
 
   const from = pageParam * PAGE_SIZE;
   const to = from + PAGE_SIZE;
-  const profiles = (profilesData || []) as Profile[];
+  const profiles = (profilesData as Profile[]) || [];
   const paginatedProfiles = profiles.slice(from, to);
   const hasMore = profiles.length > to;
 
@@ -190,20 +190,20 @@ export function useSwipeMutation() {
             .not('message', 'is', null)
             .maybeSingle();
 
-          if ((otherSwipe as any)?.message) {
+          if ((otherSwipe as unknown as { message?: string })?.message) {
             // Check if already inserted to prevent dupes
             const { count } = await supabase
               .from('messages')
               .select('*', { count: 'exact', head: true })
               .eq('match_id', matchData.id)
               .eq('sender_id', swipedId)
-              .eq('content', (otherSwipe as any).message);
+              .eq('content', (otherSwipe as unknown as { message: string }).message);
 
             if (count === 0) {
               const { error: otherMsgError } = await supabase.from('messages').insert({
                 match_id: matchData.id,
                 sender_id: swipedId,
-                content: (otherSwipe as any).message,
+                content: (otherSwipe as unknown as { message: string }).message,
                 is_read: false
               });
               if (otherMsgError) console.error('Error creating other super like message:', otherMsgError);

@@ -7,7 +7,7 @@ export interface PaymentRequest {
     userName: string;
     userEmail: string;
     userPhone: string;
-    orderBumps: any;
+    orderBumps: unknown;
     quizData: QuizAnswers;
     isSpecialOffer?: boolean;
     planName?: string;

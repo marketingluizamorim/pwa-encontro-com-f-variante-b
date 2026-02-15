@@ -114,7 +114,7 @@ export default function Chat() {
             if (matchesError) throw matchesError;
 
             // Filter out matches with blocked users
-            const activeMatches = (matchesData || []).filter(m => {
+            const activeMatches = (matchesData as { id: string, user1_id: string, user2_id: string }[] || []).filter(m => {
                 const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
                 return !blockedUserIds.has(otherId);
             });

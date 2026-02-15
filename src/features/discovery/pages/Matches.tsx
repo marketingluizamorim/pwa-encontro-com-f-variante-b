@@ -88,7 +88,7 @@ const SwipeableMatchCard = ({
 
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleDragEnd = (event: any, info: PanInfo) => {
+  const handleDragEnd = (_event: unknown, info: PanInfo) => {
     setIsDragging(false);
     const { offset, velocity } = info;
     const swipeThreshold = 80;
@@ -270,8 +270,8 @@ export default function Matches() {
       ));
 
       // Filter out users I have acted upon AND blocked users
-      const pendingLikeUserIds = ((swipesData as any[]) || [])
-        .map((s: any) => s.swiper_id)
+      const pendingLikeUserIds = ((swipesData as unknown as { swiper_id: string }[]) || [])
+        .map((s) => s.swiper_id)
         .filter(id => !mySwipedIds.has(id))
         .filter(id => !blockedUserIds.has(id));
 
@@ -289,9 +289,9 @@ export default function Matches() {
 
       const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
 
-      const formattedLikes: LikeProfile[] = (swipesData || [])
-        .filter((s: any) => pendingLikeUserIds.includes(s.swiper_id))
-        .map((s: any) => {
+      const formattedLikes: LikeProfile[] = (swipesData as unknown as { swiper_id: string, created_at: string, message?: string, direction: string }[] || [])
+        .filter((s) => pendingLikeUserIds.includes(s.swiper_id))
+        .map((s) => {
           const profile = profilesMap.get(s.swiper_id);
           if (!profile) return null;
           return {

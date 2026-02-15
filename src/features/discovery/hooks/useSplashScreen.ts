@@ -5,12 +5,12 @@ export function useSplashScreen() {
 
   useEffect(() => {
     // Only show splash screen if running as installed PWA
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-      || (window.navigator as any).standalone === true;
-    
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+
     // Check if splash was already shown this session
     const splashShown = sessionStorage.getItem('splashShown');
-    
+
     if (isStandalone && !splashShown) {
       setShowSplash(true);
     }

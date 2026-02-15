@@ -9,14 +9,19 @@ interface InstallPwaDrawerProps {
     onComplete: () => void;
 }
 
+interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export function InstallPwaDrawer({ open, onOpenChange, onComplete }: InstallPwaDrawerProps) {
-    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
     const [isIOS, setIsIOS] = useState(false);
     const [isStandalone, setIsStandalone] = useState(false);
 
     useEffect(() => {
         // Check if already in standalone mode
-        const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+        const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as unknown as { standalone: boolean }).standalone;
         setIsStandalone(isStandaloneMode);
 
         // Detect iOS
@@ -24,9 +29,9 @@ export function InstallPwaDrawer({ open, onOpenChange, onComplete }: InstallPwaD
         setIsIOS(/iphone|ipad|ipod/.test(userAgent));
 
         // Capture install prompt
-        const handleBeforeInstallPrompt = (e: any) => {
+        const handleBeforeInstallPrompt = (e: Event) => {
             e.preventDefault();
-            setDeferredPrompt(e);
+            setDeferredPrompt(e as BeforeInstallPromptEvent);
         };
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);

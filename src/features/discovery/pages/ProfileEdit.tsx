@@ -173,19 +173,19 @@ export default function ProfileEdit() {
         religion: data.religion || '',
         church_frequency: data.church_frequency || '',
         looking_for: data.looking_for || '',
-        occupation: (data as any).occupation || '',
-        values_importance: (data as any).values_importance || '',
-        photos: data.photos || [],
-        gender: (data as any).gender || '',
-        christian_interests: (data as any).christian_interests || [],
-        languages: (data as any).languages || [],
-        education: (data as any).education || '',
-        pets: (data as any).pets || '',
-        drink: (data as any).drink || '',
-        smoke: (data as any).smoke || '',
-        physical_activity: (data as any).physical_activity || '',
-        social_media: (data as any).social_media || '',
-        about_children: (data as any).about_children || '',
+        occupation: (data as { occupation?: string }).occupation || '',
+        values_importance: (data as { values_importance?: string }).values_importance || '',
+        photos: (data as { photos?: string[] }).photos || [],
+        gender: (data as { gender?: string }).gender || '',
+        christian_interests: (data as { christian_interests?: string[] }).christian_interests || [],
+        languages: (data as { languages?: string[] }).languages || [],
+        education: (data as { education?: string }).education || '',
+        pets: (data as { pets?: string }).pets || '',
+        drink: (data as { drink?: string }).drink || '',
+        smoke: (data as { smoke?: string }).smoke || '',
+        physical_activity: (data as { physical_activity?: string }).physical_activity || '',
+        social_media: (data as { social_media?: string }).social_media || '',
+        about_children: (data as { about_children?: string }).about_children || '',
       });
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -504,8 +504,12 @@ export default function ProfileEdit() {
                   { key: 'whatsapp', icon: 'ri-whatsapp-line', color: '#25D366' }
                 ].map(social => {
                   let socialData = {};
-                  try { socialData = JSON.parse(profile.social_media || '{}'); } catch { }
-                  const hasValue = !!(socialData as any)[social.key];
+                  try {
+                    socialData = JSON.parse(profile.social_media || '{}');
+                  } catch (e) {
+                    console.error('Error parsing social media data:', e);
+                  }
+                  const hasValue = !!(socialData as Record<string, string>)[social.key];
                   const isActive = activeSocial === social.key;
 
                   return (
@@ -544,12 +548,16 @@ export default function ProfileEdit() {
                         <Input
                           autoFocus
                           value={(() => {
-                            let socialData: any = {};
+                            let socialData: Record<string, string> = {};
                             const raw = profile.social_media;
                             if (typeof raw === 'object' && raw !== null) {
                               socialData = raw;
                             } else if (typeof raw === 'string') {
-                              try { socialData = JSON.parse(raw); } catch { }
+                              try {
+                                socialData = JSON.parse(raw);
+                              } catch (e) {
+                                console.error('Error parsing social media data:', e);
+                              }
                             }
                             return socialData[activeSocial!] || '';
                           })()}
@@ -571,12 +579,16 @@ export default function ProfileEdit() {
                             }
 
                             // Safe parse existing data
-                            let socialData: any = {};
+                            let socialData: Record<string, string> = {};
                             const raw = profile.social_media;
                             if (typeof raw === 'string') {
-                              try { socialData = JSON.parse(raw); } catch { }
+                              try {
+                                socialData = JSON.parse(raw);
+                              } catch (e) {
+                                console.error('Error parsing social media data:', e);
+                              }
                             } else if (raw && typeof raw === 'object') {
-                              socialData = { ...(raw as any) };
+                              socialData = { ...(raw as Record<string, string>) };
                             }
 
                             const newData = { ...socialData, [activeSocial!]: val };

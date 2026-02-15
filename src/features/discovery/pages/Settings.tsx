@@ -147,9 +147,10 @@ export default function Settings() {
       setShowPasswordDialog(false);
       setNewPassword('');
       setConfirmPassword('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error changing password:', error);
-      toast.error('Erro ao atualizar senha: ' + (error.message || 'Tente novamente'));
+      const errorMessage = error instanceof Error ? error.message : 'Tente novamente';
+      toast.error('Erro ao atualizar senha: ' + errorMessage);
     } finally {
       setChangingPassword(false);
     }
