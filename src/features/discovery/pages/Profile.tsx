@@ -374,7 +374,7 @@ export default function Profile() {
                     <div className="space-y-2.5">
                       {[
                         { icon: <CheckCircle2 className="w-3.5 h-3.5" />, text: "Descubra quem curtiu seu perfil imediatamente" },
-                        { icon: <MessageSquare className="w-3.5 h-3.5" />, text: "Mande mensagens diretas antes mesmo do match" },
+                        { icon: <MessageSquare className="w-3.5 h-3.5" />, text: "Mande mensagens diretas antes mesmo da conexão" },
                         { icon: <CheckCircle2 className="w-3.5 h-3.5" />, text: "Saiba quem está online no momento no app" },
                         { icon: <Sparkles className="w-3.5 h-3.5" />, text: "Filtre por distância exata e interesses específicos" },
                         { icon: <ShieldCheck className="w-3.5 h-3.5" />, text: "Destaque seu perfil no topo para 3x mais matches" },

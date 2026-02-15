@@ -57,7 +57,7 @@ export function SuperLikeExplainerDialog({
                                         Envie uma mensagem direta!
                                     </h2>
                                     <p className="text-muted-foreground text-sm leading-relaxed px-2">
-                                        Com o <span className="text-blue-500 font-semibold">Super Like</span>, você pode enviar uma mensagem para {profileName} junto com sua curtida, antes mesmo do match.
+                                        Com o <span className="text-blue-500 font-semibold">Super Like</span>, você pode enviar uma mensagem para {profileName} junto com sua curtida, antes mesmo da conexão.
                                     </p>
                                 </div>
 
