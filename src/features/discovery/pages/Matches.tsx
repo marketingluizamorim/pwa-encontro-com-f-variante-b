@@ -149,7 +149,7 @@ const SwipeableMatchCard = ({
         {locked ? (
           <div className="flex flex-col items-start justify-end h-full">
             <div className="flex items-center gap-2 mb-1">
-              <div className="h-6 w-24 bg-white/50 backdrop-blur-sm rounded-md animate-pulse" />
+              <div className="h-6 w-24 bg-white/50 backdrop-blur-sm rounded-md" />
               <span className="text-xl font-bold text-white drop-shadow-md">
                 {calculateAge(like.profile.birth_date)}
               </span>
@@ -440,7 +440,7 @@ export default function Matches() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 px-4 pb-32">
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence>
                 {likes.map((like) => (
                   <SwipeableMatchCard
                     key={like.id}

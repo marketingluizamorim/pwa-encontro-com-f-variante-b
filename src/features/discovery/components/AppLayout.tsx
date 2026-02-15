@@ -3,7 +3,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/features/discovery/hooks/useNotifications';
-// import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
   { to: '/app/discover', icon: 'ri-compass-3-fill', inactiveIcon: 'ri-compass-3-line', label: 'Descobrir', notificationKey: 'discover' as const },
@@ -105,7 +105,7 @@ export function AppLayout() {
                 to={item.to}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
                 className={cn(
-                  "relative group flex flex-col items-center justify-center flex-1 py-1 outline-none ring-0 focus:ring-0 focus:outline-none select-none",
+                  "relative group flex flex-col items-center justify-center flex-1 py-1 outline-none ring-0 focus:ring-0 focus:outline-none select-none active:bg-transparent touch-none",
                   isActive && "pointer-events-none"
                 )}
               >
@@ -120,13 +120,28 @@ export function AppLayout() {
 
                 {/* Container do Ícone com Destaque Circular */}
                 <div className="relative flex items-center justify-center mb-1">
-                  {/* Círculo de Destaque para Ícone Ativo */}
-                  {isActive && (
-                    <div className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/30 to-amber-600/20 rounded-full blur-sm animate-in fade-in zoom-in duration-300" />
-                  )}
-                  {isActive && (
-                    <div className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/40 to-amber-600/30 rounded-full animate-in fade-in zoom-in duration-300" />
-                  )}
+                  <AnimatePresence>
+                    {isActive && (
+                      <motion.div
+                        layoutId="nav-highlight"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute inset-x-[-4px] inset-y-[-4px] bg-gradient-to-br from-amber-500/20 to-orange-500/10 rounded-full blur-md z-0"
+                      />
+                    )}
+                    {isActive && (
+                      <motion.div
+                        layoutId="nav-circle"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/30 to-amber-600/20 rounded-full z-0"
+                      />
+                    )}
+                  </AnimatePresence>
 
                   {/* Ícone */}
                   <div className={cn(

@@ -690,21 +690,45 @@ export default function Discover() {
               {/* Scrollable Content */}
               <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
 
-                {/* Close Button - Top Right (Replaces Theme Toggle) */}
+                {/* Close Button - Top Right - Size matched to Expand Button */}
                 <button
                   onClick={() => setShowInfo(false)}
-                  className="fixed top-4 right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
+                  className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/60 backdrop-blur-xl text-white flex items-center justify-center border border-white/20 shadow-2xl hover:bg-black/80 active:scale-90 transition-all"
                 >
                   <i className="ri-arrow-down-s-line text-2xl" />
                 </button>
 
-                {/* Hero Image - Drag Handle */}
+                {/* Hero Image Section */}
                 <div
-                  className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
-                  onPointerDown={(e) => dragControls.start(e)}
+                  className="relative w-full h-[65vh] touch-none"
                 >
+                  {/* Photo Stories Progress Bar - Expanded View */}
+                  {currentProfile.photos && currentProfile.photos.length > 1 && (
+                    <div className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
+                      {currentProfile.photos.map((_, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex-1 rounded-full h-full shadow-sm transition-all duration-300 ${idx === currentPhotoIndex ? 'bg-white scale-y-110 shadow-lg' : 'bg-white/30'
+                            }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Navigation Zones (Left/Right) - Expanded View */}
+                  <div className="absolute inset-0 z-30 flex">
+                    <div className="w-1/2 h-full cursor-pointer" onClick={handlePrevPhoto} />
+                    <div className="w-1/2 h-full cursor-pointer" onClick={handleNextPhoto} />
+                  </div>
+
+                  {/* Hero Drag Handle Area */}
+                  <div
+                    className="absolute inset-x-0 top-0 bottom-0 z-20 cursor-grab active:cursor-grabbing"
+                    onPointerDown={(e) => dragControls.start(e)}
+                  />
+
                   <img
-                    src={currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
+                    src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
                     className="w-full h-full object-cover pointer-events-none"
                     alt={currentProfile.display_name}
                   />
