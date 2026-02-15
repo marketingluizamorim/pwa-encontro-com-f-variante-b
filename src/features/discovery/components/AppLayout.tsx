@@ -94,7 +94,7 @@ export function AppLayout() {
       <nav className="relative z-50 py-6 shrink-0 flex justify-center px-4 pointer-events-none">
         <div className="pointer-events-auto bg-[#1e293b]/95 backdrop-blur-2xl border border-white/10 rounded-full px-5 py-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-between w-full max-w-[380px] gap-1 ring-1 ring-white/10 transition-all duration-500">
           {navItems.map((item) => {
-            const isActive = location.pathname.includes(item.to);
+            const isActive = location.pathname === item.to || location.pathname.startsWith(item.to + '/');
 
             // Determinar se há notificação para este item usando a chave direta
             const hasNotification = item.notificationKey ? notifications[item.notificationKey] : false;
@@ -120,24 +120,24 @@ export function AppLayout() {
 
                 {/* Container do Ícone com Destaque Circular */}
                 <div className="relative flex items-center justify-center mb-1">
-                  <AnimatePresence mode="wait">
+                  <AnimatePresence>
                     {isActive && (
                       <motion.div
-                        key="nav-glow"
+                        key={`nav-glow-${item.to}`}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.1 }}
+                        transition={{ duration: 0.2 }}
                         className="absolute inset-x-[-6px] inset-y-[-6px] bg-amber-500/15 rounded-full blur-lg z-0 pointer-events-none"
                       />
                     )}
                     {isActive && (
                       <motion.div
-                        key="nav-circle"
+                        key={`nav-circle-${item.to}`}
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.5 }}
-                        transition={{ duration: 0.1 }}
+                        transition={{ duration: 0.2 }}
                         className="absolute inset-0 w-10 h-10 bg-gradient-to-br from-amber-500/40 to-amber-600/20 rounded-full z-0 pointer-events-none shadow-[0_0_15px_rgba(251,191,36,0.2)]"
                       />
                     )}
