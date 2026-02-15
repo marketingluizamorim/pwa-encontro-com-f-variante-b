@@ -103,9 +103,10 @@ export function AppLayout() {
               <Link
                 key={item.to}
                 to={item.to}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
                 className={cn(
-                  "relative group flex flex-col items-center justify-center flex-1 py-1",
-                  isActive && "pointer-events-none" // Optional: disable click if already active
+                  "relative group flex flex-col items-center justify-center flex-1 py-1 outline-none ring-0 focus:ring-0 focus:outline-none select-none",
+                  isActive && "pointer-events-none"
                 )}
               >
                 {/* Indicador de Notificação */}

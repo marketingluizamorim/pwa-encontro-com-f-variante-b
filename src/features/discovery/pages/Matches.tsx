@@ -414,12 +414,17 @@ export default function Matches() {
               )}
             </p>
 
-            {/* Likes Count Badge - Below Text - Enhanced Style */}
+            {/* Likes Count Badge - Simple, Small & Non-interactive */}
             {likes.length > 0 && !subscription?.canSeeWhoLiked && (
-              <div className="mt-5 flex items-center gap-2.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 px-6 py-2 rounded-full shadow-[0_0_15px_-3px_rgba(245,158,11,0.15)] backdrop-blur-sm">
-                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                <span className="font-bold text-amber-500 text-sm tracking-wide uppercase">
-                  {likes.length} {likes.length === 1 ? 'Pessoa curtiu' : 'Pessoas curtiram'}
+              <div
+                className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20"
+              >
+                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 shadow-sm">
+                  <i className="ri-heart-fill text-white text-[10px]" />
+                </div>
+                <span className="text-amber-200/90 font-medium text-xs tracking-wide">
+                  <span className="text-amber-400 font-bold mr-1">{likes.length}</span>
+                  {likes.length === 1 ? 'Pessoa curtiu' : 'Pessoas curtiram'}
                 </span>
               </div>
             )}
