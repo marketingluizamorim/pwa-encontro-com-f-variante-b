@@ -170,7 +170,7 @@ export default function ProfileSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
+    <div className="min-h-screen bg-background text-foreground font-sans flex flex-col pt-[env(safe-area-inset-top)]">
       {/* Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-20%] left-[-20%] w-[70%] h-[70%] bg-[#14b8a6]/10 rounded-full blur-[100px]" />
@@ -430,7 +430,7 @@ export default function ProfileSetup() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-24 left-6 right-6 z-50 pointer-events-none"
+              className="absolute bottom-[calc(6rem+env(safe-area-inset-bottom))] left-6 right-6 z-50 pointer-events-none"
             >
               <div className="bg-red-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-center gap-3 backdrop-blur-md bg-opacity-90 border border-red-400/30">
                 <AlertTriangle size={18} className="fill-white text-red-600" />
@@ -442,7 +442,7 @@ export default function ProfileSetup() {
 
         {/* Footer Actions */}
         {step !== 'complete' && (
-          <div className="py-8 relative z-20">
+          <div className="pt-8 pb-[calc(2rem+env(safe-area-inset-bottom))] relative z-20">
             <Button
               onClick={handleNext}
               disabled={saving}

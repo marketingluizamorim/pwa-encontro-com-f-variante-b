@@ -125,8 +125,8 @@ export function useDiscoverProfiles(filters: DiscoverFiltersState) {
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!user,
-    staleTime: 0, // Disable cache for dev
-    gcTime: 0, // Disable garbage collection cache for dev
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    gcTime: 1000 * 60 * 30, // 30 minutes garbage collection
   });
 }
 
@@ -134,6 +134,7 @@ interface SwipeParams {
   swiperId: string;
   swipedId: string;
   direction: 'like' | 'dislike' | 'super_like';
+  message?: string;
 }
 
 export function useSwipeMutation() {
@@ -141,19 +142,23 @@ export function useSwipeMutation() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ swiperId, swipedId, direction }: SwipeParams) => {
+    mutationFn: async ({ swiperId, swipedId, direction, message }: SwipeParams) => {
       const { supabase } = await import('@/integrations/supabase/client');
 
       const { error } = await supabase.from('swipes').insert({
         swiper_id: swiperId,
         swiped_id: swipedId,
         direction,
+        message: message || null,
       });
 
       if (error) throw error;
 
       // Check for match if it was a like or super_like
       if (direction === 'like' || direction === 'super_like') {
+        // Wait slightly for any DB triggers to create the match
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         const { data: matchData } = await supabase
           .from('matches')
           .select('id')
@@ -162,6 +167,49 @@ export function useSwipeMutation() {
           )
           .eq('is_active', true)
           .maybeSingle();
+
+        if (matchData) {
+          // 1. Handle MY current message (if any)
+          if (message) {
+            const { error: msgError } = await supabase.from('messages').insert({
+              match_id: matchData.id,
+              sender_id: swiperId,
+              content: message,
+              is_read: false
+            });
+            if (msgError) console.error('Error creating my super like message:', msgError);
+          }
+
+          // 2. Handle OTHER user's pending Super Like message (if they liked first)
+          const { data: otherSwipe } = await supabase
+            .from('swipes')
+            .select('message')
+            .eq('swiper_id', swipedId)
+            .eq('swiped_id', swiperId)
+            .eq('direction', 'super_like')
+            .not('message', 'is', null)
+            .maybeSingle();
+
+          if ((otherSwipe as any)?.message) {
+            // Check if already inserted to prevent dupes
+            const { count } = await supabase
+              .from('messages')
+              .select('*', { count: 'exact', head: true })
+              .eq('match_id', matchData.id)
+              .eq('sender_id', swipedId)
+              .eq('content', (otherSwipe as any).message);
+
+            if (count === 0) {
+              const { error: otherMsgError } = await supabase.from('messages').insert({
+                match_id: matchData.id,
+                sender_id: swipedId,
+                content: (otherSwipe as any).message,
+                is_read: false
+              });
+              if (otherMsgError) console.error('Error creating other super like message:', otherMsgError);
+            }
+          }
+        }
 
         return { match: matchData };
       }

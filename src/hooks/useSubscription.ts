@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
-export type SubscriptionTier = 'none' | 'bronze' | 'silver' | 'gold';
+export type SubscriptionTier = 'none' | 'free' | 'bronze' | 'silver' | 'gold';
 
 export interface Subscription {
     tier: SubscriptionTier;
@@ -36,6 +36,8 @@ export function useSubscription() {
 
     return useQuery({
         queryKey: ['subscription', user?.id],
+        staleTime: 1000 * 60 * 5, // 5 minutes cache
+        gcTime: 1000 * 60 * 30,
         queryFn: async (): Promise<Subscription> => {
             if (!user) return defaultSubscription;
 
@@ -68,23 +70,9 @@ export function useSubscription() {
                 console.error('Error counting swipes:', swipesError);
             }
 
-            // Developer Override for testing - Acts as fallback if no active subscription found in DB
-            const hasActiveDbPlan = data && data.is_active && data.plan_id !== 'none';
-            if (!hasActiveDbPlan && user.email === 'marketing.luizamorim@gmail.com') {
-                return {
-                    tier: 'gold',
-                    isActive: true,
-                    expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-                    canSeeWhoLiked: true,
-                    canUseAdvancedFilters: true,
-                    canVideoCall: true,
-                    canSendMedia: true,
-                    canDirectMessage: true,
-                    isProfileBoosted: true,
-                    dailySwipesLimit: 999999,
-                    swipesToday: swipesToday || 0,
-                };
-            }
+            // Developer Override removed to allow manual testing via Profile
+            // const hasActiveDbPlan = data && data.is_active && data.plan_id !== 'none';
+            // if (!hasActiveDbPlan && user.email === 'marketing.luizamorim@gmail.com') { ... }
 
             if (!data) return { ...defaultSubscription, swipesToday: swipesToday || 0 };
 

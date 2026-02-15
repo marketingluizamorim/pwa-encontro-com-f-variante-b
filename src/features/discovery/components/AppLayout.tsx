@@ -71,7 +71,7 @@ export function AppLayout() {
 
   return (
     // Use theme-aware background colors
-    <div className={cn("relative w-full h-[100dvh] overflow-hidden bg-background text-foreground flex flex-col font-sans transition-colors duration-500")}>
+    <div className={cn("relative w-full h-[100dvh] overflow-hidden bg-background text-foreground flex flex-col font-sans transition-colors duration-500 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]")}>
 
       {/* Background Ambience (Global - Clean & Premium) */}
       <div className="fixed inset-0 pointer-events-none z-0">
@@ -106,7 +106,11 @@ export function AppLayout() {
                 className="relative group flex flex-col items-center justify-center flex-1"
               >
                 {/* Indicador de Notificação */}
-                {hasNotification && !isActive && (
+                {item.notificationKey === 'matches' && notifications.likesCount > 0 ? (
+                  <div className="absolute top-0 right-[22%] min-w-[16px] h-[16px] bg-red-500 text-white text-[9px] leading-none font-bold rounded-full flex items-center justify-center border border-[#1e293b] z-20 shadow-sm px-1 animate-in zoom-in duration-300">
+                    {notifications.likesCount > 99 ? '99+' : notifications.likesCount}
+                  </div>
+                ) : hasNotification && !isActive && (
                   <div className="absolute top-0 right-[28%] w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse z-10" />
                 )}
 

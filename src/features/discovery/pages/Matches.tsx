@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useDragControls, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSwipeMutation } from '@/features/discovery/hooks/useDiscoverProfiles';
 import { MatchCelebration } from '@/features/discovery/components/MatchCelebration';
 import { playNotification } from '@/lib/notifications';
@@ -31,6 +32,8 @@ interface LikeProfile {
   id: string; // The swipe ID or user ID
   user_id: string;
   liked_at: string;
+  message?: string;
+  is_super_like?: boolean;
   profile: {
     display_name: string;
     birth_date?: string;
@@ -81,18 +84,19 @@ const SwipeableMatchCard = ({
   // Opacities for stamps
   const likeOpacity = useTransform(x, [20, 100], [0, 1]);
   const nopeOpacity = useTransform(x, [-20, -100], [0, 1]);
+  const superOpacity = useTransform(y, [-20, -100], [0, 1]);
 
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragEnd = (event: any, info: PanInfo) => {
     setIsDragging(false);
     const { offset, velocity } = info;
-    const swipeThreshold = 80; // Menor threshold para cards menores
+    const swipeThreshold = 80;
 
-    if (offset.x > swipeThreshold || velocity.x > 500) {
+    if (offset.y < -swipeThreshold || velocity.y < -500) {
+      onSwipe(like.user_id, 'super_like');
+    } else if (offset.x > swipeThreshold || velocity.x > 500) {
       onSwipe(like.user_id, 'like');
-    } else if (offset.x < -swipeThreshold || velocity.x < -500) {
-      onSwipe(like.user_id, 'dislike');
     } else if (offset.x < -swipeThreshold || velocity.x < -500) {
       onSwipe(like.user_id, 'dislike');
     }
@@ -101,14 +105,17 @@ const SwipeableMatchCard = ({
   return (
     <motion.div
       layout
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
+      drag
+      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragElastic={0.7}
       dragSnapToOrigin
       onDragStart={() => setIsDragging(true)}
       onDragEnd={handleDragEnd}
       style={{ x, y, rotate, zIndex: isDragging ? 50 : 1 }}
-      className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-muted group cursor-grab active:cursor-grabbing touch-pan-y select-none"
+      className={cn(
+        "relative aspect-[3/4] rounded-2xl overflow-hidden bg-muted group cursor-grab active:cursor-grabbing touch-none select-none",
+        like.is_super_like && "ring-2 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+      )}
       onClick={() => {
         if (!isDragging) onExpand();
       }}
@@ -126,22 +133,35 @@ const SwipeableMatchCard = ({
         draggable={false}
       />
 
+      {/* Super Like Star Badge */}
+      {like.is_super_like && (
+        <div className="absolute top-2 right-2 z-20">
+          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shadow-lg">
+            <i className="ri-star-fill text-white text-sm" />
+          </div>
+        </div>
+      )}
+
       {/* Overlay Gradient */}
-      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
 
       {/* Content */}
-      <div className="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
+      <div className="absolute bottom-3 left-3 right-3 text-white pointer-events-none z-10">
         {locked ? (
           <div className="flex flex-col items-start justify-end h-full">
             <div className="flex items-center gap-2 mb-1">
-              {/* Nome Borrado - Simulando texto */}
               <div className="h-6 w-24 bg-white/50 backdrop-blur-sm rounded-md animate-pulse" />
-              {/* Idade Visível */}
               <span className="text-xl font-bold text-white drop-shadow-md">
                 {calculateAge(like.profile.birth_date)}
               </span>
             </div>
-            {/* Distância ou Localização Genérica */}
+            {like.is_super_like && (
+              <div className="bg-blue-500/20 backdrop-blur-md border border-blue-500/30 rounded-lg p-2 mb-2 w-full">
+                <p className="text-xs text-blue-100 font-medium flex items-center gap-1">
+                  <i className="ri-star-fill" /> Super Like recebido!
+                </p>
+              </div>
+            )}
             <div className="flex items-center gap-1 opacity-80">
               <i className="ri-map-pin-line text-sm" />
               <span className="text-xs font-medium">Perto de você</span>
@@ -149,6 +169,15 @@ const SwipeableMatchCard = ({
           </div>
         ) : (
           <>
+            {/* Super Like Message */}
+            {like.is_super_like && like.message && (
+              <div className="mb-3 bg-blue-600/90 backdrop-blur-md p-2.5 rounded-tl-xl rounded-tr-xl rounded-br-xl rounded-bl-none border border-white/10 shadow-lg animate-in slide-in-from-bottom-2 fade-in duration-500">
+                <p className="text-xs text-white leading-relaxed line-clamp-3 italic">
+                  "{like.message}"
+                </p>
+              </div>
+            )}
+
             <div className="flex items-center gap-1 mb-0.5">
               <span className="font-bold text-lg leading-tight">
                 {like.profile.display_name}, {calculateAge(like.profile.birth_date)}
@@ -165,12 +194,15 @@ const SwipeableMatchCard = ({
         )}
       </div>
 
-      {/* STAMPS (Escalados para cards menores) */}
-      <motion.div style={{ opacity: likeOpacity }} className="absolute top-2 left-2 z-30 border-2 border-emerald-500 text-emerald-500 px-2 py-0.5 rounded-md font-black text-lg -rotate-12 tracking-wider uppercase bg-black/20 backdrop-blur-sm pointer-events-none">
+      {/* STAMPS */}
+      <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-4 z-30 border-4 border-emerald-500 text-emerald-500 px-2 py-1 rounded-lg font-black text-2xl -rotate-12 tracking-wider uppercase bg-black/20 backdrop-blur-sm pointer-events-none">
         LIKE
       </motion.div>
-      <motion.div style={{ opacity: nopeOpacity }} className="absolute top-2 right-2 z-30 border-2 border-red-500 text-red-500 px-2 py-0.5 rounded-md font-black text-lg rotate-12 tracking-wider uppercase bg-black/20 backdrop-blur-sm pointer-events-none">
+      <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-4 z-30 border-4 border-red-500 text-red-500 px-2 py-1 rounded-lg font-black text-2xl rotate-12 tracking-wider uppercase bg-black/20 backdrop-blur-sm pointer-events-none">
         NOPE
+      </motion.div>
+      <motion.div style={{ opacity: superOpacity }} className="absolute bottom-20 left-1/2 -translate-x-1/2 z-30 border-4 border-blue-500 text-blue-500 px-2 py-1 rounded-lg font-black text-2xl tracking-wider uppercase bg-black/20 backdrop-blur-sm pointer-events-none">
+        SUPER
       </motion.div>
 
     </motion.div>
@@ -180,8 +212,7 @@ const SwipeableMatchCard = ({
 export default function Matches() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [likes, setLikes] = useState<LikeProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [selectedLike, setSelectedLike] = useState<LikeProfile | null>(null);
 
   // Interaction State
@@ -195,7 +226,7 @@ export default function Matches() {
   const [upgradeData, setUpgradeData] = useState({
     title: '',
     description: '',
-    features: [],
+    features: [] as string[],
     icon: null as React.ReactNode,
     price: 0,
     planId: ''
@@ -204,9 +235,14 @@ export default function Matches() {
   const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
 
-  const fetchLikes = useCallback(async () => {
-    if (!user) return;
-    try {
+  const { data: likes = [], isLoading: loading, refetch: fetchLikes } = useQuery({
+    queryKey: ['likes', user?.id],
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    queryFn: async () => {
+      if (!user) return [];
+
       const { supabase } = await import('@/integrations/supabase/client');
 
       // 1. Get ALL users I have already SWIPED on (Like or Dislike)
@@ -220,7 +256,7 @@ export default function Matches() {
       // 2. Get Swipes (Likes received)
       const { data: swipesData, error: swipesError } = await supabase
         .from('swipes')
-        .select('created_at, swiper_id')
+        .select('created_at, swiper_id, message, direction')
         .eq('swiped_id', user.id)
         .in('direction', ['like', 'super_like'])
         .order('created_at', { ascending: false });
@@ -238,15 +274,13 @@ export default function Matches() {
       ));
 
       // Filter out users I have acted upon AND blocked users
-      const pendingLikeUserIds = (swipesData || [])
-        .map(s => s.swiper_id)
+      const pendingLikeUserIds = ((swipesData as any[]) || [])
+        .map((s: any) => s.swiper_id)
         .filter(id => !mySwipedIds.has(id))
         .filter(id => !blockedUserIds.has(id));
 
       if (pendingLikeUserIds.length === 0) {
-        setLikes([]);
-        setLoading(false);
-        return;
+        return [];
       }
 
       // 3. Get Profiles with MORE fields
@@ -260,14 +294,16 @@ export default function Matches() {
       const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
 
       const formattedLikes: LikeProfile[] = (swipesData || [])
-        .filter(s => pendingLikeUserIds.includes(s.swiper_id))
-        .map(s => {
+        .filter((s: any) => pendingLikeUserIds.includes(s.swiper_id))
+        .map((s: any) => {
           const profile = profilesMap.get(s.swiper_id);
           if (!profile) return null;
           return {
             id: s.swiper_id,
             user_id: s.swiper_id,
             liked_at: s.created_at,
+            message: s.message,
+            is_super_like: s.direction === 'super_like',
             profile: {
               display_name: profile.display_name,
               birth_date: profile.birth_date,
@@ -283,19 +319,9 @@ export default function Matches() {
         })
         .filter((l) => l !== null) as LikeProfile[];
 
-      setLikes(formattedLikes);
-
-    } catch (error) {
-      console.error('Error fetching likes:', error);
-      toast.error('Erro ao carregar curtidas');
-    } finally {
-      setLoading(false);
+      return formattedLikes;
     }
-  }, [user]);
-
-  useEffect(() => {
-    fetchLikes();
-  }, [fetchLikes]);
+  });
 
   const handleRefresh = async () => {
     await fetchLikes();
@@ -314,7 +340,10 @@ export default function Matches() {
     const matchedProfile = likes.find(l => l.user_id === targetUserId)?.profile;
 
     setSelectedLike(null);
-    setLikes(prev => prev.filter(l => l.user_id !== targetUserId));
+
+    queryClient.setQueryData(['likes', user?.id], (old: LikeProfile[] | undefined) => {
+      return old ? old.filter(l => l.user_id !== targetUserId) : [];
+    });
 
     // Execute Mutation
     swipeMutation.mutate(
@@ -381,7 +410,7 @@ export default function Matches() {
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
               {likes.length > 0 ? (
                 subscription?.canSeeWhoLiked
-                  ? "Você tem acesso total para ver quem curtiu."
+                  ? "Veja todos que gostaram de você e não perca nenhuma conexão."
                   : "Faça um upgrade de plano para ver as pessoas que já curtiram você."
               ) : (
                 "Ninguém curtiu ainda. Use o Boost para aparecer mais!"
@@ -398,6 +427,15 @@ export default function Matches() {
               </div>
             )}
           </div>
+
+          {/* Grid Content */}
+          {likes.length > 0 && (
+            <div className="w-full px-4 mb-2 flex justify-start animate-fade-in">
+              <span className="text-lg text-muted-foreground">
+                {likes.length} {likes.length === 1 ? 'curtida' : 'curtidas'}
+              </span>
+            </div>
+          )}
 
           {/* Grid Content */}
           {likes.length === 0 ? (
@@ -468,7 +506,7 @@ export default function Matches() {
 
           {/* Floating 'See Who Liked You' Button - ONLY for non-premium with likes */}
           {(!subscription?.canSeeWhoLiked && likes.length > 0 && !showUpgradeDialog) && typeof document !== 'undefined' && createPortal(
-            <div className="fixed bottom-40 left-0 right-0 z-[100] flex justify-center px-4 animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
+            <div className="fixed bottom-[calc(10rem+env(safe-area-inset-bottom))] left-0 right-0 z-[100] flex justify-center px-4 animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
               <button
                 onClick={() => {
                   setUpgradeData({
@@ -541,7 +579,7 @@ export default function Matches() {
                 {/* Close Button */}
                 <button
                   onClick={() => setSelectedLike(null)}
-                  className="fixed top-4 right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
+                  className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
                 >
                   <i className="ri-arrow-down-s-line text-2xl" />
                 </button>
@@ -645,7 +683,7 @@ export default function Matches() {
               </div>
 
               {/* Floating Action Buttons */}
-              <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center items-center gap-6 pointer-events-none">
+              <div className="absolute bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-0 right-0 z-[100] flex justify-center items-center gap-6 pointer-events-none">
                 {/* Nope */}
                 <button
                   onClick={() => handleExpandedSwipe('dislike')}

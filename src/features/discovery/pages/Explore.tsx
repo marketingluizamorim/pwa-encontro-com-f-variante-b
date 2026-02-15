@@ -1303,7 +1303,7 @@ export default function Explore() {
                         initial={{ opacity: 0, scale: 1.1 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="flex flex-col min-h-screen"
+                        className="fixed inset-0 z-50 bg-[#0f172a] overflow-y-auto no-scrollbar pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
                     >
                         {/* Cinematic Header Overlay */}
                         <div className="fixed top-0 left-0 w-full h-80 pointer-events-none -z-10">
@@ -1410,7 +1410,6 @@ export default function Explore() {
                                 </div>
                                 <div className="absolute -bottom-10 right-0 text-7xl font-serif text-accent/10 pointer-events-none select-none translate-y-4">"</div>
                             </motion.div>
-
                         </div>
                     </motion.div>
                 )}

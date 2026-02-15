@@ -128,7 +128,7 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Skip button */}
-      <div className="absolute top-4 right-4 z-10">
+      <div className="absolute top-[calc(1rem+env(safe-area-inset-top))] right-4 z-10">
         <Button
           variant="ghost"
           size="sm"
@@ -190,15 +190,15 @@ export default function Onboarding() {
       </div>
 
       {/* Navigation */}
-      <div className="px-8 pb-8 pt-4">
+      <div className="px-8 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-4">
         {/* Progress dots */}
         <div className="flex justify-center gap-2 mb-8">
           {slides.map((_, index) => (
             <motion.div
               key={index}
               className={`h-2 rounded-full transition-colors ${index === currentSlide
-                  ? 'bg-primary w-8'
-                  : 'bg-muted w-2'
+                ? 'bg-primary w-8'
+                : 'bg-muted w-2'
                 }`}
               animate={{
                 width: index === currentSlide ? 32 : 8

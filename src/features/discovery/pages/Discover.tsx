@@ -24,6 +24,7 @@ import { useTheme } from '@/components/theme-provider';
 import { Header } from '@/features/discovery/components/Header';
 import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
 import { SuperLikeExplainerDialog } from '@/features/discovery/components/SuperLikeExplainerDialog';
+import { SuperLikeMessageDialog } from '@/features/discovery/components/SuperLikeMessageDialog';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Um compromisso sério': '💍',
@@ -101,6 +102,7 @@ export default function Discover() {
   const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
   const [showLikeLimitDialog, setShowLikeLimitDialog] = useState(false);
   const [showSuperLikeExplainer, setShowSuperLikeExplainer] = useState(false);
+  const [showSuperLikeMessageDialog, setShowSuperLikeMessageDialog] = useState(false);
 
   // Photo Navigation State
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -164,7 +166,14 @@ export default function Discover() {
     if (remainingProfiles <= 3 && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [currentIndex, profiles.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    // Preload next 3 profile images
+    const profilesToPreload = profiles.slice(currentIndex + 1, currentIndex + 4);
+    profilesToPreload.forEach((profile) => {
+      const img = new Image();
+      img.src = profile.photos?.[0] || profile.avatar_url || '/placeholder.svg';
+    });
+  }, [currentIndex, profiles, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useEffect(() => {
     localStorage.setItem('discover-filters', JSON.stringify(filters));
@@ -275,6 +284,9 @@ export default function Discover() {
         setShowSuperLikeExplainer(true);
         return;
       }
+      // If Gold, show message dialog
+      setShowSuperLikeMessageDialog(true);
+      return;
     }
 
     // Check daily limit for Bronze/None
@@ -331,6 +343,62 @@ export default function Discover() {
     );
   };
 
+  const handleSuperLikeConfirm = (message: string) => {
+    if (!currentProfile || !user) return;
+
+    setShowSuperLikeMessageDialog(false);
+    setSwiping(true);
+    setExitDirection('up');
+    triggerHaptic('success');
+
+    // Visual update
+    setTimeout(() => {
+      setCurrentIndex((prev) => prev + 1);
+      setExitDirection(null);
+      setSwiping(false);
+      x.set(0);
+      y.set(0);
+      setShowInfo(false);
+    }, 200);
+
+    swipeMutation.mutate(
+      {
+        swiperId: user.id,
+        swipedId: currentProfile.user_id,
+        direction: 'super_like',
+        message: message
+      },
+      {
+        onSuccess: (data) => {
+          // Play special Super Like sound/animation
+          playNotification('match');
+          toast.success('Super Like enviado com sucesso!', {
+            icon: '⭐',
+            style: {
+              background: 'linear-gradient(to right, #d4af37, #b45309)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.2)',
+              marginTop: '64px'
+            }
+          });
+
+          if (data.match) {
+            setMatchData({
+              name: currentProfile.display_name || 'Alguém',
+              photo: currentProfile.photos?.[0] || currentProfile.avatar_url || '',
+              matchId: data.match.id,
+            });
+            setShowMatchCelebration(true);
+          }
+        },
+        onError: (error) => {
+          console.error('Error saving super like:', error);
+          toast.error('Erro ao enviar Super Like');
+        },
+      }
+    );
+  };
+
   const handleDragEnd = (event: any, info: PanInfo) => {
     if (swiping) return;
     const { offset, velocity } = info;
@@ -370,6 +438,17 @@ export default function Discover() {
           </button>
         }
       />
+
+      {currentProfile && (
+        <SuperLikeMessageDialog
+          open={showSuperLikeMessageDialog}
+          onOpenChange={setShowSuperLikeMessageDialog}
+          profileName={currentProfile.display_name}
+          profilePhoto={currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
+          onConfirm={handleSuperLikeConfirm}
+        />
+      )}
+
       {/* DEBUG BANNER REMOVED */}
 
       {isEmpty ? (
@@ -759,24 +838,16 @@ export default function Discover() {
                       Mensagem Direta <Zap className="w-5 h-5 fill-amber-500" />
                     </h3>
                     <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                      Não espere pelo match! Envie uma mensagem direta agora mesmo para {currentProfile.display_name} e saia na frente.
+                      Não espere pela conexão! Envie uma mensagem direta agora mesmo para {currentProfile.display_name} e saia na frente.
                     </p>
 
                     <Button
                       onClick={() => {
-                        if (subscription?.tier !== 'gold') {
-                          setUpgradeData({
-                            title: "Plano Ouro",
-                            description: "Quebre o gelo agora mesmo com 90% de desconto! O Plano Ouro libera tudo para você.",
-                            features: PLANS.find(p => p.id === 'gold')?.features || [],
-                            planNeeded: 'gold',
-                            icon: <i className="ri-chat-1-line text-4xl" />,
-                            price: PLANS.find(p => p.id === 'gold')?.price || 49.90,
-                            planId: 'gold'
-                          });
-                          setShowUpgradeDialog(true);
+                        const tier = subscription?.tier || 'none';
+                        if (tier !== 'gold') {
+                          setShowSuperLikeExplainer(true);
                         } else {
-                          toast.info("Funcionalidade de DM Direta em breve para Plano Ouro!");
+                          setShowSuperLikeMessageDialog(true);
                         }
                       }}
                       className="w-full h-12 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
@@ -951,6 +1022,8 @@ export default function Discover() {
           setShowUpgradeDialog(true);
         }}
       />
+
+
 
     </PageTransition>
   );

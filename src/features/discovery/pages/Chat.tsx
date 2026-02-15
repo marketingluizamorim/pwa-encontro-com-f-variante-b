@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { ChatListSkeleton } from '@/features/discovery/components/SkeletonLoaders';
 import { PullToRefresh } from '@/features/discovery/components/PullToRefresh';
@@ -20,6 +22,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
     'Um compromisso sério': '💍',
@@ -44,6 +47,7 @@ interface Conversation {
         christian_interests?: string[];
         religion?: string;
     };
+    is_super_like?: boolean;
     last_message?: {
         content: string;
         created_at: string;
@@ -77,40 +81,18 @@ const FloatingHeart = () => (
 
 export default function Chat() {
     const { user } = useAuth();
+    const { data: subscription } = useSubscription();
     const navigate = useNavigate();
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [viewedMatches, setViewedMatches] = useState<Set<string>>(() => {
-        const saved = localStorage.getItem('viewed-matches');
-        return new Set(saved ? JSON.parse(saved) : []);
-    });
-    const [loading, setLoading] = useState(true);
-    const [selectedProfile, setSelectedProfile] = useState<Conversation['profile'] | null>(null);
-    const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-    const [showCheckoutManager, setShowCheckoutManager] = useState(false);
-    const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
-    const [upgradeData, setUpgradeData] = useState({
-        title: "Destaque seu Perfil",
-        description: "Chame atenção mais rápido e aumente as suas chances de encontrar alguém em até 30%.",
-        features: PLANS.find(p => p.id === 'silver')?.features || [],
-        icon: <i className="ri-fire-fill text-4xl" />,
-        price: PLANS.find(p => p.id === 'silver')?.price || 29.90,
-        planId: 'silver'
-    });
-    const [showSafety, setShowSafety] = useState(false);
-    const dragControls = useDragControls();
+    const queryClient = useQueryClient();
 
-    // Estado para ações do usuário (Denunciar, Bloquear, Excluir)
-    const [actionProfileId, setActionProfileId] = useState<string | null>(null);
-    const [actionMatchId, setActionMatchId] = useState<string | null>(null);
-    const [showReport, setShowReport] = useState(false);
-    const [showBlock, setShowBlock] = useState(false);
-    const [showDelete, setShowDelete] = useState(false);
-
-    const fetchConversations = useCallback(async () => {
-        if (!user) return;
-        try {
+    const { data: conversations = [], isLoading: loading, refetch: fetchConversations } = useQuery({
+        queryKey: ['conversations', user?.id],
+        enabled: !!user,
+        staleTime: 1000 * 60 * 5, // 5 minutes cache
+        gcTime: 1000 * 60 * 30, // 30 minutes garbage collection
+        queryFn: async () => {
+            if (!user) return [];
             const { supabase } = await import('@/integrations/supabase/client');
-
 
             // 1.5. Buscar Bloqueios
             const { data: blocks } = await supabase
@@ -137,22 +119,28 @@ export default function Chat() {
                 return !blockedUserIds.has(otherId);
             });
 
-            if (activeMatches.length === 0) {
-                setConversations([]);
-                return;
-            }
-
+            if (activeMatches.length === 0) return [];
 
             // 2. Buscar Perfis
             const otherUserIds = activeMatches.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
             const { data: profilesData } = await supabase
                 .from('profiles')
-                .select('user_id, display_name, avatar_url, photos, birth_date, bio, city, looking_for, religion')
+                .select('user_id, display_name, avatar_url, photos, birth_date, bio, occupation, city, looking_for, religion')
                 .in('user_id', otherUserIds);
 
             const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
 
-            // 3. Buscar Últimas Mensagens
+            // 3. Buscar Últimas Mensagens - E verificar Super Likes
+            const { data: superLikes } = await supabase
+                .from('swipes')
+                .select('swiper_id, swiped_id')
+                .eq('direction', 'super_like')
+                .or(`swiper_id.eq.${user.id},swiped_id.eq.${user.id}`);
+
+            const superLikePairs = new Set(
+                superLikes?.map(s => `${s.swiper_id}-${s.swiped_id}`)
+            );
+
             const matchesWithMessages = await Promise.all(activeMatches.map(async (m) => {
                 const { data: msgs } = await supabase
                     .from('messages')
@@ -167,9 +155,12 @@ export default function Chat() {
 
                 if (!profile) return null;
 
+                const isSuperLike = superLikePairs.has(`${user.id}-${otherId}`) || superLikePairs.has(`${otherId}-${user.id}`);
+
                 return {
                     id: 'conv-' + m.id,
                     match_id: m.id,
+                    is_super_like: isSuperLike,
                     profile: {
                         id: profile.user_id,
                         display_name: profile.display_name || 'Usuário',
@@ -177,6 +168,7 @@ export default function Chat() {
                         photos: profile.photos || [],
                         birth_date: profile.birth_date,
                         bio: profile.bio,
+                        occupation: profile.occupation,
                         city: profile.city,
                         looking_for: profile.looking_for,
                         religion: profile.religion
@@ -190,22 +182,35 @@ export default function Chat() {
                 };
             }));
 
-            const validConversations = matchesWithMessages
-                .filter((c) => c !== null) as Conversation[];
-
-            setConversations(validConversations);
-
-        } catch (error) {
-            console.error('Error loading chats:', error);
-            toast.error('Erro ao carregar conversas');
-        } finally {
-            setLoading(false);
+            return matchesWithMessages.filter((c) => c !== null) as Conversation[];
         }
-    }, [user]);
+    });
 
-    useEffect(() => {
-        fetchConversations();
-    }, [fetchConversations]);
+    const [viewedMatches, setViewedMatches] = useState<Set<string>>(() => {
+        const saved = localStorage.getItem('viewed-matches');
+        return new Set(saved ? JSON.parse(saved) : []);
+    });
+    const [selectedProfile, setSelectedProfile] = useState<Conversation['profile'] | null>(null);
+    const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+    const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+    const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
+    const [upgradeData, setUpgradeData] = useState({
+        title: "Destaque seu Perfil",
+        description: "Chame atenção mais rápido e aumente as suas chances de encontrar alguém em até 30%.",
+        features: PLANS.find(p => p.id === 'silver')?.features || [],
+        icon: <i className="ri-fire-fill text-4xl" />,
+        price: PLANS.find(p => p.id === 'silver')?.price || 29.90,
+        planId: 'silver'
+    });
+    const [showSafety, setShowSafety] = useState(false);
+    const dragControls = useDragControls();
+
+    // Estado para ações do usuário (Denunciar, Bloquear, Excluir)
+    const [actionProfileId, setActionProfileId] = useState<string | null>(null);
+    const [actionMatchId, setActionMatchId] = useState<string | null>(null);
+    const [showReport, setShowReport] = useState(false);
+    const [showBlock, setShowBlock] = useState(false);
+    const [showDelete, setShowDelete] = useState(false);
 
     const markMatchAsViewed = (matchId: string) => {
         const newViewed = new Set(viewedMatches);
@@ -279,7 +284,13 @@ export default function Chat() {
 
     // Filtrar conversas em "Novos Matches" (sem mensagens) e "Mensagens"
     const newMatches = conversations.filter(c => !c.last_message);
-    const existingChats = conversations.filter(c => !!c.last_message);
+    const existingChats = conversations
+        .filter(c => !!c.last_message)
+        .sort((a, b) => {
+            const dateA = new Date(a.last_message!.created_at).getTime();
+            const dateB = new Date(b.last_message!.created_at).getTime();
+            return dateB - dateA;
+        });
 
     return (
         <PageTransition className="h-[calc(100vh-8rem)]">
@@ -296,26 +307,28 @@ export default function Chat() {
                         } />
 
                         {/* Banner Promocional */}
-                        <div
-                            onClick={() => setShowUpgradeDialog(true)}
-                            className="mx-4 mt-4 mb-6 p-4 rounded-xl relative overflow-hidden bg-gradient-to-r from-gray-900 to-black border border-white/10 shadow-lg cursor-pointer active:scale-95 transition-transform"
-                        >
-                            <div className="relative z-10 flex gap-4 items-center">
-                                <div className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center bg-gray-800 shrink-0">
-                                    <i className="ri-fire-fill text-2xl text-white"></i>
-                                </div>
-                                <div>
-                                    <h3 className="text-white font-bold text-sm">Saia na frente e encontre a pessoa ideal</h3>
-                                    <p className="text-gray-400 text-xs mt-1">
-                                        Perfil em destaque, mensagens diretas e filtros avançados. Aumente em até 3x suas chances.
-                                    </p>
+                        {subscription?.tier !== 'gold' && (
+                            <div
+                                onClick={() => setShowUpgradeDialog(true)}
+                                className="mx-4 mt-4 mb-6 p-4 rounded-xl relative overflow-hidden bg-gradient-to-r from-gray-900 to-black border border-white/10 shadow-lg cursor-pointer active:scale-95 transition-transform"
+                            >
+                                <div className="relative z-10 flex gap-4 items-center">
+                                    <div className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center bg-gray-800 shrink-0">
+                                        <i className="ri-fire-fill text-2xl text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-bold text-sm">Saia na frente e encontre a pessoa ideal</h3>
+                                        <p className="text-gray-400 text-xs mt-1">
+                                            Perfil em destaque, mensagens diretas e filtros avançados. Aumente em até 3x suas chances.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                         {/* Seção de Novos Matches */}
                         <div className="px-4 mb-8">
                             <h2 className="font-bold text-lg mb-4">Novas conexões</h2>
-                            <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+                            <div className="flex gap-4 overflow-x-auto pb-2 pt-4 -mx-4 px-4 scrollbar-hide">
                                 {/* Cartão Gold - Teaser de Curtidas */}
                                 <Link to="/app/matches" className="flex flex-col items-center gap-2 shrink-0 group">
                                     <div className="relative w-24 h-32 rounded-xl border-2 border-[#d4af37] bg-gray-900 flex items-center justify-center">
@@ -350,7 +363,12 @@ export default function Chat() {
                                         }}
                                         className="flex flex-col items-center gap-2 shrink-0 cursor-pointer"
                                     >
-                                        <div className="relative w-24 h-32 rounded-xl border border-white/10 overflow-visible bg-muted shadow-sm">
+                                        <div className={cn(
+                                            "relative w-24 h-32 rounded-xl border overflow-visible bg-muted shadow-sm transition-all",
+                                            conv.is_super_like
+                                                ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] ring-1 ring-blue-500/50"
+                                                : "border-white/10"
+                                        )}>
                                             <div className="absolute inset-0 rounded-xl overflow-hidden">
                                                 <img
                                                     src={conv.profile.photos[0] || conv.profile.avatar_url}
@@ -359,15 +377,25 @@ export default function Chat() {
                                                 />
                                             </div>
 
+                                            {/* Super Like Badge */}
+                                            {conv.is_super_like && (
+                                                <div className="absolute -top-2 -right-2 z-30 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center shadow-md border border-white/10">
+                                                    <i className="ri-star-fill text-white text-[10px]" />
+                                                </div>
+                                            )}
+
                                             {/* Ponto vermelho se houver mensagem não lida */}
                                             {conv.last_message && !conv.last_message.is_read && conv.last_message.sender_id !== user?.id && (
                                                 <div className="absolute right-1 top-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background z-20"></div>
                                             )}
 
                                             {/* Coração flutuante para NOVOS matches que o usuário ainda não clicou */}
-                                            {!viewedMatches.has(conv.match_id) && <FloatingHeart />}
+                                            {!viewedMatches.has(conv.match_id) && !conv.is_super_like && <FloatingHeart />}
                                         </div>
-                                        <span className="text-sm font-medium truncate max-w-[96px] mt-1">{conv.profile.display_name}</span>
+                                        <span className="text-sm font-medium truncate max-w-[96px] mt-1 flex items-center gap-1">
+                                            {conv.profile.display_name}
+                                            {conv.is_super_like && <i className="ri-star-fill text-blue-500 text-[10px]" />}
+                                        </span>
                                     </div>
                                 ))}
                             </div>

@@ -7,6 +7,7 @@ interface NotificationState {
     explore: boolean;   // Novo conteúdo no Explorar
     matches: boolean;   // Novos likes recebidos
     chat: boolean;      // Novas mensagens não lidas
+    likesCount: number; // Total de likes recebidos
 }
 
 export function useNotifications() {
@@ -16,6 +17,7 @@ export function useNotifications() {
         explore: false,
         matches: false,
         chat: false,
+        likesCount: 0,
     });
 
     useEffect(() => {
@@ -24,20 +26,63 @@ export function useNotifications() {
         // Verificar novos likes recebidos (swipes com direction 'like')
         const checkMatches = async () => {
             try {
+                // 1. Obter IDs que eu já interagi (swipes)
+                const { data: mySwipes } = await supabase
+                    .from('swipes')
+                    .select('swiped_id')
+                    .eq('swiper_id', user.id);
+
+                const mySwipedIds = mySwipes?.map(s => s.swiped_id) || [];
+
+                // 2. Obter usuários bloqueados (user_blocks)
+                const { data: blocks } = await supabase
+                    .from('user_blocks')
+                    .select('blocker_id, blocked_id')
+                    .or(`blocker_id.eq.${user.id},blocked_id.eq.${user.id}`);
+
+                const blockedIds = blocks?.map(b => b.blocker_id === user.id ? b.blocked_id : b.blocker_id) || [];
+
+                const excludedIds = [...new Set([...mySwipedIds, ...blockedIds])];
+
+                // 3. Verificar novos likes/super_likes desde a última checagem (para o indicador booleano)
                 const lastCheck = localStorage.getItem(`last_matches_check_${user.id}`);
                 const checkTime = lastCheck ? new Date(parseInt(lastCheck)) : new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-                const { data, error } = await supabase
+                let queryBoolean = supabase
                     .from('swipes')
                     .select('id')
                     .eq('swiped_id', user.id)
-                    .eq('direction', 'like')
+                    .in('direction', ['like', 'super_like'])
                     .gte('created_at', checkTime.toISOString())
                     .limit(1);
+
+                if (excludedIds.length > 0) {
+                    queryBoolean = queryBoolean.not('swiper_id', 'in', `(${excludedIds.join(',')})`);
+                }
+
+                const { data, error } = await queryBoolean;
 
                 if (!error && data && data.length > 0) {
                     setNotifications(prev => ({ ...prev, matches: true }));
                 }
+
+                // 4. Buscar contagem total de likes/super_likes PENDENTES (para o badge numérico)
+                let queryCount = supabase
+                    .from('swipes')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('swiped_id', user.id)
+                    .in('direction', ['like', 'super_like']);
+
+                if (excludedIds.length > 0) {
+                    queryCount = queryCount.not('swiper_id', 'in', `(${excludedIds.join(',')})`);
+                }
+
+                const { count, error: countError } = await queryCount;
+
+                if (!countError && count !== null) {
+                    setNotifications(prev => ({ ...prev, likesCount: count }));
+                }
+
             } catch (error) {
                 console.error('Error checking matches:', error);
             }
@@ -156,7 +201,11 @@ export function useNotifications() {
                 },
                 (payload) => {
                     if (payload.new.direction === 'like') {
-                        setNotifications(prev => ({ ...prev, matches: true }));
+                        setNotifications(prev => ({
+                            ...prev,
+                            matches: true,
+                            likesCount: prev.likesCount + 1
+                        }));
                     }
                 }
             )

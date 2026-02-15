@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createPortal } from 'react-dom';
 import { useParams, Link, useNavigate } from 'react-router-dom';
@@ -75,12 +76,144 @@ export default function ChatRoom() {
   const { user } = useAuth();
   const dragControls = useDragControls();
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [matchProfile, setMatchProfile] = useState<MatchProfile | null>(null);
+  const queryClient = useQueryClient();
+
+  // Optimized Data Fetching with React Query
+  const { data: matchDetails, isLoading: loadingDetails } = useQuery({
+    queryKey: ['chat-details', matchId, user?.id],
+    enabled: !!matchId && !!user,
+    staleTime: Infinity,
+    queryFn: async () => {
+      if (!matchId || !user) throw new Error("No user/match");
+      const { supabase } = await import('@/integrations/supabase/client');
+
+      const { data: match, error: matchError } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('id', matchId)
+        .single();
+
+      if (matchError || !match) throw matchError;
+
+      const matchedOtherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
+
+      // Check for Super Like
+      const { data: superLike } = await supabase
+        .from('swipes')
+        .select('*')
+        .eq('swiper_id', matchedOtherUserId)
+        .eq('swiped_id', user.id)
+        .eq('direction', 'super_like')
+        .maybeSingle();
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, avatar_url, photos, bio, birth_date, city, state, religion, church_frequency, looking_for, occupation, show_distance, christian_interests, interests, last_active_at, show_online_status, show_last_active')
+        .eq('user_id', matchedOtherUserId)
+        .single();
+
+      let mProfile: MatchProfile | null = null;
+      if (profile) {
+        const p: any = profile;
+        mProfile = {
+          id: p.user_id,
+          display_name: p.display_name || 'Usuário',
+          avatar_url: p.avatar_url || undefined,
+          photos: p.photos || [],
+          bio: p.bio,
+          birth_date: p.birth_date,
+          city: p.city,
+          state: p.state,
+          religion: p.religion,
+          church_frequency: p.church_frequency,
+          looking_for: p.looking_for,
+          occupation: p.occupation,
+          is_verified: p.is_verified,
+          show_distance: p.show_distance,
+          christian_interests: p.christian_interests,
+          interests: p.interests,
+          last_active_at: p.last_active_at,
+          show_online_status: p.show_online_status,
+          show_last_active: p.show_last_active
+        };
+      }
+
+      return {
+        matchProfile: mProfile,
+        otherUserId: matchedOtherUserId,
+        isSuperLikeMatch: !!superLike
+      };
+    }
+  });
+
+  const { data: messages = [], isLoading: loadingMessages } = useQuery({
+    queryKey: ['chat-messages', matchId],
+    enabled: !!matchId,
+    queryFn: async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: messagesData } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('match_id', matchId)
+        .order('created_at', { ascending: true });
+      return messagesData || [];
+    }
+  });
+
+  const { data: mySocials = {} } = useQuery({
+    queryKey: ['my-socials', user?.id],
+    enabled: !!user,
+    staleTime: Infinity,
+    queryFn: async () => {
+      if (!user) return {};
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: myProfile } = await (supabase
+        .from('profiles')
+        .select('social_media')
+        .eq('user_id', user.id)
+        .single() as any);
+
+      if (myProfile?.social_media) {
+        try {
+          return typeof myProfile.social_media === 'string'
+            ? JSON.parse(myProfile.social_media)
+            : myProfile.social_media;
+        } catch (e) {
+          console.error('Error parsing my socials:', e);
+        }
+      }
+      return {};
+    }
+  });
+
+  const loading = loadingDetails || loadingMessages;
+  const matchProfile = matchDetails?.matchProfile || null;
+  const otherUserId = matchDetails?.otherUserId || null;
+  const isSuperLikeMatch = matchDetails?.isSuperLikeMatch || false;
+
+  const setMessages = useCallback((updater: any) => {
+    queryClient.setQueryData(['chat-messages', matchId], (old: Message[] | undefined) => {
+      const prev = old || [];
+      if (typeof updater === 'function') {
+        const newData = updater(prev);
+        return newData;
+      }
+      return updater;
+    });
+  }, [queryClient, matchId]);
+
+  const setMySocials = useCallback((updater: any) => {
+    queryClient.setQueryData(['my-socials', user?.id], (old: SocialMediaLinks | undefined) => {
+      const prev = old || {};
+      if (typeof updater === 'function') {
+        return updater(prev);
+      }
+      return updater;
+    });
+  }, [queryClient, user?.id]);
+
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [otherUserId, setOtherUserId] = useState<string | null>(null);
   const [showReport, setShowReport] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -89,6 +222,7 @@ export default function ChatRoom() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [showSocialBadges, setShowSocialBadges] = useState(false);
   const { data: subscription } = useSubscription();
+
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [upgradeData, setUpgradeData] = useState({
     title: '',
@@ -101,7 +235,6 @@ export default function ChatRoom() {
   const [showCheckoutManager, setShowCheckoutManager] = useState(false);
   const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
 
-  const [mySocials, setMySocials] = useState<SocialMediaLinks>({});
   const [socialModal, setSocialModal] = useState<{ isOpen: boolean; platform: keyof SocialMediaLinks | null }>({ isOpen: false, platform: null });
   const [socialInputValue, setSocialInputValue] = useState('');
 
@@ -131,75 +264,17 @@ export default function ChatRoom() {
     }
   }, [messages, loading, scrollToBottom]);
 
+  // Mark as read effect
   useEffect(() => {
-    if (!matchId || !user) return;
-
-    const fetchData = async () => {
-      setLoading(true);
+    if (!messages.length || !user || !matchId) return;
+    const markAsRead = async () => {
       const { supabase } = await import('@/integrations/supabase/client');
-
-      const { data: match, error: matchError } = await supabase
-        .from('matches')
-        .select('*')
-        .eq('id', matchId)
-        .single();
-
-      if (matchError || !match) {
-        setLoading(false);
-        return;
-      }
-
-      const matchedOtherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
-      setOtherUserId(matchedOtherUserId);
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('user_id, display_name, avatar_url, photos, bio, birth_date, city, state, religion, church_frequency, looking_for, occupation, show_distance, christian_interests, interests, last_active_at, show_online_status, show_last_active')
-        .eq('user_id', matchedOtherUserId)
-        .single();
-
-      if (profile) {
-        const p: any = profile;
-        setMatchProfile({
-          id: p.user_id,
-          display_name: p.display_name || 'Usuário',
-          avatar_url: p.avatar_url || undefined,
-          photos: p.photos || [],
-          bio: p.bio,
-          birth_date: p.birth_date,
-          city: p.city,
-          state: p.state,
-          religion: p.religion,
-          church_frequency: p.church_frequency,
-          looking_for: p.looking_for,
-          occupation: p.occupation,
-          is_verified: p.is_verified,
-          show_distance: p.show_distance,
-          christian_interests: p.christian_interests,
-          interests: p.interests,
-          last_active_at: p.last_active_at,
-          show_online_status: p.show_online_status,
-          show_last_active: p.show_last_active
-        });
-      }
-
-      const { data: messagesData } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('match_id', matchId)
-        .order('created_at', { ascending: true });
-
-      setMessages(messagesData || []);
-      setTimeout(scrollToBottom, 50); // Double check scroll after messages are set
-
-      // Get current user's privacy settings
       const { data: myPrivacySettings } = await supabase
         .from('profiles')
         .select('show_read_receipts')
         .eq('user_id', user.id)
         .single();
 
-      // Only mark as read if user has read receipts enabled
       if (myPrivacySettings?.show_read_receipts !== false) {
         await supabase
           .from('messages')
@@ -208,31 +283,9 @@ export default function ChatRoom() {
           .neq('sender_id', user.id)
           .eq('is_read', false);
       }
-
-      // Buscar meu próprio perfil para links de redes sociais
-      const { data: myProfile } = await (supabase
-        .from('profiles')
-        .select('social_media')
-        .eq('user_id', user.id)
-        .single() as any);
-
-      if (myProfile?.social_media) {
-        let socials = {};
-        try {
-          socials = typeof myProfile.social_media === 'string'
-            ? JSON.parse(myProfile.social_media)
-            : myProfile.social_media;
-          setMySocials(socials || {});
-        } catch (e) {
-          console.error('Error parsing my socials:', e);
-        }
-      }
-
-      setLoading(false);
     };
-
-    fetchData();
-  }, [matchId, user]);
+    markAsRead();
+  }, [messages.length, user, matchId]);
 
   useEffect(() => {
     if (!matchId) return;
@@ -635,7 +688,7 @@ export default function ChatRoom() {
   if (!matchProfile) return <div className="p-8 text-center">Match não encontrado. <Link to="/app/chat" className="text-primary underline">Voltar</Link></div>;
 
   return (
-    <SlideTransition className="flex flex-col w-full h-[100dvh] bg-background overflow-hidden font-sans">
+    <SlideTransition className="flex flex-col w-full h-[100dvh] bg-background overflow-hidden font-sans pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center gap-3 px-4 py-3 border-b shrink-0 h-16 bg-background/80 backdrop-blur">
         <Link to="/app/chat" className="text-muted-foreground"><i className="ri-arrow-left-line text-xl" /></Link>
         <div className="w-10 h-10 rounded-full overflow-hidden" onClick={() => setShowProfileInfo(true)}>
@@ -688,13 +741,29 @@ export default function ChatRoom() {
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date} className="space-y-4">
             <div className="flex justify-center"><span className="text-[10px] uppercase tracking-widest text-muted-foreground bg-muted px-3 py-1 rounded-full">{date}</span></div>
-            {msgs.map((m) => {
+            {msgs.map((m, index) => {
               const isOwn = m.sender_id === user?.id;
               return (
                 <div key={m.id} className={cn('flex', isOwn ? 'justify-end' : 'justify-start')}>
-                  <div className={cn('max-w-[80%] p-3 rounded-2xl shadow-sm', isOwn ? 'bg-primary text-primary-foreground rounded-tr-none' : 'bg-muted rounded-tl-none')}>
+                  <div className={cn('max-w-[80%] p-3 rounded-2xl shadow-sm relative overflow-hidden',
+                    isOwn ? 'bg-primary text-primary-foreground rounded-tr-none' : 'bg-muted rounded-tl-none',
+                    (!isOwn && index === 0 && isSuperLikeMatch) && 'bg-gradient-to-r from-blue-600 to-blue-500 text-white border-2 border-[#d4af37]/50 shadow-[0_0_15px_rgba(212,175,55,0.3)]'
+                  )}>
+                    {(!isOwn && index === 0 && isSuperLikeMatch) && (
+                      <div className="absolute -top-3 -right-3 w-8 h-8 bg-[#d4af37] rotate-12 flex items-center justify-center shadow-sm z-10 rounded-lg">
+                        <i className="ri-star-fill text-white text-xs" />
+                      </div>
+                    )}
+                    {(!isOwn && index === 0 && isSuperLikeMatch) && (
+                      <p className="text-[10px] font-bold text-[#d4af37] mb-1 uppercase tracking-wider flex items-center gap-1">
+                        <i className="ri-star-fill" /> Super Like
+                      </p>
+                    )}
                     {renderMessageContent(m.content)}
-                    <div className={cn('flex items-center justify-end gap-1 mt-1', isOwn ? 'text-primary-foreground' : 'text-muted-foreground')}>
+                    <div className={cn('flex items-center justify-end gap-1 mt-1',
+                      isOwn ? 'text-primary-foreground' : 'text-muted-foreground',
+                      (!isOwn && index === 0 && isSuperLikeMatch) && 'text-blue-100'
+                    )}>
                       <p className="text-[9px] opacity-70">{formatTime(m.created_at)}</p>
                       {isOwn && (
                         <MessageStatus

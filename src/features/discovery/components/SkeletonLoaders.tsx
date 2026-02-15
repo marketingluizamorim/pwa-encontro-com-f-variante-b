@@ -29,10 +29,10 @@ export function ProfileCardSkeleton() {
     <div className="h-full rounded-3xl overflow-hidden shadow-2xl relative bg-muted">
       {/* Image placeholder */}
       <Skeleton className="absolute inset-0 rounded-none" />
-      
+
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-      
+
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
         <div className="flex items-baseline gap-2">
@@ -50,39 +50,58 @@ export function ProfileCardSkeleton() {
   );
 }
 
-// Stacked cards skeleton for Discover loading
+// Stacked cards skeleton for Discover loading - Matches Discover.tsx layout strictly
 export function DiscoverSkeleton() {
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-2">
-        <Skeleton className="h-7 w-28" />
-        <Skeleton className="h-10 w-10 rounded-full" />
+    <div className="relative w-full h-full flex flex-col items-center bg-background overflow-hidden">
+      {/* Header Placeholder */}
+      <div className="w-full h-16 flex items-center justify-between px-6 shrink-0 z-50">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-8 w-8 rounded-full" />
       </div>
 
-      {/* Card Stack */}
-      <div className="flex-1 relative overflow-hidden">
-        {/* Background cards */}
-        <div 
-          className="absolute inset-0 rounded-3xl bg-muted/40 shadow-lg"
-          style={{ transform: 'scale(0.88) translateY(24px)', zIndex: 1 }}
-        />
-        <div 
-          className="absolute inset-0 rounded-3xl bg-muted/60 shadow-xl"
-          style={{ transform: 'scale(0.94) translateY(12px)', zIndex: 2 }}
-        />
-        
-        {/* Main card */}
-        <div className="absolute inset-0" style={{ zIndex: 10 }}>
-          <ProfileCardSkeleton />
+      {/* Card Stack Container - Matches real page layout */}
+      <div className="flex-1 w-full max-w-md relative flex items-center justify-center pb-24 px-4">
+
+        {/* Background Card Preview */}
+        <div className="absolute inset-x-4 top-4 bottom-28 z-0">
+          <div className="w-full h-full bg-muted/40 rounded-[2rem] border border-border/10 scale-95 translate-y-2 opacity-60" />
+        </div>
+
+        {/* Main Card */}
+        <div className="w-full h-full z-20 relative">
+          <div className="w-full h-full rounded-[2rem] overflow-hidden shadow-sm border border-border/5 bg-muted relative">
+            <Skeleton className="absolute inset-0 rounded-none w-full h-full" />
+
+            {/* Gradient & Content */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
+
+            <div className="absolute bottom-0 left-0 right-0 p-6 space-y-4 z-20">
+              <div className="flex items-end gap-3">
+                <Skeleton className="h-8 w-48 bg-white/20" />
+                <Skeleton className="h-6 w-12 bg-white/20" />
+              </div>
+
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32 bg-white/20" />
+                <Skeleton className="h-5 w-40 rounded-full bg-white/20" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-center items-center gap-4 py-4">
-        <Skeleton className="w-14 h-14 rounded-full" />
-        <Skeleton className="w-12 h-12 rounded-full" />
-        <Skeleton className="w-14 h-14 rounded-full" />
+      {/* Action Buttons - Absolutely positioned to match real page */}
+      <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-6 pb-2">
+        <Skeleton className="w-14 h-14 rounded-full border border-red-500/20 bg-background/80" />
+        <Skeleton className="w-11 h-11 rounded-full border border-blue-500/20 bg-background/80 mb-2" />
+        <Skeleton className="w-14 h-14 rounded-full border border-green-500/20 bg-background/80" />
+
+        {/* Filter Button Placeholder */}
+        <div className="absolute right-6">
+          <Skeleton className="w-10 h-10 rounded-full bg-white/10" />
+        </div>
       </div>
     </div>
   );

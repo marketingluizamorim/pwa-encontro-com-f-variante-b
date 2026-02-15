@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Crown, CheckCircle2, MessageSquare, BookOpen, GraduationCap, Heart, Star, Sparkles, LogOut, ShieldCheck, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -49,8 +50,7 @@ export default function Profile() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isBioDialogOpen, setIsBioDialogOpen] = useState(false);
   const [bioText, setBioText] = useState('');
   const [isSavingBio, setIsSavingBio] = useState(false);
@@ -69,41 +69,54 @@ export default function Profile() {
 
   const isOwnProfile = !userId || userId === user?.id;
 
-  useEffect(() => {
-    loadProfile();
-  }, [user, userId]);
+  const { data: profile = null, isLoading: loading, refetch: loadProfile } = useQuery({
+    queryKey: ['profile', userId || user?.id],
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    queryFn: async () => {
+      if (!user) return null;
+      const targetUserId = userId || user.id;
 
-  const loadProfile = async () => {
-    if (!user) return;
+      try {
+        const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+        const { data, error } = await supabaseRuntime
+          .from('profiles')
+          .select('*')
+          .eq('user_id', targetUserId)
+          .maybeSingle();
 
-    const targetUserId = userId || user.id;
+        if (error) throw error;
 
-    try {
-      const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-      const { data, error } = await supabaseRuntime
-        .from('profiles')
-        .select('*')
-        .eq('user_id', targetUserId)
-        .single();
+        // If no data and it's own profile, return default
+        if (!data && isOwnProfile) {
+          return {
+            display_name: user.user_metadata?.display_name || 'Usuário',
+            bio: 'Complete seu perfil para aparecer para outras pessoas.',
+            photos: [],
+            interests: [],
+          } as UserProfile;
+        }
 
-      if (error) throw error;
-      setProfile(data as UserProfile);
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      if (isOwnProfile) {
-        setProfile({
-          display_name: user.user_metadata?.display_name || 'Usuário',
-          bio: 'Complete seu perfil para aparecer para outras pessoas.',
-          photos: [],
-          interests: [],
-        });
-      } else {
-        toast.error('Perfil não encontrado');
+        if (!data) throw new Error('Profile not found');
+
+        return data as UserProfile;
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        if (isOwnProfile) {
+          return {
+            display_name: user.user_metadata?.display_name || 'Usuário',
+            bio: 'Complete seu perfil para aparecer para outras pessoas.',
+            photos: [],
+            interests: [],
+          } as UserProfile;
+        } else {
+          toast.error('Perfil não encontrado');
+          throw error;
+        }
       }
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
   const handleSignOut = async () => {
     await signOut();
@@ -122,7 +135,11 @@ export default function Profile() {
 
       if (error) throw error;
 
-      setProfile(prev => prev ? { ...prev, bio: bioText } : null);
+      queryClient.setQueryData(['profile', userId || user?.id], (old: UserProfile | null | undefined) => {
+        if (!old) return old;
+        return { ...old, bio: bioText };
+      });
+
       setIsBioDialogOpen(false);
       toast.success('Descrição atualizada com sucesso!');
     } catch (error) {
@@ -177,7 +194,7 @@ export default function Profile() {
 
   return (
     <PageTransition className="h-[calc(100vh-8rem)]">
-      <PullToRefresh onRefresh={loadProfile} className="h-full">
+      <PullToRefresh onRefresh={async () => { await loadProfile(); }} className="h-full">
         <div className="flex flex-col pb-24 relative">
           <Header action={
             <button
@@ -629,6 +646,114 @@ export default function Profile() {
               planName={selectedCheckoutPlan.name}
             />
           )}
+
+          {/* Debug Plan Switcher - Only for specific user */}
+          {user?.email === 'marketing.luizamorim@gmail.com' && isOwnProfile && (
+            <div className="mx-4 mt-8 p-4 bg-red-900/20 border border-red-500/30 rounded-xl space-y-3">
+              <h3 className="text-red-400 font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+                <i className="ri-bug-line" /> Área de Teste (Admin)
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const toastId = toast.loading('Alterando para Bronze...');
+                    try {
+                      const { supabase } = await import('@/integrations/supabase/client');
+
+                      const { error } = await supabase.from('user_subscriptions').upsert({
+                        user_id: user.id,
+                        plan_id: 'bronze',
+                        plan_name: 'Bronze',
+                        is_active: true,
+                        can_see_who_liked: false,
+                        can_video_call: false,
+                        can_use_advanced_filters: false,
+                        is_profile_boosted: false,
+                        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                      }, { onConflict: 'user_id' });
+
+                      if (error) throw error;
+                      toast.success('Alterado para Bronze!', { id: toastId });
+                      setTimeout(() => window.location.reload(), 1000);
+                    } catch (err: any) {
+                      console.error(err);
+                      toast.error(`Erro: ${err.message}`, { id: toastId });
+                    }
+                  }}
+                  className="bg-orange-950/30 border-orange-500/20 text-orange-200 hover:bg-orange-900/50"
+                >
+                  Plano Bronze
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const toastId = toast.loading('Alterando para Prata...');
+                    try {
+                      const { supabase } = await import('@/integrations/supabase/client');
+
+                      const { error } = await supabase.from('user_subscriptions').upsert({
+                        user_id: user.id,
+                        plan_id: 'silver',
+                        plan_name: 'Prata',
+                        is_active: true,
+                        can_see_who_liked: true,
+                        can_video_call: true,
+                        can_use_advanced_filters: false,
+                        is_profile_boosted: false,
+                        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                      }, { onConflict: 'user_id' });
+
+                      if (error) throw error;
+                      toast.success('Alterado para Prata!', { id: toastId });
+                      setTimeout(() => window.location.reload(), 1000);
+                    } catch (err: any) {
+                      console.error(err);
+                      toast.error(`Erro: ${err.message}`, { id: toastId });
+                    }
+                  }}
+                  className="bg-slate-800/50 border-slate-400/20 text-slate-200 hover:bg-slate-700/50"
+                >
+                  Plano Prata
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const toastId = toast.loading('Alterando para Ouro...');
+                    try {
+                      const { supabase } = await import('@/integrations/supabase/client');
+
+                      const { error } = await supabase.from('user_subscriptions').upsert({
+                        user_id: user.id,
+                        plan_id: 'gold',
+                        plan_name: 'Ouro',
+                        is_active: true,
+                        can_see_who_liked: true,
+                        can_video_call: true,
+                        can_use_advanced_filters: true,
+                        is_profile_boosted: true,
+                        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                      }, { onConflict: 'user_id' });
+
+                      if (error) throw error;
+                      toast.success('Alterado para Ouro!', { id: toastId });
+                      setTimeout(() => window.location.reload(), 1000);
+                    } catch (err: any) {
+                      console.error(err);
+                      toast.error(`Erro: ${err.message}`, { id: toastId });
+                    }
+                  }}
+                  className="bg-yellow-950/30 border-yellow-500/20 text-yellow-200 hover:bg-yellow-900/50"
+                >
+                  Plano Ouro
+                </Button>
+              </div>
+            </div>
+          )}
+
         </div>
       </PullToRefresh>
     </PageTransition>

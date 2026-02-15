@@ -264,7 +264,7 @@ export default function ProfileEdit() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur pt-[env(safe-area-inset-top)] min-h-[calc(3.5rem+env(safe-area-inset-top))]">
         <div className="container flex h-14 items-center justify-between px-4">
           <div className="flex items-center">
             <button
@@ -685,7 +685,7 @@ export default function ProfileEdit() {
       </motion.div>
 
       {/* Fixed Bottom Save Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border/50 z-50">
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-background/80 backdrop-blur-xl border-t border-border/50 z-50">
         <Button
           onClick={handleSave}
           disabled={saving}
