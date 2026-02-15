@@ -1233,7 +1233,7 @@ export default function Explore() {
                             <div className="w-12" />
                         </div>
 
-                        <div className="px-6 space-y-12">
+                        <div className="px-6 pb-32 space-y-12">
                             {RELATIONSHIP_TOPICS.map((topic, topicIdx) => (
                                 <div key={topic.id} id={`topic-${topic.id}`} className="relative">
                                     {/* Floating Fragment Header */}
@@ -1425,7 +1425,7 @@ export default function Explore() {
                             <div className="w-12" />
                         </div>
 
-                        <div className="px-6 space-y-6">
+                        <div className="px-6 pb-32 space-y-6">
                             {BIBLE_STUDIES.map((study) => (
                                 <motion.div
                                     key={study.id}
@@ -1575,7 +1575,7 @@ export default function Explore() {
                             <div className="w-12" />
                         </div>
 
-                        <div className="px-6 pb-20 space-y-12">
+                        <div className="px-6 pb-32 space-y-12">
                             {/* Main Portal Card */}
                             <motion.div
                                 variants={itemFadeUp}
