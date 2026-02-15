@@ -214,6 +214,21 @@ export default function Matches() {
 
   // Interaction State
   const dragControls = useDragControls();
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+  const handleNextPhoto = (e: React.MouseEvent, photos: string[]) => {
+    e.stopPropagation();
+    if (currentPhotoIndex < photos.length - 1) {
+      setCurrentPhotoIndex(prev => prev + 1);
+    }
+  };
+
+  const handlePrevPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentPhotoIndex > 0) {
+      setCurrentPhotoIndex(prev => prev - 1);
+    }
+  };
   const [showMatchCelebration, setShowMatchCelebration] = useState(false);
   const [matchData, setMatchData] = useState<{ name: string; photo: string; matchId: string } | null>(null);
 
@@ -337,6 +352,7 @@ export default function Matches() {
     const matchedProfile = likes.find(l => l.user_id === targetUserId)?.profile;
 
     setSelectedLike(null);
+    setCurrentPhotoIndex(0);
 
     queryClient.setQueryData(['likes', user?.id], (old: LikeProfile[] | undefined) => {
       return old ? old.filter(l => l.user_id !== targetUserId) : [];
@@ -563,6 +579,7 @@ export default function Matches() {
               onDragEnd={(e, info) => {
                 if (info.offset.y > 100 || info.velocity.y > 500) {
                   setSelectedLike(null);
+                  setCurrentPhotoIndex(0);
                 }
               }}
             >
@@ -571,7 +588,10 @@ export default function Matches() {
 
                 {/* Close Button */}
                 <button
-                  onClick={() => setSelectedLike(null)}
+                  onClick={() => {
+                    setSelectedLike(null);
+                    setCurrentPhotoIndex(0);
+                  }}
                   className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
                 >
                   <i className="ri-arrow-down-s-line text-2xl" />
@@ -582,8 +602,30 @@ export default function Matches() {
                   className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
                   onPointerDown={(e) => dragControls.start(e)}
                 >
+                  {/* Photo Indicators */}
+                  {selectedLike.profile.photos && selectedLike.profile.photos.length > 1 && (
+                    <div className="absolute top-4 inset-x-4 z-30 flex gap-1.5 px-2">
+                      {selectedLike.profile.photos.map((_, i) => (
+                        <div key={i} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
+                          <div
+                            className={cn(
+                              "h-full bg-white transition-all duration-300",
+                              i === currentPhotoIndex ? "w-full" : "w-0"
+                            )}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Photo Navigation Tap Areas */}
+                  <div className="absolute inset-0 z-20 flex">
+                    <div className="w-1/2 h-full cursor-pointer" onClick={(e) => handlePrevPhoto(e)} />
+                    <div className="w-1/2 h-full cursor-pointer" onClick={(e) => handleNextPhoto(e, selectedLike.profile.photos)} />
+                  </div>
+
                   <img
-                    src={selectedLike.profile.photos?.[0] || selectedLike.profile.avatar_url || '/placeholder.svg'}
+                    src={selectedLike.profile.photos?.[currentPhotoIndex] || selectedLike.profile.photos?.[0] || selectedLike.profile.avatar_url || '/placeholder.svg'}
                     className="w-full h-full object-cover pointer-events-none"
                     alt={selectedLike.profile.display_name}
                   />

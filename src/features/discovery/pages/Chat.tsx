@@ -204,6 +204,21 @@ export default function Chat() {
     });
     const [showSafety, setShowSafety] = useState(false);
     const dragControls = useDragControls();
+    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+    const handleNextPhoto = (e: React.MouseEvent, photos: string[]) => {
+        e.stopPropagation();
+        if (currentPhotoIndex < photos.length - 1) {
+            setCurrentPhotoIndex(prev => prev + 1);
+        }
+    };
+
+    const handlePrevPhoto = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (currentPhotoIndex > 0) {
+            setCurrentPhotoIndex(prev => prev - 1);
+        }
+    };
 
     // Estado para ações do usuário (Denunciar, Bloquear, Excluir)
     const [actionProfileId, setActionProfileId] = useState<string | null>(null);
@@ -483,6 +498,7 @@ export default function Chat() {
                                 onDragEnd={(e, info) => {
                                     if (info.offset.y > 100 || info.velocity.y > 500) {
                                         setSelectedProfile(null);
+                                        setCurrentPhotoIndex(0);
                                     }
                                 }}
                             >
@@ -490,7 +506,10 @@ export default function Chat() {
                                 <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
                                     {/* Botão Fechar */}
                                     <button
-                                        onClick={() => setSelectedProfile(null)}
+                                        onClick={() => {
+                                            setSelectedProfile(null);
+                                            setCurrentPhotoIndex(0);
+                                        }}
                                         className="fixed top-4 right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
                                     >
                                         <i className="ri-arrow-down-s-line text-2xl" />
@@ -546,8 +565,30 @@ export default function Chat() {
                                         className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
                                         onPointerDown={(e) => dragControls.start(e)}
                                     >
+                                        {/* Photo Indicators */}
+                                        {selectedProfile.photos && selectedProfile.photos.length > 1 && (
+                                            <div className="absolute top-4 inset-x-4 z-30 flex gap-1.5 px-2">
+                                                {selectedProfile.photos.map((_, i) => (
+                                                    <div key={i} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
+                                                        <div
+                                                            className={cn(
+                                                                "h-full bg-white transition-all duration-300",
+                                                                i === currentPhotoIndex ? "w-full" : "w-0"
+                                                            )}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Photo Navigation Tap Areas */}
+                                        <div className="absolute inset-0 z-20 flex">
+                                            <div className="w-1/2 h-full cursor-pointer" onClick={(e) => handlePrevPhoto(e)} />
+                                            <div className="w-1/2 h-full cursor-pointer" onClick={(e) => handleNextPhoto(e, selectedProfile.photos)} />
+                                        </div>
+
                                         <img
-                                            src={selectedProfile.photos?.[0] || selectedProfile.avatar_url || '/placeholder.svg'}
+                                            src={selectedProfile.photos?.[currentPhotoIndex] || selectedProfile.avatar_url || '/placeholder.svg'}
                                             className="w-full h-full object-cover pointer-events-none"
                                             alt={selectedProfile.display_name}
                                         />
