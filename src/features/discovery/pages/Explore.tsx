@@ -1032,30 +1032,25 @@ export default function Explore() {
 
                 {/* --- VIEW: CATEGORIES (Sacred Mosaic Style) --- */}
                 {view === 'categories' && (
-                    <motion.div
+                    <div
                         key="categories"
-                        variants={staggerContainer}
-                        initial="initial"
-                        animate="animate"
-                        exit={{ opacity: 0, x: -20 }}
                         className="flex flex-col pb-32"
                     >
                         <Header />
 
                         <div className="px-6 py-4">
                             {/* Massive Typographic Header */}
-                            <motion.div variants={itemFadeUp} className="mb-12 relative">
+                            <div className="mb-12 relative">
                                 <div className="absolute -top-10 -left-10 w-40 h-40 bg-accent/10 blur-[100px] rounded-full -z-10" />
                                 <h2 className="text-5xl font-serif font-semibold text-white leading-tight">
                                     Conteúdos <br />
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd34d] to-[#d4af37] italic">Inspiradores</span>
                                 </h2>
                                 <div className="w-12 h-1 bg-accent mt-4 rounded-full opacity-50" />
-                            </motion.div>
+                            </div>
 
                             {/* Main Spotlight Fragment (Extreme Asymmetry for Devotional) */}
-                            <motion.div
-                                variants={itemFadeUp}
+                            <div
                                 onClick={() => handleCategoryClick('devotionals')}
                                 className="relative mb-12 ml-4 mr-0 group cursor-pointer"
                             >
@@ -1080,14 +1075,13 @@ export default function Explore() {
                                         Ler Agora <ChevronRight className="w-4 h-4" />
                                     </div>
                                 </div>
-                            </motion.div>
+                            </div>
 
                             {/* Staggered Grid (Topological Betrayal) */}
                             <div className="space-y-6">
                                 {MAIN_CATEGORIES.filter(c => c.id !== 'devotionals').map((cat, idx) => (
-                                    <motion.div
+                                    <div
                                         key={cat.id}
-                                        variants={itemFadeUp}
                                         onClick={() => handleCategoryClick(cat.id)}
                                         className={cn(
                                             "relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-white/[0.02] backdrop-blur-md p-6 group cursor-pointer transition-all",
@@ -1104,20 +1098,20 @@ export default function Explore() {
                                                 <p className="text-sm text-white/40 font-medium">{cat.description}</p>
                                             </div>
                                         </div>
-                                    </motion.div>
+                                    </div>
                                 ))}
                             </div>
 
                             {/* Divine Scroll Quote */}
-                            <motion.div variants={itemFadeUp} className="mt-16 text-center px-4 opacity-30">
+                            <div className="mt-16 text-center px-4 opacity-30">
                                 <Quote className="w-8 h-8 mx-auto mb-4 text-accent/50" />
                                 <p className="text-sm font-serif italic text-white/80 leading-relaxed">
                                     "Lâmpada para os meus pés é tua palavra, e luz para o meu caminho."
                                 </p>
                                 <span className="text-[10px] uppercase tracking-widest font-semibold mt-2 block">Salmo 119:105</span>
-                            </motion.div>
+                            </div>
                         </div>
-                    </motion.div>
+                    </div>
                 )}
 
                 {/* --- VIEW: DEVOTIONAL DETAIL (Meditation Flow) --- */}
