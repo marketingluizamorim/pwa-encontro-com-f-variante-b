@@ -498,13 +498,13 @@ export default function ChatRoom() {
     const content = newMessage.trim();
     setNewMessage('');
 
-    // Não esperar com setSending(true) se isso causar a desativação e perda de foco do input
-    // Em vez disso, enviar imediatamente e manter o foco
-    sendMediaMessage(content);
-
-    setTimeout(() => {
+    // Focar novamente no input imediatamente no próximo frame para manter o teclado aberto
+    // Em dispositivos móveis, o e.preventDefault() já ajuda, mas o foco explícito garante a fluidez
+    requestAnimationFrame(() => {
       inputRef.current?.focus();
-    }, 10);
+    });
+
+    sendMediaMessage(content);
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
