@@ -426,32 +426,43 @@ export default function ChatRoom() {
 
   // Ultra-stable Viewport tracking for Keyboard-Input adhesion
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
 
   useEffect(() => {
+    // Freeze body to prevent elastic scroll/keyboard issues
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+
     const viewport = window.visualViewport;
     if (!viewport) return;
 
     const handleViewport = () => {
-      // Threshold reduced to 100px for better sensitivity on small devices
       const isKeyboard = window.innerHeight - viewport.height > 100;
       setIsKeyboardVisible(isKeyboard);
+      setViewportHeight(viewport.height);
 
       if (isKeyboard) {
-        // Enforce instant scroll to bottom when keyboard opens
         messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
       }
     };
 
     viewport.addEventListener('resize', handleViewport);
     viewport.addEventListener('scroll', handleViewport);
+
     return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+
       viewport.removeEventListener('resize', handleViewport);
       viewport.removeEventListener('scroll', handleViewport);
-      // Garantir que o teclado feche ao sair da rota para não quebrar o layout da página anterior
+
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
-      // Reset scroll global para segurança
       window.scrollTo(0, 0);
     };
   }, []);
@@ -810,7 +821,8 @@ export default function ChatRoom() {
           navigate('/app/chat');
         }
       }}
-      className="flex flex-col w-full h-[100dvh] bg-background overflow-hidden font-sans touch-pan-y overscroll-contain"
+      className="fixed inset-0 flex flex-col bg-background overflow-hidden font-sans touch-pan-y overscroll-contain z-[1000]"
+      style={{ height: viewportHeight }}
     >
       <div className="flex items-center gap-3 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 border-b shrink-0 bg-background/80 backdrop-blur">
         <Link to="/app/chat" className="text-muted-foreground"><i className="ri-arrow-left-line text-xl" /></Link>
@@ -916,9 +928,7 @@ export default function ChatRoom() {
       <div
         className="px-4 py-3 border-t bg-background shrink-0 z-50 transition-none"
         style={{
-          paddingBottom: isKeyboardVisible
-            ? '12px'
-            : 'calc(12px + env(safe-area-inset-bottom))'
+          paddingBottom: '12px'
         }}
       >
         <AnimatePresence>
@@ -946,8 +956,6 @@ export default function ChatRoom() {
               onChange={(e) => { setNewMessage(e.target.value); broadcastTyping(true); }}
               onBlur={() => {
                 stopTyping();
-                // Pequeno delay para evitar saltos no iOS ao trocar de campo
-                setTimeout(() => window.scrollTo(0, 0), 10);
               }}
               placeholder="Sua mensagem..."
               className="rounded-full bg-muted border-none h-11"
