@@ -429,7 +429,14 @@ export default function ChatRoom() {
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
 
   useEffect(() => {
-    // Freeze body to prevent elastic scroll/keyboard issues
+    // Lock body scroll and fix position to block parent layout interference
+    const originalStyle = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      width: document.body.style.width,
+      height: document.body.style.height
+    };
+
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
@@ -444,6 +451,7 @@ export default function ChatRoom() {
       setViewportHeight(viewport.height);
 
       if (isKeyboard) {
+        // Instant scroll on keyboard reveal to prevent gap
         messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
       }
     };
@@ -451,18 +459,23 @@ export default function ChatRoom() {
     viewport.addEventListener('resize', handleViewport);
     viewport.addEventListener('scroll', handleViewport);
 
+    // Initial sync
+    handleViewport();
+
     return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
-
-      viewport.removeEventListener('resize', handleViewport);
-      viewport.removeEventListener('scroll', handleViewport);
-
+      // Force keyboard close to reset layout immediate
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
+
+      // Restore body styles
+      document.body.style.overflow = originalStyle.overflow;
+      document.body.style.position = originalStyle.position;
+      document.body.style.width = originalStyle.width;
+      document.body.style.height = originalStyle.height;
+
+      viewport.removeEventListener('resize', handleViewport);
+      viewport.removeEventListener('scroll', handleViewport);
       window.scrollTo(0, 0);
     };
   }, []);
@@ -821,7 +834,7 @@ export default function ChatRoom() {
           navigate('/app/chat');
         }
       }}
-      className="fixed inset-0 flex flex-col bg-background overflow-hidden font-sans touch-pan-y overscroll-contain z-[1000]"
+      className="fixed inset-0 flex flex-col bg-background overflow-hidden font-sans touch-none overscroll-none z-[1000]"
       style={{ height: viewportHeight }}
     >
       <div className="flex items-center gap-3 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 border-b shrink-0 bg-background/80 backdrop-blur">
@@ -928,7 +941,7 @@ export default function ChatRoom() {
       <div
         className="px-4 py-3 border-t bg-background shrink-0 z-50 transition-none"
         style={{
-          paddingBottom: '12px'
+          paddingBottom: isKeyboardVisible ? '12px' : 'calc(12px + env(safe-area-inset-bottom))'
         }}
       >
         <AnimatePresence>
