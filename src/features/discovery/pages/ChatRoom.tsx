@@ -426,16 +426,23 @@ export default function ChatRoom() {
 
   // Keyboard/Viewport Tracking (WhatsApp/Instagram Style)
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [initialHeight] = useState(() => typeof window !== 'undefined' ? window.innerHeight : 0);
 
   useEffect(() => {
     const handleViewportChange = () => {
       if (window.visualViewport) {
-        const heightDiff = window.innerHeight - window.visualViewport.height;
-        // If the height difference is significant, it's likely the keyboard
-        setKeyboardHeight(heightDiff > 100 ? heightDiff : 0);
+        const currentHeight = window.visualViewport.height;
+        const heightDiff = initialHeight - currentHeight;
 
-        // Ensure scroll to bottom on keyboard open
-        if (heightDiff > 100) {
+        // Detect keyboard presence (usually > 20% of initial height)
+        const isKeyboardOpen = heightDiff > 150;
+        setIsKeyboardVisible(isKeyboardOpen);
+
+        // heightDiff is used for the padding calculation
+        setKeyboardHeight(isKeyboardOpen ? heightDiff : 0);
+
+        if (isKeyboardOpen) {
           setTimeout(() => scrollToBottom('smooth'), 150);
         }
       }
@@ -448,7 +455,7 @@ export default function ChatRoom() {
       window.visualViewport?.removeEventListener('resize', handleViewportChange);
       window.visualViewport?.removeEventListener('scroll', handleViewportChange);
     };
-  }, [scrollToBottom]);
+  }, [initialHeight, scrollToBottom]);
 
   const sendMediaMessage = async (content: string) => {
     if (!matchId || !user) return;
@@ -802,7 +809,7 @@ export default function ChatRoom() {
           navigate('/app/chat');
         }
       }}
-      className="flex flex-col w-full h-[100dvh] bg-background overflow-hidden font-sans pb-[env(safe-area-inset-bottom)] touch-pan-y overscroll-contain"
+      className="flex flex-col w-full h-[100dvh] bg-background overflow-hidden font-sans touch-pan-y overscroll-contain"
     >
       <div className="flex items-center gap-3 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 border-b shrink-0 bg-background/80 backdrop-blur">
         <Link to="/app/chat" className="text-muted-foreground"><i className="ri-arrow-left-line text-xl" /></Link>
@@ -907,7 +914,11 @@ export default function ChatRoom() {
 
       <div
         className="p-4 border-t bg-background shrink-0 transition-all duration-300"
-        style={{ paddingBottom: keyboardHeight > 0 ? `${keyboardHeight + 16}px` : 'calc(1rem + env(safe-area-inset-bottom))' }}
+        style={{
+          paddingBottom: isKeyboardVisible
+            ? '1rem'
+            : 'calc(1rem + env(safe-area-inset-bottom))'
+        }}
       >
         <AnimatePresence>
           {showSocialBadges && (
