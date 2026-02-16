@@ -725,11 +725,16 @@ export default function Chat() {
                                         {/* Seção: Procurando */}
                                         <div className="bg-card/50 border border-border/50 rounded-2xl p-4 backdrop-blur-sm">
                                             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tô procurando</h3>
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/20">
-                                                    <i className="ri-heart-2-fill text-xl" />
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="relative flex items-center justify-center">
+                                                    <div className="absolute w-6 h-6 bg-pink-500/30 blur-lg rounded-full" />
+                                                    <span className="relative text-xl z-10 drop-shadow-sm">
+                                                        {LOOKING_FOR_EMOJIS[selectedProfile.looking_for || ''] || '💘'}
+                                                    </span>
                                                 </div>
-                                                <span className="text-lg font-medium">{selectedProfile.looking_for || 'Sincronicidade'}</span>
+                                                <span className="text-base font-medium tracking-normal text-foreground">
+                                                    {selectedProfile.looking_for || 'Buscando conexões'}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -762,7 +767,7 @@ export default function Chat() {
                                 </div>
 
                                 {/* Botão de Ação */}
-                                <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center items-center px-4 pointer-events-none">
+                                <div className="absolute bottom-4 left-0 right-0 z-[100] flex justify-center items-center px-4 pb-[env(safe-area-inset-bottom)] pointer-events-none">
                                     <button
                                         onClick={() => {
                                             const match = conversations.find(c => c.profile.id === selectedProfile.id);

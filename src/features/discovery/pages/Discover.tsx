@@ -614,41 +614,53 @@ export default function Discover() {
                 <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
 
                 {/* Text Info */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
-                  <div className="flex items-end gap-3 mb-4">
-                    <h1 className="font-display text-4xl font-semibold tracking-tight drop-shadow-md">
+                <div className="absolute bottom-0 left-0 right-0 p-6 pb-8 text-white pointer-events-none z-30">
+                  {/* Name and Age Group */}
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-md">
                       {currentProfile.display_name}
                     </h1>
                     {currentProfile.birth_date && (
-                      <span className="text-2xl font-light text-white/90 mb-1">{calculateAge(currentProfile.birth_date)}</span>
+                      <span className="text-xl font-light text-white/80">{calculateAge(currentProfile.birth_date)}</span>
                     )}
                   </div>
 
-                  {/* Looking For Section */}
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-1 opacity-90">
-                      <Search className="w-3.5 h-3.5 text-white/80" strokeWidth={3} />
-                      <span className="text-sm font-semibold text-white/90">Tô procurando</span>
+                  {/* Occupation & Location - Compact Group */}
+                  <div className="flex items-center gap-3 mb-4 text-[13px] font-medium text-white/70 drop-shadow-sm uppercase tracking-wide">
+                    {currentProfile.occupation && (
+                      <div className="flex items-center gap-1">
+                        <i className="ri-briefcase-line" />
+                        <span>{currentProfile.occupation}</span>
+                      </div>
+                    )}
+                    {currentProfile.city && (
+                      <div className="flex items-center gap-1">
+                        <i className="ri-map-pin-line" />
+                        <span>{currentProfile.city}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Looking For Section - Strategic Grouping */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 opacity-60">
+                      <Search className="w-3 h-3 text-white" strokeWidth={2.5} />
+                      <span className="text-[16px] font-normal text-white">Tô procurando</span>
                     </div>
 
                     {currentProfile.looking_for ? (
-                      <div className="flex items-center gap-3">
-                        <div className="relative flex items-center justify-center">
-                          <div className="absolute w-8 h-8 bg-amber-500/40 blur-xl rounded-full translate-y-1" />
-                          <span className="relative text-3xl z-10 drop-shadow-md">
-                            {LOOKING_FOR_EMOJIS[currentProfile.looking_for] || '💘'}
-                          </span>
-                        </div>
-                        <span className="text-lg font-semibold text-white tracking-wide">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl drop-shadow-md filter saturate-[1.2]">
+                          {LOOKING_FOR_EMOJIS[currentProfile.looking_for] || '💘'}
+                        </span>
+                        <span className="text-lg font-bold text-white tracking-tight drop-shadow-sm leading-tight">
                           {currentProfile.looking_for}
                         </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 opacity-50">
                         <span className="text-xl">✨</span>
-                        <span className="text-lg font-semibold text-white tracking-wide">
-                          Buscando conexões
-                        </span>
+                        <span className="text-base font-medium text-white">Buscando conexões</span>
                       </div>
                     )}
                   </div>
