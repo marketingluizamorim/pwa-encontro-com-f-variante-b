@@ -48,9 +48,10 @@ export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({
 PageTransition.displayName = 'PageTransition';
 
 // Slide from right variant for navigation forward
-export function SlideTransition({ children, className = '', ...props }: PageTransitionProps) {
+export const SlideTransition = forwardRef<HTMLDivElement, PageTransitionProps>(({ children, className = '', ...props }, ref) => {
   return (
     <motion.div
+      ref={ref}
       initial={false}
       animate={{ opacity: 1, x: 0 }}
       exit={undefined}
@@ -61,7 +62,9 @@ export function SlideTransition({ children, className = '', ...props }: PageTran
       {children}
     </motion.div>
   );
-}
+});
+
+SlideTransition.displayName = 'SlideTransition';
 
 // Scale fade for modals/overlays
 export function ScaleTransition({ children, className = '' }: PageTransitionProps) {

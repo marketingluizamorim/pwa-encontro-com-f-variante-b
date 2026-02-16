@@ -356,7 +356,7 @@ export default function Chat() {
                     {subscription?.tier !== 'gold' && (
                         <div
                             onClick={() => setShowUpgradeDialog(true)}
-                            className="mx-4 mt-4 mb-6 p-4 rounded-xl relative overflow-hidden bg-gradient-to-r from-gray-900 to-black border border-white/10 shadow-lg cursor-pointer active:scale-95 transition-transform"
+                            className="mx-4 mt-6 mb-6 p-4 rounded-xl relative overflow-hidden bg-gradient-to-r from-gray-900 to-black border border-white/10 shadow-lg cursor-pointer active:scale-95 transition-transform"
                         >
                             <div className="relative z-10 flex gap-4 items-center">
                                 <div className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center bg-gray-800 shrink-0">
@@ -372,10 +372,10 @@ export default function Chat() {
                         </div>
                     )}
                     {/* Seção de Novos Matches */}
-                    <div className="px-4 mb-8">
-                        <h2 className="font-bold text-lg mb-4">Novas conexões</h2>
+                    <div className="px-4 mt-6 mb-8">
+                        <h2 className="font-bold text-lg mb-1">Novas conexões</h2>
                         <div
-                            className="flex gap-4 overflow-x-auto pb-4 pt-4 -mx-4 px-4 scrollbar-hide snap-none overscroll-x-contain"
+                            className="flex gap-4 overflow-x-auto pb-4 pt-0 -mx-4 px-4 scrollbar-hide snap-none overscroll-x-contain"
                             style={{ WebkitOverflowScrolling: 'touch' }}
                         >
                             {/* Cartão Gold - Teaser de Curtidas */}
@@ -545,7 +545,7 @@ export default function Chat() {
                                     {/* Botão Fechar */}
                                     <button
                                         onClick={handleManualBack}
-                                        className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
+                                        className="fixed top-[calc(1.25rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
                                     >
                                         <i className="ri-arrow-down-s-line text-2xl" />
                                     </button>
@@ -553,7 +553,7 @@ export default function Chat() {
                                     {/* Botão de Ações (3 pontinhos - Topo Esquerdo) */}
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className="fixed top-4 left-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors">
+                                            <button className="fixed top-[calc(1.25rem+env(safe-area-inset-top))] left-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors">
                                                 <i className="ri-more-2-fill text-xl" />
                                             </button>
                                         </DropdownMenuTrigger>
@@ -602,7 +602,7 @@ export default function Chat() {
                                     >
                                         {/* Photo Indicators */}
                                         {selectedProfile.photos && selectedProfile.photos.length > 1 && (
-                                            <div className="absolute top-4 inset-x-4 z-30 flex gap-1.5 px-2">
+                                            <div className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] inset-x-4 z-30 flex gap-1.5 px-2">
                                                 {selectedProfile.photos.map((_, i) => (
                                                     <div key={i} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
                                                         <div

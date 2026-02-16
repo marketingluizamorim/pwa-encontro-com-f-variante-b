@@ -275,18 +275,19 @@ export default function ChatRoom() {
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - lastActive.getTime()) / (1000 * 60));
 
-    if (diffInMinutes < 5) return 'Online agora';
+    if (diffInMinutes < 5) return 'Online';
     if (showLastActive === false) return 'Visto recentemente';
+
     if (diffInMinutes < 60) return `Visto há ${diffInMinutes} min`;
 
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `Visto há ${diffInHours} h`;
+    if (diffInHours < 24) return 'Visto hoje';
 
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays === 1) return 'Visto ontem';
-    if (diffInDays < 7) return `Visto há ${diffInDays} dias`;
+    if (diffInDays < 7) return 'Visto esta semana';
 
-    return `Visto em ${lastActive.toLocaleDateString('pt-BR')}`;
+    return 'Visto a algum tempo';
   };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -773,9 +774,9 @@ export default function ChatRoom() {
           navigate('/app/chat');
         }
       }}
-      className="flex flex-col w-full h-[100dvh] bg-background overflow-hidden font-sans pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] touch-pan-y overscroll-contain"
+      className="flex flex-col w-full h-[100dvh] bg-background overflow-hidden font-sans pb-[env(safe-area-inset-bottom)] touch-pan-y overscroll-contain"
     >
-      <div className="flex items-center gap-3 px-4 py-3 border-b shrink-0 h-16 bg-background/80 backdrop-blur">
+      <div className="flex items-center gap-3 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 border-b shrink-0 bg-background/80 backdrop-blur">
         <Link to="/app/chat" className="text-muted-foreground"><i className="ri-arrow-left-line text-xl" /></Link>
         <div
           className="w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
@@ -788,7 +789,9 @@ export default function ChatRoom() {
           onClick={() => setShowProfileInfo(true)}
         >
           <p className="font-semibold truncate">{matchProfile.display_name}</p>
-          <p className="text-[10px] text-muted-foreground uppercase">Online</p>
+          <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
+            {formatLastActive(matchProfile.last_active_at, matchProfile.show_online_status, matchProfile.show_last_active) || 'Visto recentemente'}
+          </p>
         </div>
         <button
           onClick={() => {
@@ -874,7 +877,7 @@ export default function ChatRoom() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t bg-background shrink-0">
+      <div className="p-4 pb-[calc(2rem+env(safe-area-inset-bottom))] border-t bg-background shrink-0">
         <AnimatePresence>
           {showSocialBadges && (
             <motion.div initial={false} animate={{ height: 'auto' }} transition={{ duration: 0 }} className="flex gap-2 overflow-x-auto pb-3">
@@ -952,7 +955,7 @@ export default function ChatRoom() {
                 <div className="relative w-full h-[65vh] shrink-0 touch-none">
                   {/* Photo Stories Progress Bar */}
                   {matchProfile.photos && matchProfile.photos.length > 1 && (
-                    <div className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
+                    <div className="absolute top-[calc(1rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
                       {matchProfile.photos.map((_, idx) => (
                         <div
                           key={idx}
@@ -986,7 +989,7 @@ export default function ChatRoom() {
                     onClick={closeProfile}
                     variant="secondary"
                     size="icon"
-                    className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-[110] rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20 hover:bg-black/60 shadow-2xl active:scale-90 transition-all"
+                    className="fixed top-[calc(1.25rem+env(safe-area-inset-top))] right-4 z-[110] rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20 hover:bg-black/60 shadow-2xl active:scale-90 transition-all"
                   >
                     <i className="ri-arrow-down-s-line text-2xl" />
                   </Button>

@@ -219,21 +219,20 @@ export default function Discover() {
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - lastActive.getTime()) / (1000 * 60));
 
-    // Considere "Online agora" se ativo nos últimos 5 minutos
-    if (diffInMinutes < 5) return 'Online agora';
-
+    // Considere "Online" se ativo nos últimos 5 minutos
+    if (diffInMinutes < 5) return 'Online';
     if (showLastActive === false) return 'Visto recentemente';
 
     if (diffInMinutes < 60) return `Visto há ${diffInMinutes} min`;
 
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `Visto há ${diffInHours} h`;
+    if (diffInHours < 24) return 'Visto hoje';
 
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays === 1) return 'Visto ontem';
-    if (diffInDays < 7) return `Visto há ${diffInDays} dias`;
+    if (diffInDays < 7) return 'Visto esta semana';
 
-    return `Visto em ${lastActive.toLocaleDateString('pt-BR')}`;
+    return 'Visto a algum tempo';
   };
 
   const handleApplyFilters = (newFilters?: DiscoverFiltersState) => {
@@ -718,7 +717,7 @@ export default function Discover() {
                 {/* Close Button - Top Right - Size matched to Expand Button */}
                 <button
                   onClick={handleManualBack}
-                  className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/60 backdrop-blur-xl text-white flex items-center justify-center border border-white/20 shadow-2xl hover:bg-black/80 active:scale-90 transition-all"
+                  className="fixed top-[calc(1.25rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/60 backdrop-blur-xl text-white flex items-center justify-center border border-white/20 shadow-2xl hover:bg-black/80 active:scale-90 transition-all"
                 >
                   <i className="ri-arrow-down-s-line text-2xl" />
                 </button>
@@ -729,7 +728,7 @@ export default function Discover() {
                 >
                   {/* Photo Stories Progress Bar - Expanded View */}
                   {currentProfile.photos && currentProfile.photos.length > 1 && (
-                    <div className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
+                    <div className="absolute top-[calc(1rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
                       {currentProfile.photos.map((_, idx) => (
                         <div
                           key={idx}
