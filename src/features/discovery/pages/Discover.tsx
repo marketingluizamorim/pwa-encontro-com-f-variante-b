@@ -777,12 +777,12 @@ export default function Discover() {
 
                 {/* Hero Image Section */}
                 <motion.div
-                  className="relative w-full h-[75vh] touch-none cursor-grab active:cursor-grabbing"
+                  className="relative w-full h-[60vh] touch-none cursor-grab active:cursor-grabbing"
                   onPointerDown={(e) => dragControls.start(e)}
                 >
                   {/* Photo Stories Progress Bar - Expanded View */}
                   {currentProfile.photos && currentProfile.photos.length > 1 && (
-                    <div className="absolute top-[calc(1rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
+                    <div className="absolute top-[calc(1.25rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
                       {currentProfile.photos.map((_, idx) => (
                         <div
                           key={idx}

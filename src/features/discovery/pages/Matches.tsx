@@ -653,12 +653,12 @@ export default function Matches() {
 
                 {/* Hero Image - Drag Handle for Closing */}
                 <div
-                  className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
+                  className="relative w-full h-[60vh] touch-none cursor-grab active:cursor-grabbing"
                   onPointerDown={(e) => dragControls.start(e)}
                 >
                   {/* Photo Indicators */}
                   {selectedLike.profile.photos && selectedLike.profile.photos.length > 1 && (
-                    <div className="absolute top-4 inset-x-4 z-30 flex gap-1.5 px-2">
+                    <div className="absolute top-[calc(1.25rem+env(safe-area-inset-top))] inset-x-4 z-30 flex gap-1.5 px-2">
                       {selectedLike.profile.photos.map((_, i) => (
                         <div key={i} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
                           <div

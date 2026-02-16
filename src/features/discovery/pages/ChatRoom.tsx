@@ -989,10 +989,10 @@ export default function ChatRoom() {
               <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
 
                 {/* Hero Image Section */}
-                <div className="relative w-full h-[75vh] shrink-0 touch-none">
+                <div className="relative w-full h-[60vh] shrink-0 touch-none">
                   {/* Photo Stories Progress Bar */}
                   {matchProfile.photos && matchProfile.photos.length > 1 && (
-                    <div className="absolute top-[calc(1rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
+                    <div className="absolute top-[calc(1.25rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
                       {matchProfile.photos.map((_, idx) => (
                         <div
                           key={idx}
