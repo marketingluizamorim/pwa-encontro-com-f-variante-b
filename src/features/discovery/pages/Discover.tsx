@@ -27,7 +27,7 @@ import { SuperLikeExplainerDialog } from '@/features/discovery/components/SuperL
 import { SuperLikeMessageDialog } from '@/features/discovery/components/SuperLikeMessageDialog';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
-  'Um compromisso sério': '💍',
+  'Relacionamento sério': '💍',
   'Construir uma família': '👨‍👩‍👧‍👦',
   'Conhecer pessoas novas': '✨',
   'Amizade verdadeira': '🤝',

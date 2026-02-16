@@ -61,7 +61,7 @@ const getMalePhotosByAge = (age: string | undefined): string[] => {
 };
 
 const SHORT_INTEREST_MAP: Record<string, string> = {
-    'Um compromisso sério': 'NAMORO',
+    'Relacionamento sério': 'NAMORO',
     'Construir uma família': 'CASAR',
     'Conhecer pessoas novas': 'AMIZADE',
     'Amizade verdadeira': 'AMIZADE',

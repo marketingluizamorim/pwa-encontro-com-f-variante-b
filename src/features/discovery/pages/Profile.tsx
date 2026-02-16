@@ -6,6 +6,8 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Crown, CheckCircle2, MessageSquare, BookOpen, GraduationCap, Heart, Star, Sparkles, LogOut, ShieldCheck, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTheme } from '@/components/theme-provider';
+import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -66,6 +68,8 @@ export default function Profile() {
   const [showCheckoutManager, setShowCheckoutManager] = useState(false);
   const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string; name: string; price: number } | null>(null);
   const { data: subscription } = useSubscription();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
   const isOwnProfile = !userId || userId === user?.id;
 
@@ -353,24 +357,29 @@ export default function Profile() {
           {isOwnProfile && (
             <div className="space-y-4 px-4 mt-6">
               {(subscription?.tier === 'gold') ? (
-                <div className="bg-gradient-to-br from-[#d4af37]/20 via-[#b45309]/10 to-transparent border border-[#d4af37]/30 rounded-2xl p-6 relative overflow-hidden group">
+                <div className={cn(
+                  "relative overflow-hidden rounded-2xl p-6 border transition-all group",
+                  isDarkMode
+                    ? "bg-gradient-to-br from-amber-500/20 via-amber-900/10 to-transparent border-amber-500/30"
+                    : "bg-gradient-to-br from-amber-100 via-amber-50/50 to-white border-amber-200 shadow-sm"
+                )}>
                   <div className="absolute -top-6 -right-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <Crown className="w-32 h-32 text-[#d4af37]" />
+                    <Crown className="w-32 h-32 text-amber-600" />
                   </div>
 
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-[#d4af37] flex items-center justify-center shadow-lg shadow-amber-500/20">
+                  <div className="flex items-center gap-3 mb-6 relative z-10">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
                       <Crown className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-display font-bold text-xl text-[#d4af37]">
+                      <h3 className="font-display font-bold text-xl text-amber-700 dark:text-amber-500">
                         Membro Ouro
                       </h3>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Acesso Vitalício Liberado</p>
+                      <p className="text-[10px] text-amber-600/60 dark:text-muted-foreground uppercase tracking-widest font-bold">Acesso Vitalício Liberado</p>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-4 relative z-10">
                     <div className="space-y-2.5">
                       {[
                         { icon: <CheckCircle2 className="w-3.5 h-3.5" />, text: "Descubra quem curtiu seu perfil imediatamente" },
@@ -382,8 +391,8 @@ export default function Profile() {
                         { icon: <Heart className="w-3.5 h-3.5" />, text: "Busque por objetivos (Namoro ou Casamento)" },
                         { icon: <CheckCircle2 className="w-3.5 h-3.5" />, text: "Tudo ilimitado e sem restrições" }
                       ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-3 text-white/80">
-                          <div className="bg-[#d4af37]/20 p-1.5 rounded-lg text-[#d4af37]">
+                        <div key={i} className="flex items-center gap-3 text-foreground/80">
+                          <div className="bg-amber-500/10 p-1.5 rounded-lg text-amber-600 dark:text-amber-500">
                             {item.icon}
                           </div>
                           <span className="text-xs font-medium">{item.text}</span>
@@ -391,8 +400,8 @@ export default function Profile() {
                       ))}
                     </div>
 
-                    <div className="pt-2 border-t border-white/10">
-                      <p className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest mb-3 pl-1">BÔNUS EXCLUSIVOS</p>
+                    <div className="pt-4 border-t border-amber-500/10">
+                      <p className="text-[10px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-3 pl-1">BÔNUS EXCLUSIVOS</p>
                       <div className="space-y-2.5">
                         {[
                           { icon: <MessageSquare className="w-3.5 h-3.5" />, text: "Comunidade cristã no WhatsApp" },
@@ -400,8 +409,8 @@ export default function Profile() {
                           { icon: <BookOpen className="w-3.5 h-3.5" />, text: "Devocionais diários" },
                           { icon: <Heart className="w-3.5 h-3.5" />, text: "Dicas de relacionamento cristão" }
                         ].map((item, i) => (
-                          <div key={i} className="flex items-center gap-3 text-white/80">
-                            <div className="bg-[#d4af37]/10 p-1.5 rounded-lg text-[#d4af37]/80">
+                          <div key={i} className="flex items-center gap-3 text-foreground/80">
+                            <div className="bg-amber-500/5 p-1.5 rounded-lg text-amber-600/80 dark:text-amber-500/80">
                               {item.icon}
                             </div>
                             <span className="text-xs font-medium">{item.text}</span>
@@ -412,99 +421,110 @@ export default function Profile() {
                   </div>
                 </div>
               ) : subscription?.tier === 'silver' ? (
-                <div className="bg-muted/30 border border-border/50 rounded-2xl p-6">
+                <div className={cn(
+                  "relative overflow-hidden rounded-2xl p-6 border transition-all",
+                  isDarkMode
+                    ? "bg-slate-900/40 border-slate-700/50"
+                    : "bg-gradient-to-br from-slate-100 to-white border-slate-200 shadow-sm"
+                )}>
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-400 flex items-center justify-center shadow-lg">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-300 to-slate-500 flex items-center justify-center shadow-lg">
                         <Star className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-display font-bold text-lg">Plano Prata</h3>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Assinatura Ativa</p>
+                        <h3 className="font-display font-bold text-lg text-slate-700 dark:text-slate-300">Plano Prata</h3>
+                        <p className="text-[10px] text-slate-500 dark:text-muted-foreground uppercase tracking-widest font-bold">Assinatura Ativa</p>
                       </div>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setShowUpgradeDialog(true)}
-                      className="h-8 rounded-lg text-[10px] font-bold uppercase border-amber-500/50 text-amber-500 hover:bg-amber-500/10 transition-colors"
+                      className="h-8 rounded-lg text-[10px] font-bold uppercase border-amber-500/50 text-amber-600 dark:text-amber-500 hover:bg-amber-500/10 transition-colors"
                     >
                       Upgrade
                     </Button>
                   </div>
 
-
-
                   <div className="space-y-2.5">
                     {PLANS.find(p => p.id === 'silver')?.features.map((text, i) => (
-                      <div key={i} className="flex items-center gap-3 text-muted-foreground">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <div key={i} className="flex items-center gap-3 text-foreground/80">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" />
                         <span className="text-xs font-medium">{text}</span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-border/40 space-y-2.5 opacity-50">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">NÃO INCLUSO</p>
+                  <div className="mt-4 pt-4 border-t border-border/40 space-y-2.5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">NÃO INCLUSO</p>
                     {PLANS.find(p => p.id === 'silver')?.excludedFeatures?.map((text, i) => (
-                      <div key={`excluded-${i}`} className="flex items-center gap-3 text-muted-foreground">
-                        <XCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                      <div key={`excluded-${i}`} className="flex items-center gap-3 text-muted-foreground/40">
+                        <XCircle className="w-3.5 h-3.5" />
                         <span className="text-xs font-medium line-through decoration-muted-foreground/50">{text}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               ) : subscription?.tier === 'bronze' ? (
-                <div className="bg-muted/30 border border-border/50 rounded-2xl p-6">
+                <div className={cn(
+                  "relative overflow-hidden rounded-2xl p-6 border transition-all",
+                  isDarkMode
+                    ? "bg-orange-950/20 border-orange-800/40"
+                    : "bg-gradient-to-br from-orange-50 to-white border-orange-200 shadow-sm"
+                )}>
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-orange-700/50 flex items-center justify-center shadow-lg">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-600 to-orange-800 flex items-center justify-center shadow-lg">
                         <Heart className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-display font-bold text-lg">Plano Bronze</h3>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Assinatura Ativa</p>
+                        <h3 className="font-display font-bold text-lg text-orange-800 dark:text-orange-400">Plano Bronze</h3>
+                        <p className="text-[10px] text-orange-700/60 dark:text-muted-foreground uppercase tracking-widest font-bold">Assinatura Ativa</p>
                       </div>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setShowUpgradeDialog(true)}
-                      className="h-8 rounded-lg text-[10px] font-bold uppercase border-amber-500/50 text-amber-500 hover:bg-amber-500/10 transition-colors"
+                      className="h-8 rounded-lg text-[10px] font-bold uppercase border-amber-500/50 text-amber-600 dark:text-amber-500 hover:bg-amber-500/10 transition-colors"
                     >
                       Upgrade
                     </Button>
                   </div>
 
-
-
                   <div className="space-y-2.5">
                     {PLANS.find(p => p.id === 'bronze')?.features.map((text, i) => (
-                      <div key={i} className="flex items-center gap-3 text-muted-foreground">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <div key={i} className="flex items-center gap-3 text-foreground/80">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-orange-500" />
                         <span className="text-xs font-medium">{text}</span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-border/40 space-y-2.5 opacity-50">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">NÃO INCLUSO</p>
+                  <div className="mt-4 pt-4 border-t border-border/40 space-y-2.5">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">NÃO INCLUSO</p>
                     {PLANS.find(p => p.id === 'bronze')?.excludedFeatures?.map((text, i) => (
-                      <div key={`excluded-${i}`} className="flex items-center gap-3 text-muted-foreground">
-                        <XCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                      <div key={`excluded-${i}`} className="flex items-center gap-3 text-muted-foreground/40">
+                        <XCircle className="w-3.5 h-3.5" />
                         <span className="text-xs font-medium line-through decoration-muted-foreground/50">{text}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="bg-gradient-to-br from-primary/10 via-card to-card border border-primary/20 rounded-2xl p-6 relative overflow-hidden group">
+                <div className={cn(
+                  "relative overflow-hidden rounded-2xl p-6 border transition-all group",
+                  isDarkMode
+                    ? "bg-gradient-to-br from-primary/10 via-card to-card border-primary/20"
+                    : "bg-gradient-to-br from-primary/5 via-white to-white border-primary/10 shadow-sm"
+                )}>
                   <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
                     <Sparkles className="w-24 h-24 text-primary" />
                   </div>
-                  <div className="relative z-10">
-                    <h3 className="font-display font-bold text-xl mb-1 flex items-center gap-2">
-                      Clube Encontro com F <Sparkles className="w-5 h-5 text-amber-500 fill-amber-500" />
+                  <div className="relative z-10 text-center sm:text-left">
+                    <h3 className="font-display font-bold text-xl mb-1 flex items-center justify-center sm:justify-start gap-2">
+                      Clube Encontro com Fé <Sparkles className="w-5 h-5 text-amber-500 fill-amber-500" />
                     </h3>
                     <p className="text-sm text-muted-foreground mb-6">
                       Encontre o seu par ideal 3x mais rápido com as funções premium.

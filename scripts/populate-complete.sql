@@ -109,7 +109,7 @@ BEGIN
             religion = CASE WHEN random() > 0.5 THEN 'Evangélico' ELSE 'Católico' END,
             church_frequency = CASE WHEN random() > 0.5 THEN 'Semanalmente' ELSE 'Mais de uma vez por semana' END,
             looking_for = CASE 
-                WHEN random() > 0.75 THEN 'Um compromisso sério'
+                WHEN random() > 0.75 THEN 'Relacionamento sério'
                 WHEN random() > 0.5 THEN 'Construir uma família'
                 WHEN random() > 0.25 THEN 'Conhecer pessoas novas'
                 ELSE 'Amizade verdadeira'

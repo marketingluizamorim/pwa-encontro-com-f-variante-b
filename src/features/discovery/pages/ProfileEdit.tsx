@@ -26,7 +26,7 @@ const CHURCH_FREQUENCIES = [
 ];
 
 const LOOKING_FOR = [
-  'Um compromisso sério',
+  'Relacionamento sério',
   'Construir uma família',
   'Conhecer pessoas novas',
   'Amizade verdadeira',

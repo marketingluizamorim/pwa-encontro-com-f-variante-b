@@ -67,7 +67,7 @@ const BASE_QUESTIONS: Question[] = [
     slug: 'objetivo',
     title: 'O que você busca em um relacionamento?',
     type: 'options',
-    options: ['Um compromisso sério', 'Construir uma família', 'Conhecer pessoas novas', 'Amizade verdadeira']
+    options: ['Relacionamento sério', 'Construir uma família', 'Conhecer pessoas novas', 'Amizade verdadeira']
   },
   {
     key: 'valuesImportance',

@@ -17,7 +17,7 @@ type Step = 'basics' | 'faith' | 'photos' | 'complete';
 // Constants matching Quiz
 const RELIGIONS = ['Evangélica', 'Católica', 'Protestante', 'Outra'];
 const CHURCH_FREQUENCIES = ['Sim, sou ativo(a)', 'Às vezes', 'Raramente', 'Não frequento'];
-const LOOKING_FOR = ['Um compromisso sério', 'Construir uma família', 'Conhecer pessoas novas', 'Amizade verdadeira'];
+const LOOKING_FOR = ['Relacionamento sério', 'Construir uma família', 'Conhecer pessoas novas', 'Amizade verdadeira'];
 const CHILDREN_OPTIONS = ['Já sou pai/mãe', 'Desejo ter filhos', 'Talvez no futuro', 'Não pretendo ter'];
 const VALUES_OPTIONS = ['Sim, é essencial', 'Muito importante', 'Não é prioridade', 'Indiferente'];
 

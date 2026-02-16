@@ -89,7 +89,7 @@ const CHRISTIAN_INTERESTS = [
 ];
 
 const LOOKING_FOR_OPTIONS = [
-    'Um compromisso sério',
+    'Relacionamento sério',
     'Construir uma família',
     'Conhecer pessoas novas',
     'Amizade verdadeira',

@@ -22,7 +22,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
-  'Um compromisso sério': '💍',
+  'Relacionamento sério': '💍',
   'Construir uma família': '👨‍👩‍👧‍👦',
   'Conhecer pessoas novas': '✨',
   'Amizade verdadeira': '🤝',
@@ -154,7 +154,7 @@ const SwipeableMatchCard = ({
                 {calculateAge(like.profile.birth_date)}
               </span>
               <div className="flex items-center gap-1 opacity-70">
-                <i className="ri-map-pin-line text-[10px]" />
+                <i className="ri-search-line text-[10px]" />
                 <span className="text-[10px] font-medium uppercase tracking-wider">Ver Perfil</span>
               </div>
             </div>
@@ -170,7 +170,7 @@ const SwipeableMatchCard = ({
             )}
 
             <div className="flex items-baseline gap-1.5">
-              <span className="font-display font-bold text-xl tracking-tight leading-none">
+              <span className="font-display font-bold text-[1.10rem] tracking-tight leading-none">
                 {like.profile.display_name}
               </span>
               <span className="text-lg font-light text-white/80">
@@ -178,9 +178,9 @@ const SwipeableMatchCard = ({
               </span>
             </div>
 
-            <p className="text-[10px] font-medium text-white/70 line-clamp-1 flex items-center gap-1 capitalize">
-              <i className="ri-map-pin-2-fill text-[#d4af37]" />
-              {like.profile.city || 'Cristão'}
+            <p className="text-[11px] font-medium text-white/70 line-clamp-1 flex items-center gap-1">
+              <i className="ri-search-2-line text-[#d4af37]" />
+              {like.profile.looking_for || 'Objetivo não definido'}
             </p>
           </div>
         )}
@@ -441,7 +441,7 @@ export default function Matches() {
             <h2 className="text-xl font-display font-bold text-foreground">
               Curtidas
             </h2>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+            <p className="text-[0.950rem] text-muted-foreground mt-1 max-w-sm">
               {likes.length > 0 ? (
                 subscription?.canSeeWhoLiked
                   ? "Veja todos que gostaram de você e não perca nenhuma conexão."
@@ -457,7 +457,7 @@ export default function Matches() {
                 className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20"
               >
                 <div className="flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 shadow-sm">
-                  <i className="ri-heart-fill text-white text-[10px]" />
+                  <i className="ri-search-line text-white text-[10px]" />
                 </div>
                 <span className="text-amber-200/90 font-medium text-xs tracking-wide">
                   <span className="text-amber-400 font-bold mr-1">{likes.length}</span>
@@ -471,7 +471,7 @@ export default function Matches() {
           {likes.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center opacity-60 mt-10 px-4">
               <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
-                <i className="ri-heart-pulse-line text-4xl"></i>
+                <i className="ri-search-eye-line text-4xl"></i>
               </div>
               <p className="font-medium">Nenhuma curtida nova</p>
             </div>
@@ -495,7 +495,7 @@ export default function Matches() {
                             "Fazer chamadas de vídeo",
                             "Comunidade cristã no WhatsApp"
                           ],
-                          icon: <i className="ri-heart-fill text-4xl" />,
+                          icon: <i className="ri-search-2-line text-4xl" />,
                           price: 29.90,
                           planId: 'silver'
                         });
@@ -517,7 +517,7 @@ export default function Matches() {
                             "Fazer chamadas de vídeo",
                             "Comunidade cristã no WhatsApp"
                           ],
-                          icon: <i className="ri-heart-fill text-4xl" />,
+                          icon: <i className="ri-search-2-line text-4xl" />,
                           price: 29.90,
                           planId: 'silver'
                         });
@@ -543,7 +543,7 @@ export default function Matches() {
                     title: "Plano Prata",
                     description: "Veja agora mesmo quem curtiu seu perfil e dê o primeiro passo para um novo encontro!",
                     features: PLANS.find(p => p.id === 'silver')?.features || [],
-                    icon: <i className="ri-heart-fill text-4xl text-amber-500" />,
+                    icon: <i className="ri-search-2-line text-4xl text-amber-500" />,
                     price: PLANS.find(p => p.id === 'silver')?.price || 29.90,
                     planId: 'silver'
                   });
@@ -687,9 +687,9 @@ export default function Matches() {
                     <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tô procurando</h3>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/20">
-                        <i className="ri-heart-2-fill text-xl" />
+                        <i className="ri-search-2-line text-xl" />
                       </div>
-                      <span className="text-lg font-medium">{selectedLike.profile.looking_for || 'Um propósito em comum'}</span>
+                      <span className="text-lg font-medium">{selectedLike.profile.looking_for || 'Objetivo não definido'}</span>
                     </div>
                   </div>
 

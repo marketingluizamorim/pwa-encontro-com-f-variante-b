@@ -27,6 +27,7 @@ import { LOCAL_DEVOTIONALS, type Devotional } from '../data/devotionals';
 import { FeatureGateDialog } from '../components/FeatureGateDialog';
 import { CheckoutManager } from '../components/CheckoutManager';
 import { Header } from '@/features/discovery/components/Header';
+import { useTheme } from '@/components/theme-provider';
 
 // --- Types ---
 interface TipDetail {
@@ -778,6 +779,8 @@ const COMMUNITY_DATA = {
 };
 
 export default function Explore() {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
     const [view, setView] = useState<'categories' | 'tips-list' | 'tip-detail' | 'devotional-detail' | 'courses-list' | 'course-detail' | 'community-list'>('categories');
     const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
     const [selectedTip, setSelectedTip] = useState<TipDetail | null>(null);
@@ -1061,7 +1064,10 @@ export default function Explore() {
     return (
         <PageTransition
             ref={containerRef}
-            className="flex flex-col h-[100dvh] bg-[#0f172a] overflow-hidden"
+            className={cn(
+                "flex flex-col h-[100dvh] overflow-hidden transition-colors duration-500",
+                isDarkMode ? "bg-[#0f172a]" : "bg-background"
+            )}
         >
             <AnimatePresence mode="wait">
 
@@ -1077,7 +1083,7 @@ export default function Explore() {
                             {/* Massive Typographic Header */}
                             <div className="mb-12 relative">
                                 <div className="absolute -top-10 -left-10 w-40 h-40 bg-accent/10 blur-[100px] rounded-full -z-10" />
-                                <h2 className="text-5xl font-serif font-semibold text-white leading-tight">
+                                <h2 className="text-5xl font-serif font-semibold text-foreground leading-tight">
                                     Conteúdos <br />
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd34d] to-[#d4af37] italic">Inspiradores</span>
                                 </h2>
@@ -1090,7 +1096,7 @@ export default function Explore() {
                                 className="relative mb-12 ml-4 mr-0 group cursor-pointer"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 via-transparent to-transparent blur-3xl rounded-[3rem] -z-10 opacity-40 group-hover:opacity-60 transition-opacity" />
-                                <div className="glass rounded-[2rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden">
+                                <div className="glass rounded-[2rem] p-8 border border-border/50 shadow-2xl relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity flex gap-2">
                                         <CloudSun className="w-24 h-24 text-amber-400 rotate-12" />
                                     </div>
@@ -1099,11 +1105,11 @@ export default function Explore() {
                                         <span className="px-3 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-widest rounded-full">
                                             Devocional de Hoje
                                         </span>
-                                        <span className="text-white/40 text-[10px] font-semibold uppercase tracking-widest">{todayDevotional.date}</span>
+                                        <span className="text-foreground/40 text-[10px] font-semibold uppercase tracking-widest">{todayDevotional.date}</span>
                                     </div>
 
-                                    <h3 className="text-2xl font-serif font-semibold text-white mb-2 italic">"{todayDevotional.title}"</h3>
-                                    <p className="text-white/60 text-base leading-relaxed mb-6 max-w-[85%] line-clamp-2">
+                                    <h3 className="text-2xl font-serif font-semibold text-foreground mb-2 italic">"{todayDevotional.title}"</h3>
+                                    <p className="text-foreground/60 text-base leading-relaxed mb-6 max-w-[85%] line-clamp-2">
                                         {todayDevotional.content}
                                     </p>
                                     <div className="flex items-center gap-3 text-amber-500 font-semibold text-sm tracking-widest uppercase group-hover:translate-x-2 transition-transform">
@@ -1119,18 +1125,18 @@ export default function Explore() {
                                         key={cat.id}
                                         onClick={() => handleCategoryClick(cat.id)}
                                         className={cn(
-                                            "relative overflow-hidden rounded-[2.5rem] border border-white/5 bg-white/[0.02] backdrop-blur-md p-6 group cursor-pointer transition-all",
+                                            "relative overflow-hidden rounded-[2.5rem] border border-border/40 bg-foreground/[0.02] backdrop-blur-md p-6 group cursor-pointer transition-all",
                                             idx % 2 === 0 ? "ml-12 mr-2" : "mr-12 ml-2" // Alternating stagger correctly
                                         )}
                                     >
                                         <div className={cn("absolute inset-y-0 left-0 w-1 bg-gradient-to-b opacity-40 transition-all group-hover:w-full group-hover:opacity-20", cat.color)} />
                                         <div className="relative z-10 flex items-center gap-6">
-                                            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10 shadow-2xl group-hover:scale-110 transition-transform", cat.accent)}>
+                                            <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center bg-foreground/5 border border-border/50 shadow-2xl group-hover:scale-110 transition-transform", cat.accent)}>
                                                 {cat.icon}
                                             </div>
                                             <div>
-                                                <h4 className="text-xl font-serif font-semibold text-white tracking-tight">{cat.title}</h4>
-                                                <p className="text-sm text-white/40 font-medium">{cat.description}</p>
+                                                <h4 className="text-xl font-serif font-semibold text-foreground tracking-tight">{cat.title}</h4>
+                                                <p className="text-sm text-foreground/40 font-medium">{cat.description}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1140,7 +1146,7 @@ export default function Explore() {
                             {/* Divine Scroll Quote */}
                             <div className="mt-16 text-center px-4 opacity-30">
                                 <Quote className="w-8 h-8 mx-auto mb-4 text-accent/50" />
-                                <p className="text-sm font-serif italic text-white/80 leading-relaxed">
+                                <p className="text-sm font-serif italic text-foreground/80 leading-relaxed">
                                     "Lâmpada para os meus pés é tua palavra, e luz para o meu caminho."
                                 </p>
                                 <span className="text-[10px] uppercase tracking-widest font-semibold mt-2 block">Salmo 119:105</span>
@@ -1167,19 +1173,22 @@ export default function Explore() {
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
                     >
                         {/* Soft Ambient Background */}
-                        <div className="fixed inset-0 -z-10 bg-[#0f172a]">
+                        <div className={cn(
+                            "fixed inset-0 -z-10 transition-colors duration-500",
+                            isDarkMode ? "bg-[#0f172a]" : "bg-background"
+                        )}>
                             <div className="absolute top-0 left-0 w-full h-[50vh] bg-gradient-to-b from-amber-500/10 to-transparent" />
                             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/asfalt-dark.png')] opacity-20" />
                         </div>
 
                         {/* Detail Nav */}
                         <div className="px-6 py-6 flex items-center justify-between z-50">
-                            <button onClick={handleManualBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-white active:scale-75 transition-transform backdrop-blur-3xl">
+                            <button onClick={handleManualBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-foreground active:scale-75 transition-transform backdrop-blur-3xl">
                                 <ArrowLeft className="w-5 h-5" />
                             </button>
-                            <div className="bg-white/5 backdrop-blur-2xl border border-white/10 px-4 py-2 rounded-full flex items-center gap-2">
+                            <div className="bg-foreground/5 backdrop-blur-2xl border border-border/50 px-4 py-2 rounded-full flex items-center gap-2">
                                 <Coffee className="w-4 h-4 text-amber-400" />
-                                <span className="text-[10px] font-bold uppercase text-white/80 tracking-widest">{todayDevotional.date}</span>
+                                <span className="text-[10px] font-bold uppercase text-foreground/80 tracking-widest">{todayDevotional.date}</span>
                             </div>
                             <div className="w-12" />
                         </div>
@@ -1192,7 +1201,7 @@ export default function Explore() {
                                 className="mt-12 text-center"
                             >
                                 <span className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.4em] mb-4 block">Meditação Diária</span>
-                                <h2 className="text-4xl font-serif font-semibold text-white leading-tight mb-8">
+                                <h2 className="text-4xl font-serif font-semibold text-foreground leading-tight mb-8">
                                     {todayDevotional.title}
                                 </h2>
                                 <div className="w-8 h-1 bg-amber-500/50 mx-auto rounded-full" />
@@ -1203,10 +1212,10 @@ export default function Explore() {
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="mt-16 p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/10 relative"
+                                className="mt-16 p-8 rounded-[2.5rem] bg-foreground/[0.03] border border-border/50 relative"
                             >
                                 <BookMarked className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 text-amber-500" />
-                                <blockquote className="text-xl font-serif italic text-white/90 text-center leading-relaxed mb-6">
+                                <blockquote className="text-xl font-serif italic text-foreground/90 text-center leading-relaxed mb-6">
                                     "{todayDevotional.verse.text}"
                                 </blockquote>
                                 <div className="text-center">
@@ -1222,7 +1231,7 @@ export default function Explore() {
                                 className="mt-20 space-y-12"
                             >
                                 <div className="prose prose-invert max-w-none">
-                                    <p className="text-white/80 text-lg leading-relaxed first-letter:text-5xl first-letter:font-serif first-letter:mr-3 first-letter:float-left first-letter:text-amber-500">
+                                    <p className="text-foreground/80 text-lg leading-relaxed first-letter:text-5xl first-letter:font-serif first-letter:mr-3 first-letter:float-left first-letter:text-amber-500">
                                         {todayDevotional.content}
                                     </p>
                                 </div>
@@ -1232,15 +1241,15 @@ export default function Explore() {
                                     <h4 className="text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                                         <Lightbulb className="w-3 h-3" /> Para Refletir
                                     </h4>
-                                    <p className="text-white/70 italic font-medium">{todayDevotional.reflection}</p>
+                                    <p className="text-foreground/70 italic font-medium">{todayDevotional.reflection}</p>
                                 </div>
 
                                 {/* Action Step */}
-                                <div className="glass-dark p-6 rounded-3xl border border-amber-500/10">
+                                <div className={cn(isDarkMode ? "glass-dark" : "glass", "p-6 rounded-3xl border border-amber-500/10")}>
                                     <h4 className="text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
                                         <Sparkle className="w-3 h-3" /> Passo Prático
                                     </h4>
-                                    <p className="text-white/80">{todayDevotional.action}</p>
+                                    <p className="text-foreground/80">{todayDevotional.action}</p>
                                 </div>
 
                                 {/* Prayer Moment */}
@@ -1248,8 +1257,8 @@ export default function Explore() {
                                     <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-8">
                                         <HandHeart className="w-8 h-8 text-amber-500" />
                                     </div>
-                                    <h4 className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em] mb-6">Momento de Oração</h4>
-                                    <p className="text-white/80 text-xl font-serif italic max-w-[90%] mx-auto leading-relaxed">
+                                    <h4 className="text-foreground/40 text-[10px] font-bold uppercase tracking-[0.3em] mb-6">Momento de Oração</h4>
+                                    <p className="text-foreground/80 text-xl font-serif italic max-w-[90%] mx-auto leading-relaxed">
                                         "{todayDevotional.prayer}"
                                     </p>
                                 </div>
@@ -1259,550 +1268,564 @@ export default function Explore() {
                 )}
 
                 {/* --- VIEW: TIPS LIST (Vertical Stream) --- */}
-                {view === 'tips-list' && (
-                    <motion.div
-                        key="tips-list"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        drag="x"
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={{ left: 0.1, right: 0.8 }}
-                        onDragEnd={(_, info) => {
-                            if (info.offset.x > 100 || info.velocity.x > 500) {
-                                goBack();
-                            }
-                        }}
-                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
-                    >
-                        {/* Unconventional Nav Header */}
-                        <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
-                            <button onClick={handleManualBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
-                                <ArrowLeft className="w-5 h-5 text-white" />
-                            </button>
-                            <h2 className="text-xl font-serif font-semibold text-white italic tracking-tight">Conselhos com Fé</h2>
-                            <div className="w-12" />
-                        </div>
-
-                        <div className="px-6 pb-40 space-y-12">
-                            {RELATIONSHIP_TOPICS.map((topic, topicIdx) => (
-                                <div key={topic.id} id={`topic-${topic.id}`} className="relative">
-                                    {/* Floating Fragment Header */}
-                                    <div className="relative z-10 py-4 bg-transparent mb-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl border border-white/10", topic.color, topic.accent)}>
-                                                <i className={cn(topic.icon, "text-2xl")} />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-2xl font-serif font-semibold text-white leading-none mb-1">{topic.title}</h3>
-                                                <span className="text-[10px] text-accent font-semibold uppercase tracking-[0.2em] opacity-60">
-                                                    {topic.tips.length < 10 ? `0${topic.tips.length}` : topic.tips.length} Artigos Premium
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Asymmetric Tips Flow */}
-                                    <div className="space-y-4 pl-4 border-l border-white/5 ml-6">
-                                        {topic.tips.map((tip, tipIdx) => (
-                                            <motion.div
-                                                key={tip.id}
-                                                initial={{ opacity: 0, x: 10 }}
-                                                whileInView={{ opacity: 1, x: 0 }}
-                                                viewport={{ once: true, margin: "-50px" }}
-                                                transition={{ delay: 0.1 }}
-                                                onClick={() => handleTipClick(topic, tip)}
-                                                className={cn(
-                                                    "group relative cursor-pointer active:scale-[0.98] transition-transform",
-                                                    tipIdx % 2 === 1 ? "ml-6" : "" // Subtle stagger
-                                                )}
-                                            >
-                                                <div className="glass-dark rounded-[1.5rem] border border-white/5 p-6 flex items-center gap-5 hover:bg-white/[0.05] hover:border-accent/30 transition-all group-hover:shadow-[0_0_30px_rgba(212,175,55,0.05)]">
-                                                    <div className="relative shrink-0">
-                                                        <div className="absolute inset-0 bg-accent/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                        <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                                                            <Sparkle className="w-5 h-5 text-accent opacity-30 group-hover:rotate-45 group-hover:opacity-100 transition-all" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <h4 className="text-white text-base font-semibold truncate group-hover:text-accent transition-colors">{tip.title}</h4>
-                                                        <p className="text-white/40 text-xs mt-1 leading-snug">{tip.shortDesc}</p>
-                                                    </div>
-                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 group-hover:bg-accent/20 transition-colors">
-                                                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-accent" />
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* --- VIEW: TIP DETAIL (Sacred Detail Style) --- */}
-                {view === 'tip-detail' && selectedTip && selectedTopic && (
-                    <motion.div
-                        key="tip-detail"
-                        initial={{ opacity: 0, scale: 1.1 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        drag="x"
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={{ left: 0, right: 0.8 }}
-                        onDragEnd={(_, info) => {
-                            if (info.offset.x > 100 || info.velocity.x > 500) {
-                                goBack();
-                            }
-                        }}
-                        className="fixed inset-0 z-50 bg-[#0f172a] overflow-y-auto no-scrollbar pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] touch-pan-y overscroll-contain"
-                    >
-                        {/* Cinematic Header Overlay */}
-                        <div className="fixed top-0 left-0 w-full h-80 pointer-events-none -z-10">
-                            <div className={cn("absolute inset-0 bg-gradient-to-b opacity-30", selectedTopic.color.split(' ')[0])} />
-                            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0f172a] to-transparent" />
-                        </div>
-
-                        {/* Detail Nav */}
-                        <div className="px-6 py-6 flex items-center justify-between relative z-50">
-                            <button
-                                onClick={handleManualBack}
-                                className="w-12 h-12 rounded-full glass border border-white/20 flex items-center justify-center text-white active:scale-75 transition-transform backdrop-blur-3xl"
-                            >
-                                <ArrowLeft className="w-5 h-5 shadow-2xl" />
-                            </button>
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="bg-black/20 backdrop-blur-2xl border border-white/5 px-4 py-2 rounded-full"
-                            >
-                                <span className="text-[10px] font-bold uppercase text-accent tracking-[0.3em]">{selectedTopic.title}</span>
-                            </motion.div>
-                            <div className="w-12" />
-                        </div>
-
-                        <div className="px-6 pb-64 mt-10">
-                            {/* Massive Typographic Reveal */}
-                            <motion.h2
-                                initial={{ opacity: 0, filter: 'blur(10px)' }}
-                                animate={{ opacity: 1, filter: 'blur(0px)' }}
-                                transition={{ delay: 0.2, duration: 0.8 }}
-                                className="text-5xl font-serif font-semibold text-white mb-8 leading-[1.1] italic"
-                            >
-                                {selectedTip.title}
-                            </motion.h2>
-
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.4 }}
-                                className="w-20 h-1.5 bg-accent mb-12 rounded-full"
-                            />
-
-                            {/* Fragmented Content Layout */}
-                            <div className="space-y-12 mb-16">
-                                <motion.p
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.5 }}
-                                    className="text-white/80 text-lg leading-relaxed font-medium first-letter:text-6xl first-letter:font-serif first-letter:float-left first-letter:mr-3 first-letter:text-accent first-letter:mt-1"
-                                >
-                                    {selectedTip.fullDesc}
-                                </motion.p>
-
-                                {/* Main Points Box (Layered Depth) */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 30 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    className="relative p-8 rounded-[3rem] bg-white/[0.03] border border-white/10 overflow-hidden"
-                                >
-                                    <div className="absolute top-0 right-0 p-8 opacity-5">
-                                        <Lightbulb className="w-32 h-32 text-accent" />
-                                    </div>
-
-                                    <h4 className="text-accent text-sm font-bold uppercase tracking-[0.2em] mb-10 flex items-center gap-3">
-                                        <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-                                        Pilares de Prática
-                                    </h4>
-
-                                    <div className="space-y-6">
-                                        {selectedTip.points.map((point, i) => (
-                                            <div key={i} className="flex gap-4 items-start group">
-                                                <div className="w-6 h-6 rounded-full border border-accent/40 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-accent/20 transition-colors">
-                                                    <span className="text-[10px] font-semibold text-accent">{i + 1}</span>
-                                                </div>
-                                                <p className="text-white/80 text-base leading-snug group-hover:text-white transition-colors">
-                                                    {point}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </motion.div>
+                {
+                    view === 'tips-list' && (
+                        <motion.div
+                            key="tips-list"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={{ left: 0.1, right: 0.8 }}
+                            onDragEnd={(_, info) => {
+                                if (info.offset.x > 100 || info.velocity.x > 500) {
+                                    goBack();
+                                }
+                            }}
+                            className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
+                        >
+                            {/* Unconventional Nav Header */}
+                            <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
+                                <button onClick={handleManualBack} className="w-12 h-12 rounded-2xl bg-foreground/5 border border-border/50 flex items-center justify-center active:scale-90 transition-transform">
+                                    <ArrowLeft className="w-5 h-5 text-foreground" />
+                                </button>
+                                <h2 className="text-xl font-serif font-semibold text-foreground italic tracking-tight">Conselhos com Fé</h2>
+                                <div className="w-12" />
                             </div>
 
-                            {/* Final Verse (High Tension Layout) */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 50 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                className="relative mt-24"
-                            >
-                                <div className="absolute -top-12 left-0 text-7xl font-serif text-accent/10 pointer-events-none select-none">"</div>
-                                <div className="glass rounded-[3rem] p-10 border border-white/20 shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative">
-                                    <blockquote className="text-2xl font-serif italic text-white/95 mb-8 leading-tight text-center">
-                                        {selectedTip.verse.text}
-                                    </blockquote>
-                                    <div className="flex flex-col items-center gap-2">
-                                        <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent mb-2" />
-                                        <span className="text-xs font-bold text-accent uppercase tracking-[0.4em]">
-                                            {selectedTip.verse.ref}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="absolute -bottom-10 right-0 text-7xl font-serif text-accent/10 pointer-events-none select-none translate-y-4">"</div>
-                            </motion.div>
-                        </div>
-                    </motion.div>
-                )}
-                {/* --- VIEW: BIBLE STUDIES LIST --- */}
-                {view === 'courses-list' && (
-                    <motion.div
-                        key="courses-list"
-                        variants={staggerContainer}
-                        initial="initial"
-                        animate="animate"
-                        exit={{ opacity: 0, x: -20 }}
-                        drag="x"
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={{ left: 0, right: 0.8 }}
-                        onDragEnd={(_, info) => {
-                            if (info.offset.x > 100 || info.velocity.x > 500) {
-                                goBack();
-                            }
-                        }}
-                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-40 touch-pan-y overscroll-contain"
-                    >
-                        <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
-                            <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
-                                <ArrowLeft className="w-5 h-5 text-white" />
-                            </button>
-                            <h2 className="text-xl font-serif font-semibold text-white italic tracking-tight">Cursos Bíblicos</h2>
-                            <div className="w-12" />
-                        </div>
-
-                        <div className="px-6 pb-40 space-y-6">
-                            {BIBLE_STUDIES.map((study) => (
-                                <motion.div
-                                    key={study.id}
-                                    variants={itemFadeUp}
-                                    onClick={() => handleStudyClick(study)}
-                                    className="relative group cursor-pointer"
-                                >
-                                    <div className={cn(
-                                        "glass-dark rounded-[2rem] border p-6 overflow-hidden transition-all group-hover:border-emerald-500/30",
-                                        completedStudies.includes(study.id) ? "border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "border-white/5"
-                                    )}>
-                                        <div className={cn("absolute top-0 right-0 w-32 h-32 blur-[50px] opacity-10 rounded-full", study.color)} />
-
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10", study.accent)}>
-                                                <i className={cn(study.icon, "text-2xl")} />
-                                            </div>
-                                            <div className="flex flex-col items-end">
-                                                <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{study.level}</span>
-                                                <span className="text-emerald-400 text-xs font-semibold">{study.duration}</span>
+                            <div className="px-6 pb-40 space-y-12">
+                                {RELATIONSHIP_TOPICS.map((topic, topicIdx) => (
+                                    <div key={topic.id} id={`topic-${topic.id}`} className="relative">
+                                        {/* Floating Fragment Header */}
+                                        <div className="relative z-10 py-4 bg-transparent mb-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl border border-border/50", topic.color, topic.accent)}>
+                                                    <i className={cn(topic.icon, "text-2xl")} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-2xl font-serif font-semibold text-foreground leading-none mb-1">{topic.title}</h3>
+                                                    <span className="text-[10px] text-accent font-semibold uppercase tracking-[0.2em] opacity-60">
+                                                        {topic.tips.length < 10 ? `0${topic.tips.length}` : topic.tips.length} Artigos Premium
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <h3 className="text-xl font-serif font-semibold text-white mb-2">{study.title}</h3>
-                                        <p className="text-white/40 text-sm leading-relaxed mb-4">{study.description}</p>
+                                        {/* Asymmetric Tips Flow */}
+                                        <div className="space-y-4 pl-4 border-l border-border/40 ml-6">
+                                            {topic.tips.map((tip, tipIdx) => (
+                                                <motion.div
+                                                    key={tip.id}
+                                                    initial={{ opacity: 0, x: 10 }}
+                                                    whileInView={{ opacity: 1, x: 0 }}
+                                                    viewport={{ once: true, margin: "-50px" }}
+                                                    transition={{ delay: 0.1 }}
+                                                    onClick={() => handleTipClick(topic, tip)}
+                                                    className={cn(
+                                                        "group relative cursor-pointer active:scale-[0.98] transition-transform",
+                                                        tipIdx % 2 === 1 ? "ml-6" : "" // Subtle stagger
+                                                    )}
+                                                >
+                                                    <div className={cn(isDarkMode ? "glass-dark" : "glass", "rounded-[1.5rem] border border-border/40 p-6 flex items-center gap-5 hover:bg-white/[0.05] hover:border-accent/30 transition-all group-hover:shadow-[0_0_30px_rgba(212,175,55,0.05)]")}>
+                                                        <div className="relative shrink-0">
+                                                            <div className="absolute inset-0 bg-accent/20 blur-lg rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            <div className="w-10 h-10 rounded-xl bg-foreground/5 border border-border/50 flex items-center justify-center">
+                                                                <Sparkle className="w-5 h-5 text-accent opacity-30 group-hover:rotate-45 group-hover:opacity-100 transition-all" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-foreground text-base font-semibold truncate group-hover:text-accent transition-colors">{tip.title}</h4>
+                                                            <p className="text-foreground/40 text-xs mt-1 leading-snug">{tip.shortDesc}</p>
+                                                        </div>
+                                                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-foreground/5 group-hover:bg-accent/20 transition-colors">
+                                                            <ChevronRight className="w-4 h-4 text-foreground/20 group-hover:text-accent" />
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div >
+                    )
+                }
 
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                                                <div className={cn(
-                                                    "h-full transition-all duration-1000",
-                                                    completedStudies.includes(study.id) ? "bg-emerald-500 w-full" : "bg-emerald-500/40 w-[5%]"
-                                                )} />
-                                            </div>
-                                            <span className={cn(
-                                                "text-[10px] font-semibold uppercase",
-                                                completedStudies.includes(study.id) ? "text-emerald-400" : "text-white/20"
-                                            )}>
-                                                {completedStudies.includes(study.id) ? 'Concluído' : 'Começar'}
+                {/* --- VIEW: TIP DETAIL (Sacred Detail Style) --- */}
+                {
+                    view === 'tip-detail' && selectedTip && selectedTopic && (
+                        <motion.div
+                            key="tip-detail"
+                            initial={{ opacity: 0, scale: 1.1 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={{ left: 0, right: 0.8 }}
+                            onDragEnd={(_, info) => {
+                                if (info.offset.x > 100 || info.velocity.x > 500) {
+                                    goBack();
+                                }
+                            }}
+                            className={cn(
+                                "fixed inset-0 z-50 overflow-y-auto no-scrollbar pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] touch-pan-y overscroll-contain transition-colors duration-500",
+                                isDarkMode ? "bg-[#0f172a]" : "bg-background"
+                            )}
+                        >
+                            {/* Cinematic Header Overlay */}
+                            <div className="fixed top-0 left-0 w-full h-80 pointer-events-none -z-10">
+                                <div className={cn("absolute inset-0 bg-gradient-to-b opacity-30", selectedTopic.color.split(' ')[0])} />
+                                <div className={cn("absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t to-transparent", isDarkMode ? "from-[#0f172a]" : "from-background")} />
+                            </div>
+
+                            {/* Detail Nav */}
+                            <div className="px-6 py-6 flex items-center justify-between relative z-50">
+                                <button
+                                    onClick={handleManualBack}
+                                    className="w-12 h-12 rounded-full glass border border-border/60 flex items-center justify-center text-foreground active:scale-75 transition-transform backdrop-blur-3xl"
+                                >
+                                    <ArrowLeft className="w-5 h-5 shadow-2xl" />
+                                </button>
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-black/20 backdrop-blur-2xl border border-border/40 px-4 py-2 rounded-full"
+                                >
+                                    <span className="text-[10px] font-bold uppercase text-accent tracking-[0.3em]">{selectedTopic.title}</span>
+                                </motion.div>
+                                <div className="w-12" />
+                            </div>
+
+                            <div className="px-6 pb-64 mt-10">
+                                {/* Massive Typographic Reveal */}
+                                <motion.h2
+                                    initial={{ opacity: 0, filter: 'blur(10px)' }}
+                                    animate={{ opacity: 1, filter: 'blur(0px)' }}
+                                    transition={{ delay: 0.2, duration: 0.8 }}
+                                    className="text-5xl font-serif font-semibold text-foreground mb-8 leading-[1.1] italic"
+                                >
+                                    {selectedTip.title}
+                                </motion.h2>
+
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.4 }}
+                                    className="w-20 h-1.5 bg-accent mb-12 rounded-full"
+                                />
+
+                                {/* Fragmented Content Layout */}
+                                <div className="space-y-12 mb-16">
+                                    <motion.p
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.5 }}
+                                        className="text-foreground/80 text-lg leading-relaxed font-medium first-letter:text-6xl first-letter:font-serif first-letter:float-left first-letter:mr-3 first-letter:text-accent first-letter:mt-1"
+                                    >
+                                        {selectedTip.fullDesc}
+                                    </motion.p>
+
+                                    {/* Main Points Box (Layered Depth) */}
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 30 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        className="relative p-8 rounded-[3rem] bg-foreground/[0.03] border border-border/50 overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 right-0 p-8 opacity-5">
+                                            <Lightbulb className="w-32 h-32 text-accent" />
+                                        </div>
+
+                                        <h4 className="text-accent text-sm font-bold uppercase tracking-[0.2em] mb-10 flex items-center gap-3">
+                                            <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+                                            Pilares de Prática
+                                        </h4>
+
+                                        <div className="space-y-6">
+                                            {selectedTip.points.map((point, i) => (
+                                                <div key={i} className="flex gap-4 items-start group">
+                                                    <div className="w-6 h-6 rounded-full border border-accent/40 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-accent/20 transition-colors">
+                                                        <span className="text-[10px] font-semibold text-accent">{i + 1}</span>
+                                                    </div>
+                                                    <p className="text-foreground/80 text-base leading-snug group-hover:text-foreground transition-colors">
+                                                        {point}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                </div>
+
+                                {/* Final Verse (High Tension Layout) */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 50 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    className="relative mt-24"
+                                >
+                                    <div className="absolute -top-12 left-0 text-7xl font-serif text-accent/10 pointer-events-none select-none">"</div>
+                                    <div className="glass rounded-[3rem] p-10 border border-border/60 shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative">
+                                        <blockquote className="text-2xl font-serif italic text-foreground/95 mb-8 leading-tight text-center">
+                                            {selectedTip.verse.text}
+                                        </blockquote>
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent mb-2" />
+                                            <span className="text-xs font-bold text-accent uppercase tracking-[0.4em]">
+                                                {selectedTip.verse.ref}
                                             </span>
                                         </div>
                                     </div>
+                                    <div className="absolute -bottom-10 right-0 text-7xl font-serif text-accent/10 pointer-events-none select-none translate-y-4">"</div>
                                 </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* --- VIEW: BIBLE STUDY DETAIL --- */}
-                {view === 'course-detail' && selectedStudy && selectedLesson && (
-                    <motion.div
-                        key="course-detail"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        drag="x"
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={{ left: 0.1, right: 0.8 }}
-                        onDragEnd={(_, info) => {
-                            if (info.offset.x > 100 || info.velocity.x > 500) {
-                                goBack();
-                            }
-                        }}
-                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 touch-pan-y overscroll-contain"
-                    >
-                        <div className="px-6 py-6 flex items-center justify-between relative z-50 bg-transparent">
-                            <button onClick={handleManualBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
-                                <ArrowLeft className="w-5 h-5" />
-                            </button>
-                            <span className="text-[10px] font-bold uppercase text-accent tracking-widest">{selectedStudy.title}</span>
-                            <div className="w-12" />
-                        </div>
-
-                        <div className="px-8 pb-64">
-                            {/* Lesson Navigation (Compact Horizontal Scroll) */}
-                            <div className="grid grid-cols-4 gap-3 py-8">
-                                {selectedStudy.lessons.map((lesson, idx) => {
-                                    const isCompleted = completedLessons.includes(lesson.id);
-                                    const isCurrent = selectedLesson.id === lesson.id;
-                                    const isLocked = idx > 0 && !completedLessons.includes(selectedStudy.lessons[idx - 1].id);
-
-                                    return (
-                                        <button
-                                            key={lesson.id}
-                                            disabled={isLocked}
-                                            onClick={() => setSelectedLesson(lesson)}
-                                            className={cn(
-                                                "px-2 py-4 rounded-2xl border text-[11px] font-bold uppercase tracking-tighter transition-all text-center",
-                                                isCurrent
-                                                    ? "bg-emerald-500 border-emerald-400 text-black shadow-lg shadow-emerald-500/20"
-                                                    : isLocked
-                                                        ? "bg-white/5 border-white/5 text-white/10 opacity-40 cursor-not-allowed"
-                                                        : "bg-white/5 border-white/10 text-white/40 active:scale-95"
-                                            )}
-                                        >
-                                            {isLocked ? (
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <i className="ri-lock-2-line text-xs" />
-                                                    <span>Aula {idx + 1}</span>
-                                                </div>
-                                            ) : (
-                                                <span>Aula {idx + 1}</span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
+                            </div>
+                        </motion.div>
+                    )
+                }
+                {/* --- VIEW: BIBLE STUDIES LIST --- */}
+                {
+                    view === 'courses-list' && (
+                        <motion.div
+                            key="courses-list"
+                            variants={staggerContainer}
+                            initial="initial"
+                            animate="animate"
+                            exit={{ opacity: 0, x: -20 }}
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={{ left: 0, right: 0.8 }}
+                            onDragEnd={(_, info) => {
+                                if (info.offset.x > 100 || info.velocity.x > 500) {
+                                    goBack();
+                                }
+                            }}
+                            className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-40 touch-pan-y overscroll-contain"
+                        >
+                            <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
+                                <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-foreground/5 border border-border/50 flex items-center justify-center active:scale-90 transition-transform">
+                                    <ArrowLeft className="w-5 h-5 text-foreground" />
+                                </button>
+                                <h2 className="text-xl font-serif font-semibold text-foreground italic tracking-tight">Cursos Bíblicos</h2>
+                                <div className="w-12" />
                             </div>
 
-                            <motion.div
-                                key={selectedLesson.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="space-y-12"
-                            >
-                                <h2 className="text-3xl font-serif font-semibold text-white mt-8 leading-tight italic">
-                                    {selectedLesson.title}
-                                </h2>
+                            <div className="px-6 pb-40 space-y-6">
+                                {BIBLE_STUDIES.map((study) => (
+                                    <motion.div
+                                        key={study.id}
+                                        variants={itemFadeUp}
+                                        onClick={() => handleStudyClick(study)}
+                                        className="relative group cursor-pointer"
+                                    >
+                                        <div className={cn(
+                                            isDarkMode ? "glass-dark" : "glass", "rounded-[2rem] border p-6 overflow-hidden transition-all group-hover:border-emerald-500/30",
+                                            completedStudies.includes(study.id) ? "border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "border-border/40"
+                                        )}>
+                                            <div className={cn("absolute top-0 right-0 w-32 h-32 blur-[50px] opacity-10 rounded-full", study.color)} />
 
-                                <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-emerald-500/10 relative">
-                                    <Quote className="absolute -top-4 left-8 w-8 h-8 text-emerald-500/30" />
-                                    <p className="text-xl font-serif italic text-white/90 leading-relaxed mb-4 text-center">
-                                        "{selectedLesson.verse.text}"
-                                    </p>
-                                    <p className="text-center text-xs font-bold text-emerald-400/60 tracking-widest uppercase">
-                                        {selectedLesson.verse.ref}
-                                    </p>
-                                </div>
-
-                                <div className="prose prose-invert">
-                                    <p className="text-white/70 text-lg leading-relaxed first-letter:text-5xl first-letter:text-emerald-500 first-letter:mr-2 first-letter:float-left">
-                                        {selectedLesson.content}
-                                    </p>
-                                </div>
-
-                                <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5">
-                                    <h4 className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                                        <Lightbulb className="w-3 h-3" /> Ponto de Reflexão
-                                    </h4>
-                                    <p className="text-white/80 font-medium italic">
-                                        {selectedLesson.reflection}
-                                    </p>
-                                </div>
-
-                                <button
-                                    onClick={handleNextLesson}
-                                    className="w-full py-5 rounded-[2rem] bg-emerald-500 text-black font-bold uppercase tracking-widest text-sm shadow-2xl shadow-emerald-500/20 active:scale-95 transition-transform"
-                                >
-                                    {selectedStudy.lessons.findIndex(l => l.id === selectedLesson.id) === selectedStudy.lessons.length - 1
-                                        ? 'Finalizar Curso'
-                                        : 'Próxima Lição'}
-                                </button>
-                            </motion.div>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* --- VIEW: COMMUNITY LIST --- */}
-                {view === 'community-list' && (
-                    <motion.div
-                        key="community-list"
-                        variants={staggerContainer}
-                        initial="initial"
-                        animate="animate"
-                        exit={{ opacity: 0, x: -20 }}
-                        drag="x"
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={{ left: 0.1, right: 0.8 }}
-                        onDragEnd={(_, info) => {
-                            if (info.offset.x > 100 || info.velocity.x > 500) {
-                                goBack();
-                            }
-                        }}
-                        className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
-                    >
-                        <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
-                            <button onClick={handleManualBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
-                                <ArrowLeft className="w-5 h-5 text-white" />
-                            </button>
-                            <h2 className="text-xl font-serif font-semibold text-white italic tracking-tight">Comunidade</h2>
-                            <div className="w-12" />
-                        </div>
-
-                        <div className="px-6 pb-40 space-y-12">
-                            {/* Main Portal Card */}
-                            <motion.div
-                                variants={itemFadeUp}
-                                onClick={() => handleGroupClick(COMMUNITY_DATA.main.link)}
-                                className="relative group cursor-pointer"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-500/10 blur-2xl rounded-[2.5rem] opacity-30 group-hover:opacity-50 transition-opacity" />
-                                <div className="glass rounded-[2rem] p-8 border border-white/10 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 p-8 opacity-5">
-                                        <Users className="w-32 h-32 text-blue-400 rotate-12" />
-                                    </div>
-                                    <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-6 text-blue-400">
-                                        <i className="ri-global-line text-2xl" />
-                                    </div>
-                                    <h3 className="text-2xl font-serif font-semibold text-white mb-2">{COMMUNITY_DATA.main.title}</h3>
-                                    <p className="text-white/40 text-sm leading-relaxed mb-6">{COMMUNITY_DATA.main.description}</p>
-                                    <div className="flex items-center gap-2 text-blue-400 font-semibold text-xs uppercase tracking-widest">
-                                        Acessar Portal <ChevronRight className="w-4 h-4" />
-                                    </div>
-                                </div>
-                            </motion.div>
-
-                            {/* Categories Grid */}
-                            {COMMUNITY_DATA.categories.map((cat) => (
-                                <div key={cat.id} className="space-y-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border border-white/10 shadow-2xl", cat.color, cat.accent)}>
-                                            <i className={cn(cat.icon, "text-xl")} />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-xl font-serif font-semibold text-white leading-none mb-1">{cat.title}</h4>
-                                            <span className="text-[10px] text-white/40 font-semibold uppercase tracking-widest">{cat.description}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 gap-3">
-                                        {cat.groups.map((group, idx) => (
-                                            <motion.div
-                                                key={idx}
-                                                whileHover={{ x: 5 }}
-                                                onClick={() => handleGroupClick(group.link)}
-                                                className="glass-dark rounded-2xl border border-white/5 p-4 flex items-center justify-between group cursor-pointer hover:border-white/20 transition-all"
-                                            >
-                                                <div className="flex items-center gap-4 text-white/80 group-hover:text-white transition-colors">
-                                                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/20 group-hover:text-emerald-400 transition-colors">
-                                                        <MessageCircle className="w-4 h-4" />
-                                                    </div>
-                                                    <span className="text-sm font-semibold tracking-tight">{group.name}</span>
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center bg-foreground/5 border border-border/50", study.accent)}>
+                                                    <i className={cn(study.icon, "text-2xl")} />
                                                 </div>
-                                                <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white transition-colors" />
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-[10px] text-foreground/40 font-bold uppercase tracking-widest">{study.level}</span>
+                                                    <span className="text-emerald-400 text-xs font-semibold">{study.duration}</span>
+                                                </div>
+                                            </div>
 
-            {/* --- RULE MODAL (Important Reminder) --- */}
-            <AnimatePresence>
-                {isRuleModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+                                            <h3 className="text-xl font-serif font-semibold text-foreground mb-2">{study.title}</h3>
+                                            <p className="text-foreground/40 text-sm leading-relaxed mb-4">{study.description}</p>
+
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex-1 h-1 bg-foreground/5 rounded-full overflow-hidden">
+                                                    <div className={cn(
+                                                        "h-full transition-all duration-1000",
+                                                        completedStudies.includes(study.id) ? "bg-emerald-500 w-full" : "bg-emerald-500/40 w-[5%]"
+                                                    )} />
+                                                </div>
+                                                <span className={cn(
+                                                    "text-[10px] font-semibold uppercase",
+                                                    completedStudies.includes(study.id) ? "text-emerald-400" : "text-foreground/20"
+                                                )}>
+                                                    {completedStudies.includes(study.id) ? 'Concluído' : 'Começar'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )
+                }
+
+                {/* --- VIEW: BIBLE STUDY DETAIL --- */}
+                {
+                    view === 'course-detail' && selectedStudy && selectedLesson && (
                         <motion.div
+                            key="course-detail"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => setIsRuleModalOpen(false)}
-                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-[320px] glass rounded-[2rem] p-6 border border-white/10 shadow-2xl overflow-hidden"
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={{ left: 0.1, right: 0.8 }}
+                            onDragEnd={(_, info) => {
+                                if (info.offset.x > 100 || info.velocity.x > 500) {
+                                    goBack();
+                                }
+                            }}
+                            className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 touch-pan-y overscroll-contain"
                         >
-                            <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-emerald-500/10 to-transparent" />
+                            <div className="px-6 py-6 flex items-center justify-between relative z-50 bg-transparent">
+                                <button onClick={handleManualBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-foreground">
+                                    <ArrowLeft className="w-5 h-5" />
+                                </button>
+                                <span className="text-[10px] font-bold uppercase text-accent tracking-widest">{selectedStudy.title}</span>
+                                <div className="w-12" />
+                            </div>
 
-                            <div className="relative text-center">
-                                <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto mb-4 text-emerald-400">
-                                    <Bell className="w-6 h-6" />
+                            <div className="px-8 pb-64">
+                                {/* Lesson Navigation (Compact Horizontal Scroll) */}
+                                <div className="grid grid-cols-4 gap-3 py-8">
+                                    {selectedStudy.lessons.map((lesson, idx) => {
+                                        const isCompleted = completedLessons.includes(lesson.id);
+                                        const isCurrent = selectedLesson.id === lesson.id;
+                                        const isLocked = idx > 0 && !completedLessons.includes(selectedStudy.lessons[idx - 1].id);
+
+                                        return (
+                                            <button
+                                                key={lesson.id}
+                                                disabled={isLocked}
+                                                onClick={() => setSelectedLesson(lesson)}
+                                                className={cn(
+                                                    "px-2 py-4 rounded-2xl border text-[11px] font-bold uppercase tracking-tighter transition-all text-center",
+                                                    isCurrent
+                                                        ? "bg-emerald-500 border-emerald-400 text-black shadow-lg shadow-emerald-500/20"
+                                                        : isLocked
+                                                            ? "bg-foreground/5 border-border/40 text-foreground/10 opacity-40 cursor-not-allowed"
+                                                            : "bg-foreground/5 border-border/50 text-foreground/40 active:scale-95"
+                                                )}
+                                            >
+                                                {isLocked ? (
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <i className="ri-lock-2-line text-xs" />
+                                                        <span>Aula {idx + 1}</span>
+                                                    </div>
+                                                ) : (
+                                                    <span>Aula {idx + 1}</span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
 
-                                <h3 className="text-xl font-serif font-semibold text-white mb-2">Compromisso de Respeito</h3>
-                                <p className="text-white/60 text-[11px] mb-6 leading-relaxed">
-                                    Esta é uma comunidade com propósito. Ao acessar o grupo, você concorda em se apresentar com:
-                                </p>
+                                <motion.div
+                                    key={selectedLesson.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-12"
+                                >
+                                    <h2 className="text-3xl font-serif font-semibold text-foreground mt-8 leading-tight italic">
+                                        {selectedLesson.title}
+                                    </h2>
 
-                                <div className="glass-dark rounded-[2rem] p-5 mb-6 text-left space-y-3 border border-white/5">
-                                    {[
-                                        { icon: "📸", text: "Foto" },
-                                        { icon: "💌", text: "Nome" },
-                                        { icon: "🎂", text: "Idade" },
-                                        { icon: "📍", text: "Cidade + Estado" },
-                                        { icon: "💼", text: "Profissão" },
-                                        { icon: "👪", text: "Tem filhos?" },
-                                        { icon: "🙏", text: "Congregação/Igreja" }
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-center gap-3">
-                                            <div className="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center text-xs">
-                                                <Check className="w-3 h-3 text-emerald-400" />
-                                            </div>
-                                            <span className="text-white/40 text-sm mr-2">{item.icon}</span>
-                                            <span className="text-white/80 text-sm font-semibold tracking-tight">{item.text}</span>
-                                        </div>
-                                    ))}
-                                </div>
+                                    <div className="p-8 rounded-[2.5rem] bg-foreground/[0.03] border border-emerald-500/10 relative">
+                                        <Quote className="absolute -top-4 left-8 w-8 h-8 text-emerald-500/30" />
+                                        <p className="text-xl font-serif italic text-foreground/90 leading-relaxed mb-4 text-center">
+                                            "{selectedLesson.verse.text}"
+                                        </p>
+                                        <p className="text-center text-xs font-bold text-emerald-400/60 tracking-widest uppercase">
+                                            {selectedLesson.verse.ref}
+                                        </p>
+                                    </div>
 
-                                <div className="flex flex-col gap-3">
+                                    <div className="prose prose-invert">
+                                        <p className="text-foreground/70 text-lg leading-relaxed first-letter:text-5xl first-letter:text-emerald-500 first-letter:mr-2 first-letter:float-left">
+                                            {selectedLesson.content}
+                                        </p>
+                                    </div>
+
+                                    <div className="p-6 rounded-3xl bg-foreground/[0.02] border border-border/40">
+                                        <h4 className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <Lightbulb className="w-3 h-3" /> Ponto de Reflexão
+                                        </h4>
+                                        <p className="text-foreground/80 font-medium italic">
+                                            {selectedLesson.reflection}
+                                        </p>
+                                    </div>
+
                                     <button
-                                        onClick={confirmJoinGroup}
-                                        className="w-full py-4 bg-white text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl active:scale-95 transition-all shadow-xl shadow-white/5"
+                                        onClick={handleNextLesson}
+                                        className="w-full py-5 rounded-[2rem] bg-emerald-500 text-black font-bold uppercase tracking-widest text-sm shadow-2xl shadow-emerald-500/20 active:scale-95 transition-transform"
                                     >
-                                        Entendi e Aceito
+                                        {selectedStudy.lessons.findIndex(l => l.id === selectedLesson.id) === selectedStudy.lessons.length - 1
+                                            ? 'Finalizar Curso'
+                                            : 'Próxima Lição'}
                                     </button>
-                                    <button
-                                        onClick={() => setIsRuleModalOpen(false)}
-                                        className="w-full py-4 text-white/40 font-semibold uppercase tracking-widest text-[10px] active:opacity-50 transition-all"
-                                    >
-                                        Cancelar
-                                    </button>
-                                </div>
+                                </motion.div>
                             </div>
                         </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+                    )
+                }
+
+                {/* --- VIEW: COMMUNITY LIST --- */}
+                {
+                    view === 'community-list' && (
+                        <motion.div
+                            key="community-list"
+                            variants={staggerContainer}
+                            initial="initial"
+                            animate="animate"
+                            exit={{ opacity: 0, x: -20 }}
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={{ left: 0.1, right: 0.8 }}
+                            onDragEnd={(_, info) => {
+                                if (info.offset.x > 100 || info.velocity.x > 500) {
+                                    goBack();
+                                }
+                            }}
+                            className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
+                        >
+                            <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
+                                <button onClick={handleManualBack} className="w-12 h-12 rounded-2xl bg-foreground/5 border border-border/50 flex items-center justify-center active:scale-90 transition-transform">
+                                    <ArrowLeft className="w-5 h-5 text-foreground" />
+                                </button>
+                                <h2 className="text-xl font-serif font-semibold text-foreground italic tracking-tight">Comunidade</h2>
+                                <div className="w-12" />
+                            </div>
+
+                            <div className="px-6 pb-40 space-y-12">
+                                {/* Main Portal Card */}
+                                <motion.div
+                                    variants={itemFadeUp}
+                                    onClick={() => handleGroupClick(COMMUNITY_DATA.main.link)}
+                                    className="relative group cursor-pointer"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-500/10 blur-2xl rounded-[2.5rem] opacity-30 group-hover:opacity-50 transition-opacity" />
+                                    <div className="glass rounded-[2rem] p-8 border border-border/50 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-8 opacity-5">
+                                            <Users className="w-32 h-32 text-blue-400 rotate-12" />
+                                        </div>
+                                        <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-6 text-blue-400">
+                                            <i className="ri-global-line text-2xl" />
+                                        </div>
+                                        <h3 className="text-2xl font-serif font-semibold text-foreground mb-2">{COMMUNITY_DATA.main.title}</h3>
+                                        <p className="text-foreground/40 text-sm leading-relaxed mb-6">{COMMUNITY_DATA.main.description}</p>
+                                        <div className="flex items-center gap-2 text-blue-400 font-semibold text-xs uppercase tracking-widest">
+                                            Acessar Portal <ChevronRight className="w-4 h-4" />
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* Categories Grid */}
+                                {COMMUNITY_DATA.categories.map((cat) => (
+                                    <div key={cat.id} className="space-y-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border border-border/50 shadow-2xl", cat.color, cat.accent)}>
+                                                <i className={cn(cat.icon, "text-xl")} />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xl font-serif font-semibold text-foreground leading-none mb-1">{cat.title}</h4>
+                                                <span className="text-[10px] text-foreground/40 font-semibold uppercase tracking-widest">{cat.description}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {cat.groups.map((group, idx) => (
+                                                <motion.div
+                                                    key={idx}
+                                                    whileHover={{ x: 5 }}
+                                                    onClick={() => handleGroupClick(group.link)}
+                                                    className={cn(isDarkMode ? "glass-dark" : "glass", "rounded-2xl border border-border/40 p-4 flex items-center justify-between group cursor-pointer hover:border-border/60 transition-all")}>
+                                                    <div className="flex items-center gap-4 text-foreground/80 group-hover:text-foreground transition-colors">
+                                                        <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center text-foreground/20 group-hover:text-emerald-400 transition-colors">
+                                                            <MessageCircle className="w-4 h-4" />
+                                                        </div>
+                                                        <span className="text-sm font-semibold tracking-tight">{group.name}</span>
+                                                    </div>
+                                                    <ChevronRight className="w-4 h-4 text-foreground/10 group-hover:text-foreground transition-colors" />
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div >
+                    )
+                }
+            </AnimatePresence >
+
+            {/* --- RULE MODAL (Important Reminder) --- */}
+            <AnimatePresence>
+                {
+                    isRuleModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsRuleModalOpen(false)}
+                                className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-[320px] glass rounded-[2rem] p-6 border border-border/50 shadow-2xl overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-emerald-500/10 to-transparent" />
+
+                                <div className="relative text-center">
+                                    <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto mb-4 text-emerald-400">
+                                        <Bell className="w-6 h-6" />
+                                    </div>
+
+                                    <h3 className="text-xl font-serif font-semibold text-foreground mb-2">Compromisso de Respeito</h3>
+                                    <p className="text-foreground/60 text-[11px] mb-6 leading-relaxed">
+                                        Esta é uma comunidade com propósito. Ao acessar o grupo, você concorda em se apresentar com:
+                                    </p>
+
+                                    <div className={cn(isDarkMode ? "glass-dark" : "glass", "rounded-[2rem] p-5 mb-6 text-left space-y-3 border border-border/40")}>
+                                        {[
+                                            { icon: "📸", text: "Foto" },
+                                            { icon: "💌", text: "Nome" },
+                                            { icon: "🎂", text: "Idade" },
+                                            { icon: "📍", text: "Cidade + Estado" },
+                                            { icon: "💼", text: "Profissão" },
+                                            { icon: "👪", text: "Tem filhos?" },
+                                            { icon: "🙏", text: "Congregação/Igreja" }
+                                        ].map((item, i) => (
+                                            <div key={i} className="flex items-center gap-3">
+                                                <div className="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center text-xs">
+                                                    <Check className="w-3 h-3 text-emerald-400" />
+                                                </div>
+                                                <span className="text-foreground/40 text-sm mr-2">{item.icon}</span>
+                                                <span className="text-foreground/80 text-sm font-semibold tracking-tight">{item.text}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex flex-col gap-3">
+                                        <button
+                                            onClick={confirmJoinGroup}
+                                            className="w-full py-4 bg-white text-black font-bold uppercase tracking-[0.2em] text-xs rounded-2xl active:scale-95 transition-all shadow-xl shadow-white/5"
+                                        >
+                                            Entendi e Aceito
+                                        </button>
+                                        <button
+                                            onClick={() => setIsRuleModalOpen(false)}
+                                            className="w-full py-4 text-foreground/40 font-semibold uppercase tracking-widest text-[10px] active:opacity-50 transition-all"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div >
+                        </div >
+                    )
+                }
+            </AnimatePresence >
 
             <FeatureGateDialog
                 open={showUpgradeDialog}
@@ -1842,24 +1865,26 @@ export default function Explore() {
                 }}
             />
 
-            {showCheckoutManager && selectedCheckoutPlan && (
-                <CheckoutManager
-                    key={`explore-checkout-v1-${selectedCheckoutPlan.id}`}
-                    open={showCheckoutManager}
-                    onOpenChange={(open) => {
-                        setShowCheckoutManager(open);
-                        if (!open) {
-                            setTimeout(() => {
-                                setSelectedCheckoutPlan(null);
-                                setShowUpgradeDialog(true);
-                            }, 50);
-                        }
-                    }}
-                    planId={selectedCheckoutPlan.id}
-                    planPrice={selectedCheckoutPlan.price}
-                    planName={selectedCheckoutPlan.name}
-                />
-            )}
-        </PageTransition>
+            {
+                showCheckoutManager && selectedCheckoutPlan && (
+                    <CheckoutManager
+                        key={`explore-checkout-v1-${selectedCheckoutPlan.id}`}
+                        open={showCheckoutManager}
+                        onOpenChange={(open) => {
+                            setShowCheckoutManager(open);
+                            if (!open) {
+                                setTimeout(() => {
+                                    setSelectedCheckoutPlan(null);
+                                    setShowUpgradeDialog(true);
+                                }, 50);
+                            }
+                        }}
+                        planId={selectedCheckoutPlan.id}
+                        planPrice={selectedCheckoutPlan.price}
+                        planName={selectedCheckoutPlan.name}
+                    />
+                )
+            }
+        </PageTransition >
     );
 }
