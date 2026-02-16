@@ -424,33 +424,19 @@ export default function ChatRoom() {
     };
   }, [matchId, user?.id]);
 
-  // Ultra-stable Viewport tracking for Keyboard-Input adhesion
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const [vvState, setVvState] = useState({ height: window.innerHeight, offset: 0 });
 
   useEffect(() => {
-    // Lock body scroll and fix position to block parent layout interference
-    const originalStyle = {
-      overflow: document.body.style.overflow,
-      position: document.body.style.position,
-      width: document.body.style.width,
-      height: document.body.style.height
-    };
-
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.height = '100%';
 
     const viewport = window.visualViewport;
     if (!viewport) return;
 
     const handleViewport = () => {
-      const isKeyboard = window.innerHeight - viewport.height > 100;
-      setIsKeyboardVisible(isKeyboard);
-      setViewportHeight(viewport.height);
+      setVvState({ height: viewport.height, offset: viewport.offsetTop });
+      setIsKeyboardVisible(window.innerHeight - viewport.height > 60);
 
-      if (isKeyboard) {
+      if (window.innerHeight - viewport.height > 60) {
         // Instant scroll on keyboard reveal to prevent gap
         messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
       }
@@ -463,20 +449,11 @@ export default function ChatRoom() {
     handleViewport();
 
     return () => {
-      // Force keyboard close to reset layout immediate
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
-
-      // Restore body styles
-      document.body.style.overflow = originalStyle.overflow;
-      document.body.style.position = originalStyle.position;
-      document.body.style.width = originalStyle.width;
-      document.body.style.height = originalStyle.height;
-
       viewport.removeEventListener('resize', handleViewport);
       viewport.removeEventListener('scroll', handleViewport);
-      window.scrollTo(0, 0);
     };
   }, []);
 
@@ -834,8 +811,11 @@ export default function ChatRoom() {
           navigate('/app/chat');
         }
       }}
-      className="fixed inset-0 flex flex-col bg-background overflow-hidden font-sans touch-none overscroll-none z-[1000]"
-      style={{ height: viewportHeight }}
+      className="fixed inset-0 flex flex-col bg-background overflow-hidden font-sans touch-none overscroll-none z-[10000]"
+      style={{
+        height: vvState.height,
+        transform: `translateY(${vvState.offset}px)`
+      }}
     >
       <div className="flex items-center gap-3 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 border-b shrink-0 bg-background/80 backdrop-blur">
         <Link to="/app/chat" className="text-muted-foreground"><i className="ri-arrow-left-line text-xl" /></Link>

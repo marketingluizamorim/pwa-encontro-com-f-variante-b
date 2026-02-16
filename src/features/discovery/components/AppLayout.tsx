@@ -75,7 +75,7 @@ export function AppLayout() {
 
   return (
     // Use theme-aware background colors
-    <div className={cn("relative w-full h-[100dvh] overflow-hidden bg-background text-foreground flex flex-col font-sans transition-colors duration-500 pt-[env(safe-area-inset-top)]")}>
+    <div className={cn("fixed inset-0 w-full h-full overflow-hidden bg-background text-foreground flex flex-col font-sans transition-colors duration-500 pt-[env(safe-area-inset-top)]")}>
 
       {/* Background Ambience (Global - Clean & Premium) */}
       <div className="fixed inset-0 pointer-events-none z-0">
