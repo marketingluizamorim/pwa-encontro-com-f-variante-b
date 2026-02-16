@@ -193,11 +193,20 @@ export default function Discover() {
       fetchNextPage();
     }
 
-    // Preload next 3 profile images
-    const profilesToPreload = profiles.slice(currentIndex + 1, currentIndex + 4);
-    profilesToPreload.forEach((profile) => {
-      const img = new Image();
-      img.src = profile.photos?.[0] || profile.avatar_url || '/placeholder.svg';
+    // Preload next 3 profile images (Full gallery for next 2, primary for the rest)
+    const profilesToPreload = profiles.slice(currentIndex + 1, currentIndex + 6);
+    profilesToPreload.forEach((profile, index) => {
+      // For the next 2 profiles, preload their first 3 photos
+      if (index < 2) {
+        profile.photos?.slice(0, 3).forEach(photo => {
+          const img = new Image();
+          img.src = photo;
+        });
+      } else {
+        // For followers, just the primary photo
+        const img = new Image();
+        img.src = profile.photos?.[0] || profile.avatar_url || '/placeholder.svg';
+      }
     });
   }, [currentIndex, profiles, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
@@ -604,10 +613,12 @@ export default function Discover() {
 
                 {/* Photo */}
                 <img
-                  src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
+                  src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url}
                   className="w-full h-full object-cover pointer-events-none"
                   alt="Profile"
                   draggable={false}
+                  loading="eager"
+                  fetchPriority="high"
                 />
 
                 {/* Gradient Overlay */}

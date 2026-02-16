@@ -188,6 +188,26 @@ export default function Chat() {
         }
     });
 
+    // Smart Preload for Chat Photos
+    useEffect(() => {
+        if (conversations.length > 0) {
+            // Preload primary photo of all conversations on the screen
+            conversations.slice(0, 15).forEach((conv) => {
+                if (conv.profile.photos?.[0] || conv.profile.avatar_url) {
+                    const img = new Image();
+                    img.src = (conv.profile.photos?.[0] || conv.profile.avatar_url) as string;
+                }
+                // Also preload expanded photos for the first 3 (likely to be clicked)
+                if (conversations.indexOf(conv) < 3) {
+                    conv.profile.photos?.slice(1, 3).forEach(photo => {
+                        const img = new Image();
+                        img.src = photo;
+                    });
+                }
+            });
+        }
+    }, [conversations]);
+
 
     const [viewedMatches, setViewedMatches] = useState<Set<string>>(() => {
         const saved = localStorage.getItem('viewed-matches');
