@@ -556,7 +556,7 @@ export default function Discover() {
 
 
           {/* Card Stack Container */}
-          <div className="flex-1 w-full max-w-md relative flex items-center justify-center pb-20 px-4">
+          <div className="flex-1 w-full max-w-md relative flex items-center justify-center pb-32 px-4">
 
             {/* NEXT CARD (Background) */}
             {nextProfile && (
@@ -579,7 +579,7 @@ export default function Discover() {
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
               onDragEnd={handleDragEnd}
-              className="w-full h-full absolute inset-0 px-4 pt-4 pb-20 z-20 cursor-grab active:cursor-grabbing touch-none"
+              className="w-full h-full absolute inset-0 px-4 pt-4 pb-32 z-20 cursor-grab active:cursor-grabbing touch-none"
               initial={false}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{
@@ -701,7 +701,7 @@ export default function Discover() {
 
           {/* Floating Action Controls (Main View) */}
           {!showInfo && (
-            <div className="absolute bottom-4 left-0 right-0 z-30 flex justify-center items-center gap-6 pointer-events-none">
+            <div className="absolute bottom-12 left-0 right-0 z-30 flex justify-center items-center gap-6 pointer-events-none">
               {/* Nope */}
               <button
                 onClick={() => handleSwipe('dislike')}
