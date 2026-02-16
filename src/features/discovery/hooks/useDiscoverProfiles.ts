@@ -216,9 +216,15 @@ export function useSwipeMutation() {
 
       return { match: null };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Invalidate the discover profiles query to refresh swiped profiles
       queryClient.invalidateQueries({ queryKey: ['discover-profiles', user?.id] });
+
+      // If a match was created, or even if not certain, invalidate conversations to show new matches
+      queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
+
+      // Also invalidate likes to keep the matches page in sync
+      queryClient.invalidateQueries({ queryKey: ['likes', user?.id] });
     },
   });
 }

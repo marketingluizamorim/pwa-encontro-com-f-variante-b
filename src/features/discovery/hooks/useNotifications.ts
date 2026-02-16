@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface NotificationState {
     discover: boolean;  // Novos perfis disponíveis
@@ -12,6 +13,7 @@ interface NotificationState {
 
 export function useNotifications() {
     const { user } = useAuth();
+    const queryClient = useQueryClient();
     const [notifications, setNotifications] = useState<NotificationState>({
         discover: false,
         explore: false,
@@ -180,9 +182,14 @@ export function useNotifications() {
                         .single();
 
                     if (matchData &&
-                        (matchData.user1_id === user.id || matchData.user2_id === user.id) &&
-                        payload.new.sender_id !== user.id) {
-                        setNotifications(prev => ({ ...prev, chat: true }));
+                        (matchData.user1_id === user.id || matchData.user2_id === user.id)) {
+
+                        if (payload.new.sender_id !== user.id) {
+                            setNotifications(prev => ({ ...prev, chat: true }));
+                        }
+
+                        // Invalida a query de conversas globalmente
+                        queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
                     }
                 }
             )
@@ -194,18 +201,54 @@ export function useNotifications() {
             .on(
                 'postgres_changes',
                 {
-                    event: 'INSERT',
+                    event: '*', // Listen to all changes to keep count accurate
                     schema: 'public',
                     table: 'swipes',
                     filter: `swiped_id=eq.${user.id}`,
                 },
+                () => {
+                    // Recalculate everything to stay perfectly in sync
+                    checkMatches();
+                    // Invalida a query de curtidas globalmente
+                    queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
+                }
+            )
+            .subscribe();
+
+        // Configurar realtime para novos perfis (afeta aba Descobrir)
+        const profilesChannel = supabase
+            .channel('new_profiles_notif')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'profiles',
+                },
                 (payload) => {
-                    if (payload.new.direction === 'like') {
-                        setNotifications(prev => ({
-                            ...prev,
-                            matches: true,
-                            likesCount: prev.likesCount + 1
-                        }));
+                    if (payload.new.user_id !== user.id) {
+                        setNotifications(prev => ({ ...prev, discover: true }));
+                    }
+                }
+            )
+            .subscribe();
+
+        // Configurar realtime para novos matches (afeta aba Chat)
+        const matchesChannel = supabase
+            .channel('new_matches_notif')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'matches',
+                },
+                (payload) => {
+                    if (payload.new.user1_id === user.id || payload.new.user2_id === user.id) {
+                        setNotifications(prev => ({ ...prev, chat: true }));
+                        // Invalida as queries de conversas e curtidas globalmente
+                        queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+                        queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
                     }
                 }
             )
@@ -214,6 +257,8 @@ export function useNotifications() {
         return () => {
             messagesChannel.unsubscribe();
             swipesChannel.unsubscribe();
+            profilesChannel.unsubscribe();
+            matchesChannel.unsubscribe();
         };
     }, [user]);
 

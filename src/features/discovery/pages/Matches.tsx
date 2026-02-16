@@ -356,6 +356,42 @@ export default function Matches() {
     }
   });
 
+  // Real-time: Listen for new likes to update the list automatically
+  useEffect(() => {
+    if (!user) return;
+
+    let channel: { unsubscribe: () => void } | null = null;
+    let supabaseClient: { removeChannel: (ch: unknown) => void } | null = null;
+
+    (async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      supabaseClient = supabase;
+
+      channel = supabase
+        .channel('realtime:new_likes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'swipes',
+            filter: `swiped_id=eq.${user.id}`,
+          },
+          () => {
+            // When a new swipe is directed to the user, refresh the likes list
+            queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
+          }
+        )
+        .subscribe();
+    })();
+
+    return () => {
+      if (supabaseClient && channel) {
+        supabaseClient.removeChannel(channel);
+      }
+    };
+  }, [user, queryClient]);
+
   const handleRefresh = async () => {
     await fetchLikes();
     toast.success('Lista atualizada');

@@ -188,6 +188,7 @@ export default function Chat() {
         }
     });
 
+
     const [viewedMatches, setViewedMatches] = useState<Set<string>>(() => {
         const saved = localStorage.getItem('viewed-matches');
         return new Set(saved ? JSON.parse(saved) : []);
@@ -313,6 +314,66 @@ export default function Chat() {
             setLikesPhoto(null);
         }
     }, [user]);
+
+    // Real-time: Listen for new messages, matches, and likes to update the UI automatically
+    useEffect(() => {
+        if (!user) return;
+
+        let channel: { unsubscribe: () => void } | null = null;
+        let supabaseClient: { removeChannel: (ch: unknown) => void } | null = null;
+
+        (async () => {
+            const { supabase } = await import('@/integrations/supabase/client');
+            supabaseClient = supabase;
+
+            channel = supabase
+                .channel('realtime:chat_and_likes')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'messages',
+                    },
+                    () => {
+                        queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+                        fetchLikesCount();
+                    }
+                )
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'matches',
+                    },
+                    () => {
+                        queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+                        fetchLikesCount();
+                    }
+                )
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'swipes',
+                        filter: `swiped_id=eq.${user.id}`,
+                    },
+                    () => {
+                        // When someone likes the user, update the likes count
+                        fetchLikesCount();
+                    }
+                )
+                .subscribe();
+        })();
+
+        return () => {
+            if (supabaseClient && channel) {
+                supabaseClient.removeChannel(channel);
+            }
+        };
+    }, [user, queryClient, fetchLikesCount]);
 
     useEffect(() => {
         fetchLikesCount();

@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useEffect } from 'react';
 
 export type SubscriptionTier = 'none' | 'free' | 'bronze' | 'silver' | 'gold';
 
@@ -34,7 +35,9 @@ const defaultSubscription: Subscription = {
 export function useSubscription() {
     const { user } = useAuth();
 
-    return useQuery({
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
         queryKey: ['subscription', user?.id],
         staleTime: 1000 * 60 * 5, // 5 minutes cache
         gcTime: 1000 * 60 * 30,
@@ -70,10 +73,6 @@ export function useSubscription() {
                 console.error('Error counting swipes:', swipesError);
             }
 
-            // Developer Override removed to allow manual testing via Profile
-            // const hasActiveDbPlan = data && data.is_active && data.plan_id !== 'none';
-            // if (!hasActiveDbPlan && user.email === 'marketing.luizamorim@gmail.com') { ... }
-
             if (!data) return { ...defaultSubscription, swipesToday: swipesToday || 0 };
 
             const tier = data.plan_id as SubscriptionTier;
@@ -83,16 +82,66 @@ export function useSubscription() {
                 tier,
                 isActive: data.is_active,
                 expiresAt: data.expires_at,
-                canSeeWhoLiked: tier === 'silver' || tier === 'gold' || data.can_see_who_liked,
-                canUseAdvancedFilters: tier === 'gold' || data.can_use_advanced_filters,
-                canVideoCall: tier === 'silver' || tier === 'gold' || data.can_video_call,
+                canSeeWhoLiked: tier === 'silver' || tier === 'gold',
+                canUseAdvancedFilters: tier === 'gold',
+                canVideoCall: tier === 'silver' || tier === 'gold',
                 canSendMedia: tier === 'silver' || tier === 'gold',
                 canDirectMessage: tier === 'gold',
-                isProfileBoosted: tier === 'gold' || data.is_profile_boosted,
+                isProfileBoosted: tier === 'gold',
                 dailySwipesLimit: (tier === 'bronze' || tier === 'none') ? 20 : 999999,
                 swipesToday: swipesToday || 0,
             };
         },
         enabled: !!user,
     });
+
+    // Real-time listener for subscription and swipe limit changes
+    useEffect(() => {
+        if (!user) return;
+
+        let channel: { unsubscribe: () => void } | null = null;
+        let supabaseClient: { removeChannel: (ch: unknown) => void } | null = null;
+
+        (async () => {
+            const { supabase } = await import('@/integrations/supabase/client');
+            supabaseClient = supabase;
+
+            channel = supabase
+                .channel(`subscription:${user.id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'user_subscriptions',
+                        filter: `user_id=eq.${user.id}`,
+                    },
+                    () => {
+                        queryClient.invalidateQueries({ queryKey: ['subscription', user.id] });
+                    }
+                )
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'swipes',
+                        filter: `swiper_id=eq.${user.id}`,
+                    },
+                    () => {
+                        // Refresh subscription to update swipesToday count
+                        queryClient.invalidateQueries({ queryKey: ['subscription', user.id] });
+                    }
+                )
+                .subscribe();
+        })();
+
+        return () => {
+            if (supabaseClient && channel) {
+                supabaseClient.removeChannel(channel);
+            }
+        };
+    }, [user, queryClient]);
+
+    return query;
 }

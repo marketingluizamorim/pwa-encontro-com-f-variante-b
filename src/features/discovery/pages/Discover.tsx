@@ -261,12 +261,9 @@ export default function Discover() {
 
       if (error) {
         console.error('Discover: Error fetching profile:', error);
-        // If error (e.g. no profile found), consider incomplete and show dialog
         setShowCompleteProfileDialog(true);
         return;
       }
-
-      console.log('Discover: Profile Data:', data);
 
       const profileData = (data as Record<string, unknown>) || {};
 
@@ -288,14 +285,46 @@ export default function Discover() {
       const filled = fields.filter(Boolean).length;
       const completion = fields.length > 0 ? Math.round((filled / fields.length) * 100) : 0;
 
-      console.log(`Discover: Final Completion: ${completion}%`);
-
       if (completion < 100) {
-        console.log('Discover: Triggering Dialog');
         setShowCompleteProfileDialog(true);
+      } else {
+        setShowCompleteProfileDialog(false);
       }
     };
+
     checkProfile();
+
+    // Real-time listener to hide dialog immediately if profile is completed elsewhere
+    let channel: any = null;
+    let supabaseClient: any = null;
+
+    const setupRealtime = async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      supabaseClient = supabase;
+      channel = supabase
+        .channel(`discover-profile-check-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            checkProfile();
+          }
+        )
+        .subscribe();
+    };
+
+    setupRealtime();
+
+    return () => {
+      if (supabaseClient && channel) {
+        supabaseClient.removeChannel(channel);
+      }
+    };
   }, [user]);
 
   const handleSwipe = async (swipeDirection: 'like' | 'dislike' | 'super_like') => {

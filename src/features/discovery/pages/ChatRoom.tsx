@@ -400,7 +400,6 @@ export default function ChatRoom() {
                 .eq('user_id', user.id)
                 .single()
                 .then(({ data: privacySettings }) => {
-                  // Only mark as read if user has read receipts enabled
                   if (privacySettings?.show_read_receipts !== false) {
                     supabase
                       .from('messages')
@@ -410,6 +409,9 @@ export default function ChatRoom() {
                   }
                 });
             }
+
+            // Real-time: Invalidate conversation list to update last message and sorting
+            queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
           }
         )
         .subscribe();

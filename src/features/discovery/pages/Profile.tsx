@@ -122,6 +122,45 @@ export default function Profile() {
     }
   });
 
+  // Real-time listener for profile changes (Ensures info appears in real-time without refresh)
+  useEffect(() => {
+    const targetUserId = userId || user?.id;
+    if (!targetUserId) return;
+
+    let channel: any = null;
+    let supabaseClient: any = null;
+
+    const setupRealtime = async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      supabaseClient = supabase;
+
+      channel = supabase
+        .channel(`profile-realtime-${targetUserId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'profiles',
+            filter: `user_id=eq.${targetUserId}`,
+          },
+          (payload: any) => {
+            console.log('Profile updated in real-time:', payload);
+            queryClient.invalidateQueries({ queryKey: ['profile', targetUserId] });
+          }
+        )
+        .subscribe();
+    };
+
+    setupRealtime();
+
+    return () => {
+      if (supabaseClient && channel) {
+        supabaseClient.removeChannel(channel);
+      }
+    };
+  }, [user?.id, userId, queryClient]);
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
