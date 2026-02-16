@@ -424,6 +424,42 @@ export default function ChatRoom() {
     };
   }, [matchId, user?.id]);
 
+  // Keyboard/Viewport Shift Fix
+  useEffect(() => {
+    const handleResetScroll = () => {
+      // Small delay to ensure browser finished its transition
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+      }, 100);
+    };
+
+    const inputElement = inputRef.current;
+    if (inputElement) {
+      inputElement.addEventListener('blur', handleResetScroll);
+    }
+
+    // iOS Visual Viewport fix
+    const handleViewportChange = () => {
+      if (window.visualViewport) {
+        if (window.visualViewport.offsetTop > 0) {
+          window.scrollTo(0, 0);
+        }
+      }
+    };
+
+    window.visualViewport?.addEventListener('resize', handleViewportChange);
+    window.visualViewport?.addEventListener('scroll', handleViewportChange);
+
+    return () => {
+      inputElement?.removeEventListener('blur', handleResetScroll);
+      window.visualViewport?.removeEventListener('resize', handleViewportChange);
+      window.visualViewport?.removeEventListener('scroll', handleViewportChange);
+      // Ensure reset on unmount
+      handleResetScroll();
+    };
+  }, []);
+
   const sendMediaMessage = async (content: string) => {
     if (!matchId || !user) return;
 
@@ -903,7 +939,11 @@ export default function ChatRoom() {
               ref={inputRef}
               value={newMessage}
               onChange={(e) => { setNewMessage(e.target.value); broadcastTyping(true); }}
-              onBlur={stopTyping}
+              onBlur={() => {
+                stopTyping();
+                // Safety reset for iOS devices
+                window.scrollTo(0, 0);
+              }}
               placeholder="Sua mensagem..."
               className="rounded-full bg-muted border-none"
             />

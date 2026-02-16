@@ -29,6 +29,10 @@ export function AppLayout() {
 
   // Limpar notificações quando usuário visita uma seção
   useEffect(() => {
+    // Reset scroll on any navigation within AppLayout
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+
     if (location.pathname.includes('/discover')) {
       clearNotification('discover');
     } else if (location.pathname.includes('/explore')) {
