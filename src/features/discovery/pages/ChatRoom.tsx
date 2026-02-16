@@ -494,14 +494,16 @@ export default function ChatRoom() {
     e.preventDefault();
     if (!newMessage.trim() || !matchId || !user) return;
 
-    stopTyping();
     const content = newMessage.trim();
     setNewMessage('');
+    stopTyping();
 
-    // Focar novamente no input imediatamente no próximo frame para manter o teclado aberto
-    // Em dispositivos móveis, o e.preventDefault() já ajuda, mas o foco explícito garante a fluidez
+    // Focar IMEDIATAMENTE antes de qualquer operação assíncrona para manter o teclado
+    inputRef.current?.focus();
+
+    // Manter o scroll no fundo ao enviar
     requestAnimationFrame(() => {
-      inputRef.current?.focus();
+      scrollToBottom('smooth');
     });
 
     sendMediaMessage(content);
@@ -913,11 +915,11 @@ export default function ChatRoom() {
       </div>
 
       <div
-        className="p-4 border-t bg-background shrink-0 transition-all duration-300"
+        className="p-4 border-t bg-background shrink-0"
         style={{
           paddingBottom: isKeyboardVisible
-            ? '1rem'
-            : 'calc(1rem + env(safe-area-inset-bottom))'
+            ? '0.5rem'
+            : 'calc(0.5rem + env(safe-area-inset-bottom))'
         }}
       >
         <AnimatePresence>
@@ -945,11 +947,12 @@ export default function ChatRoom() {
               onChange={(e) => { setNewMessage(e.target.value); broadcastTyping(true); }}
               onBlur={() => {
                 stopTyping();
-                // Safety reset for iOS devices
-                window.scrollTo(0, 0);
+                // Pequeno delay para evitar saltos no iOS ao trocar de campo
+                setTimeout(() => window.scrollTo(0, 0), 10);
               }}
               placeholder="Sua mensagem..."
-              className="rounded-full bg-muted border-none"
+              className="rounded-full bg-muted border-none h-11"
+              autoComplete="off"
             />
           )}
           <Button type="submit" size="icon" className="rounded-full shrink-0 gradient-button" disabled={!newMessage.trim() || sending || isRecording}>
