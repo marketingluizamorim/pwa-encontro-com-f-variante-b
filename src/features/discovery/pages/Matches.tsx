@@ -593,8 +593,9 @@ export default function Matches() {
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="fixed inset-0 z-[9999] bg-background flex flex-col overflow-hidden"
-              drag
+              drag="y"
               dragControls={dragControls}
+              dragListener={false}
               dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
               dragElastic={{ top: 0, bottom: 0.7, left: 0.1, right: 0.8 }}
               onDragEnd={(e, info) => {
