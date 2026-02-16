@@ -169,7 +169,6 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="theme">
       <TooltipProvider>
-        <Toaster />
         <Sonner position="top-center" />
         <AppContent />
       </TooltipProvider>
