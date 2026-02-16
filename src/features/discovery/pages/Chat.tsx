@@ -374,7 +374,10 @@ export default function Chat() {
                     {/* Seção de Novos Matches */}
                     <div className="px-4 mb-8">
                         <h2 className="font-bold text-lg mb-4">Novas conexões</h2>
-                        <div className="flex gap-4 overflow-x-auto pb-4 pt-4 -mx-4 px-4 scrollbar-hide">
+                        <div
+                            className="flex gap-4 overflow-x-auto pb-4 pt-4 -mx-4 px-4 scrollbar-hide snap-none overscroll-x-contain"
+                            style={{ WebkitOverflowScrolling: 'touch' }}
+                        >
                             {/* Cartão Gold - Teaser de Curtidas */}
                             <Link to="/app/matches" className="flex flex-col items-center gap-2 shrink-0 group relative">
                                 <div className="relative w-28 h-40 rounded-[2.2rem] border-2 border-[#d4af37]/50 bg-gray-900 flex items-center justify-center shadow-xl shadow-[#d4af37]/10">
