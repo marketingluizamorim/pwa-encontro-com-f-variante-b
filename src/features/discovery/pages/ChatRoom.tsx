@@ -424,20 +424,37 @@ export default function ChatRoom() {
     };
   }, [matchId, user?.id]);
 
+  // Ultra-stable Viewport tracking for Keyboard-Input adhesion
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   useEffect(() => {
-    if (!window.visualViewport) return;
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
     const handleViewport = () => {
-      const isKeyboard = window.innerHeight - (window.visualViewport?.height || 0) > 150;
+      // Threshold reduced to 100px for better sensitivity on small devices
+      const isKeyboard = window.innerHeight - viewport.height > 100;
       setIsKeyboardVisible(isKeyboard);
+
       if (isKeyboard) {
-        setTimeout(() => scrollToBottom('auto'), 50);
+        // Enforce instant scroll to bottom when keyboard opens
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
       }
     };
-    window.visualViewport.addEventListener('resize', handleViewport);
-    return () => window.visualViewport?.removeEventListener('resize', handleViewport);
-  }, [scrollToBottom]);
+
+    viewport.addEventListener('resize', handleViewport);
+    viewport.addEventListener('scroll', handleViewport);
+    return () => {
+      viewport.removeEventListener('resize', handleViewport);
+      viewport.removeEventListener('scroll', handleViewport);
+      // Garantir que o teclado feche ao sair da rota para não quebrar o layout da página anterior
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      // Reset scroll global para segurança
+      window.scrollTo(0, 0);
+    };
+  }, []);
 
   const sendMediaMessage = async (content: string) => {
     if (!matchId || !user) return;
@@ -480,12 +497,12 @@ export default function ChatRoom() {
     setNewMessage('');
     stopTyping();
 
-    // Focar IMEDIATAMENTE antes de qualquer operação assíncrona para manter o teclado
+    // Focar IMEDIATAMENTE para manter o teclado
     inputRef.current?.focus();
 
-    // Manter o scroll no fundo ao enviar
+    // Usar scroll INSTANTÂNEO ao enviar para não brigar com a ancoragem do teclado no iOS/Android
     requestAnimationFrame(() => {
-      scrollToBottom('smooth');
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
     });
 
     sendMediaMessage(content);
@@ -893,15 +910,15 @@ export default function ChatRoom() {
             })}
           </div>
         ))}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-4" />
       </div>
 
       <div
-        className="p-4 border-t bg-background shrink-0"
+        className="px-4 py-3 border-t bg-background shrink-0 z-50 transition-none"
         style={{
           paddingBottom: isKeyboardVisible
-            ? '0.5rem'
-            : 'calc(0.5rem + env(safe-area-inset-bottom))'
+            ? '12px'
+            : 'calc(12px + env(safe-area-inset-bottom))'
         }}
       >
         <AnimatePresence>
