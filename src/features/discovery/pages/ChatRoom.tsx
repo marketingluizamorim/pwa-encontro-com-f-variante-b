@@ -425,35 +425,27 @@ export default function ChatRoom() {
   }, [matchId, user?.id]);
 
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [vvState, setVvState] = useState({ height: window.innerHeight, offset: 0 });
 
   useEffect(() => {
-
-    const viewport = window.visualViewport;
-    if (!viewport) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
 
     const handleViewport = () => {
-      setVvState({ height: viewport.height, offset: viewport.offsetTop });
-      setIsKeyboardVisible(window.innerHeight - viewport.height > 60);
-
-      if (window.innerHeight - viewport.height > 60) {
-        // Instant scroll on keyboard reveal to prevent gap
+      const isKeyboard = window.innerHeight - vv.height > 100;
+      setIsKeyboardVisible(isKeyboard);
+      if (isKeyboard) {
         messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
       }
     };
 
-    viewport.addEventListener('resize', handleViewport);
-    viewport.addEventListener('scroll', handleViewport);
-
-    // Initial sync
+    vv.addEventListener('resize', handleViewport);
     handleViewport();
 
     return () => {
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
-      viewport.removeEventListener('resize', handleViewport);
-      viewport.removeEventListener('scroll', handleViewport);
+      vv.removeEventListener('resize', handleViewport);
     };
   }, []);
 
@@ -811,11 +803,8 @@ export default function ChatRoom() {
           navigate('/app/chat');
         }
       }}
-      className="fixed inset-0 flex flex-col bg-background overflow-hidden font-sans touch-none overscroll-none z-[10000]"
-      style={{
-        height: vvState.height,
-        transform: `translateY(${vvState.offset}px)`
-      }}
+      className="fixed inset-0 flex flex-col bg-background overflow-hidden font-sans z-[1000]"
+      style={{ height: '100%' }}
     >
       <div className="flex items-center gap-3 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 border-b shrink-0 bg-background/80 backdrop-blur">
         <Link to="/app/chat" className="text-muted-foreground"><i className="ri-arrow-left-line text-xl" /></Link>
