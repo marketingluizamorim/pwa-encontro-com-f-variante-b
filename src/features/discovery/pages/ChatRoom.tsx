@@ -424,26 +424,19 @@ export default function ChatRoom() {
     };
   }, [matchId, user?.id]);
 
-  // Keyboard/Viewport Shift Fix
+  // Keyboard/Viewport Tracking (WhatsApp/Instagram Style)
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
   useEffect(() => {
-    const handleResetScroll = () => {
-      // Small delay to ensure browser finished its transition
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-      }, 100);
-    };
-
-    const inputElement = inputRef.current;
-    if (inputElement) {
-      inputElement.addEventListener('blur', handleResetScroll);
-    }
-
-    // iOS Visual Viewport fix
     const handleViewportChange = () => {
       if (window.visualViewport) {
-        if (window.visualViewport.offsetTop > 0) {
-          window.scrollTo(0, 0);
+        const heightDiff = window.innerHeight - window.visualViewport.height;
+        // If the height difference is significant, it's likely the keyboard
+        setKeyboardHeight(heightDiff > 100 ? heightDiff : 0);
+
+        // Ensure scroll to bottom on keyboard open
+        if (heightDiff > 100) {
+          setTimeout(() => scrollToBottom('smooth'), 150);
         }
       }
     };
@@ -452,13 +445,10 @@ export default function ChatRoom() {
     window.visualViewport?.addEventListener('scroll', handleViewportChange);
 
     return () => {
-      inputElement?.removeEventListener('blur', handleResetScroll);
       window.visualViewport?.removeEventListener('resize', handleViewportChange);
       window.visualViewport?.removeEventListener('scroll', handleViewportChange);
-      // Ensure reset on unmount
-      handleResetScroll();
     };
-  }, []);
+  }, [scrollToBottom]);
 
   const sendMediaMessage = async (content: string) => {
     if (!matchId || !user) return;
@@ -871,7 +861,7 @@ export default function ChatRoom() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-        {Object.entries(groupedMessages).map(([date, msgs]) => (
+        {(Object.entries(groupedMessages) as [string, Message[]][]).map(([date, msgs]) => (
           <div key={date} className="space-y-4">
             <div className="flex justify-center"><span className="text-[10px] uppercase tracking-widest text-muted-foreground bg-muted px-3 py-1 rounded-full">{date}</span></div>
             {msgs.map((m, index) => {
@@ -915,7 +905,10 @@ export default function ChatRoom() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t bg-background shrink-0">
+      <div
+        className="p-4 border-t bg-background shrink-0 transition-all duration-300"
+        style={{ paddingBottom: keyboardHeight > 0 ? `${keyboardHeight + 16}px` : 'calc(1rem + env(safe-area-inset-bottom))' }}
+      >
         <AnimatePresence>
           {showSocialBadges && (
             <motion.div initial={false} animate={{ height: 'auto' }} transition={{ duration: 0 }} className="flex gap-2 overflow-x-auto pb-3">
@@ -996,7 +989,7 @@ export default function ChatRoom() {
               <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
 
                 {/* Hero Image Section */}
-                <div className="relative w-full h-[65vh] shrink-0 touch-none">
+                <div className="relative w-full h-[75vh] shrink-0 touch-none">
                   {/* Photo Stories Progress Bar */}
                   {matchProfile.photos && matchProfile.photos.length > 1 && (
                     <div className="absolute top-[calc(1rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">

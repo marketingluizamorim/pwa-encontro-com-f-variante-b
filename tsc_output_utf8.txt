@@ -1,0 +1,34 @@
+﻿src/features/discovery/pages/ChatRoom.tsx(7,24): error TS2307: Cannot find module '@/components/ui/button' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(8,23): error TS2307: Cannot find module '@/components/ui/input' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(9,25): error TS2307: Cannot find module '@/features/auth/hooks/useAuth' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(10,20): error TS2307: Cannot find module '@/lib/utils' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(11,33): error TS2307: Cannot find module '@/features/discovery/components/PageTransition' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(12,33): error TS2307: Cannot find module '@/features/discovery/components/TypingIndicator' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(13,36): error TS2307: Cannot find module '@/hooks/useTypingIndicator' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(14,31): error TS2307: Cannot find module '@/features/discovery/components/MessageStatus' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(15,34): error TS2307: Cannot find module '@/lib/notifications' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(16,69): error TS2307: Cannot find module '@/features/discovery/components/UserActions' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(23,8): error TS2307: Cannot find module '@/components/ui/dropdown-menu' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(25,33): error TS2307: Cannot find module '@/hooks/useSubscription' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(26,35): error TS2307: Cannot find module '@/features/discovery/components/FeatureGateDialog' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(27,33): error TS2307: Cannot find module '@/features/discovery/components/CheckoutManager' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(34,8): error TS2307: Cannot find module '@/components/ui/dialog' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(88,34): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+src/features/discovery/pages/ChatRoom.tsx(88,41): error TS2307: Cannot find module '@/integrations/supabase/client' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(153,34): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+src/features/discovery/pages/ChatRoom.tsx(153,41): error TS2307: Cannot find module '@/integrations/supabase/client' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(169,34): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+src/features/discovery/pages/ChatRoom.tsx(169,41): error TS2307: Cannot find module '@/integrations/supabase/client' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(347,34): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+src/features/discovery/pages/ChatRoom.tsx(347,41): error TS2307: Cannot find module '@/integrations/supabase/client' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(373,34): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+src/features/discovery/pages/ChatRoom.tsx(373,41): error TS2307: Cannot find module '@/integrations/supabase/client' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(467,32): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+src/features/discovery/pages/ChatRoom.tsx(467,39): error TS2307: Cannot find module '@/integrations/supabase/client' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(535,34): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+src/features/discovery/pages/ChatRoom.tsx(535,41): error TS2307: Cannot find module '@/integrations/supabase/client' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(657,34): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+src/features/discovery/pages/ChatRoom.tsx(657,41): error TS2307: Cannot find module '@/integrations/supabase/client' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(716,34): error TS1323: Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', 'node18', 'node20', or 'nodenext'.
+src/features/discovery/pages/ChatRoom.tsx(716,41): error TS2307: Cannot find module '@/integrations/supabase/client' or its corresponding type declarations.
+src/features/discovery/pages/ChatRoom.tsx(867,19): error TS2339: Property 'map' does not exist on type 'unknown'.

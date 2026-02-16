@@ -625,10 +625,10 @@ export default function Discover() {
                 <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
 
                 {/* Text Info */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 pb-8 text-white pointer-events-none z-30">
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
                   {/* Name and Age Group */}
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-md">
+                  <div className="flex items-baseline gap-2 mb-3">
+                    <h1 className="font-display text-4xl font-bold tracking-tight drop-shadow-md">
                       {currentProfile.display_name}
                     </h1>
                     {currentProfile.birth_date && (
@@ -636,8 +636,8 @@ export default function Discover() {
                     )}
                   </div>
 
-                  {/* Occupation & Location - Compact Group */}
-                  <div className="flex items-center gap-3 mb-4 text-[13px] font-medium text-white/70 drop-shadow-sm uppercase tracking-wide">
+                  {/* Occupation & Location - Group */}
+                  <div className="flex items-center gap-3 mb-6 text-sm font-medium text-white/80 drop-shadow-sm uppercase tracking-wide">
                     {currentProfile.occupation && (
                       <div className="flex items-center gap-1">
                         <i className="ri-briefcase-line" />
@@ -776,8 +776,8 @@ export default function Discover() {
                 </button>
 
                 {/* Hero Image Section */}
-                <div
-                  className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
+                <motion.div
+                  className="relative w-full h-[75vh] touch-none cursor-grab active:cursor-grabbing"
                   onPointerDown={(e) => dragControls.start(e)}
                 >
                   {/* Photo Stories Progress Bar - Expanded View */}
@@ -805,7 +805,7 @@ export default function Discover() {
                     alt={currentProfile.display_name}
                   />
                   <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
-                </div>
+                </motion.div>
 
                 {/* Profile Info Content */}
                 <div className="px-5 -mt-20 relative z-10 space-y-6">
@@ -958,30 +958,16 @@ export default function Discover() {
                 </div>
               </div>
 
-              {/* Floating Action Controls (Expanded View) - Matching Bottom Nav Style */}
+              {/* Floating Action Controls (Expanded View) */}
               <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[env(safe-area-inset-bottom)] pointer-events-none">
                 <div className="pointer-events-auto bg-[#1e293b]/95 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-center gap-8 ring-1 ring-white/10">
-                  {/* Nope */}
-                  <button
-                    onClick={() => handleSwipe('dislike')}
-                    className="w-14 h-14 rounded-full bg-card/40 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
-                  >
+                  <button onClick={() => handleSwipe('dislike')} className="w-14 h-14 rounded-full bg-card/40 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
                     <i className="ri-close-line text-3xl font-semibold" />
                   </button>
-
-                  {/* Super Like */}
-                  <button
-                    onClick={() => handleSwipe('super_like')}
-                    className="w-11 h-11 rounded-full bg-card/40 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
-                  >
+                  <button onClick={() => handleSwipe('super_like')} className="w-11 h-11 rounded-full bg-card/40 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
                     <i className="ri-star-fill text-xl" />
                   </button>
-
-                  {/* Like */}
-                  <button
-                    onClick={() => handleSwipe('like')}
-                    className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all"
-                  >
+                  <button onClick={() => handleSwipe('like')} className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all">
                     <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center border border-white/20 shadow-inner group-hover:from-[#fcd34d] group-hover:to-[#d4af37] transition-colors">
                       <i className="ri-heart-fill text-3xl text-white drop-shadow-md" />
                     </div>
@@ -994,8 +980,6 @@ export default function Discover() {
         document.body
       )}
 
-      {/* Overlays */}
-      {/* Match Celebration */}
       <MatchCelebration
         show={showMatchCelebration}
         matchName={matchData?.name}
@@ -1021,21 +1005,8 @@ export default function Discover() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex flex-col gap-3 mt-6">
-            <AlertDialogAction
-              onClick={() => navigate('/app/profile/edit')}
-              className="w-full h-11 rounded-xl gradient-button text-white font-semibold shadow-lg"
-            >
-              Completar Agora
-            </AlertDialogAction>
-            <AlertDialogCancel
-              onClick={() => {
-                localStorage.setItem(`profile-completion-dismissed-${user?.id}`, 'true');
-                setShowCompleteProfileDialog(false);
-              }}
-              className="w-full h-11 rounded-xl border-none bg-transparent hover:bg-white/5 text-muted-foreground"
-            >
-              Depois
-            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate('/app/profile/edit')} className="w-full h-11 rounded-xl gradient-button text-white font-semibold shadow-lg">Completar Agora</AlertDialogAction>
+            <AlertDialogCancel onClick={() => { localStorage.setItem(`profile-completion-dismissed-${user?.id}`, 'true'); setShowCompleteProfileDialog(false); }} className="w-full h-11 rounded-xl border-none bg-transparent hover:bg-white/5 text-muted-foreground">Depois</AlertDialogCancel>
           </div>
         </AlertDialogContent>
       </AlertDialog>
@@ -1068,11 +1039,7 @@ export default function Discover() {
         icon={upgradeData.icon}
         price={upgradeData.price}
         onUpgrade={(planData) => {
-          setSelectedCheckoutPlan({
-            id: planData.id,
-            name: planData.name,
-            price: planData.price
-          });
+          setSelectedCheckoutPlan({ id: planData.id, name: planData.name, price: planData.price });
           setShowUpgradeDialog(false);
           setShowCheckoutManager(true);
         }}
@@ -1104,14 +1071,7 @@ export default function Discover() {
           setUpgradeData({
             title: "Plano Prata",
             description: "Não pare sua busca! Assine o Plano Prata para ter curtidas ilimitadas e falar com quem você gosta!",
-            features: [
-              "Ver quem curtiu você",
-              "Curtidas ilimitadas",
-              "Enviar ou receber fotos e áudios",
-              "Filtro por cidade / região",
-              "Fazer chamadas de vídeo",
-              "Comunidade cristã no WhatsApp"
-            ],
+            features: ["Ver quem curtiu você", "Curtidas ilimitadas", "Enviar ou receber fotos e áudios", "Filtro por cidade / região", "Fazer chamadas de vídeo", "Comunidade cristã no WhatsApp"],
             planNeeded: 'silver',
             icon: <i className="ri-heart-line text-4xl" />,
             price: 29.90,
@@ -1120,9 +1080,6 @@ export default function Discover() {
           setShowUpgradeDialog(true);
         }}
       />
-
-
-
     </PageTransition>
   );
 }
