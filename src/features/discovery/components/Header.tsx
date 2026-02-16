@@ -9,7 +9,7 @@ interface HeaderProps {
 
 export function Header({ action, className, isDiscover }: HeaderProps) {
     return (
-        <header className={cn("relative z-50 px-6 py-4 flex justify-between items-center shrink-0 w-full", className)}>
+        <header className={cn("relative z-50 px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 flex justify-between items-center shrink-0 w-full", className)}>
             <div className="flex items-center gap-3">
                 {/* Logo Brand from Landing Page - Translucent Watermark Effect */}
                 <div className="flex items-center gap-3 opacity-40 grayscale-[0.2] hover:opacity-100 hover:grayscale-0 transition-all duration-500 cursor-default">
