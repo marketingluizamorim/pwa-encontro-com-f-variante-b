@@ -877,7 +877,7 @@ export default function ChatRoom() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 pb-[calc(2rem+env(safe-area-inset-bottom))] border-t bg-background shrink-0">
+      <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t bg-background shrink-0">
         <AnimatePresence>
           {showSocialBadges && (
             <motion.div initial={false} animate={{ height: 'auto' }} transition={{ duration: 0 }} className="flex gap-2 overflow-x-auto pb-3">

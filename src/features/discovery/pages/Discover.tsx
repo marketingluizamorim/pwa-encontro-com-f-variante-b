@@ -725,7 +725,8 @@ export default function Discover() {
 
                 {/* Hero Image Section */}
                 <div
-                  className="relative w-full h-[65vh] touch-none"
+                  className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
+                  onPointerDown={(e) => dragControls.start(e)}
                 >
                   {/* Photo Stories Progress Bar - Expanded View */}
                   {currentProfile.photos && currentProfile.photos.length > 1 && (
@@ -745,12 +746,6 @@ export default function Discover() {
                     <div className="w-1/2 h-full cursor-pointer" onClick={handlePrevPhoto} />
                     <div className="w-1/2 h-full cursor-pointer" onClick={handleNextPhoto} />
                   </div>
-
-                  {/* Hero Drag Handle Area */}
-                  <div
-                    className="absolute inset-x-0 top-0 bottom-0 z-20 cursor-grab active:cursor-grabbing"
-                    onPointerDown={(e) => dragControls.start(e)}
-                  />
 
                   <img
                     src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
