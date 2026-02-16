@@ -1032,6 +1032,32 @@ export default function Explore() {
         }
     };
 
+    // --- NATIVE-LIKE NAVIGATION LOGIC ---
+    useEffect(() => {
+        const handlePopState = () => {
+            if (view !== 'categories') {
+                goBack();
+            }
+        };
+
+        if (view !== 'categories') {
+            // Only push if we are moving forward to a sub-view
+            window.history.pushState({ exploreView: view }, "");
+            window.addEventListener('popstate', handlePopState);
+        }
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [view]);
+
+    // This handles manual gestures and buttons
+    const handleManualBack = () => {
+        if (view !== 'categories') {
+            window.history.back();
+        }
+    };
+
     return (
         <PageTransition
             ref={containerRef}
@@ -1135,7 +1161,7 @@ export default function Explore() {
                         dragElastic={{ left: 0.1, right: 0.8 }}
                         onDragEnd={(_, info) => {
                             if (info.offset.x > 100 || info.velocity.x > 500) {
-                                goBack();
+                                handleManualBack();
                             }
                         }}
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
@@ -1148,7 +1174,7 @@ export default function Explore() {
 
                         {/* Detail Nav */}
                         <div className="px-6 py-6 flex items-center justify-between z-50">
-                            <button onClick={goBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-white active:scale-75 transition-transform backdrop-blur-3xl">
+                            <button onClick={handleManualBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-white active:scale-75 transition-transform backdrop-blur-3xl">
                                 <ArrowLeft className="w-5 h-5" />
                             </button>
                             <div className="bg-white/5 backdrop-blur-2xl border border-white/10 px-4 py-2 rounded-full flex items-center gap-2">
@@ -1251,7 +1277,7 @@ export default function Explore() {
                     >
                         {/* Unconventional Nav Header */}
                         <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
-                            <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
+                            <button onClick={handleManualBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
                                 <ArrowLeft className="w-5 h-5 text-white" />
                             </button>
                             <h2 className="text-xl font-serif font-semibold text-white italic tracking-tight">Conselhos com Fé</h2>
@@ -1341,7 +1367,7 @@ export default function Explore() {
                         {/* Detail Nav */}
                         <div className="px-6 py-6 flex items-center justify-between relative z-50">
                             <button
-                                onClick={goBack}
+                                onClick={handleManualBack}
                                 className="w-12 h-12 rounded-full glass border border-white/20 flex items-center justify-center text-white active:scale-75 transition-transform backdrop-blur-3xl"
                             >
                                 <ArrowLeft className="w-5 h-5 shadow-2xl" />
@@ -1532,7 +1558,7 @@ export default function Explore() {
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 touch-pan-y overscroll-contain"
                     >
                         <div className="px-6 py-6 flex items-center justify-between relative z-50 bg-transparent">
-                            <button onClick={goBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
+                            <button onClick={handleManualBack} className="w-12 h-12 rounded-full glass flex items-center justify-center text-white">
                                 <ArrowLeft className="w-5 h-5" />
                             </button>
                             <span className="text-[10px] font-bold uppercase text-accent tracking-widest">{selectedStudy.title}</span>
@@ -1641,7 +1667,7 @@ export default function Explore() {
                         className="flex flex-col h-full overflow-y-auto scrollbar-hide pt-4 pb-64 touch-pan-y overscroll-contain"
                     >
                         <div className="px-6 pb-6 flex items-center justify-between relative bg-transparent z-50 py-4">
-                            <button onClick={goBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
+                            <button onClick={handleManualBack} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
                                 <ArrowLeft className="w-5 h-5 text-white" />
                             </button>
                             <h2 className="text-xl font-serif font-semibold text-white italic tracking-tight">Comunidade</h2>

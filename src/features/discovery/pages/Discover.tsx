@@ -111,6 +111,32 @@ export default function Discover() {
     setCurrentPhotoIndex(0);
   }, [currentIndex]);
 
+  // --- NATIVE-LIKE NAVIGATION LOGIC ---
+  useEffect(() => {
+    const handlePopState = () => {
+      if (showInfo) {
+        setShowInfo(false);
+      }
+    };
+
+    if (showInfo) {
+      window.history.pushState({ profileOpen: true }, "");
+      window.addEventListener('popstate', handlePopState);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [showInfo]);
+
+  const handleManualBack = () => {
+    if (showInfo) {
+      window.history.back();
+    } else {
+      setShowInfo(false);
+    }
+  };
+
   const handleNextPhoto = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (currentProfile && currentProfile.photos && currentPhotoIndex < currentProfile.photos.length - 1) {
@@ -675,14 +701,13 @@ export default function Discover() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              drag="y"
-              dragListener={false}
+              drag
               dragControls={dragControls}
-              dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={{ top: 0, bottom: 0.7 }}
+              dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
+              dragElastic={{ top: 0, bottom: 0.7, left: 0.1, right: 0.8 }}
               onDragEnd={(e, info) => {
-                if (info.offset.y > 100 || info.velocity.y > 500) {
-                  setShowInfo(false);
+                if (info.offset.y > 100 || info.velocity.y > 500 || info.offset.x > 100 || info.velocity.x > 500) {
+                  handleManualBack();
                 }
               }}
               className="fixed inset-0 z-[9999] bg-background flex flex-col overflow-hidden"
@@ -692,7 +717,7 @@ export default function Discover() {
 
                 {/* Close Button - Top Right - Size matched to Expand Button */}
                 <button
-                  onClick={() => setShowInfo(false)}
+                  onClick={handleManualBack}
                   className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/60 backdrop-blur-xl text-white flex items-center justify-center border border-white/20 shadow-2xl hover:bg-black/80 active:scale-90 transition-all"
                 >
                   <i className="ri-arrow-down-s-line text-2xl" />

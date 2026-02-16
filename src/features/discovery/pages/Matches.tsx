@@ -111,8 +111,8 @@ const SwipeableMatchCard = ({
       onDragEnd={handleDragEnd}
       style={{ x, y, rotate, zIndex: isDragging ? 50 : 1 }}
       className={cn(
-        "relative aspect-[3/4] rounded-2xl overflow-hidden bg-muted group cursor-grab active:cursor-grabbing touch-none select-none",
-        like.is_super_like && "ring-2 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+        "relative aspect-[3/4.2] rounded-[2rem] overflow-hidden bg-muted group cursor-grab active:cursor-grabbing touch-none select-none shadow-xl border border-white/5",
+        like.is_super_like && "ring-2 ring-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.4)]"
       )}
       onClick={() => {
         if (!isDragging) onExpand();
@@ -141,55 +141,48 @@ const SwipeableMatchCard = ({
         </div>
       )}
 
-      {/* Overlay Gradient */}
-      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+      {/* Identidade Visual Discover: Gradiente e Texto Interno */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent pointer-events-none" />
 
       {/* Content */}
-      <div className="absolute bottom-3 left-3 right-3 text-white pointer-events-none z-10">
+      <div className="absolute bottom-4 left-4 right-4 text-white pointer-events-none z-10">
         {locked ? (
-          <div className="flex flex-col items-start justify-end h-full">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="h-6 w-24 bg-white/50 backdrop-blur-sm rounded-md" />
-              <span className="text-xl font-bold text-white drop-shadow-md">
+          <div className="flex flex-col items-start justify-end h-full gap-1">
+            <div className="h-5 w-20 bg-white/20 backdrop-blur-md rounded-full border border-white/10" />
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-display font-bold text-white tracking-tight">
                 {calculateAge(like.profile.birth_date)}
               </span>
-            </div>
-            {like.is_super_like && (
-              <div className="bg-blue-500/20 backdrop-blur-md border border-blue-500/30 rounded-lg p-2 mb-2 w-full">
-                <p className="text-xs text-blue-100 font-medium flex items-center gap-1">
-                  <i className="ri-star-fill" /> Super Like recebido!
-                </p>
+              <div className="flex items-center gap-1 opacity-70">
+                <i className="ri-map-pin-line text-[10px]" />
+                <span className="text-[10px] font-medium uppercase tracking-wider">Ver Perfil</span>
               </div>
-            )}
-            <div className="flex items-center gap-1 opacity-80">
-              <i className="ri-map-pin-line text-sm" />
-              <span className="text-xs font-medium">Perto de você</span>
             </div>
           </div>
         ) : (
-          <>
-            {/* Super Like Message */}
+          <div className="space-y-1">
             {like.is_super_like && like.message && (
-              <div className="mb-3 bg-blue-600/90 backdrop-blur-md p-2.5 rounded-tl-xl rounded-tr-xl rounded-br-xl rounded-bl-none border border-white/10 shadow-lg">
-                <p className="text-xs text-white leading-relaxed line-clamp-3 italic">
+              <div className="mb-2 bg-blue-500/80 backdrop-blur-md p-2 rounded-2xl rounded-bl-none border border-white/10 shadow-lg max-w-[90%]">
+                <p className="text-[10px] text-white leading-tight line-clamp-2 italic">
                   "{like.message}"
                 </p>
               </div>
             )}
 
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="font-bold text-lg leading-tight">
-                {like.profile.display_name}, {calculateAge(like.profile.birth_date)}
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-display font-bold text-xl tracking-tight leading-none">
+                {like.profile.display_name}
+              </span>
+              <span className="text-lg font-light text-white/80">
+                {calculateAge(like.profile.birth_date)}
               </span>
             </div>
 
-            <div className="flex items-start gap-1.5 opacity-90">
-              <Search className="w-3.5 h-3.5 mt-0.5 text-accent" strokeWidth={2.5} />
-              <p className="text-xs font-medium leading-snug text-white/90">
-                {like.profile.looking_for || (like.profile.bio ? like.profile.bio : "Conhecer pessoas")}
-              </p>
-            </div>
-          </>
+            <p className="text-[10px] font-medium text-white/70 line-clamp-1 flex items-center gap-1 capitalize">
+              <i className="ri-map-pin-2-fill text-[#d4af37]" />
+              {like.profile.city || 'Cristão'}
+            </p>
+          </div>
         )}
       </div>
 
@@ -246,6 +239,34 @@ export default function Matches() {
   const [showCheckoutManager, setShowCheckoutManager] = useState(false);
   const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+
+  // --- NATIVE-LIKE NAVIGATION LOGIC ---
+  useEffect(() => {
+    const handlePopState = () => {
+      if (selectedLike) {
+        setSelectedLike(null);
+        setCurrentPhotoIndex(0);
+      }
+    };
+
+    if (selectedLike) {
+      window.history.pushState({ profileOpen: true }, "");
+      window.addEventListener('popstate', handlePopState);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [selectedLike]);
+
+  const handleManualBack = () => {
+    if (selectedLike) {
+      window.history.back();
+    } else {
+      setSelectedLike(null);
+      setCurrentPhotoIndex(0);
+    }
+  };
 
   const { data: likes = [], isLoading: loading, refetch: fetchLikes } = useQuery({
     queryKey: ['likes', user?.id],
@@ -578,8 +599,7 @@ export default function Matches() {
               dragElastic={{ top: 0, bottom: 0.7, left: 0.1, right: 0.8 }}
               onDragEnd={(e, info) => {
                 if (info.offset.y > 100 || info.velocity.y > 500 || info.offset.x > 100 || info.velocity.x > 500) {
-                  setSelectedLike(null);
-                  setCurrentPhotoIndex(0);
+                  handleManualBack();
                 }
               }}
             >
@@ -588,10 +608,7 @@ export default function Matches() {
 
                 {/* Close Button */}
                 <button
-                  onClick={() => {
-                    setSelectedLike(null);
-                    setCurrentPhotoIndex(0);
-                  }}
+                  onClick={handleManualBack}
                   className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
                 >
                   <i className="ri-arrow-down-s-line text-2xl" />

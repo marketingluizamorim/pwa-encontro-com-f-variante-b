@@ -238,6 +238,57 @@ export default function ChatRoom() {
   const [socialModal, setSocialModal] = useState<{ isOpen: boolean; platform: keyof SocialMediaLinks | null }>({ isOpen: false, platform: null });
   const [socialInputValue, setSocialInputValue] = useState('');
 
+  // Photo Navigation State
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+  const handleNextPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (matchProfile && matchProfile.photos && currentPhotoIndex < matchProfile.photos.length - 1) {
+      setCurrentPhotoIndex(prev => prev + 1);
+    }
+  };
+
+  const handlePrevPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (currentPhotoIndex > 0) {
+      setCurrentPhotoIndex(prev => prev - 1);
+    }
+  };
+
+  const calculateAge = (birthDate: string): number => {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const formatLastActive = (lastActiveAt?: string, showOnline?: boolean, showLastActive?: boolean) => {
+    if (showOnline === false) return null;
+    if (!lastActiveAt) return null;
+
+    const lastActive = new Date(lastActiveAt);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - lastActive.getTime()) / (1000 * 60));
+
+    if (diffInMinutes < 5) return 'Online agora';
+    if (showLastActive === false) return 'Visto recentemente';
+    if (diffInMinutes < 60) return `Visto há ${diffInMinutes} min`;
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `Visto há ${diffInHours} h`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays === 1) return 'Visto ontem';
+    if (diffInDays < 7) return `Visto há ${diffInDays} dias`;
+
+    return `Visto em ${lastActive.toLocaleDateString('pt-BR')}`;
+  };
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -250,6 +301,30 @@ export default function ChatRoom() {
     userId: user?.id || '',
     otherUserId: otherUserId || '',
   });
+
+  // Handle History for Profile Overlay
+  useEffect(() => {
+    const handlePopState = () => {
+      if (showProfileInfo) setShowProfileInfo(false);
+    };
+
+    if (showProfileInfo) {
+      window.history.pushState({ profileOpen: true }, "");
+      window.addEventListener('popstate', handlePopState);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [showProfileInfo]);
+
+  const closeProfile = () => {
+    if (showProfileInfo) {
+      window.history.back();
+    } else {
+      setShowProfileInfo(false);
+    }
+  };
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     if (messagesEndRef.current) {
@@ -702,10 +777,16 @@ export default function ChatRoom() {
     >
       <div className="flex items-center gap-3 px-4 py-3 border-b shrink-0 h-16 bg-background/80 backdrop-blur">
         <Link to="/app/chat" className="text-muted-foreground"><i className="ri-arrow-left-line text-xl" /></Link>
-        <div className="w-10 h-10 rounded-full overflow-hidden" onClick={() => setShowProfileInfo(true)}>
+        <div
+          className="w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => setShowProfileInfo(true)}
+        >
           <img src={matchProfile.photos?.[0] || matchProfile.avatar_url || '/placeholder.svg'} className="w-full h-full object-cover" />
         </div>
-        <div className="flex-1 min-w-0" onClick={() => setShowProfileInfo(true)}>
+        <div
+          className="flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => setShowProfileInfo(true)}
+        >
           <p className="font-semibold truncate">{matchProfile.display_name}</p>
           <p className="text-[10px] text-muted-foreground uppercase">Online</p>
         </div>
@@ -844,28 +925,195 @@ export default function ChatRoom() {
         <DeleteConversationDialog open={showDelete} onOpenChange={setShowDelete} matchId={matchId} onDeleted={() => navigate('/app/chat')} />
       )}
 
-      {/* Overlay de Informações do Perfil */}
-      {showProfileInfo && matchProfile && createPortal(
-        <div className="fixed inset-0 z-[100] bg-background overflow-y-auto">
-          <div className="relative h-96 w-full">
-            <img src={matchProfile.photos?.[0] || matchProfile.avatar_url || '/placeholder.svg'} className="h-full w-full object-cover" />
-            <Button onClick={() => setShowProfileInfo(false)} variant="secondary" size="icon" className="absolute top-4 right-4 rounded-full"><i className="ri-close-line" /></Button>
-          </div>
-          <div className="p-6 space-y-4">
-            <h1 className="text-2xl font-bold">{matchProfile.display_name}</h1>
-            <p className="text-muted-foreground">{matchProfile.bio}</p>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="p-3 bg-muted rounded-xl">
-                <p className="text-[10px] text-muted-foreground uppercase">Localização</p>
-                <p className="font-bold">{matchProfile.city || 'Não informado'}</p>
+      {/* Overlay de Informações do Perfil - PORTAL FIX - DESIGN SINCRONIZADO COM DESCOBRIR */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {showProfileInfo && matchProfile && (
+            <motion.div
+              key="chatroom-profile-overlay"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
+              dragElastic={{ top: 0, bottom: 0.7, left: 0.1, right: 0.8 }}
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 100 || info.velocity.y > 500 || info.offset.x > 100 || info.velocity.x > 500) {
+                  closeProfile();
+                }
+              }}
+              className="fixed inset-0 z-[100] bg-background overflow-hidden flex flex-col"
+            >
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
+
+                {/* Hero Image Section */}
+                <div className="relative w-full h-[65vh] shrink-0 touch-none">
+                  {/* Photo Stories Progress Bar */}
+                  {matchProfile.photos && matchProfile.photos.length > 1 && (
+                    <div className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
+                      {matchProfile.photos.map((_, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex-1 rounded-full h-full shadow-sm transition-all duration-300 ${idx === currentPhotoIndex ? 'bg-white scale-y-110 shadow-lg' : 'bg-white/30'
+                            }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Navigation Zones (Left/Right) */}
+                  <div className="absolute inset-0 z-30 flex">
+                    <div className="w-1/2 h-full cursor-pointer" onClick={handlePrevPhoto} />
+                    <div className="w-1/2 h-full cursor-pointer" onClick={handleNextPhoto} />
+                  </div>
+
+                  {/* Hero Drag Handle Area */}
+                  <div
+                    className="absolute inset-x-0 top-0 bottom-0 z-20 cursor-grab active:cursor-grabbing"
+                    onPointerDown={(e) => dragControls.start(e)}
+                  />
+
+                  <img
+                    src={matchProfile.photos?.[currentPhotoIndex] || matchProfile.avatar_url || '/placeholder.svg'}
+                    className="h-full w-full object-cover pointer-events-none"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+
+                  {/* Close Button - Top Right */}
+                  <Button
+                    onClick={closeProfile}
+                    variant="secondary"
+                    size="icon"
+                    className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-[110] rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20 hover:bg-black/60 shadow-2xl active:scale-90 transition-all"
+                  >
+                    <i className="ri-arrow-down-s-line text-2xl" />
+                  </Button>
+                </div>
+
+                {/* Profile Info Content - Overlaps Hero Image */}
+                <div className="px-5 -mt-20 relative z-10 space-y-6">
+
+                  {/* Header: Name & Age */}
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <h1 className="text-4xl font-display font-semibold text-foreground">
+                        {matchProfile.display_name}
+                      </h1>
+                      <span className="text-3xl font-light text-muted-foreground">
+                        {matchProfile.birth_date ? calculateAge(matchProfile.birth_date) : ''}
+                      </span>
+                    </div>
+
+                    {/* Metadata Badges */}
+                    <div className="flex flex-col gap-2.5 mt-4">
+                      {/* Status */}
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full",
+                          formatLastActive(matchProfile.last_active_at, matchProfile.show_online_status, matchProfile.show_last_active) === 'Online agora'
+                            ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+                            : "bg-muted-foreground/30"
+                        )} />
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {formatLastActive(matchProfile.last_active_at, matchProfile.show_online_status, matchProfile.show_last_active) || 'Offline'}
+                        </span>
+                      </div>
+
+                      {/* Job & Location */}
+                      <div className="flex items-center gap-4 text-sm text-foreground/70">
+                        {matchProfile.occupation && (
+                          <div className="flex items-center gap-1.5 leading-none">
+                            <i className="ri-briefcase-line text-lg" />
+                            <span>{matchProfile.occupation}</span>
+                          </div>
+                        )}
+                        {(matchProfile.city) && (matchProfile.show_distance !== false) && (
+                          <div className="flex items-center gap-1.5 leading-none">
+                            <i className="ri-map-pin-line text-lg" />
+                            <span>{matchProfile.city}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Looking For */}
+                  <div className="bg-card/50 border border-border/50 rounded-2xl p-4 backdrop-blur-sm">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-widest font-bold">Tô procurando</h3>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/20">
+                        <i className="ri-heart-2-fill text-xl" />
+                      </div>
+                      <span className="text-lg font-medium">{matchProfile.looking_for || 'Um encontro abençoado'}</span>
+                    </div>
+                  </div>
+
+                  {/* Section: About Me */}
+                  {matchProfile.bio && (
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold">Sobre mim</h3>
+                      <p className="text-muted-foreground leading-relaxed text-base">
+                        {matchProfile.bio}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Section: Basic Info */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold">Informações básicas</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
+                        <i className="ri-book-open-line text-foreground/50 text-xl" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Religião</p>
+                          <p className="font-medium">{matchProfile.religion || 'Cristão'}</p>
+                        </div>
+                      </div>
+                      {matchProfile.church_frequency && (
+                        <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
+                          <i className="ri-building-line text-foreground/50 text-xl" />
+                          <div>
+                            <p className="text-xs text-muted-foreground">Freq. Igreja</p>
+                            <p className="font-medium">{matchProfile.church_frequency}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section: Interests */}
+                  {matchProfile.interests && matchProfile.interests.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold">Interesses</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {matchProfile.interests.map((tag, i) => (
+                          <span key={i} className="px-4 py-2 rounded-full border border-primary/30 text-primary bg-primary/5 text-sm font-medium">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {(matchProfile.christian_interests && matchProfile.christian_interests.length > 0) && (
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold">Interesses Cristãos</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {matchProfile.christian_interests.map((tag) => (
+                          <span key={tag} className="px-4 py-2 rounded-full border border-blue-500/30 text-blue-500 bg-blue-500/5 text-sm font-medium">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="p-3 bg-muted rounded-xl">
-                <p className="text-[10px] text-muted-foreground uppercase">Religião</p>
-                <p className="font-bold">{matchProfile.religion || 'Cristão'}</p>
-              </div>
-            </div>
-          </div>
-        </div>,
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
 

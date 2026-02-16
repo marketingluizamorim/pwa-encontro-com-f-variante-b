@@ -34,6 +34,7 @@ const LOOKING_FOR_EMOJIS: Record<string, string> = {
 interface Conversation {
     id: string;
     match_id: string;
+    created_at: string;
     profile: {
         id: string; // This is the user_id (swiped_id)
         display_name: string;
@@ -69,11 +70,11 @@ const calculateAge = (birthDate?: string) => {
 };
 
 const FloatingHeart = () => (
-    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-        <div className="relative flex items-center justify-center">
-            <div className="absolute w-5 h-5 bg-[#d4af37] blur-md opacity-50 rounded-full" />
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] border-2 border-[#1a1a1a] flex items-center justify-center shadow-lg">
-                <i className="ri-heart-fill text-white text-[10px]" />
+    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-[40] pointer-events-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
+        <div className="relative flex items-center justify-center scale-110">
+            <div className="absolute w-6 h-6 bg-[#d4af37] blur-lg opacity-60 rounded-full" />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] border-2 border-[#121212] flex items-center justify-center shadow-2xl">
+                <i className="ri-heart-fill text-white text-[11px]" />
             </div>
         </div>
     </div>
@@ -107,14 +108,14 @@ export default function Chat() {
             // 1. Buscar Matches (Combinações)
             const { data: matchesData, error: matchesError } = await supabase
                 .from('matches')
-                .select('id, user1_id, user2_id')
+                .select('id, user1_id, user2_id, created_at')
                 .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
                 .eq('is_active', true);
 
             if (matchesError) throw matchesError;
 
             // Filter out matches with blocked users
-            const activeMatches = (matchesData as { id: string, user1_id: string, user2_id: string }[] || []).filter(m => {
+            const activeMatches = (matchesData as { id: string, user1_id: string, user2_id: string, created_at: string }[] || []).filter(m => {
                 const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
                 return !blockedUserIds.has(otherId);
             });
@@ -160,6 +161,7 @@ export default function Chat() {
                 return {
                     id: 'conv-' + m.id,
                     match_id: m.id,
+                    created_at: m.created_at,
                     is_super_like: isSuperLike,
                     profile: {
                         id: profile.user_id,
@@ -205,6 +207,34 @@ export default function Chat() {
     const [showSafety, setShowSafety] = useState(false);
     const dragControls = useDragControls();
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+    // --- NATIVE-LIKE NAVIGATION LOGIC ---
+    useEffect(() => {
+        const handlePopState = () => {
+            if (selectedProfile) {
+                setSelectedProfile(null);
+                setCurrentPhotoIndex(0);
+            }
+        };
+
+        if (selectedProfile) {
+            window.history.pushState({ profileOpen: true }, "");
+            window.addEventListener('popstate', handlePopState);
+        }
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [selectedProfile]);
+
+    const handleManualBack = () => {
+        if (selectedProfile) {
+            window.history.back();
+        } else {
+            setSelectedProfile(null);
+            setCurrentPhotoIndex(0);
+        }
+    };
 
     const handleNextPhoto = (e: React.MouseEvent, photos: string[]) => {
         e.stopPropagation();
@@ -298,7 +328,9 @@ export default function Chat() {
     }
 
     // Filtrar conversas em "Novos Matches" (sem mensagens) e "Mensagens"
-    const newMatches = conversations.filter(c => !c.last_message);
+    const newMatches = conversations
+        .filter(c => !c.last_message)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     const existingChats = conversations
         .filter(c => !!c.last_message)
         .sort((a, b) => {
@@ -342,29 +374,29 @@ export default function Chat() {
                     {/* Seção de Novos Matches */}
                     <div className="px-4 mb-8">
                         <h2 className="font-bold text-lg mb-4">Novas conexões</h2>
-                        <div className="flex gap-4 overflow-x-auto pb-2 pt-4 -mx-4 px-4 scrollbar-hide">
+                        <div className="flex gap-4 overflow-x-auto pb-4 pt-4 -mx-4 px-4 scrollbar-hide">
                             {/* Cartão Gold - Teaser de Curtidas */}
-                            <Link to="/app/matches" className="flex flex-col items-center gap-2 shrink-0 group">
-                                <div className="relative w-24 h-32 rounded-xl border-2 border-[#d4af37] bg-gray-900 flex items-center justify-center">
-                                    <div className="absolute inset-0 rounded-[10px] overflow-hidden">
+                            <Link to="/app/matches" className="flex flex-col items-center gap-2 shrink-0 group relative">
+                                <div className="relative w-28 h-40 rounded-[2.2rem] border-2 border-[#d4af37]/50 bg-gray-900 flex items-center justify-center shadow-xl shadow-[#d4af37]/10">
+                                    <div className="absolute inset-0 z-0 rounded-[2.1rem] overflow-hidden">
                                         {likesPhoto ? (
                                             <div
-                                                className="absolute inset-0 bg-cover bg-center opacity-60 blur-xl scale-125 transition-transform duration-700 group-hover:scale-150"
+                                                className="absolute inset-0 bg-cover bg-center opacity-40 blur-lg scale-110 transition-transform duration-700 group-hover:scale-125"
                                                 style={{ backgroundImage: `url(${likesPhoto})` }}
                                             />
                                         ) : (
-                                            <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 opacity-50"></div>
+                                            <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/20 to-black opacity-50"></div>
                                         )}
-                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors" />
                                     </div>
 
-                                    <div className="relative z-10 w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center shadow-lg border border-white/20">
-                                        <span className="text-black font-bold text-xs">{likesCount}</span>
+                                    <div className="relative z-10 w-9 h-9 rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center shadow-2xl border border-white/20">
+                                        <span className="text-white font-bold text-xs">{likesCount}</span>
                                     </div>
 
                                     <FloatingHeart />
                                 </div>
-                                <span className="text-sm font-medium mt-1">Curtidas</span>
+                                <span className="text-sm font-medium text-foreground mt-1">Curtidas</span>
                             </Link>
 
                             {/* Actual New Matches */}
@@ -375,40 +407,44 @@ export default function Chat() {
                                         markMatchAsViewed(conv.match_id);
                                         setSelectedProfile(conv.profile);
                                     }}
-                                    className="flex flex-col items-center gap-2 shrink-0 cursor-pointer"
+                                    className="flex flex-col items-center gap-2 shrink-0 cursor-pointer group relative"
                                 >
                                     <div className={cn(
-                                        "relative w-24 h-32 rounded-xl border overflow-visible bg-muted shadow-sm transition-all",
+                                        "relative w-28 h-40 rounded-[2.2rem] border bg-muted shadow-lg transition-all border-white/5",
                                         conv.is_super_like
                                             ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] ring-1 ring-blue-500/50"
-                                            : "border-white/10"
+                                            : "border-white/5"
                                     )}>
-                                        <div className="absolute inset-0 rounded-xl overflow-hidden">
+                                        <div className="absolute inset-0 rounded-[2.1rem] overflow-hidden">
                                             <img
                                                 src={conv.profile.photos[0] || conv.profile.avatar_url}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 alt={conv.profile.display_name}
                                             />
                                         </div>
 
                                         {/* Super Like Badge */}
                                         {conv.is_super_like && (
-                                            <div className="absolute -top-2 -right-2 z-30 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center shadow-md border border-white/10">
-                                                <i className="ri-star-fill text-white text-[10px]" />
+                                            <div className="absolute top-3 right-3 z-30 drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]">
+                                                <div className="relative flex items-center justify-center scale-110">
+                                                    <div className="absolute w-6 h-6 bg-blue-500 blur-lg opacity-60 rounded-full" />
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 via-blue-400 to-blue-800 border-2 border-[#121212] flex items-center justify-center shadow-2xl">
+                                                        <i className="ri-star-fill text-white text-[11px]" />
+                                                    </div>
+                                                </div>
                                             </div>
                                         )}
 
                                         {/* Ponto vermelho se houver mensagem não lida */}
                                         {conv.last_message && !conv.last_message.is_read && conv.last_message.sender_id !== user?.id && (
-                                            <div className="absolute right-1 top-1 w-3 h-3 bg-red-500 rounded-full border-2 border-background z-20"></div>
+                                            <div className="absolute right-3 top-3 w-3 h-3 bg-red-500 rounded-full border-2 border-background z-20"></div>
                                         )}
 
                                         {/* Coração flutuante para NOVOS matches que o usuário ainda não clicou */}
                                         {!viewedMatches.has(conv.match_id) && !conv.is_super_like && <FloatingHeart />}
                                     </div>
-                                    <span className="text-sm font-medium truncate max-w-[96px] mt-1 flex items-center gap-1">
+                                    <span className="text-sm font-bold truncate max-w-[112px] text-center mt-1">
                                         {conv.profile.display_name}
-                                        {conv.is_super_like && <i className="ri-star-fill text-blue-500 text-[10px]" />}
                                     </span>
                                 </div>
                             ))}
@@ -497,8 +533,7 @@ export default function Chat() {
                                 dragElastic={{ top: 0, bottom: 0.7, left: 0.1, right: 0.8 }}
                                 onDragEnd={(e, info) => {
                                     if (info.offset.y > 100 || info.velocity.y > 500 || info.offset.x > 100 || info.velocity.x > 500) {
-                                        setSelectedProfile(null);
-                                        setCurrentPhotoIndex(0);
+                                        handleManualBack();
                                     }
                                 }}
                             >
@@ -506,11 +541,8 @@ export default function Chat() {
                                 <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
                                     {/* Botão Fechar */}
                                     <button
-                                        onClick={() => {
-                                            setSelectedProfile(null);
-                                            setCurrentPhotoIndex(0);
-                                        }}
-                                        className="fixed top-4 right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
+                                        onClick={handleManualBack}
+                                        className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg hover:bg-black/60 transition-colors"
                                     >
                                         <i className="ri-arrow-down-s-line text-2xl" />
                                     </button>
