@@ -424,38 +424,20 @@ export default function ChatRoom() {
     };
   }, [matchId, user?.id]);
 
-  // Keyboard/Viewport Tracking (WhatsApp/Instagram Style)
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [initialHeight] = useState(() => typeof window !== 'undefined' ? window.innerHeight : 0);
 
   useEffect(() => {
-    const handleViewportChange = () => {
-      if (window.visualViewport) {
-        const currentHeight = window.visualViewport.height;
-        const heightDiff = initialHeight - currentHeight;
-
-        // Detect keyboard presence (usually > 20% of initial height)
-        const isKeyboardOpen = heightDiff > 150;
-        setIsKeyboardVisible(isKeyboardOpen);
-
-        // heightDiff is used for the padding calculation
-        setKeyboardHeight(isKeyboardOpen ? heightDiff : 0);
-
-        if (isKeyboardOpen) {
-          setTimeout(() => scrollToBottom('smooth'), 150);
-        }
+    if (!window.visualViewport) return;
+    const handleViewport = () => {
+      const isKeyboard = window.innerHeight - (window.visualViewport?.height || 0) > 150;
+      setIsKeyboardVisible(isKeyboard);
+      if (isKeyboard) {
+        setTimeout(() => scrollToBottom('auto'), 50);
       }
     };
-
-    window.visualViewport?.addEventListener('resize', handleViewportChange);
-    window.visualViewport?.addEventListener('scroll', handleViewportChange);
-
-    return () => {
-      window.visualViewport?.removeEventListener('resize', handleViewportChange);
-      window.visualViewport?.removeEventListener('scroll', handleViewportChange);
-    };
-  }, [initialHeight, scrollToBottom]);
+    window.visualViewport.addEventListener('resize', handleViewport);
+    return () => window.visualViewport?.removeEventListener('resize', handleViewport);
+  }, [scrollToBottom]);
 
   const sendMediaMessage = async (content: string) => {
     if (!matchId || !user) return;
