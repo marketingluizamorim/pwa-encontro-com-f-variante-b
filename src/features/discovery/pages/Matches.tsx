@@ -528,7 +528,7 @@ export default function Matches() {
                             "Curtidas ilimitadas",
                             "Enviar ou receber fotos e áudios",
                             "Filtro por cidade / região",
-                            "Fazer chamadas de vídeo",
+                            "Fazer chamadas de voz e vídeo",
                             "Comunidade cristã no WhatsApp"
                           ],
                           icon: <i className="ri-search-2-line text-4xl" />,
@@ -550,7 +550,7 @@ export default function Matches() {
                             "Curtidas ilimitadas",
                             "Enviar ou receber fotos e áudios",
                             "Filtro por cidade / região",
-                            "Fazer chamadas de vídeo",
+                            "Fazer chamadas de voz e vídeo",
                             "Comunidade cristã no WhatsApp"
                           ],
                           icon: <i className="ri-search-2-line text-4xl" />,

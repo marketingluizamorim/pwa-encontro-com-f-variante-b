@@ -1071,7 +1071,7 @@ export default function Discover() {
           setUpgradeData({
             title: "Plano Prata",
             description: "Não pare sua busca! Assine o Plano Prata para ter curtidas ilimitadas e falar com quem você gosta!",
-            features: ["Ver quem curtiu você", "Curtidas ilimitadas", "Enviar ou receber fotos e áudios", "Filtro por cidade / região", "Fazer chamadas de vídeo", "Comunidade cristã no WhatsApp"],
+            features: ["Ver quem curtiu você", "Curtidas ilimitadas", "Enviar ou receber fotos e áudios", "Filtro por cidade / região", "Fazer chamadas de voz e vídeo", "Comunidade cristã no WhatsApp"],
             planNeeded: 'silver',
             icon: <i className="ri-heart-line text-4xl" />,
             price: 29.90,

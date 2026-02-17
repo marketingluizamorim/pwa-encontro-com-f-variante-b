@@ -154,7 +154,16 @@ export function FeatureGateDialog({
                 onOpenChange={setShowComparison}
                 onSelectPlan={(p) => {
                     setShowComparison(false);
-                    navigate(`/v1/planos?plan=${p.id === 'gold' ? 'gold' : 'silver'}`);
+                    if (onUpgrade) {
+                        onUpgrade({
+                            id: p.id,
+                            name: p.name,
+                            price: p.price
+                        });
+                    } else {
+                        onOpenChange(false);
+                        navigate(`/v1/planos?plan=${p.id === 'gold' ? 'gold' : 'silver'}`);
+                    }
                 }}
             />
 

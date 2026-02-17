@@ -267,7 +267,7 @@ export function CheckoutDialog({
                             <Check className="w-3 h-3 text-emerald-500" />
                           </div>
                           <div className="flex justify-between text-white/60 text-[10px]">
-                            <span>Fazer chamadas de vídeo</span>
+                            <span>Fazer chamadas de voz e vídeo</span>
                             <Check className="w-3 h-3 text-emerald-500" />
                           </div>
                           <div className="flex justify-between text-white/60 text-[10px]">

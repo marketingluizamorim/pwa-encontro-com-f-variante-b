@@ -60,7 +60,7 @@ const CHURCH_FREQUENCIES = [
 ];
 
 const LOOKING_FOR_OPTIONS = [
-  { value: '', label: 'Todos objetivo' },
+  { value: '', label: 'Todos objetivos' },
   { value: 'Relacionamento sério', label: 'Relacionamento sério' },
   { value: 'Construir uma família', label: 'Construir uma família' },
   { value: 'Conhecer pessoas novas', label: 'Conhecer pessoas novas' },
@@ -139,7 +139,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
           "Curtidas ilimitadas",
           "Enviar e receber fotos e áudios",
           "Filtro por cidade / região",
-          "Fazer chamadas de vídeo",
+          "Fazer chamadas de voz e vídeo",
           "Comunidade cristã no WhatsApp"
         ],
         planNeeded: 'silver',
@@ -193,7 +193,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
           "Curtidas ilimitadas",
           "Enviar e receber fotos e áudios",
           "Filtro por cidade / região",
-          "Fazer chamadas de vídeo",
+          "Fazer chamadas de voz e vídeo",
           "Comunidade cristã no WhatsApp"
         ],
         planNeeded: 'silver',

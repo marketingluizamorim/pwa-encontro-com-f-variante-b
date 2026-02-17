@@ -705,7 +705,7 @@ export default function ChatRoom() {
           "Curtidas ilimitadas",
           "Enviar ou receber fotos e áudios",
           "Filtro por cidade / região",
-          "Fazer chamadas de vídeo",
+          "Fazer chamadas de voz e vídeo",
           "Comunidade cristã no WhatsApp"
         ],
         icon: <i className="ri-image-line text-4xl" />,
@@ -760,7 +760,7 @@ export default function ChatRoom() {
           "Curtidas ilimitadas",
           "Enviar ou receber fotos e áudios",
           "Filtro por cidade / região",
-          "Fazer chamadas de vídeo",
+          "Fazer chamadas de voz e vídeo",
           "Comunidade cristã no WhatsApp"
         ],
         icon: <i className="ri-image-line text-4xl" />,
@@ -788,7 +788,7 @@ export default function ChatRoom() {
           "Curtidas ilimitadas",
           "Enviar ou receber fotos e áudios",
           "Filtro por cidade / região",
-          "Fazer chamadas de vídeo",
+          "Fazer chamadas de voz e vídeo",
           "Comunidade cristã no WhatsApp"
         ],
         icon: <i className="ri-mic-line text-4xl" />,

@@ -24,7 +24,7 @@ export function PlanComparison({ open, onOpenChange, onSelectPlan }: PlanCompari
         { name: 'Curtidas Diárias', values: ['20', 'Ilimitadas', 'Ilimitadas'] },
         { name: 'Mensagens de Texto', values: [true, true, true] },
         { name: 'Fotos e Áudios', values: [false, true, true] },
-        { name: 'Chamadas de Vídeo', values: [false, true, true] },
+        { name: 'Chamadas de voz e vídeo', values: [false, true, true] },
         { name: 'Ver quem te curtiu', values: [false, true, true] },
         { name: 'Filtro por Cidade', values: [false, true, true] },
         { name: 'Mandar Mensagem Direta', values: [false, false, true] },
