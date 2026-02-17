@@ -353,6 +353,7 @@ export default function ChatRoom() {
   const { data: subscription } = useSubscription();
 
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const [upgradeData, setUpgradeData] = useState({
     title: '',
     description: '',
@@ -890,16 +891,23 @@ export default function ChatRoom() {
     }
   };
 
-  const renderMessageContent = (content: string, isOwn: boolean) => {
+  const renderMessageContent = (content: string, isOwn: boolean, m_time: string, m_status?: React.ReactNode) => {
     if (content.startsWith('[image:')) {
       const url = content.replace('[image:', '').replace(']', '');
       return (
-        <img
-          src={url}
-          alt="Imagem enviada"
-          className="rounded-lg max-w-full h-auto mt-1 border border-border/10"
-          onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
-        />
+        <div className="relative group cursor-pointer overflow-hidden rounded-xl" onClick={() => setFullScreenImage(url)}>
+          <img
+            src={url}
+            alt="Imagem enviada"
+            className="rounded-xl max-w-full h-auto border border-border/10 transition-transform active:scale-[0.98]"
+            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+          />
+          {/* Overlay for time and status inside image - WhatsApp style */}
+          <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 bg-black/30 backdrop-blur-md px-1.5 py-0.5 rounded-full z-10">
+            <p className="text-[10px] text-white/90 font-medium">{m_time}</p>
+            {isOwn && m_status}
+          </div>
+        </div>
       );
     }
     if (content.startsWith('[audio:')) {
@@ -1036,7 +1044,8 @@ export default function ChatRoom() {
               const isOwn = m.sender_id === user?.id;
               return (
                 <div key={m.id} className={cn('flex', isOwn ? 'justify-end' : 'justify-start')}>
-                  <div className={cn('max-w-[80%] p-3 rounded-2xl shadow-sm relative overflow-hidden',
+                  <div className={cn('max-w-[80%] shadow-sm relative overflow-hidden transition-all duration-200',
+                    m.content.startsWith('[image:') ? 'p-1 rounded-2xl' : 'p-3 rounded-2xl',
                     isOwn ? 'bg-primary text-primary-foreground rounded-tr-none' : 'bg-muted rounded-tl-none',
                     (!isOwn && index === 0 && isSuperLikeMatch) && 'bg-gradient-to-r from-blue-600 to-blue-500 text-white border-2 border-[#d4af37]/50 shadow-[0_0_15px_rgba(212,175,55,0.3)]'
                   )}>
@@ -1050,20 +1059,34 @@ export default function ChatRoom() {
                         <i className="ri-star-fill" /> Super Like
                       </p>
                     )}
-                    {renderMessageContent(m.content, isOwn)}
-                    <div className={cn('flex items-center justify-end gap-1 mt-1',
-                      isOwn ? 'text-primary-foreground' : 'text-muted-foreground',
-                      (!isOwn && index === 0 && isSuperLikeMatch) && 'text-blue-100'
-                    )}>
-                      <p className="text-[9px] opacity-70">{formatTime(m.created_at)}</p>
-                      {isOwn && (
+                    {renderMessageContent(
+                      m.content,
+                      isOwn,
+                      formatTime(m.created_at),
+                      isOwn ? (
                         <MessageStatus
                           isRead={m.is_read}
                           isSending={m.id.startsWith('temp-')}
-                          className={cn("text-[16px] opacity-100", m.is_read ? "text-blue-600" : "text-white")}
+                          className={cn("text-[14px] opacity-100", m.is_read ? "text-blue-400" : "text-white/70")}
                         />
-                      )}
-                    </div>
+                      ) : undefined
+                    )}
+
+                    {!m.content.startsWith('[image:') && (
+                      <div className={cn('flex items-center justify-end gap-1 mt-1',
+                        isOwn ? 'text-primary-foreground' : 'text-muted-foreground',
+                        (!isOwn && index === 0 && isSuperLikeMatch) && 'text-blue-100'
+                      )}>
+                        <p className="text-[9px] opacity-70">{formatTime(m.created_at)}</p>
+                        {isOwn && (
+                          <MessageStatus
+                            isRead={m.is_read}
+                            isSending={m.id.startsWith('temp-')}
+                            className={cn("text-[16px] opacity-100", m.is_read ? "text-blue-600" : "text-white")}
+                          />
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -1430,6 +1453,35 @@ export default function ChatRoom() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Modal de Imagem em Tela Cheia (Lightbox) */}
+      <AnimatePresence>
+        {fullScreenImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[11000] bg-black flex items-center justify-center p-4"
+            onClick={() => setFullScreenImage(null)}
+          >
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="absolute top-8 right-6 text-white text-3xl z-[11001]"
+              onClick={() => setFullScreenImage(null)}
+            >
+              <i className="ri-close-line" />
+            </motion.button>
+            <motion.img
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              src={fullScreenImage}
+              alt="Imagem expandida"
+              className="max-w-full max-h-full object-contain rounded-sm"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </SlideTransition>
   );
 }
