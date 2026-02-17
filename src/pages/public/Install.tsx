@@ -121,7 +121,7 @@ export default function Install() {
               </div>
               <div className="flex flex-col gap-2 pt-1">
                 <p className="text-sm text-white/80 leading-relaxed">
-                  "Adicionar à tela inicial" ou
+                  Procure por "Adicionar à tela inicial" ou
                 </p>
                 <button
                   onClick={handleInstallClick}
@@ -178,7 +178,7 @@ export default function Install() {
             </div>
             <div className="flex flex-col gap-2 pt-1">
               <p className="text-sm text-white/80 leading-relaxed">
-                "Adicionar à tela inicial" ou
+                Procure por "Adicionar à tela inicial" ou
               </p>
               <button
                 onClick={handleInstallClick}
