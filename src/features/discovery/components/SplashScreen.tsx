@@ -58,7 +58,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.5 }}
-              className="mt-3 text-white/50 text-sm tracking-wide uppercase font-medium"
+              className="mt-3 text-white/50 text-sm tracking-wide font-medium"
             >
               Conexões que Transformam
             </motion.p>

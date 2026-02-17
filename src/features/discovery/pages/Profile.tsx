@@ -363,7 +363,7 @@ export default function Profile() {
                       className="text-[10px] h-7 text-primary hover:text-primary/80 hover:bg-primary/5 uppercase tracking-wider font-bold"
                     >
                       <i className="ri-edit-line mr-1" />
-                      Editar
+                      Editar Bio
                     </Button>
                   </div>
                 )}
