@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createPortal } from 'react-dom';
@@ -286,31 +286,34 @@ export default function ChatRoom() {
     }
   });
 
-  const { data: mySocials = {} } = useQuery({
-    queryKey: ['my-socials', user?.id],
+  const { data: myProfile } = useQuery({
+    queryKey: ['my-profile', user?.id],
     enabled: !!user,
     staleTime: Infinity,
     queryFn: async () => {
-      if (!user) return {};
+      if (!user) return null;
       const { supabase } = await import('@/integrations/supabase/client');
-      const { data: myProfile } = await (supabase
+      const { data: profile } = await supabase
         .from('profiles')
-        .select('social_media')
+        .select('*')
         .eq('user_id', user.id)
-        .single() as unknown as Promise<{ data: { social_media?: string } | null }>);
-
-      if (myProfile?.social_media) {
-        try {
-          return typeof myProfile.social_media === 'string'
-            ? JSON.parse(myProfile.social_media)
-            : myProfile.social_media;
-        } catch (e) {
-          console.error('Error parsing my socials:', e);
-        }
-      }
-      return {};
+        .single();
+      return profile;
     }
   });
+
+  const mySocials = useMemo(() => {
+    if (myProfile?.social_media) {
+      try {
+        return typeof myProfile.social_media === 'string'
+          ? JSON.parse(myProfile.social_media)
+          : myProfile.social_media;
+      } catch (e) {
+        console.error('Error parsing my socials:', e);
+      }
+    }
+    return {};
+  }, [myProfile?.social_media]);
 
   const loading = loadingDetails || loadingMessages;
   const matchProfile = matchDetails?.matchProfile || null;
@@ -902,7 +905,7 @@ export default function ChatRoom() {
     if (content.startsWith('[audio:')) {
       const url = content.replace('[audio:', '').replace(']', '').trim();
       const avatarUrl = isOwn
-        ? (user?.user_metadata?.avatar_url || '/placeholder.svg')
+        ? (myProfile?.photos?.[0] || myProfile?.avatar_url || user?.user_metadata?.avatar_url || '/placeholder.svg')
         : (matchProfile?.photos?.[0] || matchProfile?.avatar_url || '/placeholder.svg');
 
       return (
