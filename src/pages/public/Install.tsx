@@ -214,7 +214,7 @@ export default function Install() {
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
         {/* Navigation */}
-        <header className="w-full flex items-center mt-4 mb-4">
+        <header className="w-full flex items-center mt-4 mb-0">
           <button
             onClick={() => navigate(-1)}
             className="group flex items-center justify-center text-white/40 hover:text-white transition-all bg-white/5 hover:bg-white/10 w-10 h-10 rounded-xl border border-white/5 active:scale-95 shadow-lg"
@@ -228,7 +228,7 @@ export default function Install() {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", damping: 12, delay: 0.1 }}
-          className="relative mb-1"
+          className="relative -mt-4 mb-1"
         >
           <div className="absolute inset-0 bg-primary/40 blur-[40px] rounded-full scale-150 animate-pulse" />
           <div className="relative w-12 h-12 rounded-[1.2rem] p-[2px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_8px_25px_-6px_rgba(212,175,55,0.4)]">
