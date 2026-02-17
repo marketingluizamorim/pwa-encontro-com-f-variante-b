@@ -214,13 +214,12 @@ export default function Install() {
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
         {/* Navigation */}
-        <header className="w-full flex items-center justify-between mt-2 mb-6">
+        <header className="w-full flex items-center mt-2 mb-4">
           <button
             onClick={() => navigate(-1)}
-            className="group flex items-center gap-2 text-white/40 hover:text-white transition-all bg-white/5 hover:bg-white/10 px-4 py-2 rounded-2xl border border-white/5 active:scale-95 shadow-lg"
+            className="group flex items-center justify-center text-white/40 hover:text-white transition-all bg-white/5 hover:bg-white/10 w-10 h-10 rounded-xl border border-white/5 active:scale-95 shadow-lg"
           >
-            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
-            <span className="text-sm font-semibold tracking-wide">Voltar</span>
+            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
           </button>
         </header>
 
@@ -229,23 +228,23 @@ export default function Install() {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", damping: 12, delay: 0.1 }}
-          className="relative mb-4"
+          className="relative mb-2"
         >
           <div className="absolute inset-0 bg-primary/40 blur-[40px] rounded-full scale-150 animate-pulse" />
-          <div className="relative w-14 h-14 rounded-[1.4rem] p-[2px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.4)]">
-            <div className="w-full h-full rounded-[1.3rem] bg-[#020617] flex items-center justify-center border border-white/10 shadow-inner">
-              <Heart className="w-7 h-7 text-white fill-white drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
+          <div className="relative w-12 h-12 rounded-[1.2rem] p-[2px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_8px_25px_-6px_rgba(212,175,55,0.4)]">
+            <div className="w-full h-full rounded-[1.1rem] bg-[#020617] flex items-center justify-center border border-white/10 shadow-inner">
+              <Heart className="w-6 h-6 text-white fill-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
             </div>
           </div>
         </motion.div>
 
         {/* Main Content */}
-        <div className="text-center space-y-1 mb-6">
+        <div className="text-center space-y-1 mb-4">
           <motion.h1
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-2xl font-display font-bold text-white tracking-tight"
+            className="text-xl font-display font-bold text-white tracking-tight"
           >
             Instale o App
           </motion.h1>
@@ -253,9 +252,9 @@ export default function Install() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-white/40 leading-relaxed px-4 text-sm font-medium"
+            className="text-white/40 leading-relaxed px-4 text-[13px] font-medium"
           >
-            Adicione o <span className="text-primary font-bold">Encontro com Fé</span> à sua tela inicial para uma experiência premium personalizada.
+            Adicione o <span className="text-primary font-bold">Encontro com Fé</span> para uma experiência premium.
           </motion.p>
         </div>
 
