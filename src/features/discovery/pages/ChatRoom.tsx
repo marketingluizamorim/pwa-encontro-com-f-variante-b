@@ -930,19 +930,28 @@ export default function ChatRoom() {
         socials = JSON.parse(content.substring(14, content.length - 1));
       } catch (e) { return <p>Erro ao ver cartão</p>; }
 
+      const platformConfig: Record<string, { bg: string; label: string }> = {
+        instagram: { bg: 'bg-pink-600', label: 'Instagram' },
+        whatsapp: { bg: 'bg-green-600', label: 'WhatsApp' },
+        facebook: { bg: 'bg-blue-600', label: 'Facebook' },
+      };
+
       return (
-        <div className="flex flex-col gap-2 min-w-[200px]">
-          {Object.entries(socials).map(([platform, value]) => (
-            <div key={platform} className="p-3 bg-card rounded-xl border flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <i className={`ri-${platform}-line`} />
+        <div className="flex flex-col gap-2 min-w-[210px] mt-1">
+          {Object.entries(socials).map(([platform, value]) => {
+            const config = platformConfig[platform] || { bg: 'bg-muted', label: platform };
+            return (
+              <div key={platform} className={cn("p-3 rounded-xl flex items-center gap-3 shadow-sm border border-white/10", config.bg, "text-white")}>
+                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <i className={`ri-${platform}-line text-xl`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] text-white/70 font-bold uppercase tracking-wider leading-none mb-1">{config.label}</p>
+                  <p className="text-sm font-bold truncate leading-tight">{value as string}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-[10px] text-muted-foreground uppercase">{platform}</p>
-                <p className="text-sm font-bold truncate">{value as string}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       );
     }
