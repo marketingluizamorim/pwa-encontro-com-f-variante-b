@@ -556,7 +556,7 @@ export default function Discover() {
 
 
           {/* Card Stack Container */}
-          <div className="flex-1 w-full max-w-md relative flex items-center justify-center pb-24 px-4">
+          <div className="flex-1 w-full max-w-xl relative flex items-center justify-center pb-28 px-4 transition-all duration-500">
 
             {/* NEXT CARD (Background) */}
             {nextProfile && (
@@ -579,7 +579,7 @@ export default function Discover() {
               dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
               dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
               onDragEnd={handleDragEnd}
-              className="w-full h-full absolute inset-0 px-4 pt-4 pb-24 z-20 cursor-grab active:cursor-grabbing touch-none"
+              className="w-full h-full absolute inset-0 px-4 pt-4 pb-28 z-20 cursor-grab active:cursor-grabbing touch-none"
               initial={false}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{
@@ -691,7 +691,7 @@ export default function Discover() {
                 {/* Info Detail Button -> Expand */}
                 <button
                   onClick={() => setShowInfo(true)}
-                  className="absolute bottom-6 right-6 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-colors"
+                  className="absolute bottom-8 right-8 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-all active:scale-95"
                 >
                   <i className="ri-arrow-up-s-line text-2xl" />
                 </button>
@@ -701,7 +701,7 @@ export default function Discover() {
 
           {/* Floating Action Controls (Main View) */}
           {!showInfo && (
-            <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-6 pointer-events-none">
+            <div className="absolute bottom-10 left-0 right-0 z-30 flex justify-center items-center gap-8 pointer-events-none transition-all">
               {/* Nope */}
               <button
                 onClick={() => handleSwipe('dislike')}
