@@ -32,16 +32,16 @@ export function PlanComparison({ open, onOpenChange, onSelectPlan }: PlanCompari
     }, [isExpanded]);
 
     const features = [
-        { name: 'Curtidas Diárias', values: ['20', 'Sem limite', 'Sem limite'] },
-        { name: 'Mensagens de Texto', values: [true, true, true] },
-        { name: 'Fotos e Áudios', values: [false, true, true] },
-        { name: 'Chamadas Voz/Vídeo', values: [false, true, true] },
         { name: 'Ver quem te curtiu', values: [false, true, true] },
-        { name: 'Filtro por Cidade', values: [false, true, true] },
+        { name: 'Curtidas Diárias', values: ['20', 'Sem limite', 'Sem limite'] },
         { name: 'Mensagem Direta', values: [false, false, true] },
-        { name: 'Perfil em Destaque', values: [false, false, true] },
-        { name: 'Ver Perfis Online', values: [false, false, true] },
+        { name: 'Filtro por Cidade', values: [false, true, true] },
         { name: 'Filtros: Idade, Distância e Interesses', values: [false, false, true] },
+        { name: 'Chamadas Voz/Vídeo', values: [false, true, true] },
+        { name: 'Fotos e Áudios', values: [false, true, true] },
+        { name: 'Ver Perfis Online', values: [false, false, true] },
+        { name: 'Perfil em Destaque', values: [false, false, true] },
+        { name: 'Mensagens de Texto', values: [true, true, true] },
         { name: 'Comunidade WhatsApp', values: [false, true, true] },
         { name: 'Cursos e Devocionais', values: [true, true, true] },
     ];
