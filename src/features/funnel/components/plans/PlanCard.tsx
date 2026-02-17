@@ -104,12 +104,12 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
 
           {/* Pricing Section - More Balanced Typography */}
           <div className="mb-8">
-            <div className="flex items-center gap-2 mb-1.5 opacity-80">
-              <span className="text-slate-400 text-base font-medium line-through decoration-slate-500/50">
+            <div className="flex items-center justify-center gap-2 mb-1.5 opacity-80">
+              <span className="text-slate-400 text-[0.95rem] font-medium line-through decoration-slate-500/50">
                 De R$ {formattedOriginalPrice}
               </span>
             </div>
-            <div className="flex items-baseline gap-1">
+            <div className="flex items-baseline justify-center gap-1">
               <span className="text-slate-400 text-lg font-light">R$</span>
               <span className="text-white text-4xl font-extrabold font-sans tracking-tight drop-shadow-sm">{formattedPrice}</span>
               <span className="text-slate-500 text-sm font-bold ml-1">{plan.id === 'bronze' ? '/semana' : '/mês'}</span>

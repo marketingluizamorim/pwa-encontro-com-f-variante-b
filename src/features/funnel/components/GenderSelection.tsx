@@ -23,7 +23,7 @@ export function GenderSelection({ onSelect, onBack }: GenderSelectionProps) {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0f172a] relative overflow-hidden flex flex-col font-sans">
+    <div className="h-[100dvh] w-full bg-[#0f172a] relative overflow-y-auto flex flex-col font-sans">
 
       {/* Background Ambience - Clean & Premium */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">

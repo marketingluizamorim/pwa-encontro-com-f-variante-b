@@ -18,7 +18,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
   const profiles = getProfilesData(gender, quizAnswers);
 
   return (
-    <div className="min-h-screen bg-[#0f172a] relative overflow-hidden pb-48 flex flex-col items-center w-full">
+    <div className="h-[100dvh] bg-[#0f172a] relative overflow-y-auto pb-48 flex flex-col items-center w-full">
       {/* Background Ambience - Clean & Premium */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Main ambient light - Top Center (Teal/Blue mix) */}

@@ -28,7 +28,7 @@ const WelcomeScreen = () => {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] w-full bg-[#0f172a] flex flex-col items-center justify-center gap-6 md:gap-12 py-8 px-4 md:py-16 md:px-6 font-sans overflow-hidden relative">
+    <div className="h-[100dvh] w-full bg-[#0f172a] flex flex-col items-center justify-center gap-6 md:gap-12 py-8 px-4 md:py-16 md:px-6 font-sans overflow-y-auto relative">
 
       {/* Background Ambience - Clean & Premium */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">

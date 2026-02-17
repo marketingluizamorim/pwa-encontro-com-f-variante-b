@@ -53,7 +53,7 @@ export function PlansSection({ onSelectPlan, onBack, isDialogOpen = false }: Pla
     <>
       <PushNotification gender={gender === 'male' ? 'masculino' : 'feminino'} paused={notificationsPaused} />
 
-      <div className="min-h-screen bg-[#0f172a] relative overflow-hidden pb-32 flex flex-col items-center w-full">
+      <div className="h-[100dvh] bg-[#0f172a] relative overflow-y-auto pb-32 flex flex-col items-center w-full">
         {/* Premium Dark Background with Subtle Lighting */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Main ambient light - Top Center (Teal/Blue mix) */}

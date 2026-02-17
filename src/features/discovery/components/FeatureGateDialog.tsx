@@ -88,7 +88,7 @@ export function FeatureGateDialog({
                                         {plan.id === 'silver' ? 'COMECE PELO BÁSICO' : 'DESBLOQUEIE TODO O POTENCIAL'}
                                     </p>
 
-                                    <div className="w-full space-y-4 mb-8 text-left bg-white/[0.03] p-6 rounded-3xl border border-white/5">
+                                    <div className="w-full space-y-4 mb-[1.3rem] text-left bg-white/[0.03] p-[1.3rem] rounded-3xl border border-white/5">
                                         {plan.features.slice(0, 5).map((feature, i) => (
                                             <div key={i} className="flex items-start gap-4">
                                                 <div className="bg-emerald-500/20 p-1 rounded-full mt-0.5">
@@ -101,7 +101,7 @@ export function FeatureGateDialog({
 
                                     <div className="w-full space-y-4">
                                         <div className="text-center">
-                                            <p className="text-xs font-medium text-slate-500 line-through mb-1">
+                                            <p className="text-[0.95rem] font-medium text-slate-500 line-through mb-1">
                                                 De R$ {plan.id === 'silver' ? '59,90' : '99,90'}
                                             </p>
                                             <div className="flex items-end justify-center gap-1">
@@ -168,6 +168,6 @@ export function FeatureGateDialog({
             />
 
 
-        </Dialog>
+        </Dialog >
     );
 }
