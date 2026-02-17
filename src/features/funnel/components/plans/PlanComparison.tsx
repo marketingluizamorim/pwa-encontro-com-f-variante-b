@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { PLANS, Plan } from './PlansGrid';
 import { Check, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface PlanComparisonProps {
     open: boolean;
@@ -12,6 +12,7 @@ interface PlanComparisonProps {
 
 export function PlanComparison({ open, onOpenChange, onSelectPlan }: PlanComparisonProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     // Reset expansion when dialog closes
     useEffect(() => {
@@ -19,6 +20,16 @@ export function PlanComparison({ open, onOpenChange, onSelectPlan }: PlanCompari
             setTimeout(() => setIsExpanded(false), 300);
         }
     }, [open]);
+
+    // Auto-scroll when unlocked
+    useEffect(() => {
+        if (isExpanded && scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+                top: scrollContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, [isExpanded]);
 
     const features = [
         { name: 'Curtidas Diárias', values: ['20', 'Sem limite', 'Sem limite'] },
@@ -53,7 +64,10 @@ export function PlanComparison({ open, onOpenChange, onSelectPlan }: PlanCompari
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="px-[14px] pt-3 overflow-y-auto overscroll-y-contain flex-1">
+                <div
+                    ref={scrollContainerRef}
+                    className={`px-[14px] pt-3 h-[500px] overscroll-y-contain relative flex flex-col ${isExpanded ? 'overflow-y-auto' : 'overflow-hidden'}`}
+                >
                     <table className="w-full border-collapse table-fixed">
                         <thead>
                             <tr>
@@ -64,7 +78,7 @@ export function PlanComparison({ open, onOpenChange, onSelectPlan }: PlanCompari
                             </tr>
                         </thead>
                         <tbody>
-                            {features.slice(0, isExpanded ? undefined : 7).map((feature, idx) => (
+                            {(isExpanded ? features : features.slice(0, 8)).map((feature, idx) => (
                                 <tr key={idx} className="border-t border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
                                     <td className="py-2.5 pr-2 text-[12.5px] font-medium text-white/70 leading-[1.3] text-left">
                                         {feature.name}
@@ -93,13 +107,15 @@ export function PlanComparison({ open, onOpenChange, onSelectPlan }: PlanCompari
                         </tbody>
                     </table>
 
-                    <button
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="w-full py-2.5 flex items-center justify-center gap-1.5 text-[#ffb400] font-sans text-[12px] font-bold hover:opacity-80 transition-opacity"
-                    >
-                        {isExpanded ? 'Ver menos' : 'Ver todos os benefícios'}
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-                    </button>
+                    {!isExpanded && (
+                        <button
+                            onClick={() => setIsExpanded(true)}
+                            className="w-full py-4 flex items-center justify-center gap-1.5 text-[#ffb400] font-sans text-[12px] font-bold hover:opacity-80 transition-opacity bg-transparent border-0"
+                        >
+                            Ver todos os benefícios
+                            <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                    )}
                 </div>
 
                 {/* Footer Buttons Grid */}
