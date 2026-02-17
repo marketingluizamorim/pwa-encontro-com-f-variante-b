@@ -77,6 +77,125 @@ const LOOKING_FOR_ICONS: Record<string, string> = {
   'Amizade verdadeira': 'ri-hand-heart-fill',
 };
 
+// Custom WhatsApp-style Audio Player Component
+function AudioMessage({ url, isOwn, avatarUrl }: { url: string; isOwn: boolean; avatarUrl?: string }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const onTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const onLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration);
+    }
+  };
+
+  const onEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  };
+
+  return (
+    <div className={cn(
+      "flex items-center gap-3 py-1.5 px-1 min-w-[220px] max-w-full overflow-hidden",
+    )}>
+      {/* Avatar with Mic Badge */}
+      <div className="relative shrink-0 ml-1">
+        <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20 shadow-md">
+          <img src={avatarUrl || '/placeholder.svg'} alt="Avatar" className="w-full h-full object-cover" />
+        </div>
+        <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-background rounded-full flex items-center justify-center shadow-md border border-border/20">
+          <i className={cn("ri-mic-fill text-[10px]", isOwn ? "text-primary" : "text-primary")} />
+        </div>
+      </div>
+
+      {/* Play/Pause Button */}
+      <button
+        onClick={togglePlay}
+        className="shrink-0 w-9 h-9 flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
+      >
+        <i className={cn(
+          "text-4xl",
+          isPlaying ? "ri-pause-mini-fill" : "ri-play-mini-fill",
+          isOwn ? "text-white" : "text-primary"
+        )} />
+      </button>
+
+      {/* Progress & Time */}
+      <div className="flex-1 flex flex-col gap-1 min-w-0 pr-2 pt-1">
+        <div className="relative h-6 w-full flex items-center group">
+          <input
+            type="range"
+            min="0"
+            max={duration || 0}
+            step="0.01"
+            value={currentTime}
+            onChange={handleSeek}
+            className={cn(
+              "w-full h-1 rounded-full appearance-none cursor-pointer outline-none z-10",
+              isOwn ? "accent-white bg-white/20" : "accent-primary bg-primary/20"
+            )}
+            style={{
+              background: `linear-gradient(to right, ${isOwn ? 'white' : 'hsl(var(--primary))'} ${(currentTime / duration) * 100 || 0}%, ${isOwn ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'} 0%)`
+            }}
+          />
+        </div>
+        <div className="flex justify-between items-center pr-1 -mt-1">
+          <span className={cn("text-[10px] font-semibold", isOwn ? "text-white/90" : "text-muted-foreground/80")}>
+            {formatTime(currentTime || 0)}
+          </span>
+          {duration > 0 && (
+            <span className={cn("text-[10px] font-semibold", isOwn ? "text-white/90" : "text-muted-foreground/80")}>
+              {formatTime(duration)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <audio
+        ref={audioRef}
+        src={url}
+        onTimeUpdate={onTimeUpdate}
+        onLoadedMetadata={onLoadedMetadata}
+        onEnded={onEnded}
+        preload="metadata"
+        className="hidden"
+      />
+    </div>
+  );
+}
+
 export default function ChatRoom() {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
@@ -649,6 +768,8 @@ export default function ChatRoom() {
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
+
+      if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -766,7 +887,7 @@ export default function ChatRoom() {
     }
   };
 
-  const renderMessageContent = (content: string) => {
+  const renderMessageContent = (content: string, isOwn: boolean) => {
     if (content.startsWith('[image:')) {
       const url = content.replace('[image:', '').replace(']', '');
       return (
@@ -780,15 +901,16 @@ export default function ChatRoom() {
     }
     if (content.startsWith('[audio:')) {
       const url = content.replace('[audio:', '').replace(']', '').trim();
+      const avatarUrl = isOwn
+        ? (user?.user_metadata?.avatar_url || '/placeholder.svg')
+        : (matchProfile?.photos?.[0] || matchProfile?.avatar_url || '/placeholder.svg');
+
       return (
-        <div className="flex flex-col gap-1 py-1 min-w-[200px]">
-          <audio
-            src={url}
-            controls
-            preload="metadata"
-            className="h-10 w-full"
-          />
-        </div>
+        <AudioMessage
+          url={url}
+          isOwn={isOwn}
+          avatarUrl={avatarUrl}
+        />
       );
     }
     if (content.startsWith('[profile-card:')) {
@@ -925,7 +1047,7 @@ export default function ChatRoom() {
                         <i className="ri-star-fill" /> Super Like
                       </p>
                     )}
-                    {renderMessageContent(m.content)}
+                    {renderMessageContent(m.content, isOwn)}
                     <div className={cn('flex items-center justify-end gap-1 mt-1',
                       isOwn ? 'text-primary-foreground' : 'text-muted-foreground',
                       (!isOwn && index === 0 && isSuperLikeMatch) && 'text-blue-100'
