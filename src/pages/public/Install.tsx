@@ -291,16 +291,16 @@ export default function Install() {
 
           <div className="flex flex-col items-center gap-3">
             <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg">
-              <i className="ri-wifi-off-line text-2xl text-white/60" />
+              <i className="ri-notification-3-line text-2xl text-white/60" />
             </div>
-            <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] text-center leading-relaxed">Sempre<br />Ativo</span>
+            <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] text-center leading-relaxed">Notificações<br />Inteligentes</span>
           </div>
 
           <div className="flex flex-col items-center gap-3">
             <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg">
-              <i className="ri-notification-3-line text-2xl text-white/60" />
+              <i className="ri-map-pin-2-line text-2xl text-white/60" />
             </div>
-            <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] text-center leading-relaxed">Avisos<br />Reais</span>
+            <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] text-center leading-relaxed">Localização<br />Exata</span>
           </div>
         </motion.div>
 
