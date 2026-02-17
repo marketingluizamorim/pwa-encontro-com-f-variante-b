@@ -214,7 +214,7 @@ export default function Install() {
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
         {/* Navigation */}
-        <header className="w-full flex items-center mb-2">
+        <header className="w-full flex items-center mt-4 mb-4">
           <button
             onClick={() => navigate(-1)}
             className="group flex items-center justify-center text-white/40 hover:text-white transition-all bg-white/5 hover:bg-white/10 w-10 h-10 rounded-xl border border-white/5 active:scale-95 shadow-lg"
@@ -244,7 +244,7 @@ export default function Install() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-xl font-display font-bold text-white tracking-tight"
+            className="text-2xl font-display font-bold text-white tracking-tight"
           >
             Instale o App
           </motion.h1>
