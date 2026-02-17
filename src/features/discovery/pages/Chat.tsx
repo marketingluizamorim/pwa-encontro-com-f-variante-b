@@ -787,7 +787,7 @@ export default function Chat() {
                                 </div>
 
                                 {/* Botão de Ação */}
-                                <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom)*0.4)] pointer-events-none">
+                                <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom)*0.25)] pointer-events-none">
                                     <button
                                         onClick={() => {
                                             const match = conversations.find(c => c.profile.id === selectedProfile.id);

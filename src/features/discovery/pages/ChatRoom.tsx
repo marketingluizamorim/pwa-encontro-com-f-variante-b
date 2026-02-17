@@ -910,7 +910,7 @@ export default function ChatRoom() {
       <div
         className="px-4 pt-3 pb-0.5 border-t bg-background shrink-0 z-50 transition-none"
         style={{
-          paddingBottom: isKeyboardVisible ? '4px' : 'calc(4px + env(safe-area-inset-bottom) * 0.3)'
+          paddingBottom: isKeyboardVisible ? '4px' : 'calc(4px + env(safe-area-inset-bottom) * 0.25)'
         }}
       >
         <AnimatePresence>
@@ -986,10 +986,10 @@ export default function ChatRoom() {
                   closeProfile();
                 }
               }}
-              className="fixed inset-0 z-[100] bg-background overflow-hidden flex flex-col"
+              className="fixed inset-0 z-[9999] bg-background overflow-hidden flex flex-col"
             >
               {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
+              <div className="flex-1 overflow-y-auto pb-32 scrollbar-hide relative">
 
                 {/* Hero Image Section */}
                 <div className="relative w-full h-[60vh] shrink-0 touch-none">
