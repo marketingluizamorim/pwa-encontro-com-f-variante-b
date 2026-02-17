@@ -55,23 +55,33 @@ export function useGeolocation() {
             (err) => {
                 let msg = 'Erro ao obter localização.';
                 if (err.code === err.PERMISSION_DENIED) {
-                    msg = 'Permissão de localização negada. Ative-a para ver pessoas próximas.';
+                    const isDismissed = localStorage.getItem('geo-permission-dismissed') === 'true';
 
-                    toast.error(msg, {
-                        id: 'geolocation-error',
-                        duration: Infinity,
-                        action: {
-                            label: 'Ativar Agora',
-                            onClick: () => navigate('/install'),
-                        },
-                        cancel: {
-                            label: 'Mais tarde',
-                            onClick: () => toast.dismiss('geolocation-error'),
-                        },
-                        style: {
-                            marginTop: '50px',
-                        }
-                    });
+                    if (!isDismissed) {
+                        msg = 'Permissão de localização negada. Ative-a para ver pessoas próximas.';
+
+                        toast.error(msg, {
+                            id: 'geolocation-error',
+                            duration: Infinity,
+                            onDismiss: () => {
+                                localStorage.setItem('geo-permission-dismissed', 'true');
+                            },
+                            action: {
+                                label: 'Ativar Agora',
+                                onClick: () => navigate('/install'),
+                            },
+                            cancel: {
+                                label: 'Mais tarde',
+                                onClick: () => {
+                                    localStorage.setItem('geo-permission-dismissed', 'true');
+                                    toast.dismiss('geolocation-error');
+                                },
+                            },
+                            style: {
+                                marginTop: '50px',
+                            }
+                        });
+                    }
                 } else {
                     toast.error(msg, {
                         id: 'geolocation-error',
