@@ -70,10 +70,10 @@ export function SafetyToolkitDrawer({ open, onOpenChange }: SafetyToolkitDrawerP
             .eq('user_id', user.id);
 
         if (error) {
-            toast.error('Erro ao salvar configuração');
+            toast.error('Erro ao salvar configuração', { style: { marginTop: '50px' } });
             setSettings(previousSettings);
         } else {
-            toast.success('Configuração atualizada');
+            toast.success('Configuração atualizada', { style: { marginTop: '50px' } });
         }
         setIsSaving(false);
     };

@@ -441,6 +441,7 @@ export default function Discover() {
               background: 'linear-gradient(to right, #d4af37, #b45309)',
               color: 'white',
               border: '1px solid rgba(255,255,255,0.2)',
+              marginTop: '50px',
             }
           });
 
@@ -455,7 +456,7 @@ export default function Discover() {
         },
         onError: (error) => {
           console.error('Error saving super like:', error);
-          toast.error('Erro ao enviar Super Like');
+          toast.error('Erro ao enviar Super Like', { style: { marginTop: '50px' } });
         },
       }
     );

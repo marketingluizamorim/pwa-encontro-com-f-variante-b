@@ -394,7 +394,7 @@ export default function Matches() {
 
   const handleRefresh = async () => {
     await fetchLikes();
-    toast.success('Lista atualizada');
+    toast.success('Lista atualizada', { style: { marginTop: '50px' } });
   };
 
   const handleSwipe = async (targetUserId: string, direction: 'like' | 'dislike' | 'super_like') => {
@@ -435,13 +435,13 @@ export default function Matches() {
             triggerHaptic('success');
           } else if (direction === 'like' || direction === 'super_like') {
             if (!data.match) {
-              toast.success('Você curtiu também!');
+              toast.success('Você curtiu também!', { style: { marginTop: '50px' } });
             }
           }
         },
         onError: (error) => {
           console.error('Swipe error:', error);
-          toast.error('Erro ao processar ação');
+          toast.error('Erro ao processar ação', { style: { marginTop: '50px' } });
           fetchLikes();
         }
       }

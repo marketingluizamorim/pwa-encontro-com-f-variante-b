@@ -47,7 +47,7 @@ export function PixPaymentDialog({
       setShowCopyInstructions(true);
       setTimeout(() => setCopied(false), 6000);
     } catch {
-      toast.error('Erro ao copiar código');
+      toast.error('Erro ao copiar código', { style: { marginTop: '50px' } });
     }
   };
 
@@ -72,7 +72,7 @@ export function PixPaymentDialog({
       }
     } catch (error) {
       console.error('Error checking payment:', error);
-      if (isManual) toast.error('Erro ao verificar pagamento');
+      if (isManual) toast.error('Erro ao verificar pagamento', { style: { marginTop: '50px' } });
     } finally {
       if (isManual) setIsChecking(false);
     }

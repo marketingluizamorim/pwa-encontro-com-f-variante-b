@@ -401,7 +401,7 @@ export default function Chat() {
 
     const handleRefresh = async () => {
         await Promise.all([fetchConversations(), fetchLikesCount()]);
-        toast.success('Conversas atualizadas');
+        toast.success('Conversas atualizadas', { style: { marginTop: '50px' } });
     };
 
     if (loading) {
@@ -795,7 +795,7 @@ export default function Chat() {
                                             if (match) {
                                                 navigate(`/app/chat/${match.match_id}`);
                                             } else {
-                                                toast.error('Erro ao encontrar conversa');
+                                                toast.error('Erro ao encontrar conversa', { style: { marginTop: '50px' } });
                                             }
                                         }}
                                         className="w-full max-w-sm h-14 rounded-full bg-gradient-to-r from-primary to-primary/80 text-white font-bold text-lg shadow-xl shadow-primary/20 flex items-center justify-center gap-2 pointer-events-auto hover:scale-[1.02] active:scale-95 transition-all"

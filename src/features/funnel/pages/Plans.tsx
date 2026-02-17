@@ -204,7 +204,7 @@ export default function Plans() {
               variant="outline"
               size="sm"
               onClick={async () => {
-                const toastId = toast.loading('Alterando para Bronze...');
+                const toastId = toast.loading('Alterando para Bronze...', { style: { marginTop: '50px' } });
                 try {
                   const { supabase } = await import('@/integrations/supabase/client');
 
@@ -221,12 +221,12 @@ export default function Plans() {
                   }, { onConflict: 'user_id' });
 
                   if (error) throw error;
-                  toast.success('Alterado para Bronze!', { id: toastId });
+                  toast.success('Alterado para Bronze!', { id: toastId, style: { marginTop: '50px' } });
                   setTimeout(() => window.location.reload(), 1000);
                 } catch (err: unknown) {
                   console.error(err);
                   const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-                  toast.error(`Erro: ${errorMessage}`, { id: toastId });
+                  toast.error(`Erro: ${errorMessage}`, { id: toastId, style: { marginTop: '50px' } });
                 }
               }}
               className="bg-orange-950/30 border-orange-500/20 text-orange-200 hover:bg-orange-900/50 h-8 text-xs"
@@ -237,7 +237,7 @@ export default function Plans() {
               variant="outline"
               size="sm"
               onClick={async () => {
-                const toastId = toast.loading('Alterando para Prata...');
+                const toastId = toast.loading('Alterando para Prata...', { style: { marginTop: '50px' } });
                 try {
                   const { supabase } = await import('@/integrations/supabase/client');
 
@@ -254,12 +254,12 @@ export default function Plans() {
                   }, { onConflict: 'user_id' });
 
                   if (error) throw error;
-                  toast.success('Alterado para Prata!', { id: toastId });
+                  toast.success('Alterado para Prata!', { id: toastId, style: { marginTop: '50px' } });
                   setTimeout(() => window.location.reload(), 1000);
                 } catch (err: unknown) {
                   console.error(err);
                   const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-                  toast.error(`Erro: ${errorMessage}`, { id: toastId });
+                  toast.error(`Erro: ${errorMessage}`, { id: toastId, style: { marginTop: '50px' } });
                 }
               }}
               className="bg-slate-800/50 border-slate-400/20 text-slate-200 hover:bg-slate-700/50 h-8 text-xs"
@@ -270,7 +270,7 @@ export default function Plans() {
               variant="outline"
               size="sm"
               onClick={async () => {
-                const toastId = toast.loading('Alterando para Ouro...');
+                const toastId = toast.loading('Alterando para Ouro...', { style: { marginTop: '50px' } });
                 try {
                   const { supabase } = await import('@/integrations/supabase/client');
 
@@ -287,12 +287,12 @@ export default function Plans() {
                   }, { onConflict: 'user_id' });
 
                   if (error) throw error;
-                  toast.success('Alterado para Ouro!', { id: toastId });
+                  toast.success('Alterado para Ouro!', { id: toastId, style: { marginTop: '50px' } });
                   setTimeout(() => window.location.reload(), 1000);
                 } catch (err: unknown) {
                   console.error(err);
                   const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-                  toast.error(`Erro: ${errorMessage}`, { id: toastId });
+                  toast.error(`Erro: ${errorMessage}`, { id: toastId, style: { marginTop: '50px' } });
                 }
               }}
               className="bg-yellow-950/30 border-yellow-500/20 text-yellow-200 hover:bg-yellow-900/50 h-8 text-xs"

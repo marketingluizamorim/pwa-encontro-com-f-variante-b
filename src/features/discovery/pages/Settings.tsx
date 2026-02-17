@@ -86,10 +86,10 @@ export default function Settings() {
         .eq('user_id', user?.id);
 
       if (error) throw error;
-      toast.success('Configuração salva');
+      toast.success('Configuração salva', { style: { marginTop: '50px' } });
     } catch (error) {
       console.error('Error saving setting:', error);
-      toast.error('Erro ao salvar no servidor');
+      toast.error('Erro ao salvar no servidor', { style: { marginTop: '50px' } });
     }
   };
 
@@ -97,7 +97,7 @@ export default function Settings() {
     const newValue = !notificationsEnabled;
     setNotificationsEnabled(newValue);
     localStorage.setItem(`notifications_enabled_${user?.id}`, String(newValue));
-    toast.success(newValue ? 'Notificações ativadas' : 'Notificações desativadas');
+    toast.success(newValue ? 'Notificações ativadas' : 'Notificações desativadas', { style: { marginTop: '50px' } });
   };
 
   const handleDeactivateAccount = async () => {
@@ -111,11 +111,11 @@ export default function Settings() {
         .update({ is_active: false })
         .eq('user_id', user?.id);
 
-      toast.success('Conta desativada. Você pode reativá-la fazendo login novamente.');
+      toast.success('Conta desativada. Você pode reativá-la fazendo login novamente.', { style: { marginTop: '50px' } });
       await signOut();
       navigate('/');
     } catch (error) {
-      toast.error('Erro ao desativar conta');
+      toast.error('Erro ao desativar conta', { style: { marginTop: '50px' } });
     } finally {
       setSaving(false);
     }
@@ -128,11 +128,11 @@ export default function Settings() {
 
   const handlePasswordChange = async () => {
     if (newPassword.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
+      toast.error('A senha deve ter pelo menos 6 caracteres', { style: { marginTop: '50px' } });
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error('As senhas não coincidem');
+      toast.error('As senhas não coincidem', { style: { marginTop: '50px' } });
       return;
     }
 
@@ -143,14 +143,14 @@ export default function Settings() {
 
       if (error) throw error;
 
-      toast.success('Senha atualizada com sucesso!');
+      toast.success('Senha atualizada com sucesso!', { style: { marginTop: '50px' } });
       setShowPasswordDialog(false);
       setNewPassword('');
       setConfirmPassword('');
     } catch (error: unknown) {
       console.error('Error changing password:', error);
       const errorMessage = error instanceof Error ? error.message : 'Tente novamente';
-      toast.error('Erro ao atualizar senha: ' + errorMessage);
+      toast.error('Erro ao atualizar senha: ' + errorMessage, { style: { marginTop: '50px' } });
     } finally {
       setChangingPassword(false);
     }

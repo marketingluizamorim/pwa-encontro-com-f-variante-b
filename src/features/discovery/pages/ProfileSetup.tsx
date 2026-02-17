@@ -133,7 +133,7 @@ export default function ProfileSetup() {
       setTimeout(() => {
         setSaving(false);
         setStep('complete');
-        toast.success("Perfil salvo (Modo Teste)");
+        toast.success("Perfil salvo (Modo Teste)", { style: { marginTop: '50px' } });
       }, 1000);
       return;
     }
@@ -164,7 +164,7 @@ export default function ProfileSetup() {
     } catch (error: unknown) {
       console.error('Error saving profile:', error);
       const errorMessage = error instanceof Error ? error.message : 'Tente novamente';
-      toast.error('Erro ao salvar perfil: ' + errorMessage);
+      toast.error('Erro ao salvar perfil: ' + errorMessage, { style: { marginTop: '50px' } });
     } finally {
       setSaving(false);
     }

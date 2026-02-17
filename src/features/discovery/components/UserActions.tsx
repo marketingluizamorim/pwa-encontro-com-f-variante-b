@@ -155,7 +155,7 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
       setDescription('');
     } catch (err) {
       console.error('❌ Error submitting report:', err);
-      toast.error('Erro ao enviar denúncia');
+      toast.error('Erro ao enviar denúncia', { style: { marginTop: '50px' } });
     } finally {
       setLoading(false);
     }
@@ -298,13 +298,14 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
 
       if (error) {
         if (error.code === '23505') {
-          toast.info('Usuário já bloqueado');
+          toast.info('Usuário já bloqueado', { style: { marginTop: '50px' } });
         } else {
           throw error;
         }
       } else {
         toast.success('Usuário bloqueado', {
           description: 'Você não verá mais este perfil.',
+          style: { marginTop: '50px' }
         });
       }
 
@@ -328,7 +329,7 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
       onBlocked?.();
     } catch (err) {
       console.error('Error blocking user:', err);
-      toast.error('Erro ao bloquear usuário');
+      toast.error('Erro ao bloquear usuário', { style: { marginTop: '50px' } });
     } finally {
       setLoading(false);
     }
@@ -448,12 +449,12 @@ export function DeleteConversationDialog({ open, onOpenChange, matchId, onDelete
 
       if (error) throw error;
 
-      toast.success('Conversa excluída');
+      toast.success('Conversa excluída', { style: { marginTop: '50px' } });
       onOpenChange(false);
       onDeleted?.();
     } catch (err) {
       console.error('Error deleting conversation:', err);
-      toast.error('Erro ao excluir conversa');
+      toast.error('Erro ao excluir conversa', { style: { marginTop: '50px' } });
     } finally {
       setLoading(false);
     }

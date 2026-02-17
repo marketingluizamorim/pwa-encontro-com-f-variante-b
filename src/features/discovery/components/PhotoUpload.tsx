@@ -20,7 +20,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
     if (!user) {
-      toast.error('Você precisa estar logado');
+      toast.error('Você precisa estar logado', { style: { marginTop: '50px' } });
       return null;
     }
 
@@ -32,12 +32,12 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
 
     // Validate file
     if (!file.type.startsWith('image/')) {
-      toast.error('Apenas imagens são permitidas');
+      toast.error('Apenas imagens são permitidas', { style: { marginTop: '50px' } });
       return null;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Imagem muito grande (máx. 5MB)');
+      toast.error('Imagem muito grande (máx. 5MB)', { style: { marginTop: '50px' } });
       return null;
     }
 
@@ -72,7 +72,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
     } catch (error: unknown) {
       console.error('Upload error details:', error);
       const msg = (error as Error)?.message || 'Erro desconhecido';
-      toast.error(`Erro ao enviar foto: ${msg}. Tente novamente.`);
+      toast.error(`Erro ao enviar foto: ${msg}. Tente novamente.`, { style: { marginTop: '50px' } });
       return null;
     }
   };
@@ -85,7 +85,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
     const filesToUpload = Array.from(files).slice(0, remainingSlots);
 
     if (filesToUpload.length === 0) {
-      toast.error(`Máximo de ${maxPhotos} fotos`);
+      toast.error(`Máximo de ${maxPhotos} fotos`, { style: { marginTop: '50px' } });
       return;
     }
 
@@ -129,7 +129,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
     // Update photos array
     const newPhotos = photos.filter((_, i) => i !== index);
     onPhotosChange(newPhotos);
-    toast.success('Foto removida');
+    toast.success('Foto removida', { style: { marginTop: '50px' } });
   };
 
   const setAsMain = (index: number) => {
@@ -138,7 +138,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
     const [photo] = newPhotos.splice(index, 1);
     newPhotos.unshift(photo);
     onPhotosChange(newPhotos);
-    toast.success('Foto principal atualizada');
+    toast.success('Foto principal atualizada', { style: { marginTop: '50px' } });
   };
 
   return (

@@ -198,7 +198,7 @@ export default function ProfileEdit() {
     if (!user) return;
 
     if (!profile.display_name.trim()) {
-      toast.error('Nome é obrigatório');
+      toast.error('Nome é obrigatório', { style: { marginTop: '50px' } });
       return;
     }
 
@@ -239,11 +239,11 @@ export default function ProfileEdit() {
 
       if (error) throw error;
 
-      toast.success('Perfil atualizado!');
+      toast.success('Perfil atualizado!', { style: { marginTop: '50px' } });
       navigate('/app/profile');
     } catch (error) {
       console.error('Error saving profile:', error);
-      toast.error('Erro ao salvar perfil');
+      toast.error('Erro ao salvar perfil', { style: { marginTop: '50px' } });
     } finally {
       setSaving(false);
     }

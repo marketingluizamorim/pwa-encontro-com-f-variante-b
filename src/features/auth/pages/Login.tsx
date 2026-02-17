@@ -38,7 +38,7 @@ export default function Login() {
     const { error } = await signIn(email, password);
 
     if (error) {
-      toast.error(error.message || 'Erro ao fazer login');
+      toast.error(error.message || 'Erro ao fazer login', { style: { marginTop: '50px' } });
       setIsSubmitting(false);
     } else {
       toast.success('Login realizado com sucesso!', {

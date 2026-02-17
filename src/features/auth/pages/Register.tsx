@@ -46,12 +46,12 @@ export default function Register() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast.error('As senhas não conferem');
+      toast.error('As senhas não conferem', { style: { marginTop: '50px' } });
       return;
     }
 
     if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
+      toast.error('A senha deve ter pelo menos 6 caracteres', { style: { marginTop: '50px' } });
       return;
     }
 
@@ -70,7 +70,7 @@ export default function Register() {
         errorMessage = 'Este e-mail já está cadastrado. Tente fazer login.';
       }
 
-      toast.error(errorMessage);
+      toast.error(errorMessage, { style: { marginTop: '50px' } });
       setIsSubmitting(false);
     } else {
       // Account created successfully.
@@ -136,7 +136,7 @@ export default function Register() {
         // Still show success, but maybe redirect to login instead?
         // User requested "popup to proceed creating profile", implying flow continuity.
         // We will show dialog, and if they click continue, we try ensuring flow.
-        toast.success('Conta criada com sucesso!');
+        toast.success('Conta criada com sucesso!', { style: { marginTop: '50px' } });
         setShowSuccessDialog(true);
       }
       setIsSubmitting(false);

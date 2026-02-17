@@ -485,7 +485,7 @@ export default function ChatRoom() {
       setMessages((prev) => prev.map((m) => (m.id === tempId ? data : m)));
     } else {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      toast.error('Erro ao enviar mensagem');
+      toast.error('Erro ao enviar mensagem', { style: { marginTop: '50px' } });
     }
   };
 
@@ -534,7 +534,7 @@ export default function ChatRoom() {
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('Imagem muito grande (máx 10MB)');
+      toast.error('Imagem muito grande (máx 10MB)', { style: { marginTop: '50px' } });
       return;
     }
 
@@ -556,10 +556,10 @@ export default function ChatRoom() {
         .getPublicUrl(filePath);
 
       await sendMediaMessage(`[image:${publicUrl}]`);
-      toast.success('Imagem enviada!');
+      toast.success('Imagem enviada!', { style: { marginTop: '50px' } });
     } catch (err) {
       console.error('Upload error:', err);
-      toast.error('Erro ao subir imagem');
+      toast.error('Erro ao subir imagem', { style: { marginTop: '50px' } });
     } finally {
       setSending(false);
       if (imageInputRef.current) imageInputRef.current.value = '';
@@ -591,7 +591,7 @@ export default function ChatRoom() {
 
   const startRecording = async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      toast.error('Seu navegador não suporta gravação de áudio.');
+      toast.error('Seu navegador não suporta gravação de áudio.', { style: { marginTop: '50px' } });
       return;
     }
 
@@ -641,11 +641,11 @@ export default function ChatRoom() {
       console.error('Error starting recording:', err);
       const error = err as { name?: string };
       if (error.name === 'NotAllowedError') {
-        toast.error('Acesso ao microfone negado. Ative as permissões nas configurações do seu navegador.');
+        toast.error('Acesso ao microfone negado. Ative as permissões nas configurações do seu navegador.', { style: { marginTop: '50px' } });
       } else if (error.name === 'NotFoundError') {
-        toast.error('Nenhum microfone encontrado no seu dispositivo.');
+        toast.error('Nenhum microfone encontrado no seu dispositivo.', { style: { marginTop: '50px' } });
       } else {
-        toast.error('Erro ao acessar microfone. Verifique se ele está sendo usado por outro app.');
+        toast.error('Erro ao acessar microfone. Verifique se ele está sendo usado por outro app.', { style: { marginTop: '50px' } });
       }
     }
   };
@@ -677,10 +677,10 @@ export default function ChatRoom() {
         .getPublicUrl(filePath);
 
       await sendMediaMessage(`[audio:${publicUrl}]`);
-      toast.success('Áudio enviado!');
+      toast.success('Áudio enviado!', { style: { marginTop: '50px' } });
     } catch (err) {
       console.error('Audio upload error:', err);
-      toast.error('Erro ao enviar áudio');
+      toast.error('Erro ao enviar áudio', { style: { marginTop: '50px' } });
     } finally {
       setSending(false);
     }
@@ -704,7 +704,7 @@ export default function ChatRoom() {
     const link = mySocials[platform];
     if (link && link.trim() !== '') {
       sendMediaMessage(`[profile-card:${JSON.stringify({ [platform]: link })}]`);
-      toast.success(`${platform} compartilhado!`);
+      toast.success(`${platform} compartilhado!`, { style: { marginTop: '50px' } });
       setShowSocialBadges(false);
     } else {
       setSocialInputValue('');
@@ -727,13 +727,13 @@ export default function ChatRoom() {
         .update({ social_media: JSON.stringify(updatedSocials) } as { social_media: string }) as unknown as { eq: (k: string, v: string) => Promise<unknown> })
         .eq('user_id', user.id);
 
-      toast.success('Rede social salva no seu perfil!');
+      toast.success('Rede social salva no seu perfil!', { style: { marginTop: '50px' } });
       await sendMediaMessage(`[profile-card:${JSON.stringify({ [socialModal.platform]: valueToSave })}]`);
       setSocialModal({ isOpen: false, platform: null });
       setShowSocialBadges(false);
     } catch (err) {
       console.error('Error saving social:', err);
-      toast.error('Erro ao salvar rede social');
+      toast.error('Erro ao salvar rede social', { style: { marginTop: '50px' } });
     }
   };
 
@@ -850,7 +850,7 @@ export default function ChatRoom() {
               });
               setShowUpgradeDialog(true);
             } else {
-              toast.info("Chamada de vídeo em desenvolvimento");
+              toast.info("Chamada de vídeo em desenvolvimento", { style: { marginTop: '50px' } });
             }
           }}
           className="p-2 text-primary/80 hover:text-primary transition-colors"
