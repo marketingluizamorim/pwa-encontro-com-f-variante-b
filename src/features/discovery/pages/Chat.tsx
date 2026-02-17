@@ -623,7 +623,7 @@ export default function Chat() {
                                 }}
                             >
                                 {/* Scrollable Content */}
-                                <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
+                                <div className="flex-1 overflow-y-auto pb-32 scrollbar-hide relative">
                                     {/* Botão Fechar */}
                                     <button
                                         onClick={handleManualBack}
@@ -787,7 +787,7 @@ export default function Chat() {
                                 </div>
 
                                 {/* Botão de Ação */}
-                                <div className="absolute bottom-4 left-0 right-0 z-[100] flex justify-center items-center px-4 pb-[env(safe-area-inset-bottom)] pointer-events-none">
+                                <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom)*0.4)] pointer-events-none">
                                     <button
                                         onClick={() => {
                                             const match = conversations.find(c => c.profile.id === selectedProfile.id);
