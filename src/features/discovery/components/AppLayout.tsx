@@ -95,7 +95,7 @@ export function AppLayout() {
       </main>
 
       {/* Floating Bottom Navigation */}
-      <nav className="relative z-50 pt-2 shrink-0 flex justify-center px-4 pointer-events-none" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
+      <nav className="relative z-50 pt-2 shrink-0 flex justify-center px-4 pointer-events-none" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
         <div className="pointer-events-auto bg-[#1e293b]/95 backdrop-blur-2xl border border-white/10 rounded-full px-5 py-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-between w-full max-w-[calc(min(450px,94vw))] gap-1 ring-1 ring-white/10 transition-all duration-500">
           {navItems.map((item) => {
             {/* 
