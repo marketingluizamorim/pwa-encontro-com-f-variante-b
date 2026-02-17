@@ -385,6 +385,29 @@ export default function ChatRoom() {
     }
   };
 
+  // Video Call State
+  const [activeCall, setActiveCall] = useState<{ roomId: string; isIncoming: boolean; status: 'calling' | 'ongoing' } | null>(null);
+
+  const startVideoCall = async () => {
+    if (!matchId || !user) return;
+    const roomId = `room-${matchId}-${Math.random().toString(36).substring(7)}`;
+
+    // Inicia a chamada localmente
+    setActiveCall({ roomId, isIncoming: false, status: 'calling' });
+
+    // Envia o convite para o outro usuário
+    await sendMediaMessage(`[video-call:${roomId}]`);
+  };
+
+  const handleAcceptCall = () => {
+    if (activeCall) {
+      setActiveCall({ ...activeCall, status: 'ongoing' });
+    }
+  };
+
+  const handleEndCall = () => {
+    setActiveCall(null);
+  };
   const calculateAge = (birthDate: string): number => {
     if (!birthDate) return 0;
     const today = new Date();
@@ -955,6 +978,34 @@ export default function ChatRoom() {
         </div>
       );
     }
+    if (content.startsWith('[video-call:')) {
+      const roomId = content.replace('[video-call:', '').replace(']', '');
+      if (!isOwn && !activeCall) {
+        // Notifica o recebimento da chamada
+        setActiveCall({ roomId, isIncoming: true, status: 'calling' });
+      }
+      return (
+        <div className="flex flex-col gap-2 p-1 min-w-[200px]">
+          <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/10">
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+              <i className="ri-video-line text-xl" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white">Chamada de vídeo</p>
+              <p className="text-[10px] text-white/60">{isOwn ? 'Iniciada por você' : 'Convite recebido'}</p>
+            </div>
+          </div>
+          {!isOwn && (
+            <button
+              onClick={() => setActiveCall({ roomId, isIncoming: true, status: 'ongoing' })}
+              className="w-full h-9 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors"
+            >
+              Atender Chamada
+            </button>
+          )}
+        </div>
+      );
+    }
     return <p className="text-sm break-words leading-relaxed">{content}</p>;
   };
 
@@ -1026,7 +1077,7 @@ export default function ChatRoom() {
               });
               setShowUpgradeDialog(true);
             } else {
-              toast.info("Chamada de vídeo em desenvolvimento", { style: { marginTop: '50px' } });
+              startVideoCall();
             }
           }}
           className="p-2 text-primary/80 hover:text-primary transition-colors"
@@ -1488,6 +1539,70 @@ export default function ChatRoom() {
               alt="Imagem expandida"
               className="max-w-full max-h-full object-contain rounded-sm"
             />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* WhatsApp Style Video Call Overlay */}
+      <AnimatePresence>
+        {activeCall && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed inset-0 z-[12000] bg-[#0b141a] flex flex-col items-center justify-between py-16 px-6"
+          >
+            {activeCall.status === 'calling' ? (
+              <>
+                <div className="flex flex-col items-center gap-6 mt-10">
+                  <div className="relative">
+                    <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl">
+                      <img src={(activeCall.isIncoming ? matchProfile?.photos?.[0] : (myProfile?.photos?.[0] || user?.user_metadata?.avatar_url)) || '/placeholder.svg'} alt="Avatar" className="w-full h-full object-cover" />
+                    </div>
+                    {/* Pulsating Ring Effect */}
+                    <div className="absolute inset-0 rounded-full border-2 border-primary/50 animate-ping opacity-20" />
+                  </div>
+                  <div className="text-center">
+                    <h2 className="text-2xl font-bold text-white">{activeCall.isIncoming ? matchProfile?.display_name : 'Chamando...'}</h2>
+                    <p className="text-white/60 mt-1">{activeCall.isIncoming ? 'Chamada de vídeo recebida' : matchProfile?.display_name}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-16 mb-10">
+                  {activeCall.isIncoming ? (
+                    <>
+                      <button onClick={handleEndCall} className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
+                        <i className="ri-phone-fill text-3xl rotate-[135deg]" />
+                      </button>
+                      <button onClick={handleAcceptCall} className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
+                        <i className="ri-video-add-fill text-3xl" />
+                      </button>
+                    </>
+                  ) : (
+                    <button onClick={handleEndCall} className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
+                      <i className="ri-phone-fill text-3xl rotate-[135deg]" />
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              // Ongoing Video Call - Jitsi Iframe
+              <div className="absolute inset-0 bg-black">
+                <iframe
+                  src={`https://meet.jit.si/${activeCall.roomId}#config.prejoinPageEnabled=false&interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","videobackgroundblur","participants-pane"]`}
+                  allow="camera; microphone; fullscreen; display-capture; autoplay"
+                  className="w-full h-full border-none"
+                  onLoad={() => {
+                    // Could add more Jitsi control here if needed
+                  }}
+                />
+                <button
+                  onClick={handleEndCall}
+                  className="absolute bottom-10 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-red-500 flex items-center justify-center text-white shadow-xl z-10 active:scale-90 transition-transform"
+                >
+                  <i className="ri-close-line text-3xl" />
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
