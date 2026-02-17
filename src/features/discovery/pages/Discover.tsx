@@ -441,7 +441,6 @@ export default function Discover() {
               background: 'linear-gradient(to right, #d4af37, #b45309)',
               color: 'white',
               border: '1px solid rgba(255,255,255,0.2)',
-              marginTop: '64px'
             }
           });
 

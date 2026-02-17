@@ -56,7 +56,12 @@ export function useGeolocation() {
                 }
                 setError(msg);
                 setLoading(false);
-                toast.error(msg, { id: 'geolocation-error' });
+                toast.error(msg, {
+                    id: 'geolocation-error',
+                    style: {
+                        marginTop: '500px',
+                    }
+                });
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 3600000 }
         );
