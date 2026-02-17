@@ -59,7 +59,7 @@ export function useGeolocation() {
                 toast.error(msg, {
                     id: 'geolocation-error',
                     style: {
-                        marginTop: '500px',
+                        marginTop: '50px',
                     }
                 });
             },
