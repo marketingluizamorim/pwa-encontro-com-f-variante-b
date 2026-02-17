@@ -58,7 +58,7 @@ export function useGeolocation() {
                     const isDismissed = localStorage.getItem('geo-permission-dismissed') === 'true';
 
                     if (!isDismissed) {
-                        msg = 'Permissão de localização negada. Ative-a para ver pessoas próximas.';
+                        msg = 'Localização negada. Ative para ver pessoas próximas.';
 
                         toast.error(msg, {
                             id: 'geolocation-error',
