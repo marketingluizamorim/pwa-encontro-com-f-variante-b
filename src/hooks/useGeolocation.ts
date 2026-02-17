@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -7,6 +8,8 @@ export function useGeolocation() {
     const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const navigate = useNavigate();
 
     const updateProfileLocation = useCallback(async (lat: number, lon: number) => {
         if (!user) return;
@@ -53,19 +56,36 @@ export function useGeolocation() {
                 let msg = 'Erro ao obter localização.';
                 if (err.code === err.PERMISSION_DENIED) {
                     msg = 'Permissão de localização negada. Ative-a para ver pessoas próximas.';
+
+                    toast.error(msg, {
+                        id: 'geolocation-error',
+                        duration: Infinity,
+                        action: {
+                            label: 'Ativar Agora',
+                            onClick: () => navigate('/install'),
+                        },
+                        cancel: {
+                            label: 'Mais tarde',
+                            onClick: () => toast.dismiss('geolocation-error'),
+                        },
+                        style: {
+                            marginTop: '50px',
+                        }
+                    });
+                } else {
+                    toast.error(msg, {
+                        id: 'geolocation-error',
+                        style: {
+                            marginTop: '50px',
+                        }
+                    });
                 }
                 setError(msg);
                 setLoading(false);
-                toast.error(msg, {
-                    id: 'geolocation-error',
-                    style: {
-                        marginTop: '50px',
-                    }
-                });
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 3600000 }
         );
-    }, [updateProfileLocation]);
+    }, [updateProfileLocation, navigate]);
 
     useEffect(() => {
         if (!user) return;
