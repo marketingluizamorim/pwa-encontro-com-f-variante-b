@@ -34,7 +34,7 @@ const PLANS: Plan[] = [
       'Ver quem curtiu você',
       'Enviar mensagem sem curtir antes',
       'Enviar ou receber fotos e áudios',
-      'Chamadas de vídeo',
+      'Chamadas de voz e vídeo',
       'Destaque do perfil',
       'Comunidade cristã no WhatsApp',
       'Uso de filtros'
@@ -53,7 +53,7 @@ const PLANS: Plan[] = [
       'Curtidas ilimitadas',
       'Enviar ou receber fotos e áudios na mensagem',
       'Filtro por cidade / região',
-      'Fazer chamadas de vídeo'
+      'Chamadas de voz e vídeo'
     ],
     excludedFeatures: [
       'Enviar mensagem sem curtir antes',

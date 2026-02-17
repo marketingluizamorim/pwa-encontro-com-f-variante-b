@@ -21,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AlertTriangle, Ban, Lock, Video } from 'lucide-react';
+import { AlertTriangle, Ban, Lock, Video, Phone } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
 import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
@@ -385,25 +385,31 @@ export default function ChatRoom() {
     }
   };
 
-  // Video Call State
-  const [activeCall, setActiveCall] = useState<{ roomId: string; isIncoming: boolean; status: 'calling' | 'ongoing' } | null>(null);
+  // Call State (Audio or Video)
+  const [activeCall, setActiveCall] = useState<{ roomId: string; isIncoming: boolean; status: 'calling' | 'ongoing'; type: 'video' | 'audio' } | null>(null);
 
-  const startVideoCall = async () => {
+  const startCall = async (type: 'video' | 'audio') => {
     if (!matchId || !user) return;
     const roomId = `room-${matchId}-${Math.random().toString(36).substring(7)}`;
 
     // Inicia a chamada localmente
-    setActiveCall({ roomId, isIncoming: false, status: 'calling' });
+    setActiveCall({ roomId, isIncoming: false, status: 'calling', type });
+    if (type === 'audio') setIsCameraOff(true);
 
     // Envia o convite para o outro usuário
-    await sendMediaMessage(`[video-call:${roomId}]`);
+    await sendMediaMessage(`[${type}-call:${roomId}]`);
   };
+
+  const startVideoCall = () => startCall('video');
+  const startAudioCall = () => startCall('audio');
 
   const handleAcceptCall = async () => {
     if (activeCall) {
       setActiveCall({ ...activeCall, status: 'ongoing' });
-      // Envia confirmação de aceite para o outro usuário saber que pode iniciar o vídeo
-      await sendMediaMessage(`[video-call-accepted:${activeCall.roomId}]`);
+      // Se for áudio, garante que a câmera está desligada
+      if (activeCall.type === 'audio') setIsCameraOff(true);
+      // Envia confirmação de aceite para o outro usuário saber que pode iniciar o vídeo/áudio
+      await sendMediaMessage(`[${activeCall.type}-call-accepted:${activeCall.roomId}]`);
     }
   };
 
@@ -544,9 +550,10 @@ export default function ChatRoom() {
           },
           (payload) => {
             const newMsg = payload.new as Message;
-            // Se for uma confirmação de aceite de chamada de vídeo
-            if (payload.new.content.startsWith('[video-call-accepted:')) {
-              const acceptedRoomId = payload.new.content.replace('[video-call-accepted:', '').replace(']', '');
+            // Confirmação de aceite (Vídeo ou Áudio)
+            if (payload.new.content.includes('-call-accepted:')) {
+              const type = payload.new.content.includes('video-call') ? 'video' : 'audio';
+              const acceptedRoomId = payload.new.content.replace(`[${type}-call-accepted:`, '').replace(']', '');
               setActiveCall(prev => {
                 if (prev && prev.roomId === acceptedRoomId) {
                   return { ...prev, status: 'ongoing' };
@@ -555,16 +562,17 @@ export default function ChatRoom() {
               });
             }
 
-            // Se for um novo convite de chamada de vídeo
-            if (payload.new.content.startsWith('[video-call:') && payload.new.sender_id !== user?.id) {
-              const roomId = payload.new.content.replace('[video-call:', '').replace(']', '');
-              setActiveCall({ roomId, isIncoming: true, status: 'calling' });
+            // Novo convite (Vídeo ou Áudio)
+            if (payload.new.content.includes('-call:') && !payload.new.content.includes('-accepted:') && payload.new.sender_id !== user?.id) {
+              const type = payload.new.content.includes('video-call') ? 'video' : 'audio';
+              const roomId = payload.new.content.replace(`[${type}-call:`, '').replace(']', '');
+              setActiveCall({ roomId, isIncoming: true, status: 'calling', type });
             }
 
             setMessages(prev => {
               // Evitar duplicatas
-              if (prev.some(m => m.id === payload.new.id)) return prev;
-              return [...prev, payload.new];
+              if (prev.some(m => m.id === (payload.new as Message).id)) return prev;
+              return [...prev, payload.new as Message];
             });
 
             if (newMsg.sender_id !== user?.id) {
@@ -1002,19 +1010,21 @@ export default function ChatRoom() {
         </div>
       );
     }
-    if (content.startsWith('[video-call-accepted:')) {
-      return null; // Don't render acceptance signals in chat as bubbles
+    if (content.startsWith('[video-call-accepted:') || content.startsWith('[audio-call-accepted:')) {
+      return null;
     }
-    if (content.startsWith('[video-call:')) {
-      const roomId = content.replace('[video-call:', '').replace(']', '');
+    if (content.startsWith('[video-call:') || content.startsWith('[audio-call:')) {
+      const isVideo = content.startsWith('[video-call:');
+      const typeLabel = isVideo ? 'vídeo' : 'áudio';
+      const roomId = content.replace(isVideo ? '[video-call:' : '[audio-call:', '').replace(']', '');
       return (
         <div className="flex flex-col gap-2 p-1 min-w-[200px]">
           <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/10">
             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-              <i className="ri-video-line text-xl" />
+              <i className={cn(isVideo ? "ri-video-line" : "ri-phone-line", "text-xl")} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white">Chamada de vídeo</p>
+              <p className="text-sm font-bold text-white">Chamada de {typeLabel}</p>
               <p className="text-[10px] text-white/60">{isOwn ? 'Iniciada por você' : 'Convite recebido'}</p>
             </div>
           </div>
@@ -1085,13 +1095,40 @@ export default function ChatRoom() {
             if (subscription?.tier === 'bronze' || subscription?.tier === 'none') {
               setUpgradeData({
                 title: "Plano Prata",
+                description: "Tenha encontros reais por áudio ou vídeo! Recurso liberado para membros do Plano Prata.",
+                features: [
+                  "Ver quem curtiu você",
+                  "Curtidas ilimitadas",
+                  "Enviar ou receber fotos e áudios",
+                  "Filtro por cidade / região",
+                  "Chamadas de voz e vídeo",
+                  "Comunidade cristã no WhatsApp"
+                ],
+                icon: <i className="ri-phone-line text-4xl" />,
+                price: 29.90,
+                planId: 'silver'
+              });
+              setShowUpgradeDialog(true);
+            } else {
+              startAudioCall();
+            }
+          }}
+          className="p-2 text-primary/80 hover:text-primary transition-colors"
+        >
+          <Phone className="w-6 h-6" />
+        </button>
+        <button
+          onClick={() => {
+            if (subscription?.tier === 'bronze' || subscription?.tier === 'none') {
+              setUpgradeData({
+                title: "Plano Prata",
                 description: "Tenha encontros reais por vídeo! Recurso liberado para membros do Plano Prata.",
                 features: [
                   "Ver quem curtiu você",
                   "Curtidas ilimitadas",
                   "Enviar ou receber fotos e áudios",
                   "Filtro por cidade / região",
-                  "Fazer chamadas de vídeo",
+                  "Chamadas de voz e vídeo",
                   "Comunidade cristã no WhatsApp"
                 ],
                 icon: <i className="ri-video-line text-4xl" />,
@@ -1669,10 +1706,10 @@ export default function ChatRoom() {
                 </div>
               </div>
             ) : (
-              // Ongoing Video Call - Jitsi Iframe
+              // Ongoing Call - Jitsi Iframe
               <div className="absolute inset-0 bg-black z-20">
                 <iframe
-                  src={`https://meet.jit.si/${activeCall.roomId}#config.prejoinPageEnabled=false&interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","videobackgroundblur","participants-pane"]`}
+                  src={`https://meet.jit.si/${activeCall.roomId}#config.prejoinPageEnabled=false&config.startWithVideoMuted=${activeCall.type === 'audio' ? 'true' : 'false'}&interfaceConfig.TOOLBAR_BUTTONS=["microphone",${activeCall.type === 'video' ? '"camera",' : ''}"closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","videobackgroundblur","participants-pane"]`}
                   allow="camera; microphone; fullscreen; display-capture; autoplay"
                   className="w-full h-full border-none"
                   onLoad={() => { }}
