@@ -24,11 +24,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
-const LOOKING_FOR_EMOJIS: Record<string, string> = {
-    'Relacionamento sério': '💍',
-    'Construir uma família': '👨‍👩‍👧‍👦',
-    'Conhecer pessoas novas': '✨',
-    'Amizade verdadeira': '🤝',
+const LOOKING_FOR_ICONS: Record<string, string> = {
+    'Relacionamento sério': 'ri-heart-pulse-fill',
+    'Construir uma família': 'ri-home-heart-fill',
+    'Conhecer pessoas novas': 'ri-sparkles-line',
+    'Amizade verdadeira': 'ri-hand-heart-fill',
 };
 
 interface Conversation {
@@ -745,12 +745,13 @@ export default function Chat() {
                                         {/* Seção: Procurando */}
                                         <div className="bg-card/50 border border-border/50 rounded-2xl p-4 backdrop-blur-sm">
                                             <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tô procurando</h3>
-                                            <div className="flex items-center gap-2.5">
-                                                <div className="relative flex items-center justify-center">
-                                                    <div className="absolute w-6 h-6 bg-pink-500/30 blur-lg rounded-full" />
-                                                    <span className="relative text-xl z-10 drop-shadow-sm">
-                                                        {LOOKING_FOR_EMOJIS[selectedProfile.looking_for || ''] || '💘'}
-                                                    </span>
+                                            <div className="flex items-center gap-3">
+                                                <div className="relative flex items-center justify-center scale-110">
+                                                    <div className="absolute w-6 h-6 bg-primary/20 blur-lg rounded-full" />
+                                                    <i className={cn(
+                                                        "relative text-xl z-10 drop-shadow-sm text-primary",
+                                                        LOOKING_FOR_ICONS[selectedProfile.looking_for || ''] || 'ri-heart-2-fill'
+                                                    )} />
                                                 </div>
                                                 <span className="text-base font-medium tracking-normal text-foreground">
                                                     {selectedProfile.looking_for || 'Buscando conexões'}

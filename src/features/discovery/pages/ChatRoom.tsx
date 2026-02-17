@@ -70,6 +70,13 @@ interface SocialMediaLinks {
   facebook?: string;
 }
 
+const LOOKING_FOR_ICONS: Record<string, string> = {
+  'Relacionamento sério': 'ri-heart-pulse-fill',
+  'Construir uma família': 'ri-home-heart-fill',
+  'Conhecer pessoas novas': 'ri-sparkles-line',
+  'Amizade verdadeira': 'ri-hand-heart-fill',
+};
+
 export default function ChatRoom() {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
@@ -1085,8 +1092,11 @@ export default function ChatRoom() {
                   <div className="bg-card/50 border border-border/50 rounded-2xl p-4 backdrop-blur-sm">
                     <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-widest font-bold">Tô procurando</h3>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/20">
-                        <i className="ri-heart-2-fill text-xl" />
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm border border-primary/20">
+                        <i className={cn(
+                          "text-xl",
+                          LOOKING_FOR_ICONS[matchProfile.looking_for || ''] || 'ri-heart-2-fill'
+                        )} />
                       </div>
                       <span className="text-lg font-medium">{matchProfile.looking_for || 'Um encontro abençoado'}</span>
                     </div>
