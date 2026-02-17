@@ -701,7 +701,7 @@ export default function Discover() {
 
           {/* Floating Action Controls (Main View) */}
           {!showInfo && (
-            <div className="absolute bottom-8 left-0 right-0 z-30 flex justify-center items-center gap-8 pointer-events-none transition-all">
+            <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-8 pointer-events-none transition-all">
               {/* Nope */}
               <button
                 onClick={() => handleSwipe('dislike')}
