@@ -239,7 +239,7 @@ export default function Install() {
         </motion.div>
 
         {/* Main Content */}
-        <div className="text-center space-y-0.5 mb-2">
+        <div className="text-center space-y-0.5 mb-6">
           <motion.h1
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
