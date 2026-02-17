@@ -408,6 +408,10 @@ export default function ChatRoom() {
   const handleEndCall = () => {
     setActiveCall(null);
   };
+
+  const [isMuted, setIsMuted] = useState(false);
+  const [isCameraOff, setIsCameraOff] = useState(false);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
   const calculateAge = (birthDate: string): number => {
     if (!birthDate) return 0;
     const today = new Date();
@@ -1542,62 +1546,111 @@ export default function ChatRoom() {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* WhatsApp Style Video Call Overlay */}
+      {/* WhatsApp Style Video Call Overlay - REPLICATING IMAGE 1 */}
       <AnimatePresence>
         {activeCall && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed inset-0 z-[12000] bg-[#0b141a] flex flex-col items-center justify-between py-16 px-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[12000] bg-[#0b141a] flex flex-col text-white overflow-hidden"
           >
+            {/* Background Pattern Overlay (Doodle Style) */}
+            <div
+              className="absolute inset-0 opacity-[0.03] pointer-events-none"
+              style={{ backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: '400px' }}
+            />
+
             {activeCall.status === 'calling' ? (
-              <>
-                <div className="flex flex-col items-center gap-6 mt-10">
-                  <div className="relative">
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl">
-                      <img src={(activeCall.isIncoming ? matchProfile?.photos?.[0] : (myProfile?.photos?.[0] || user?.user_metadata?.avatar_url)) || '/placeholder.svg'} alt="Avatar" className="w-full h-full object-cover" />
-                    </div>
-                    {/* Pulsating Ring Effect */}
-                    <div className="absolute inset-0 rounded-full border-2 border-primary/50 animate-ping opacity-20" />
-                  </div>
+              <div className="relative h-full flex flex-col items-center justify-between py-12 px-6 z-10">
+                {/* Header: Name and Status at the top */}
+                <div className="w-full flex items-center justify-between pt-4">
+                  <button onClick={handleEndCall} className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-full">
+                    <i className="ri-arrow-down-s-line text-2xl" />
+                  </button>
                   <div className="text-center">
-                    <h2 className="text-2xl font-bold text-white">{activeCall.isIncoming ? matchProfile?.display_name : 'Chamando...'}</h2>
-                    <p className="text-white/60 mt-1">{activeCall.isIncoming ? 'Chamada de vídeo recebida' : matchProfile?.display_name}</p>
+                    <h2 className="text-xl font-semibold leading-tight">{matchProfile?.display_name}</h2>
+                    <p className="text-sm text-white/60 tracking-wide">Chamando...</p>
+                  </div>
+                  <button className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-full">
+                    <i className="ri-user-add-line text-lg" />
+                  </button>
+                </div>
+
+                {/* Center: Circular Avatar */}
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="relative">
+                    <div className="w-48 h-48 rounded-full overflow-hidden border-2 border-white/5 shadow-2xl">
+                      <img
+                        src={(activeCall.isIncoming ? matchProfile?.photos?.[0] : (myProfile?.photos?.[0] || user?.user_metadata?.avatar_url)) || '/placeholder.svg'}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {/* Pulsating effect around avatar */}
+                    <div className="absolute inset-0 rounded-full border border-primary/30 animate-ping opacity-40" />
                   </div>
                 </div>
 
-                <div className="flex items-center gap-16 mb-10">
+                {/* Footer: Control Bar (Image 1 Style) */}
+                <div className="w-full max-w-sm mb-4">
                   {activeCall.isIncoming ? (
-                    <>
-                      <button onClick={handleEndCall} className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
+                    <div className="flex items-center justify-around w-full">
+                      <button onClick={handleEndCall} className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform">
                         <i className="ri-phone-fill text-3xl rotate-[135deg]" />
                       </button>
-                      <button onClick={handleAcceptCall} className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
+                      <button onClick={handleAcceptCall} className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform">
                         <i className="ri-video-add-fill text-3xl" />
                       </button>
-                    </>
+                    </div>
                   ) : (
-                    <button onClick={handleEndCall} className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
-                      <i className="ri-phone-fill text-3xl rotate-[135deg]" />
-                    </button>
+                    <div className="bg-[#202c33]/90 backdrop-blur-md rounded-[32px] p-2 flex items-center justify-between shadow-2xl border border-white/5">
+                      <button className="w-12 h-12 flex items-center justify-center text-white/60 hover:text-white transition-colors">
+                        <i className="ri-more-fill text-xl" />
+                      </button>
+                      <button
+                        onClick={() => setIsCameraOff(!isCameraOff)}
+                        className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-all", isCameraOff ? "bg-white/10 text-white/40" : "text-white/80")}
+                      >
+                        <i className={cn(isCameraOff ? "ri-video-off-fill" : "ri-video-fill", "text-xl")} />
+                      </button>
+                      <button
+                        onClick={() => setIsSpeakerOn(!isSpeakerOn)}
+                        className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-all", !isSpeakerOn ? "bg-white/10 text-white/40" : "text-white/80")}
+                      >
+                        <i className={cn(!isSpeakerOn ? "ri-volume-mute-fill" : "ri-volume-up-fill", "text-xl")} />
+                      </button>
+                      <button
+                        onClick={() => setIsMuted(!isMuted)}
+                        className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-all", isMuted ? "bg-white text-black" : "text-white/80")}
+                      >
+                        <i className={cn(isMuted ? "ri-mic-off-fill" : "ri-mic-fill", "text-xl")} />
+                      </button>
+                      <button
+                        onClick={handleEndCall}
+                        className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform"
+                      >
+                        <i className="ri-phone-fill text-2xl rotate-[135deg]" />
+                      </button>
+                    </div>
                   )}
                 </div>
-              </>
+              </div>
             ) : (
               // Ongoing Video Call - Jitsi Iframe
-              <div className="absolute inset-0 bg-black">
+              <div className="absolute inset-0 bg-black z-20">
                 <iframe
                   src={`https://meet.jit.si/${activeCall.roomId}#config.prejoinPageEnabled=false&interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","videobackgroundblur","participants-pane"]`}
                   allow="camera; microphone; fullscreen; display-capture; autoplay"
                   className="w-full h-full border-none"
-                  onLoad={() => {
-                    // Could add more Jitsi control here if needed
-                  }}
+                  onLoad={() => { }}
                 />
+
+                {/* Visual controls even on top of iframe if needed, but jitsi has its own. 
+                    Adding an exit button just in case */}
                 <button
                   onClick={handleEndCall}
-                  className="absolute bottom-10 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-red-500 flex items-center justify-center text-white shadow-xl z-10 active:scale-90 transition-transform"
+                  className="absolute bottom-10 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-red-500 flex items-center justify-center text-white shadow-xl z-[12001] active:scale-90 transition-transform"
                 >
                   <i className="ri-close-line text-3xl" />
                 </button>
