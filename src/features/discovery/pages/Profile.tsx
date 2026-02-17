@@ -360,7 +360,7 @@ export default function Profile() {
                         setBioText(profile?.bio || '');
                         setIsBioDialogOpen(true);
                       }}
-                      className="text-[10px] h-7 text-primary hover:text-primary/80 hover:bg-primary/5 uppercase tracking-wider font-bold"
+                      className="text-[12px] h-7 text-primary hover:text-primary/80 hover:bg-primary/5 tracking-wider font-bold"
                     >
                       <i className="ri-edit-line mr-1" />
                       Editar Bio
@@ -391,6 +391,19 @@ export default function Profile() {
               </div>
             )}
           </div>
+
+          {/* Edit Profile Button - Moved here */}
+          {isOwnProfile && (
+            <div className="px-4 mt-4">
+              <Button
+                onClick={() => navigate('/app/profile/edit')}
+                className="w-full h-12 font-medium bg-card text-foreground border border-border hover:bg-muted dark:bg-white/10 dark:hover:bg-white/15 dark:border-white/20 dark:text-white"
+              >
+                <i className="ri-pencil-line mr-2 text-lg" />
+                Editar Perfil
+              </Button>
+            </div>
+          )}
 
           {/* Subscription Status Card */}
           {isOwnProfile && (
@@ -582,26 +595,10 @@ export default function Profile() {
 
           {/* Action Buttons - Only for own profile */}
           {isOwnProfile && (
-            <div className="space-y-2 pt-4 px-4">
-              <Button
-                onClick={() => navigate('/app/profile/edit')}
-                className="w-full h-12 font-medium bg-card text-foreground border border-border hover:bg-muted dark:bg-white/10 dark:hover:bg-white/15 dark:border-white/20 dark:text-white"
-              >
-                <i className="ri-pencil-line mr-2 text-lg" />
-                Editar Perfil
-              </Button>
-
-              <Button
-                onClick={() => handleSignOut()}
-                variant="ghost"
-                className="w-full h-12 font-medium text-destructive hover:text-destructive hover:bg-destructive/5"
-              >
-                <LogOut className="mr-2 h-5 w-5" />
-                Sair da Conta
-              </Button>
+            <div className="space-y-2 px-4">
 
               {/* App Installation Disclaimer */}
-              <div className="mt-8 pt-6 border-t border-border/30 text-center">
+              <div className="mt-4 pt-4 border-t border-border/30 text-center">
                 <button
                   onClick={() => navigate('/install')}
                   className="group flex flex-col items-center gap-2 mx-auto px-4 py-2"
@@ -818,6 +815,6 @@ export default function Profile() {
 
         </div>
       </PullToRefresh>
-    </PageTransition>
+    </PageTransition >
   );
 }

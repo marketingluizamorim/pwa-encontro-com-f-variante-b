@@ -171,294 +171,296 @@ export default function ProfileSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans flex flex-col pt-[env(safe-area-inset-top)]">
+    <div className="h-screen flex flex-col bg-background text-foreground font-sans pt-[env(safe-area-inset-top)] overflow-hidden">
       {/* Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-20%] left-[-20%] w-[70%] h-[70%] bg-[#14b8a6]/10 rounded-full blur-[100px]" />
         <div className="absolute bottom-[-20%] right-[-20%] w-[70%] h-[70%] bg-[#d4af37]/5 rounded-full blur-[100px]" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col max-w-md mx-auto w-full p-6">
-        {/* Header */}
-        {step !== 'complete' && (
-          <div className="mb-8 pt-4">
-            <div className="flex items-center justify-between mb-4">
-              {step !== 'basics' ? (
-                <button onClick={handleBack} className="p-2 -ml-2 text-white/50 hover:text-white transition-colors">
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-              ) : <div className="w-6" />}
+      <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide">
+        <div className="flex flex-col max-w-md mx-auto w-full p-6">
+          {/* Header */}
+          {step !== 'complete' && (
+            <div className="mb-8 pt-4">
+              <div className="flex items-center justify-between mb-4">
+                {step !== 'basics' ? (
+                  <button onClick={handleBack} className="p-2 -ml-2 text-white/50 hover:text-white transition-colors">
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                ) : <div className="w-6" />}
 
-              <span className="text-xs font-semibold tracking-widest text-[#d4af37] uppercase">
-                {step === 'basics' ? 'Básico' : step === 'faith' ? 'Fé & Valores' : 'Fotos'}
-              </span>
-              <div className="w-6" />
+                <span className="text-xs font-semibold tracking-widest text-[#d4af37] uppercase">
+                  {step === 'basics' ? 'Básico' : step === 'faith' ? 'Fé & Valores' : 'Fotos'}
+                </span>
+                <div className="w-6" />
+              </div>
+
+              <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                  animate={{ width: `${progress}%` }}
+                  className="h-full bg-gradient-to-r from-[#d4af37] to-[#fcd34d]"
+                />
+              </div>
             </div>
+          )}
 
-            <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-              <motion.div
-                animate={{ width: `${progress}%` }}
-                className="h-full bg-gradient-to-r from-[#d4af37] to-[#fcd34d]"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="relative w-full">
-          <AnimatePresence mode="wait">
-            {step === 'basics' && (
-              <motion.div
-                initial={false}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0 }}
-                className="space-y-6"
-              >
-                <div className="text-center mb-8">
-                  <h1 className="text-3xl font-serif font-semibold text-white mb-2">Sobre Você</h1>
-                  <p className="text-white/60 text-sm">Vamos começar pelo essencial</p>
-                </div>
-                {/* ... fields ... */}
-
-                <div className="space-y-5">
-                  <div className="space-y-2">
-                    <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.birthDate ? "text-red-400" : "text-white/50")}>
-                      Data de Nascimento {errors.birthDate && "*"}
-                    </label>
-                    <Input
-                      type="date"
-                      value={birthDate}
-                      onChange={(e) => { setBirthDate(e.target.value); delete errors.birthDate; }}
-                      className={cn(
-                        "bg-card text-foreground h-14 text-lg rounded-xl transition-all",
-                        errors.birthDate
-                          ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
-                          : "border-border focus:border-[#d4af37]/50 focus:ring-[#d4af37]/20"
-                      )}
-                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                    />
+          {/* Content */}
+          <div className="relative w-full">
+            <AnimatePresence mode="wait">
+              {step === 'basics' && (
+                <motion.div
+                  initial={false}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0 }}
+                  className="space-y-6"
+                >
+                  <div className="text-center mb-8">
+                    <h1 className="text-3xl font-serif font-semibold text-white mb-2">Sobre Você</h1>
+                    <p className="text-white/60 text-sm">Vamos começar pelo essencial</p>
                   </div>
+                  {/* ... fields ... */}
 
-                  <div className="space-y-2">
-                    <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.gender ? "text-red-400" : "text-white/50")}>
-                      Gênero {errors.gender && "*"}
-                    </label>
+                  <div className="space-y-5">
+                    <div className="space-y-2">
+                      <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.birthDate ? "text-red-400" : "text-white/50")}>
+                        Data de Nascimento {errors.birthDate && "*"}
+                      </label>
+                      <Input
+                        type="date"
+                        value={birthDate}
+                        onChange={(e) => { setBirthDate(e.target.value); delete errors.birthDate; }}
+                        className={cn(
+                          "bg-card text-foreground h-14 text-lg rounded-xl transition-all",
+                          errors.birthDate
+                            ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
+                            : "border-border focus:border-[#d4af37]/50 focus:ring-[#d4af37]/20"
+                        )}
+                        max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.gender ? "text-red-400" : "text-white/50")}>
+                        Gênero {errors.gender && "*"}
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { value: 'male', label: 'Homem' },
+                          { value: 'female', label: 'Mulher' },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => { setGender(opt.value as 'male' | 'female'); delete errors.gender; }}
+                            className={cn(
+                              "h-14 rounded-xl border transition-all font-medium relative overflow-hidden",
+                              gender === opt.value
+                                ? 'bg-[#d4af37]/20 border-[#d4af37] text-white shadow-[0_0_15px_rgba(212,175,55,0.2)]'
+                                : 'bg-card text-muted-foreground hover:bg-muted',
+                              errors.gender && !gender ? "border-red-500/50 text-red-400" : "border-border"
+                            )}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { value: 'male', label: 'Homem' },
-                        { value: 'female', label: 'Mulher' },
-                      ].map((opt) => (
-                        <button
-                          key={opt.value}
-                          onClick={() => { setGender(opt.value as 'male' | 'female'); delete errors.gender; }}
+                      <div className="space-y-2">
+                        <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.state ? "text-red-400" : "text-white/50")}>
+                          Estado {errors.state && "*"}
+                        </label>
+                        <select
+                          value={state}
+                          onChange={(e) => { setState(e.target.value); setCity(''); delete errors.state; }}
                           className={cn(
-                            "h-14 rounded-xl border transition-all font-medium relative overflow-hidden",
-                            gender === opt.value
-                              ? 'bg-[#d4af37]/20 border-[#d4af37] text-white shadow-[0_0_15px_rgba(212,175,55,0.2)]'
-                              : 'bg-card text-muted-foreground hover:bg-muted',
-                            errors.gender && !gender ? "border-red-500/50 text-red-400" : "border-border"
+                            "w-full h-14 bg-card rounded-xl text-foreground px-3 appearance-none focus:outline-none transition-all",
+                            errors.state
+                              ? "border border-red-500/50 focus:border-red-500"
+                              : "border border-border focus:border-[#d4af37]/50"
                           )}
                         >
-                          {opt.label}
-                        </button>
-                      ))}
+                          <option value="" className="bg-[#0f172a]">UF</option>
+                          {BRAZIL_STATES.map(s => (
+                            <option key={s} value={s} className="bg-[#0f172a]">{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.city ? "text-red-400" : "text-white/50")}>
+                          Cidade {errors.city && "*"}
+                        </label>
+                        <select
+                          value={city}
+                          onChange={(e) => { setCity(e.target.value); delete errors.city; }}
+                          disabled={!state}
+                          className={cn(
+                            "w-full h-14 bg-card rounded-xl text-foreground px-3 appearance-none disabled:opacity-50 focus:outline-none transition-all",
+                            errors.city
+                              ? "border border-red-500/50 focus:border-red-500"
+                              : "border border-border focus:border-[#d4af37]/50"
+                          )}
+                        >
+                          <option value="" className="bg-[#0f172a]">Cidade</option>
+                          {state && BRAZIL_CITIES[state]?.map(c => (
+                            <option key={c} value={c} className="bg-[#0f172a]">{c}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
+
+
                   </div>
+                </motion.div>
+              )}
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.state ? "text-red-400" : "text-white/50")}>
-                        Estado {errors.state && "*"}
-                      </label>
-                      <select
-                        value={state}
-                        onChange={(e) => { setState(e.target.value); setCity(''); delete errors.state; }}
-                        className={cn(
-                          "w-full h-14 bg-card rounded-xl text-foreground px-3 appearance-none focus:outline-none transition-all",
-                          errors.state
-                            ? "border border-red-500/50 focus:border-red-500"
-                            : "border border-border focus:border-[#d4af37]/50"
-                        )}
-                      >
-                        <option value="" className="bg-[#0f172a]">UF</option>
-                        {BRAZIL_STATES.map(s => (
-                          <option key={s} value={s} className="bg-[#0f172a]">{s}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.city ? "text-red-400" : "text-white/50")}>
-                        Cidade {errors.city && "*"}
-                      </label>
-                      <select
-                        value={city}
-                        onChange={(e) => { setCity(e.target.value); delete errors.city; }}
-                        disabled={!state}
-                        className={cn(
-                          "w-full h-14 bg-card rounded-xl text-foreground px-3 appearance-none disabled:opacity-50 focus:outline-none transition-all",
-                          errors.city
-                            ? "border border-red-500/50 focus:border-red-500"
-                            : "border border-border focus:border-[#d4af37]/50"
-                        )}
-                      >
-                        <option value="" className="bg-[#0f172a]">Cidade</option>
-                        {state && BRAZIL_CITIES[state]?.map(c => (
-                          <option key={c} value={c} className="bg-[#0f172a]">{c}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-
-                </div>
-              </motion.div>
-            )}
-
-            {step === 'faith' && (
-              <motion.div
-                initial={false}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0 }}
-                className="space-y-8"
-              >
-                <div className="text-center mb-6">
-                  <h1 className="text-3xl font-serif font-semibold text-white mb-2">Sua Fé e Valores</h1>
-                  <p className="text-white/60 text-sm">O que torna você único(a)?</p>
-                </div>
-
-                <div className="space-y-6">
-                  <SelectGroup
-                    label="Qual o pilar da sua fé?"
-                    value={religion}
-                    onChange={(v) => { setReligion(v); delete errors.religion }}
-                    options={RELIGIONS}
-                    error={errors.religion}
-                  />
-                  <SelectGroup
-                    label="Frequência na igreja"
-                    value={churchFrequency}
-                    onChange={(v) => { setChurchFrequency(v); delete errors.churchFrequency }}
-                    options={CHURCH_FREQUENCIES}
-                    error={errors.churchFrequency}
-                  />
-                  <SelectGroup
-                    label="O que você busca?"
-                    value={lookingFor}
-                    onChange={(v) => { setLookingFor(v); delete errors.lookingFor }}
-                    options={LOOKING_FOR}
-                    error={errors.lookingFor}
-                  />
-                  <SelectGroup
-                    label="Sobre filhos"
-                    value={aboutChildren}
-                    onChange={(v) => { setAboutChildren(v); delete errors.aboutChildren }}
-                    options={CHILDREN_OPTIONS}
-                    error={errors.aboutChildren}
-                  />
-                  <SelectGroup
-                    label="IMPORTÂNCIA DE ENCONTRAR ALGUÉM COM MESMOS VALORES?"
-                    value={valuesImportance}
-                    onChange={(v) => { setValuesImportance(v); delete errors.valuesImportance }}
-                    options={VALUES_OPTIONS}
-                    error={errors.valuesImportance}
-                  />
-                </div>
-              </motion.div>
-            )}
-
-            {step === 'photos' && (
-              <motion.div
-                initial={false}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0 }}
-                className="space-y-6"
-              >
-                <div className="text-center mb-8">
-                  <h1 className="text-3xl font-serif font-semibold text-white mb-2">Suas Melhores Fotos</h1>
-                  <p className="text-white/60 text-sm">A primeira foto será seu cartão de visita</p>
-                </div>
-
-                <div className={cn(
-                  "bg-white/5 border rounded-3xl p-4 shadow-xl transition-all",
-                  errors.photos ? "border-red-500/50 shadow-red-500/10" : "border-white/10"
-                )}>
-                  <PhotoUpload
-                    photos={photos}
-                    onPhotosChange={(p) => { setPhotos(p); if (p.length > 0) delete errors.photos }}
-                    maxPhotos={6}
-                  />
-                </div>
-                {errors.photos && <p className="text-red-400 text-sm text-center">Adicione pelo menos uma foto para continuar</p>}
-              </motion.div>
-            )}
-
-            {step === 'complete' && (
-              <motion.div
-                key="complete"
-                initial={false}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0 }}
-                className="flex flex-col items-center justify-center min-h-[50vh] py-12 text-center"
-              >
-                <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-[#d4af37] to-[#fcd34d] p-[3px] mb-8 shadow-[0_0_50px_rgba(212,175,55,0.4)]">
-                  <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center">
-                    <Check className="w-12 h-12 text-[#fcd34d]" />
-                  </div>
-                </div>
-
-                <h1 className="text-4xl font-serif font-semibold text-white mb-4">Perfil Criado!</h1>
-                <p className="text-white/70 max-w-xs mx-auto mb-12 leading-relaxed">
-                  Tudo pronto. Agora você faz parte de uma comunidade exclusiva de pessoas que compartilham seus valores.
-                </p>
-
-                <Button
-                  onClick={() => setShowInstallDrawer(true)}
-                  className="w-full h-14 rounded-xl gradient-button text-white font-semibold tracking-wide text-lg shadow-lg shadow-amber-500/20"
+              {step === 'faith' && (
+                <motion.div
+                  initial={false}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0 }}
+                  className="space-y-8"
                 >
-                  Começar a Explorar
-                </Button>
+                  <div className="text-center mb-6">
+                    <h1 className="text-3xl font-serif font-semibold text-white mb-2">Sua Fé e Valores</h1>
+                    <p className="text-white/60 text-sm">O que torna você único(a)?</p>
+                  </div>
+
+                  <div className="space-y-6">
+                    <SelectGroup
+                      label="Qual o pilar da sua fé?"
+                      value={religion}
+                      onChange={(v) => { setReligion(v); delete errors.religion }}
+                      options={RELIGIONS}
+                      error={errors.religion}
+                    />
+                    <SelectGroup
+                      label="Frequência na igreja"
+                      value={churchFrequency}
+                      onChange={(v) => { setChurchFrequency(v); delete errors.churchFrequency }}
+                      options={CHURCH_FREQUENCIES}
+                      error={errors.churchFrequency}
+                    />
+                    <SelectGroup
+                      label="O que você busca?"
+                      value={lookingFor}
+                      onChange={(v) => { setLookingFor(v); delete errors.lookingFor }}
+                      options={LOOKING_FOR}
+                      error={errors.lookingFor}
+                    />
+                    <SelectGroup
+                      label="Sobre filhos"
+                      value={aboutChildren}
+                      onChange={(v) => { setAboutChildren(v); delete errors.aboutChildren }}
+                      options={CHILDREN_OPTIONS}
+                      error={errors.aboutChildren}
+                    />
+                    <SelectGroup
+                      label="IMPORTÂNCIA DE ENCONTRAR ALGUÉM COM MESMOS VALORES?"
+                      value={valuesImportance}
+                      onChange={(v) => { setValuesImportance(v); delete errors.valuesImportance }}
+                      options={VALUES_OPTIONS}
+                      error={errors.valuesImportance}
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {step === 'photos' && (
+                <motion.div
+                  initial={false}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0 }}
+                  className="space-y-6"
+                >
+                  <div className="text-center mb-8">
+                    <h1 className="text-3xl font-serif font-semibold text-white mb-2">Suas Melhores Fotos</h1>
+                    <p className="text-white/60 text-sm">A primeira foto será seu cartão de visita</p>
+                  </div>
+
+                  <div className={cn(
+                    "bg-white/5 border rounded-3xl p-4 shadow-xl transition-all",
+                    errors.photos ? "border-red-500/50 shadow-red-500/10" : "border-white/10"
+                  )}>
+                    <PhotoUpload
+                      photos={photos}
+                      onPhotosChange={(p) => { setPhotos(p); if (p.length > 0) delete errors.photos }}
+                      maxPhotos={6}
+                    />
+                  </div>
+                  {errors.photos && <p className="text-red-400 text-sm text-center">Adicione pelo menos uma foto para continuar</p>}
+                </motion.div>
+              )}
+
+              {step === 'complete' && (
+                <motion.div
+                  key="complete"
+                  initial={false}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0 }}
+                  className="flex flex-col items-center justify-center min-h-[50vh] py-12 text-center"
+                >
+                  <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-[#d4af37] to-[#fcd34d] p-[3px] mb-8 shadow-[0_0_50px_rgba(212,175,55,0.4)]">
+                    <div className="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center">
+                      <Check className="w-12 h-12 text-[#fcd34d]" />
+                    </div>
+                  </div>
+
+                  <h1 className="text-4xl font-serif font-semibold text-white mb-4">Perfil Criado!</h1>
+                  <p className="text-white/70 max-w-xs mx-auto mb-12 leading-relaxed">
+                    Tudo pronto. Agora você faz parte de uma comunidade exclusiva de pessoas que compartilham seus valores.
+                  </p>
+
+                  <Button
+                    onClick={() => setShowInstallDrawer(true)}
+                    className="w-full h-14 rounded-xl gradient-button text-white font-semibold tracking-wide text-lg shadow-lg shadow-amber-500/20"
+                  >
+                    Começar a Explorar
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Floating Error Banner - "Below Center" but visually prominent */}
+          <AnimatePresence>
+            {showErrorBanner && Object.keys(errors).length > 0 && (
+              <motion.div
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0 }}
+                className="absolute bottom-[calc(6rem+env(safe-area-inset-bottom))] left-6 right-6 z-50 pointer-events-none"
+              >
+                <div className="bg-red-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-center gap-3 backdrop-blur-md bg-opacity-90 border border-red-400/30">
+                  <AlertTriangle size={18} className="fill-white text-red-600" />
+                  <span className="font-semibold text-sm">Preencha os campos destacados</span>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
 
-        {/* Floating Error Banner - "Below Center" but visually prominent */}
-        <AnimatePresence>
-          {showErrorBanner && Object.keys(errors).length > 0 && (
-            <motion.div
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0 }}
-              className="absolute bottom-[calc(6rem+env(safe-area-inset-bottom))] left-6 right-6 z-50 pointer-events-none"
-            >
-              <div className="bg-red-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-center gap-3 backdrop-blur-md bg-opacity-90 border border-red-400/30">
-                <AlertTriangle size={18} className="fill-white text-red-600" />
-                <span className="font-semibold text-sm">Preencha os campos destacados</span>
-              </div>
-            </motion.div>
+          {/* Footer Actions */}
+          {step !== 'complete' && (
+            <div className="pt-8 pb-[calc(2rem+env(safe-area-inset-bottom))] relative z-20">
+              <Button
+                onClick={handleNext}
+                disabled={saving}
+                className="w-full h-14 rounded-xl gradient-button text-white font-semibold tracking-wide text-lg shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all active:scale-[0.98]"
+              >
+                {saving ? <AlertCircle className="animate-spin" /> : (step === 'photos' ? 'Finalizar Perfil' : 'Continuar')}
+              </Button>
+            </div>
           )}
-        </AnimatePresence>
-
-        {/* Footer Actions */}
-        {step !== 'complete' && (
-          <div className="pt-8 pb-[calc(2rem+env(safe-area-inset-bottom))] relative z-20">
-            <Button
-              onClick={handleNext}
-              disabled={saving}
-              className="w-full h-14 rounded-xl gradient-button text-white font-semibold tracking-wide text-lg shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all active:scale-[0.98]"
-            >
-              {saving ? <AlertCircle className="animate-spin" /> : (step === 'photos' ? 'Finalizar Perfil' : 'Continuar')}
-            </Button>
-          </div>
-        )}
-      </div>
+        </div>
+      </main>
 
       <InstallPwaDrawer
         open={showInstallDrawer}
         onOpenChange={setShowInstallDrawer}
         onComplete={() => navigate('/app/discover')}
       />
-    </div >
+    </div>
   );
 }
 
