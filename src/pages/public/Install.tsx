@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Heart, ChevronLeft, Share, PlusSquare, MoreVertical, Download, CheckCircle2 } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -49,7 +50,13 @@ export default function Install() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      toast.info("Use a opção 'Adicionar à tela inicial' no menu do seu navegador.", {
+        id: 'install-info',
+        duration: 4000
+      });
+      return;
+    }
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
@@ -112,9 +119,18 @@ export default function Install() {
               <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
                 <span className="text-sm font-bold text-white/80">2</span>
               </div>
-              <p className="text-sm text-white/80 leading-relaxed pt-1">
-                Role o menu e selecione <br /><span className="text-primary font-bold">"Adicionar à Tela de Início"</span>.
-              </p>
+              <div className="flex flex-col gap-2 pt-1">
+                <p className="text-sm text-white/80 leading-relaxed">
+                  "Adicionar à tela inicial" ou
+                </p>
+                <button
+                  onClick={handleInstallClick}
+                  className="inline-flex items-center justify-center gap-2 bg-primary/20 hover:bg-primary/40 text-primary px-4 py-2 rounded-xl border border-primary/30 transition-all active:scale-95 font-bold text-sm w-max"
+                >
+                  <Download className="w-4 h-4" />
+                  Clique Aqui
+                </button>
+              </div>
             </div>
 
             <div className="flex items-start gap-4">
@@ -130,86 +146,59 @@ export default function Install() {
       );
     }
 
-    if (deviceInfo.isAndroid || deferredPrompt) {
-      return (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 space-y-6 shadow-2xl"
-        >
-          <div className="flex items-center gap-4 pb-4 border-b border-white/5">
-            <div className="w-12 h-12 bg-green-500/20 rounded-2xl flex items-center justify-center border border-green-500/20">
-              <i className="ri-android-fill text-2xl text-green-400" />
-            </div>
-            <div>
-              <h2 className="font-bold text-white text-lg font-display tracking-tight">Instalação no Android</h2>
-              <p className="text-[10px] text-green-400/60 uppercase tracking-widest font-bold">Chrome e navegadores Android</p>
-            </div>
-          </div>
-
-          {deferredPrompt ? (
-            <div className="space-y-4 py-2">
-              <p className="text-sm text-white/50 text-center px-4">
-                Tudo pronto! Clique abaixo para instalar instantaneamente.
-              </p>
-              <Button
-                onClick={handleInstallClick}
-                className="w-full h-14 rounded-2xl gradient-button text-white font-bold uppercase tracking-wider text-sm shadow-xl shadow-primary/20 border-0"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Instalar Agora
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-6 text-left">
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
-                  <span className="text-sm font-bold text-white/80">1</span>
-                </div>
-                <p className="text-sm text-white/80 leading-relaxed pt-1">
-                  Toque nos três pontinhos <span className="inline-flex items-center justify-center w-7 h-7 bg-white/10 rounded-lg mx-1 border border-white/10"><MoreVertical className="w-3.5 h-3.5" /></span> no canto superior.
-                </p>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
-                  <span className="text-sm font-bold text-white/80">2</span>
-                </div>
-                <p className="text-sm text-white/80 leading-relaxed pt-1">
-                  Procure por <br /><span className="text-primary font-bold">"Instalar aplicativo"</span> ou <br /><span className="text-primary font-bold">"Adicionar à tela inicial"</span>.
-                </p>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
-                  <span className="text-sm font-bold text-white/80">3</span>
-                </div>
-                <p className="text-sm text-white/80 leading-relaxed pt-1">
-                  Confirme a instalação e o app aparecerá em sua lista de aplicativos.
-                </p>
-              </div>
-            </div>
-          )}
-        </motion.div>
-      );
-    }
-
-    // Default Fallback
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center shadow-2xl"
+        className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 space-y-6 shadow-2xl"
       >
-        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/10">
-          <Download className="w-8 h-8 text-white/40" />
+        <div className="flex items-center gap-4 pb-4 border-b border-white/5">
+          <div className="w-12 h-12 bg-green-500/20 rounded-2xl flex items-center justify-center border border-green-500/20">
+            <i className="ri-android-fill text-2xl text-green-400" />
+          </div>
+          <div>
+            <h2 className="font-bold text-white text-lg font-display tracking-tight">Instalação no Android</h2>
+            <p className="text-[10px] text-green-400/60 uppercase tracking-widest font-bold">Chrome e navegadores Android</p>
+          </div>
         </div>
-        <h2 className="font-bold text-white text-xl mb-3 font-display">Instalação Manual</h2>
-        <p className="text-sm text-white/50 leading-relaxed">
-          Abra o menu do seu navegador e procure pela opção <br />
-          <span className="text-primary font-bold">"Adicionar à tela inicial"</span> <br />
-          para ter a experiência completa.
-        </p>
+
+        <div className="space-y-6 text-left">
+          <div className="flex items-start gap-4">
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
+              <span className="text-sm font-bold text-white/80">1</span>
+            </div>
+            <p className="text-sm text-white/80 leading-relaxed pt-1">
+              Toque nos três pontinhos <span className="inline-flex items-center justify-center w-7 h-7 bg-white/10 rounded-lg mx-1 border border-white/10"><MoreVertical className="w-3.5 h-3.5" /></span> no canto superior.
+            </p>
+          </div>
+
+          <div className="flex items-start gap-4 group">
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 group-hover:bg-primary/20 transition-all">
+              <span className="text-sm font-bold text-white/80">2</span>
+            </div>
+            <div className="flex flex-col gap-2 pt-1">
+              <p className="text-sm text-white/80 leading-relaxed">
+                "Adicionar à tela inicial" ou
+              </p>
+              <button
+                onClick={handleInstallClick}
+                className="inline-flex items-center justify-center gap-2 bg-primary/20 hover:bg-primary/40 text-primary px-4 py-2 rounded-xl border border-primary/30 transition-all active:scale-95 font-bold text-sm w-max"
+              >
+                <Download className="w-4 h-4" />
+                Clique Aqui
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
+              <span className="text-sm font-bold text-white/80">3</span>
+            </div>
+            <p className="text-sm text-white/80 leading-relaxed pt-1">
+              Confirme a instalação e o app aparecerá em sua lista de aplicativos.
+            </p>
+          </div>
+        </div>
       </motion.div>
     );
   };
@@ -266,7 +255,7 @@ export default function Install() {
             transition={{ delay: 0.3 }}
             className="text-white/40 leading-relaxed px-4 text-sm font-medium"
           >
-            Adicione o <span className="text-primary font-bold">Encontro com Fé</span> à sua tela inicial para uma experiência premium e abençoada.
+            Adicione o <span className="text-primary font-bold">Encontro com Fé</span> à sua tela inicial para uma experiência premium personalizada.
           </motion.p>
         </div>
 
