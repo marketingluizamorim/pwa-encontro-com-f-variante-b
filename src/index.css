@@ -326,6 +326,6 @@
 
   /* Force Toast Positioning for PWA Context */
   [data-sonner-toaster][data-active-toaster="true"] {
-    top: calc(80px + env(safe-area-inset-top, 0px)) !important;
+    top: 120px !important;
   }
 }
