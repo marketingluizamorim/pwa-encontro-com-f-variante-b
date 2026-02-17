@@ -1095,33 +1095,6 @@ export default function ChatRoom() {
             if (subscription?.tier === 'bronze' || subscription?.tier === 'none') {
               setUpgradeData({
                 title: "Plano Prata",
-                description: "Tenha encontros reais por áudio ou vídeo! Recurso liberado para membros do Plano Prata.",
-                features: [
-                  "Ver quem curtiu você",
-                  "Curtidas ilimitadas",
-                  "Enviar ou receber fotos e áudios",
-                  "Filtro por cidade / região",
-                  "Chamadas de voz e vídeo",
-                  "Comunidade cristã no WhatsApp"
-                ],
-                icon: <i className="ri-phone-line text-4xl" />,
-                price: 29.90,
-                planId: 'silver'
-              });
-              setShowUpgradeDialog(true);
-            } else {
-              startAudioCall();
-            }
-          }}
-          className="p-2 text-primary/80 hover:text-primary transition-colors"
-        >
-          <Phone className="w-6 h-6" />
-        </button>
-        <button
-          onClick={() => {
-            if (subscription?.tier === 'bronze' || subscription?.tier === 'none') {
-              setUpgradeData({
-                title: "Plano Prata",
                 description: "Tenha encontros reais por vídeo! Recurso liberado para membros do Plano Prata.",
                 features: [
                   "Ver quem curtiu você",
@@ -1143,6 +1116,33 @@ export default function ChatRoom() {
           className="p-2 text-primary/80 hover:text-primary transition-colors"
         >
           <Video className="w-6 h-6" />
+        </button>
+        <button
+          onClick={() => {
+            if (subscription?.tier === 'bronze' || subscription?.tier === 'none') {
+              setUpgradeData({
+                title: "Plano Prata",
+                description: "Tenha encontros reais por áudio ou vídeo! Recurso liberado para membros do Plano Prata.",
+                features: [
+                  "Ver quem curtiu você",
+                  "Curtidas ilimitadas",
+                  "Enviar ou receber fotos e áudios",
+                  "Filtro por cidade / região",
+                  "Chamadas de voz e vídeo",
+                  "Comunidade cristã no WhatsApp"
+                ],
+                icon: <i className="ri-phone-line text-4xl" />,
+                price: 29.90,
+                planId: 'silver'
+              });
+              setShowUpgradeDialog(true);
+            } else {
+              startAudioCall();
+            }
+          }}
+          className="p-2 text-primary/80 hover:text-primary transition-colors"
+        >
+          <Phone className="w-6 h-6" />
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild><button className="p-2"><i className="ri-more-2-fill text-xl" /></button></DropdownMenuTrigger>
