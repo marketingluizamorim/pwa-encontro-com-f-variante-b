@@ -310,8 +310,8 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
           )}
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="h-[90vh] rounded-t-3xl outline-none focus:ring-0">
-        <DrawerHeader className="mb-4 text-left">
+      <DrawerContent className="h-[60vh] rounded-t-3xl outline-none focus:ring-0">
+        <DrawerHeader className="mb-2 text-left relative pr-12">
           <div className="flex items-center justify-between">
             <DrawerTitle className="font-display text-2xl">Filtros Avançados</DrawerTitle>
             {activeFiltersCount > 0 && (
@@ -320,6 +320,12 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               </Badge>
             )}
           </div>
+          <button
+            onClick={() => setOpen(false)}
+            className="absolute top-0 right-3.5 w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center text-foreground/60 hover:text-foreground active:scale-95 transition-all z-50"
+          >
+            <i className="ri-close-line text-xl" />
+          </button>
         </DrawerHeader>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-4 pb-12 scrollbar-hide">
