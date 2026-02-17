@@ -908,9 +908,9 @@ export default function ChatRoom() {
       </div>
 
       <div
-        className="px-4 py-3 border-t bg-background shrink-0 z-50 transition-none"
+        className="px-4 pt-3 pb-0.5 border-t bg-background shrink-0 z-50 transition-none"
         style={{
-          paddingBottom: isKeyboardVisible ? '8px' : 'max(8px, env(safe-area-inset-bottom))'
+          paddingBottom: isKeyboardVisible ? '4px' : 'calc(4px + env(safe-area-inset-bottom) * 0.3)'
         }}
       >
         <AnimatePresence>
@@ -948,7 +948,7 @@ export default function ChatRoom() {
             {sending ? <i className="ri-loader-4-line animate-spin" /> : <i className="ri-send-plane-fill" />}
           </Button>
         </form>
-        <div className="flex gap-4 mt-2.5">
+        <div className="flex gap-4 mt-1">
           <button onClick={() => setShowSocialBadges(!showSocialBadges)} className="text-primary opacity-70 hover:opacity-100"><i className="ri-id-card-line text-xl" /></button>
           <button onClick={handleCameraClick} className="text-primary opacity-70 hover:opacity-100"><i className="ri-camera-line text-xl" /></button>
           <button onClick={handleRecordAudio} className={cn("transition-all", isRecording ? "text-red-500 scale-110" : "text-primary opacity-70 hover:opacity-100")}><i className="ri-mic-line text-xl" /></button>
