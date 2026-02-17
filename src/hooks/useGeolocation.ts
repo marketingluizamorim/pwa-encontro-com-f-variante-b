@@ -76,9 +76,38 @@ export function useGeolocation() {
 
         // Check if we need to update location (first time or expired)
         if (!lastUpdate || (now - parseInt(lastUpdate)) > TWENTY_FOUR_HOURS) {
-            requestLocation();
+            console.log('Location request scheduled...');
+
+            let hasTriggered = false;
+
+            const triggerRequest = () => {
+                if (hasTriggered) return;
+                hasTriggered = true;
+
+                console.log('Triggering geolocation request after delay/interaction');
+                requestLocation();
+
+                // Cleanup listeners
+                window.removeEventListener('click', triggerRequest);
+                window.removeEventListener('touchstart', triggerRequest);
+                window.removeEventListener('scroll', triggerRequest);
+            };
+
+            // Set a timeout of 15 seconds as a fallback
+            const timer = setTimeout(triggerRequest, 15000);
+
+            // Add interaction listeners
+            window.addEventListener('click', triggerRequest, { once: true });
+            window.addEventListener('touchstart', triggerRequest, { once: true });
+            window.addEventListener('scroll', triggerRequest, { once: true });
+
+            return () => {
+                clearTimeout(timer);
+                window.removeEventListener('click', triggerRequest);
+                window.removeEventListener('touchstart', triggerRequest);
+                window.removeEventListener('scroll', triggerRequest);
+            };
         } else {
-            // Optional: try to recover last known good location from minimal stored user data or just rely on profile
             console.log('Using recent location data, skipping auto-request.');
         }
     }, [user, requestLocation]);
