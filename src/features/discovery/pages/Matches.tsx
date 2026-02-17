@@ -483,7 +483,7 @@ export default function Matches() {
                   ? "Veja todos que gostaram de você e não perca nenhuma conexão."
                   : "Faça um upgrade de plano para ver as pessoas que já curtiram você."
               ) : (
-                "Nenhuma curtida nova até o momento. Use os Boost para aparecer mais!"
+                "Nenhuma curtida nova até o momento. Use o Boost para aparecer mais!"
               )}
             </p>
 

@@ -78,6 +78,16 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
         </div>
       )}
 
+      {/* Gold Discount Badge - Floating at Top */}
+      {plan.id === 'gold' && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+          <div className="bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 text-[#064e3b] px-6 py-1.5 rounded-full text-[10px] font-black tracking-[0.1em] uppercase shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center gap-2 border border-emerald-300/30">
+            <Sparkles className="w-3.5 h-3.5 fill-current" />
+            {plan.savings} DESCONTO
+          </div>
+        </div>
+      )}
+
       {/* Card Container - Clean transition & Hover */}
       <div
         className={`relative rounded-[2rem] overflow-hidden transition-all duration-500 border h-full flex flex-col group/card hover:-translate-y-1 hover:shadow-2xl ${config.bg} ${plan.popular ? 'shadow-[0_20px_60px_rgba(0,0,0,0.5)] scale-100 md:scale-105 z-10 border-opacity-60' : 'shadow-xl hover:border-white/20'
@@ -89,13 +99,13 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
         {/* Interior glow effect */}
         <div className={`absolute inset-0 pointer-events-none transition-colors duration-1000 ${config.glow}`} />
 
-        <div className={`p-6 md:p-8 ${plan.popular ? 'pt-10 md:pt-12' : ''} relative z-10 flex flex-col flex-1`}>
+        <div className={`p-6 md:p-8 ${plan.popular || plan.id === 'gold' ? 'pt-10 md:pt-12' : ''} relative z-10 flex flex-col flex-1`}>
           <div className="flex justify-between items-start mb-6">
             <div>
               <h3 className="text-white font-serif text-xl md:text-2xl font-semibold tracking-normal mb-1">{plan.name}</h3>
               <p className="text-amber-400 text-sm font-bold tracking-wide uppercase mb-4">{plan.period}</p>
             </div>
-            {plan.savings && (
+            {plan.savings && plan.id !== 'gold' && (
               <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest backdrop-blur-md">
                 {plan.savings}
               </div>
@@ -104,15 +114,15 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
 
           {/* Pricing Section - More Balanced Typography */}
           <div className="mb-8">
-            <div className="flex items-center justify-center gap-2 mb-1.5 opacity-80">
+            <div className="flex items-center justify-start gap-2 mb-1.5 opacity-80">
               <span className="text-slate-400 text-[0.95rem] font-medium line-through decoration-slate-500/50">
                 De R$ {formattedOriginalPrice}
               </span>
             </div>
-            <div className="flex items-baseline justify-center gap-1">
+            <div className="flex items-baseline justify-start gap-1">
               <span className="text-slate-400 text-lg font-light">R$</span>
               <span className="text-white text-4xl font-extrabold font-sans tracking-tight drop-shadow-sm">{formattedPrice}</span>
-              <span className="text-slate-500 text-sm font-bold ml-1">{plan.id === 'bronze' ? '/semana' : '/mês'}</span>
+              <span className="text-slate-500 text-[0.85rem] font-bold ml-1">{plan.id === 'bronze' ? '/semana' : '/mês'}</span>
             </div>
 
 
