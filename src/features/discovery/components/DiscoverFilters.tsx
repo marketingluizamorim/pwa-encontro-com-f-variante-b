@@ -3,7 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -293,8 +299,8 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
   );
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
         <Button variant="outline" size="icon" className={cn("relative", triggerClassName)} id={triggerId} onClick={handleOpenFilters}>
           <i className="ri-equalizer-line text-lg" />
           {activeFiltersCount > 0 && (
@@ -303,20 +309,20 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
             </span>
           )}
         </Button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl">
-        <SheetHeader className="mb-4">
+      </DrawerTrigger>
+      <DrawerContent className="h-[90vh] rounded-t-3xl outline-none focus:ring-0">
+        <DrawerHeader className="mb-4 text-left">
           <div className="flex items-center justify-between">
-            <SheetTitle className="font-display text-2xl">Filtros Avançados</SheetTitle>
+            <DrawerTitle className="font-display text-2xl">Filtros Avançados</DrawerTitle>
             {activeFiltersCount > 0 && (
               <Badge variant="secondary" className="text-xs">
                 {activeFiltersCount} {activeFiltersCount === 1 ? 'filtro ativo' : 'filtros ativos'}
               </Badge>
             )}
           </div>
-        </SheetHeader>
+        </DrawerHeader>
 
-        <div className="space-y-5 overflow-y-auto max-h-[calc(90vh-180px)] px-2 pb-12">
+        <div className="flex-1 space-y-5 overflow-y-auto px-4 pb-12 scrollbar-hide">
 
 
           {/* Age Range */}
@@ -637,7 +643,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-4 border-t bg-background">
+        <div className="flex gap-3 px-4 py-6 border-t bg-background mt-auto pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
           <Button variant="outline" onClick={handleReset} className="flex-1">
             <i className="ri-refresh-line mr-2" />
             Limpar
@@ -647,7 +653,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
             Aplicar Filtros
           </Button>
         </div>
-      </SheetContent>
+      </DrawerContent>
 
       <FeatureGateDialog
         open={showUpgradeDialog}
@@ -686,6 +692,6 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
           planName={selectedCheckoutPlan.name}
         />
       )}
-    </Sheet>
+    </Drawer>
   );
 }
