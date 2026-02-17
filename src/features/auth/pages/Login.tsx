@@ -41,7 +41,11 @@ export default function Login() {
       toast.error(error.message || 'Erro ao fazer login');
       setIsSubmitting(false);
     } else {
-      toast.success('Login realizado com sucesso!');
+      toast.success('Login realizado com sucesso!', {
+        style: {
+          marginTop: '50px',
+        },
+      });
       navigate(from, { replace: true });
     }
   };
