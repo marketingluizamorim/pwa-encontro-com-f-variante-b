@@ -587,7 +587,9 @@ export default function Chat() {
                                                     if (content.startsWith('[image:')) return '📷 Imagem';
                                                     if (content.startsWith('[audio:')) return '🎤 Mensagem de áudio';
                                                     if (content.startsWith('[profile-card')) return '👤 Cartão de Perfil';
+                                                    if (content.startsWith('[video-call-accepted') || content.startsWith('[audio-call-accepted')) return 'Chamada aceita';
                                                     if (content.startsWith('[video-call')) return '📞 Chamada de vídeo';
+                                                    if (content.startsWith('[audio-call')) return '📞 Chamada de áudio';
                                                     return content;
                                                 })()}
                                             </p>
