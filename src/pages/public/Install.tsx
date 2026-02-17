@@ -229,23 +229,23 @@ export default function Install() {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", damping: 12, delay: 0.1 }}
-          className="relative mb-6"
+          className="relative mb-4"
         >
-          <div className="absolute inset-0 bg-primary/40 blur-[60px] rounded-full scale-150 animate-pulse" />
-          <div className="relative w-20 h-20 rounded-[2rem] p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_15px_40px_-10px_rgba(212,175,55,0.4)]">
-            <div className="w-full h-full rounded-[1.8rem] bg-[#020617] flex items-center justify-center border border-white/10 shadow-inner">
-              <Heart className="w-10 h-10 text-white fill-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
+          <div className="absolute inset-0 bg-primary/40 blur-[40px] rounded-full scale-150 animate-pulse" />
+          <div className="relative w-14 h-14 rounded-[1.4rem] p-[2px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_10px_30px_-8px_rgba(212,175,55,0.4)]">
+            <div className="w-full h-full rounded-[1.3rem] bg-[#020617] flex items-center justify-center border border-white/10 shadow-inner">
+              <Heart className="w-7 h-7 text-white fill-white drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
             </div>
           </div>
         </motion.div>
 
         {/* Main Content */}
-        <div className="text-center space-y-2 mb-8">
+        <div className="text-center space-y-1 mb-6">
           <motion.h1
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-4xl font-display font-bold text-white tracking-tight leading-tight"
+            className="text-2xl font-display font-bold text-white tracking-tight"
           >
             Instale o App
           </motion.h1>
@@ -269,7 +269,7 @@ export default function Install() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="w-full mt-8 grid grid-cols-3 gap-6"
+          className="w-full mt-6 grid grid-cols-3 gap-6"
         >
           <div className="flex flex-col items-center gap-3">
             <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg">
