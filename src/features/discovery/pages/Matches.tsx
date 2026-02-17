@@ -512,7 +512,7 @@ export default function Matches() {
               <p className="font-medium">Nenhuma curtida nova</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 px-4 pb-32">
+            <div className="grid grid-cols-2 gap-3 px-4 pb-24">
               <AnimatePresence>
                 {likes.map((like) => (
                   <SwipeableMatchCard
@@ -641,7 +641,7 @@ export default function Matches() {
               }}
             >
               {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto pb-44 h-full overscroll-contain touch-pan-y scrollbar-hide relative">
+              <div className="flex-1 overflow-y-auto pb-24 h-full overscroll-contain touch-pan-y scrollbar-hide relative">
 
                 {/* Close Button */}
                 <button
@@ -767,7 +767,7 @@ export default function Matches() {
                     </div>
                   )}
 
-                  <div className="h-20" />
+                  <div className="h-24" />
                 </div>
               </div>
 

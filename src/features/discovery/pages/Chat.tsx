@@ -626,7 +626,7 @@ export default function Chat() {
                                 }}
                             >
                                 {/* Scrollable Content */}
-                                <div className="flex-1 overflow-y-auto pb-32 scrollbar-hide relative">
+                                <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide relative">
                                     {/* Botão Fechar */}
                                     <button
                                         onClick={handleManualBack}
@@ -786,7 +786,7 @@ export default function Chat() {
                                             </div>
                                         )}
 
-                                        <div className="h-20" />
+                                        <div className="h-24" />
                                     </div>
                                 </div>
 

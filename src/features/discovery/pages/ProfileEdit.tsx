@@ -282,7 +282,7 @@ export default function ProfileEdit() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="container px-4 py-6 space-y-6 pb-32"
+          className="container px-4 py-6 space-y-6 pb-24"
         >
           {/* Photo Upload */}
           <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10">

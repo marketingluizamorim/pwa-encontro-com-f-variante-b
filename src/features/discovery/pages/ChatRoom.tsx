@@ -1322,7 +1322,7 @@ export default function ChatRoom() {
               className="fixed inset-0 z-[9999] bg-background overflow-hidden flex flex-col"
             >
               {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto pb-32 scrollbar-hide relative">
+              <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide relative">
 
                 {/* Hero Image Section */}
                 <div
@@ -1487,6 +1487,7 @@ export default function ChatRoom() {
                       </div>
                     </div>
                   )}
+                  <div className="h-24" />
                 </div>
               </div>
             </motion.div>

@@ -765,7 +765,7 @@ export default function Discover() {
               className="fixed inset-0 z-[9999] bg-background flex flex-col overflow-hidden"
             >
               {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto pb-44 scrollbar-hide relative">
+              <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide relative">
 
                 {/* Close Button - Top Right - Size matched to Expand Button */}
                 <button
@@ -954,7 +954,7 @@ export default function Discover() {
                   </div>
 
                   {/* Bottom Spacer */}
-                  <div className="h-10" />
+                  <div className="h-24" />
                 </div>
               </div>
 

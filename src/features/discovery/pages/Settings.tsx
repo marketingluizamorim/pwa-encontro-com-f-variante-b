@@ -204,7 +204,7 @@ export default function Settings() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="container px-4 py-6 space-y-6 pb-12"
+          className="container px-4 py-6 space-y-6 pb-24"
         >
           {/* Profile & Security */}
           <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4">
