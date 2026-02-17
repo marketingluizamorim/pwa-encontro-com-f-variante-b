@@ -1562,73 +1562,86 @@ export default function ChatRoom() {
             />
 
             {activeCall.status === 'calling' ? (
-              <div className="relative h-full flex flex-col items-center justify-between py-12 px-6 z-10">
-                {/* Header: Name and Status at the top */}
-                <div className="w-full flex items-center justify-between pt-4">
-                  <button onClick={handleEndCall} className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-full">
-                    <i className="ri-arrow-down-s-line text-2xl" />
+              <div className="relative h-full flex flex-col items-center z-10 w-full">
+                {/* Header: Top aligned */}
+                <div className="w-full flex items-center justify-between px-6 pt-[calc(1.5rem+env(safe-area-inset-top))]">
+                  <button onClick={handleEndCall} className="w-12 h-12 flex items-center justify-center bg-white/5 rounded-full backdrop-blur-md active:scale-90 transition-transform">
+                    <i className="ri-arrow-down-s-line text-3xl" />
                   </button>
-                  <div className="text-center">
-                    <h2 className="text-xl font-semibold leading-tight">{matchProfile?.display_name}</h2>
-                    <p className="text-sm text-white/60 tracking-wide">Chamando...</p>
+                  <div className="text-center flex-1">
+                    <h2 className="text-[20px] font-medium leading-tight text-white">{matchProfile?.display_name}</h2>
+                    <p className="text-[14px] text-white/60 mt-0.5 font-normal tracking-wide">Chamando...</p>
                   </div>
-                  <button className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-full">
-                    <i className="ri-user-add-line text-lg" />
-                  </button>
+                  {/* Empty div to keep the title centered */}
+                  <div className="w-12" />
                 </div>
 
-                {/* Center: Circular Avatar */}
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="relative">
-                    <div className="w-48 h-48 rounded-full overflow-hidden border-2 border-white/5 shadow-2xl">
-                      <img
-                        src={(activeCall.isIncoming ? matchProfile?.photos?.[0] : (myProfile?.photos?.[0] || user?.user_metadata?.avatar_url)) || '/placeholder.svg'}
-                        alt="Avatar"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    {/* Pulsating effect around avatar */}
-                    <div className="absolute inset-0 rounded-full border border-primary/30 animate-ping opacity-40" />
+                {/* Spacer to push avatar down */}
+                <div className="flex-[1.5] flex items-center justify-center w-full" />
+
+                {/* Center: Circular Avatar - Large and positioned lower */}
+                <div className="relative z-10">
+                  <div className="w-52 h-52 rounded-full overflow-hidden border-[6px] border-white/5 shadow-2xl">
+                    <img
+                      src={(activeCall.isIncoming ? matchProfile?.photos?.[0] : (myProfile?.photos?.[0] || user?.user_metadata?.avatar_url)) || '/placeholder.svg'}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
+                  {/* Subtle pulse animation */}
+                  <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping opacity-20" />
                 </div>
+
+                {/* Smaller spacer before controls */}
+                <div className="flex-1 w-full" />
 
                 {/* Footer: Control Bar (Image 1 Style) */}
-                <div className="w-full max-w-sm mb-4">
+                <div className="w-full px-5 mb-12">
                   {activeCall.isIncoming ? (
-                    <div className="flex items-center justify-around w-full">
-                      <button onClick={handleEndCall} className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform">
+                    <div className="flex items-center justify-around w-full max-w-sm mx-auto mb-6">
+                      <button onClick={handleEndCall} className="w-16 h-16 rounded-full bg-[#ff3b30] flex items-center justify-center text-white shadow-xl active:scale-95 transition-transform">
                         <i className="ri-phone-fill text-3xl rotate-[135deg]" />
                       </button>
-                      <button onClick={handleAcceptCall} className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform">
+                      <button onClick={handleAcceptCall} className="w-16 h-16 rounded-full bg-[#34c759] flex items-center justify-center text-white shadow-xl active:scale-95 transition-transform">
                         <i className="ri-video-add-fill text-3xl" />
                       </button>
                     </div>
                   ) : (
-                    <div className="bg-[#202c33]/90 backdrop-blur-md rounded-[32px] p-2 flex items-center justify-between shadow-2xl border border-white/5">
-                      <button className="w-12 h-12 flex items-center justify-center text-white/60 hover:text-white transition-colors">
-                        <i className="ri-more-fill text-xl" />
-                      </button>
+                    <div className="max-w-md mx-auto bg-[#202c33]/90 backdrop-blur-2xl rounded-[40px] p-2 flex items-center justify-center gap-6 shadow-2xl border border-white/10">
                       <button
                         onClick={() => setIsCameraOff(!isCameraOff)}
-                        className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-all", isCameraOff ? "bg-white/10 text-white/40" : "text-white/80")}
+                        className={cn(
+                          "w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90",
+                          isCameraOff ? "bg-white/10 text-white/30" : "text-white/90 hover:bg-white/5"
+                        )}
+                        title={isCameraOff ? "Ativar Vídeo" : "Modo Somente Voz"}
                       >
-                        <i className={cn(isCameraOff ? "ri-video-off-fill" : "ri-video-fill", "text-xl")} />
+                        <i className={cn(isCameraOff ? "ri-video-off-fill" : "ri-video-fill", "text-2xl")} />
                       </button>
+
                       <button
                         onClick={() => setIsSpeakerOn(!isSpeakerOn)}
-                        className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-all", !isSpeakerOn ? "bg-white/10 text-white/40" : "text-white/80")}
+                        className={cn(
+                          "w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90",
+                          !isSpeakerOn ? "bg-white/10 text-white/30" : "text-white/90 hover:bg-white/5"
+                        )}
                       >
-                        <i className={cn(!isSpeakerOn ? "ri-volume-mute-fill" : "ri-volume-up-fill", "text-xl")} />
+                        <i className={cn(!isSpeakerOn ? "ri-volume-mute-fill" : "ri-volume-up-fill", "text-2xl")} />
                       </button>
+
                       <button
                         onClick={() => setIsMuted(!isMuted)}
-                        className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-all", isMuted ? "bg-white text-black" : "text-white/80")}
+                        className={cn(
+                          "w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90",
+                          isMuted ? "bg-white text-black shadow-lg" : "text-white/90 hover:bg-white/5"
+                        )}
                       >
-                        <i className={cn(isMuted ? "ri-mic-off-fill" : "ri-mic-fill", "text-xl")} />
+                        <i className={cn(isMuted ? "ri-mic-off-fill" : "ri-mic-fill", "text-2xl")} />
                       </button>
+
                       <button
                         onClick={handleEndCall}
-                        className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform"
+                        className="w-12 h-12 rounded-full bg-[#ff3b30] flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform"
                       >
                         <i className="ri-phone-fill text-2xl rotate-[135deg]" />
                       </button>
