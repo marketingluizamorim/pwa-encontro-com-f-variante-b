@@ -43,10 +43,8 @@ export default function Login() {
     } else {
       toast.success('Login realizado com sucesso!', {
         style: {
-          marginTop: '500px',
-          border: '2px solid gold',
+          marginTop: 'calc(env(safe-area-inset-top, 0px) + 24px)',
         },
-        duration: 5000,
       });
       navigate(from, { replace: true });
     }

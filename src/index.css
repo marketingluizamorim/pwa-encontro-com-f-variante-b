@@ -324,8 +324,4 @@
     scrollbar-width: none;
   }
 
-  /* Force Toast Positioning for PWA Context */
-  [data-sonner-toaster][data-active-toaster="true"] {
-    top: 500px !important;
-  }
 }
