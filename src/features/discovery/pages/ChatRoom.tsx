@@ -399,9 +399,11 @@ export default function ChatRoom() {
     await sendMediaMessage(`[video-call:${roomId}]`);
   };
 
-  const handleAcceptCall = () => {
+  const handleAcceptCall = async () => {
     if (activeCall) {
       setActiveCall({ ...activeCall, status: 'ongoing' });
+      // Envia confirmação de aceite para o outro usuário saber que pode iniciar o vídeo
+      await sendMediaMessage(`[video-call-accepted:${activeCall.roomId}]`);
     }
   };
 
@@ -542,9 +544,27 @@ export default function ChatRoom() {
           },
           (payload) => {
             const newMsg = payload.new as Message;
-            setMessages((prev) => {
-              if (prev.some((m) => m.id === newMsg.id)) return prev;
-              return [...prev, newMsg];
+            // Se for uma confirmação de aceite de chamada de vídeo
+            if (payload.new.content.startsWith('[video-call-accepted:')) {
+              const acceptedRoomId = payload.new.content.replace('[video-call-accepted:', '').replace(']', '');
+              setActiveCall(prev => {
+                if (prev && prev.roomId === acceptedRoomId) {
+                  return { ...prev, status: 'ongoing' };
+                }
+                return prev;
+              });
+            }
+
+            // Se for um novo convite de chamada de vídeo
+            if (payload.new.content.startsWith('[video-call:') && payload.new.sender_id !== user?.id) {
+              const roomId = payload.new.content.replace('[video-call:', '').replace(']', '');
+              setActiveCall({ roomId, isIncoming: true, status: 'calling' });
+            }
+
+            setMessages(prev => {
+              // Evitar duplicatas
+              if (prev.some(m => m.id === payload.new.id)) return prev;
+              return [...prev, payload.new];
             });
 
             if (newMsg.sender_id !== user?.id) {
@@ -982,12 +1002,11 @@ export default function ChatRoom() {
         </div>
       );
     }
+    if (content.startsWith('[video-call-accepted:')) {
+      return null; // Don't render acceptance signals in chat as bubbles
+    }
     if (content.startsWith('[video-call:')) {
       const roomId = content.replace('[video-call:', '').replace(']', '');
-      if (!isOwn && !activeCall) {
-        // Notifica o recebimento da chamada
-        setActiveCall({ roomId, isIncoming: true, status: 'calling' });
-      }
       return (
         <div className="flex flex-col gap-2 p-1 min-w-[200px]">
           <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/10">
@@ -1001,8 +1020,8 @@ export default function ChatRoom() {
           </div>
           {!isOwn && (
             <button
-              onClick={() => setActiveCall({ roomId, isIncoming: true, status: 'ongoing' })}
-              className="w-full h-9 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors"
+              onClick={() => handleAcceptCall()}
+              className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors shadow-lg active:scale-[0.98]"
             >
               Atender Chamada
             </button>
