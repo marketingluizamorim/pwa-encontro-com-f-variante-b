@@ -491,6 +491,12 @@ export default function ChatRoom() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isRecording) {
+      stopRecording();
+      return;
+    }
+
     if (!newMessage.trim() || !matchId || !user) return;
 
     const content = newMessage.trim();
@@ -617,7 +623,15 @@ export default function ChatRoom() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+
+      // Determine most compatible mime type
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/mp4')
+          ? 'audio/mp4'
+          : 'audio/webm';
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -626,7 +640,8 @@ export default function ChatRoom() {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         await uploadAudio(audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
@@ -650,8 +665,16 @@ export default function ChatRoom() {
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = (shouldCancel = false) => {
     if (mediaRecorderRef.current && isRecording) {
+      // If cancelled, we temporarily replace the onstop handler
+      if (shouldCancel) {
+        mediaRecorderRef.current.onstop = () => {
+          if (mediaRecorderRef.current?.stream) {
+            mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+          }
+        };
+      }
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       if (timerRef.current) clearInterval(timerRef.current);
@@ -663,12 +686,18 @@ export default function ChatRoom() {
     setSending(true);
     try {
       const { supabase } = await import('@/integrations/supabase/client');
-      const fileName = `${user.id}/${Date.now()}.webm`;
+      // Fix extension based on actual blob type to ensure correct Content-Type in storage
+      const ext = blob.type.includes('mp4') ? 'm4a' : 'webm';
+      const fileName = `${user.id}/${Date.now()}.${ext}`;
       const filePath = `chat/${matchId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('chat-media')
-        .upload(filePath, blob);
+        .upload(filePath, blob, {
+          contentType: blob.type,
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
@@ -750,10 +779,15 @@ export default function ChatRoom() {
       );
     }
     if (content.startsWith('[audio:')) {
-      const url = content.replace('[audio:', '').replace(']', '');
+      const url = content.replace('[audio:', '').replace(']', '').trim();
       return (
-        <div className="flex items-center gap-2 py-1 min-w-[160px]">
-          <audio src={url} controls className="h-8 w-full custom-audio-player" />
+        <div className="flex flex-col gap-1 py-1 min-w-[200px]">
+          <audio
+            src={url}
+            controls
+            preload="metadata"
+            className="h-10 w-full"
+          />
         </div>
       );
     }
@@ -931,12 +965,22 @@ export default function ChatRoom() {
         </AnimatePresence>
         <form onSubmit={handleSend} className="flex gap-2 items-center">
           {isRecording ? (
-            <div className="flex-1 h-10 rounded-full bg-red-500/10 text-red-500 flex items-center px-4 animate-pulse justify-between">
+            <div className="flex-1 h-11 rounded-full bg-red-500/10 text-red-500 flex items-center px-4 animate-pulse justify-between border border-red-500/20">
               <div className="flex items-center gap-2">
-                <i className="ri-mic-fill" />
-                <span className="font-bold text-sm">Gravando... {formatDuration(recordingTime)}</span>
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                <span className="font-bold text-sm">{formatDuration(recordingTime)}</span>
               </div>
-              <button type="button" onClick={stopRecording} className="text-xs font-bold uppercase underline">Parar</button>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-red-500/70">Gravando áudio...</span>
+                <button
+                  type="button"
+                  onClick={() => stopRecording(true)}
+                  className="p-1 hover:bg-red-500/20 rounded-full transition-colors"
+                  title="Cancelar gravação"
+                >
+                  <i className="ri-delete-bin-line text-lg" />
+                </button>
+              </div>
             </div>
           ) : (
             <Input
@@ -951,8 +995,22 @@ export default function ChatRoom() {
               autoComplete="off"
             />
           )}
-          <Button type="submit" size="icon" className="rounded-full shrink-0 gradient-button" disabled={!newMessage.trim() || sending || isRecording}>
-            {sending ? <i className="ri-loader-4-line animate-spin" /> : <i className="ri-send-plane-fill" />}
+          <Button
+            type="submit"
+            size="icon"
+            className={cn(
+              "rounded-full shrink-0 transition-all duration-300",
+              isRecording ? "bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/30" : "gradient-button"
+            )}
+            disabled={(!isRecording && !newMessage.trim()) || sending}
+          >
+            {sending ? (
+              <i className="ri-loader-4-line animate-spin" />
+            ) : isRecording ? (
+              <i className="ri-send-plane-fill text-white" />
+            ) : (
+              <i className="ri-send-plane-fill" />
+            )}
           </Button>
         </form>
         <div className="flex gap-4 mt-1">

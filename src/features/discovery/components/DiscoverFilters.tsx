@@ -60,7 +60,7 @@ const CHURCH_FREQUENCIES = [
 ];
 
 const LOOKING_FOR_OPTIONS = [
-  { value: '', label: 'Qualquer um' },
+  { value: '', label: 'Todos objetivo' },
   { value: 'Relacionamento sério', label: 'Relacionamento sério' },
   { value: 'Construir uma família', label: 'Construir uma família' },
   { value: 'Conhecer pessoas novas', label: 'Conhecer pessoas novas' },
