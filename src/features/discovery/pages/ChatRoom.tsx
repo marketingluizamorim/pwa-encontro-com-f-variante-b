@@ -992,7 +992,10 @@ export default function ChatRoom() {
               <div className="flex-1 overflow-y-auto pb-32 scrollbar-hide relative">
 
                 {/* Hero Image Section */}
-                <div className="relative w-full h-[60vh] shrink-0 touch-none">
+                <div
+                  className="relative w-full h-[60vh] shrink-0 touch-none cursor-grab active:cursor-grabbing"
+                  onPointerDown={(e) => dragControls.start(e)}
+                >
                   {/* Photo Stories Progress Bar */}
                   {matchProfile.photos && matchProfile.photos.length > 1 && (
                     <div className="absolute top-[calc(1.25rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
@@ -1012,11 +1015,7 @@ export default function ChatRoom() {
                     <div className="w-1/2 h-full cursor-pointer" onClick={handleNextPhoto} />
                   </div>
 
-                  {/* Hero Drag Handle Area */}
-                  <div
-                    className="absolute inset-x-0 top-0 bottom-0 z-20 cursor-grab active:cursor-grabbing"
-                    onPointerDown={(e) => dragControls.start(e)}
-                  />
+
 
                   <img
                     src={matchProfile.photos?.[currentPhotoIndex] || matchProfile.avatar_url || '/placeholder.svg'}
