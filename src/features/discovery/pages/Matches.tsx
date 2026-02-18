@@ -599,7 +599,7 @@ export default function Matches() {
 
           {/* Floating 'See Who Liked You' Button - ONLY for non-premium with likes */}
           {(!subscription?.canSeeWhoLiked && likes.length > 0 && !showUpgradeDialog) && typeof document !== 'undefined' && createPortal(
-            <div className="fixed bottom-[calc(10rem+env(safe-area-inset-bottom))] left-0 right-0 z-[100] flex justify-center px-4 animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
+            <div className="fixed bottom-[calc(7rem+env(safe-area-inset-bottom))] left-0 right-0 z-[100] flex justify-center px-4 animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
               <button
                 onClick={() => {
                   setUpgradeData({

@@ -41,15 +41,12 @@ const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Amizade verdadeira': '🤝',
 };
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const DEFAULT_FILTERS: DiscoverFiltersState = {
   minAge: 18,
@@ -981,7 +978,7 @@ export default function Discover() {
                         return (
                           <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
                             <MapPin className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
-                            <span className="text-[15px] font-medium text-foreground/90">{distance} daqui</span>
+                            <span className="text-[15px] font-medium text-foreground/90">{distance}</span>
                           </div>
                         );
                       })()}
@@ -1247,25 +1244,49 @@ export default function Discover() {
         }}
       />
 
-      <AlertDialog open={showCompleteProfileDialog} onOpenChange={setShowCompleteProfileDialog}>
-        <AlertDialogContent className="w-[85vw] max-w-[320px] rounded-[2rem] p-6 border-border dark:border-white/20 bg-card/95 backdrop-blur-xl dark:backdrop-blur-2xl shadow-xl dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6),0_0_20px_rgba(255,255,255,0.02)] ring-1 ring-black/5 dark:ring-white/10">
-          <AlertDialogHeader className="space-y-3">
+      <Dialog
+        open={showCompleteProfileDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            if (user?.id) {
+              localStorage.setItem(`profile-completion-dismissed-${user.id}`, 'true');
+            }
+            setShowCompleteProfileDialog(false);
+          }
+        }}
+      >
+        <DialogContent hideClose className="w-[85vw] max-w-[320px] rounded-[2rem] p-6 border-border dark:border-white/20 bg-card/95 backdrop-blur-xl dark:backdrop-blur-2xl shadow-xl dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6),0_0_20px_rgba(255,255,255,0.02)] ring-1 ring-black/5 dark:ring-white/10 outline-none">
+          <DialogHeader className="space-y-3">
             <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
               <i className="ri-user-star-line text-2xl text-primary animate-pulse" />
             </div>
-            <AlertDialogTitle className="text-center text-xl font-display font-semibold">
+            <DialogTitle className="text-center text-xl font-display font-semibold">
               Complete seu Perfil!
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-sm text-muted-foreground leading-relaxed">
+            </DialogTitle>
+            <DialogDescription className="text-center text-sm text-muted-foreground leading-relaxed">
               Perfis completos têm 3x mais chances de match. Adicione informações e até 6 fotos para se destacar.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
           <div className="flex flex-col gap-3 mt-6">
-            <AlertDialogAction onClick={() => navigate('/app/profile/edit')} className="w-full h-11 rounded-xl gradient-button text-white font-semibold shadow-lg">Completar Agora</AlertDialogAction>
-            <AlertDialogCancel onClick={() => { localStorage.setItem(`profile-completion-dismissed-${user?.id}`, 'true'); setShowCompleteProfileDialog(false); }} className="w-full h-11 rounded-xl border-none bg-transparent hover:bg-white/5 text-muted-foreground">Depois</AlertDialogCancel>
+            <Button
+              onClick={() => navigate('/app/profile/edit')}
+              className="w-full h-11 rounded-xl gradient-button text-white font-semibold shadow-lg"
+            >
+              Completar Agora
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                localStorage.setItem(`profile-completion-dismissed-${user?.id}`, 'true');
+                setShowCompleteProfileDialog(false);
+              }}
+              className="w-full h-11 rounded-xl hover:bg-white/5 text-muted-foreground"
+            >
+              Depois
+            </Button>
           </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        </DialogContent>
+      </Dialog>
 
       <SuperLikeExplainerDialog
         open={showSuperLikeExplainer}
