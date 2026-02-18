@@ -42,7 +42,7 @@ export function useSubscription() {
         staleTime: 1000 * 60 * 15, // 15 minutes cache — reduces refetch on F5
         gcTime: 1000 * 60 * 60,    // 1 hour garbage collection
         queryFn: async (): Promise<Subscription> => {
-            if (!user) return defaultSubscription;
+            if (!user) throw new Error('No user — query should be disabled');
 
             const { supabase } = await import('@/integrations/supabase/client');
 

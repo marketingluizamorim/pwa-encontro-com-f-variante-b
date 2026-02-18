@@ -19,35 +19,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    // Flag to skip the first onAuthStateChange event that fires before
+    // getSession() restores the real session from storage (race condition on refresh)
+    let initialSessionResolved = false;
 
     const setupAuth = async () => {
       const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
 
-      // Set up auth state listener FIRST
+      // Set up auth state listener FIRST — but ignore the very first event
+      // because Supabase fires it with session=null before restoring from storage
       const { data: { subscription } } = supabaseRuntime.auth.onAuthStateChange(
         async (_event, session) => {
-          if (mounted) {
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
+          if (!mounted) return;
 
-            // Update last_active_at when user session is active
-            if (session?.user) {
-              try {
-                await supabaseRuntime
-                  .from('profiles')
-                  .update({ last_active_at: new Date().toISOString() })
-                  .eq('user_id', session.user.id);
-              } catch {
-                // Non-critical, ignore errors
-              }
+          // Skip the initial synthetic event; wait for getSession() below
+          if (!initialSessionResolved) return;
+
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+
+          // Update last_active_at when user session is active
+          if (session?.user) {
+            try {
+              await supabaseRuntime
+                .from('profiles')
+                .update({ last_active_at: new Date().toISOString() })
+                .eq('user_id', session.user.id);
+            } catch {
+              // Non-critical, ignore errors
             }
           }
         }
       );
 
-      // Then get initial session
+      // Get the real initial session from storage
       const { data: { session: initialSession } } = await supabaseRuntime.auth.getSession();
+      initialSessionResolved = true;
+
       if (mounted) {
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
