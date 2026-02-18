@@ -137,8 +137,10 @@ export function useDiscoverProfiles(filters: DiscoverFiltersState) {
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!user,
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
-    gcTime: 1000 * 60 * 30, // 30 minutes garbage collection
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }
 

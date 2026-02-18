@@ -74,11 +74,13 @@ export default function Profile() {
 
   const isOwnProfile = !userId || userId === user?.id;
 
-  const { data: profile = null, isLoading: loading, fetchStatus, refetch: loadProfile } = useQuery({
+  const { data: profile = null, isLoading: loading, refetch: loadProfile } = useQuery({
     queryKey: ['profile', userId || user?.id],
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
+    retry: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!user) return null;
       const targetUserId = userId || user.id;
@@ -254,7 +256,7 @@ export default function Profile() {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (completion / 100) * circumference;
 
-  if (loading && fetchStatus !== 'idle') {
+  if (loading && !profile) {
     return <ProfileSkeleton />;
   }
 

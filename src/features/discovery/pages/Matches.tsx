@@ -279,11 +279,13 @@ export default function Matches() {
     }
   };
 
-  const { data: likes = [], isLoading: loading, fetchStatus, refetch: fetchLikes } = useQuery({
+  const { data: likes = [], isLoading: loading, refetch: fetchLikes } = useQuery({
     queryKey: ['likes', user?.id],
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
+    retry: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!user) return [];
 
@@ -482,7 +484,7 @@ export default function Matches() {
     }
   };
 
-  if (loading && fetchStatus !== 'idle') {
+  if (loading && likes.length === 0) {
     return <MatchesListSkeleton />;
   }
 
