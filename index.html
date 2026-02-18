@@ -51,8 +51,15 @@
 
   <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.5.0/remixicon.min.css" rel="stylesheet" />
 
-
-
+  <!-- Prevent FOUC: apply dark theme immediately before any paint -->
+  <script>document.documentElement.classList.add('dark');</script>
+  <style>
+    html,
+    body,
+    #root {
+      background-color: #0f172a
+    }
+  </style>
 
 </head>
 
