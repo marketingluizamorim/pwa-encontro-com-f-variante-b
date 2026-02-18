@@ -706,7 +706,7 @@ export default function Chat() {
 
                                     {/* Imagem Hero */}
                                     <div
-                                        className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
+                                        className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
                                         onPointerDown={(e) => dragControls.start(e)}
                                     >
                                         {/* Photo Indicators */}

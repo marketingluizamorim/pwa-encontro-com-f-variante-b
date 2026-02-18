@@ -805,7 +805,7 @@ export default function Discover() {
 
                 {/* Hero Image Section */}
                 <motion.div
-                  className="relative w-full h-[60vh] touch-none cursor-grab active:cursor-grabbing"
+                  className="relative w-full h-[60vh] touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
                   onPointerDown={(e) => dragControls.start(e)}
                 >
                   {/* Photo Stories Progress Bar - Expanded View */}

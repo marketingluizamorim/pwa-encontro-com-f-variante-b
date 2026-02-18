@@ -1322,7 +1322,7 @@ export default function ChatRoom() {
 
                 {/* Hero Image Section */}
                 <div
-                  className="relative w-full h-[60vh] shrink-0 touch-none cursor-grab active:cursor-grabbing"
+                  className="relative w-full h-[60vh] shrink-0 touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
                   onPointerDown={(e) => dragControls.start(e)}
                 >
                   {/* Photo Stories Progress Bar */}
