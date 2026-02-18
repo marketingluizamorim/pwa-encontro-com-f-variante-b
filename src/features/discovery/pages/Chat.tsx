@@ -740,7 +740,7 @@ export default function Chat() {
                                     </div>
 
                                     {/* Line Cover - hides the photo container bottom border */}
-                                    <div className="relative z-20 h-2 -mt-2 bg-background" />
+                                    <div className="relative z-[5] h-3 -mt-3 bg-background" />
 
                                     {/* Conteúdo de Informações do Perfil */}
                                     <div className="px-4 -mt-16 relative z-10 space-y-4 pb-12">
