@@ -68,7 +68,7 @@ export function FeatureGateDialog({
                             >
                                 <button
                                     onClick={() => onOpenChange(false)}
-                                    className="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/10 active:scale-90 transition-all z-30"
+                                    className="absolute top-6 right-6 w-6 h-6 flex items-center justify-center text-white/20 hover:text-white/50 bg-transparent active:scale-90 transition-all z-30"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
