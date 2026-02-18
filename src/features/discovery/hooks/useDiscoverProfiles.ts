@@ -45,9 +45,11 @@ interface FetchProfilesParams {
   userId: string;
   filters: DiscoverFiltersState;
   pageParam: number;
+  userCity?: string;
+  userState?: string;
 }
 
-async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams): Promise<{
+async function fetchProfiles({ userId, filters, pageParam, userCity, userState }: FetchProfilesParams): Promise<{
   profiles: Profile[];
   nextPage: number | null;
 }> {
@@ -99,7 +101,10 @@ async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams
     target_church_frequency: filters.churchFrequency && filters.churchFrequency !== '' ? filters.churchFrequency : null,
     target_looking_for: filters.lookingFor && filters.lookingFor !== '' ? filters.lookingFor : null,
     target_interests: filters.christianInterests && filters.christianInterests.length > 0 ? filters.christianInterests : null,
-    excluded_ids: excludedIds
+    excluded_ids: excludedIds,
+    // Fallback de localização quando sem GPS: usa cidade/estado do perfil do usuário
+    fallback_state: userState || null,
+    fallback_city: userCity || null,
   });
 
   if (error) {
@@ -123,16 +128,22 @@ async function fetchProfiles({ userId, filters, pageParam }: FetchProfilesParams
   };
 }
 
-export function useDiscoverProfiles(filters: DiscoverFiltersState) {
+export function useDiscoverProfiles(
+  filters: DiscoverFiltersState,
+  userCity?: string,
+  userState?: string,
+) {
   const { user } = useAuth();
 
   return useInfiniteQuery({
-    queryKey: ['discover-profiles', user?.id, filters],
+    queryKey: ['discover-profiles', user?.id, filters, userCity, userState],
     queryFn: ({ pageParam }) =>
       fetchProfiles({
         userId: user!.id,
         filters,
         pageParam,
+        userCity,
+        userState,
       }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextPage,

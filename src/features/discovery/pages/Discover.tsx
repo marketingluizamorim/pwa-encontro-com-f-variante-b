@@ -60,7 +60,7 @@ const DEFAULT_FILTERS: DiscoverFiltersState = {
   hasPhotos: false,
   isVerified: false,
   onlineRecently: false,
-  maxDistance: 500,
+  maxDistance: 100,
 };
 
 const SWIPE_THRESHOLD = 100;
@@ -73,6 +73,7 @@ export default function Discover() {
   const { location: geoLocation, error: geoError, requestLocation } = useGeolocation();
   // Coordinates of the logged-in user — from live GPS or saved in profile
   const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ city?: string; state?: string }>({});
   const { theme, toggleTheme } = useTheme();
   const isDarkMode = theme === 'dark';
   const queryClient = useQueryClient();
@@ -184,7 +185,7 @@ export default function Discover() {
     fetchNextPage,
     refetch,
     error,
-  } = useDiscoverProfiles(appliedFilters);
+  } = useDiscoverProfiles(appliedFilters, userLocation.city, userLocation.state);
 
   const swipeMutation = useSwipeMutation();
 
@@ -226,23 +227,27 @@ export default function Discover() {
   }, [filters]);
 
 
-  // Sync userCoords: prefer live GPS, fallback to saved profile coords
+  // Sync userCoords: prefer live GPS, fallback to saved profile coords + city/state
   useEffect(() => {
     if (geoLocation) {
       setUserCoords(geoLocation);
       return;
     }
-    // No live GPS — try to load saved coords from the user's profile
+    // No live GPS — try to load saved coords and city/state from the user's profile
     if (!user) return;
     (async () => {
       const { supabase } = await import('@/integrations/supabase/client');
       const { data } = await supabase
         .from('profiles')
-        .select('latitude, longitude')
+        .select('latitude, longitude, city, state')
         .eq('user_id', user.id)
         .single();
       if (data?.latitude && data?.longitude) {
         setUserCoords({ latitude: data.latitude, longitude: data.longitude });
+      }
+      // Always save city/state as fallback for when GPS is unavailable
+      if (data?.city || data?.state) {
+        setUserLocation({ city: data.city ?? undefined, state: data.state ?? undefined });
       }
     })();
   }, [geoLocation, user]);
@@ -372,7 +377,7 @@ export default function Discover() {
       return;
     }
 
-    // Check daily limit for Bronze/None
+    // Check daily limit for Bronze/None (frontend guard — server also enforces)
     if (subscription) {
       const { swipesToday, dailySwipesLimit } = subscription;
       if (swipesToday >= dailySwipesLimit) {
@@ -419,8 +424,11 @@ export default function Discover() {
         },
         onError: (error) => {
           console.error('Error saving swipe:', error);
-          // Optional: You could revert the swipe here, but for dating apps it's usually better to just ignore or show a toast
-          // toast.error('Erro ao salvar interação');
+          // Tratar erro de limite de swipes do servidor (plano Bronze)
+          const msg = (error as { message?: string })?.message || '';
+          if (msg.includes('Limite diário') || msg.includes('P0001')) {
+            setShowLikeLimitDialog(true);
+          }
         },
       }
     );
