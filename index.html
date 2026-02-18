@@ -64,7 +64,66 @@
 </head>
 
 <body>
+  <!-- Splash Screen: shown instantly before React loads, fades out after mount -->
+  <div id="pwa-splash" style="
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #0f172a;
+    transition: opacity 0.4s ease;
+  ">
+    <img src="/2pwa-512x512.png" alt="Encontro com Fé" style="width: 140px; height: 140px; object-fit: contain;" />
+    <p style="
+      margin-top: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #d4af37;
+      letter-spacing: 0.02em;
+    ">Encontro com Fé</p>
+    <p style="
+      margin-top: 6px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.05em;
+    ">Conexões cristãs genuínas</p>
+  </div>
+
   <div id="root"></div>
+
+  <script>
+    // Remove splash screen after React mounts (with fade-out)
+    (function () {
+      var splash = document.getElementById('pwa-splash');
+      // MutationObserver watches for React rendering into #root
+      var observer = new MutationObserver(function () {
+        var root = document.getElementById('root');
+        if (root && root.children.length > 0) {
+          observer.disconnect();
+          splash.style.opacity = '0';
+          setTimeout(function () {
+            if (splash.parentNode) splash.parentNode.removeChild(splash);
+          }, 420);
+        }
+      });
+      observer.observe(document.getElementById('root'), { childList: true, subtree: true });
+      // Safety fallback: remove after 5s no matter what
+      setTimeout(function () {
+        if (splash && splash.parentNode) {
+          splash.style.opacity = '0';
+          setTimeout(function () {
+            if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+          }, 420);
+        }
+      }, 5000);
+    })();
+  </script>
+
   <script type="module" src="/src/main.tsx"></script>
 </body>
 
