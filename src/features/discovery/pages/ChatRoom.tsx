@@ -1607,7 +1607,7 @@ export default function ChatRoom() {
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {matchProfile.christian_interests.map((tag: string) => (
-                          <span key={tag} className="px-4 py-2 rounded-full bg-secondary/50 border border-border/50 text-foreground text-sm font-medium">
+                          <span key={tag} className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium">
                             {tag}
                           </span>
                         ))}
