@@ -33,7 +33,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     // Start timeout only when auth is resolved and user exists
     if (!authLoading && user && subLoading && fetchStatus === 'fetching') {
-      timerRef.current = setTimeout(() => setSubTimedOut(true), 8000);
+      timerRef.current = setTimeout(() => setSubTimedOut(true), 3000);
     }
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
