@@ -39,8 +39,8 @@ export function useSubscription() {
 
     const query = useQuery({
         queryKey: ['subscription', user?.id],
-        staleTime: 1000 * 60 * 5, // 5 minutes cache
-        gcTime: 1000 * 60 * 30,
+        staleTime: 1000 * 60 * 15, // 15 minutes cache — reduces refetch on F5
+        gcTime: 1000 * 60 * 60,    // 1 hour garbage collection
         queryFn: async (): Promise<Subscription> => {
             if (!user) return defaultSubscription;
 
