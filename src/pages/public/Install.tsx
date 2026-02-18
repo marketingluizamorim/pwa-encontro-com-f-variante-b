@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ChevronLeft, Share, MoreVertical, Download, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, Share, MoreVertical, Download, CheckCircle2, X } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -19,6 +19,7 @@ declare global {
 export default function Install() {
   const navigate = useNavigate();
   const [isInstalled, setIsInstalled] = useState(false);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState({
     isIOS: false,
     isAndroid: false,
@@ -61,28 +62,103 @@ export default function Install() {
       return;
     }
 
-    // iOS / Safari: open the native Share Sheet via navigator.share
-    // The user can then tap "Add to Home Screen" from the share menu
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Encontro com Fé',
-          text: 'Instale o app Encontro com Fé para uma experiência premium!',
-          url: window.location.href,
-        });
-      } catch {
-        // User cancelled share — no action needed
-      }
+    // iOS: no JS API can open the Safari share sheet directly.
+    // Show a visual guide overlay pointing to the correct Safari share button.
+    if (deviceInfo.isIOS) {
+      setShowIOSGuide(true);
       return;
     }
 
-    // Fallback: nothing available, highlight the manual steps
+    // Generic fallback
     toast.info("Siga os passos acima para instalar o app.", {
       id: 'install-info',
       duration: 3000,
     });
   };
 
+  // iOS Visual Guide Overlay — points to the real Safari share button
+  const IOSGuideOverlay = () => (
+    <AnimatePresence>
+      {showIOSGuide && (
+        <motion.div
+          className="fixed inset-0 z-[99999] flex flex-col"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Dark backdrop */}
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowIOSGuide(false)}
+          />
+
+          {/* Dismiss button */}
+          <button
+            onClick={() => setShowIOSGuide(false)}
+            className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:bg-white/20"
+            style={{ marginTop: 'env(safe-area-inset-top)' }}
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Instruction card — centered */}
+          <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 pb-32 pointer-events-none">
+            <motion.div
+              className="bg-[#1e293b] border border-white/15 rounded-2xl p-6 w-full max-w-xs text-center shadow-2xl"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ type: 'spring', damping: 20 }}
+            >
+              {/* Share icon highlighted */}
+              <div className="w-16 h-16 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center mx-auto mb-4">
+                <Share className="w-8 h-8 text-blue-400" />
+              </div>
+              <h3 className="font-bold text-white text-lg font-display mb-2">
+                Toque no botão abaixo
+              </h3>
+              <p className="text-white/60 text-sm leading-relaxed">
+                Toque no ícone{' '}
+                <span className="inline-flex items-center justify-center w-6 h-6 bg-white/10 rounded-md mx-0.5 border border-white/10 align-middle">
+                  <Share className="w-3.5 h-3.5 text-blue-400" />
+                </span>{' '}
+                na barra do Safari e selecione{' '}
+                <span className="text-blue-400 font-semibold">"Adicionar à Tela de Início"</span>
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Arrow + highlight — bottom of screen pointing to Safari toolbar */}
+          <div className="relative z-10 flex flex-col items-center pb-6 pointer-events-none"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }}
+          >
+            {/* Pulsing arrow */}
+            <motion.div
+              animate={{ y: [0, 12, 0] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+              className="flex flex-col items-center gap-1"
+            >
+              <div className="w-0.5 h-12 bg-gradient-to-b from-blue-400/0 to-blue-400" />
+              <div className="w-0 h-0" style={{
+                borderLeft: '8px solid transparent',
+                borderRight: '8px solid transparent',
+                borderTop: '10px solid rgb(96 165 250)',
+              }} />
+            </motion.div>
+
+            {/* Highlight bar mimicking where the Safari share button lives */}
+            <motion.div
+              className="mt-2 px-6 py-2 rounded-xl bg-blue-500/20 border border-blue-400/40 flex items-center gap-2"
+              animate={{ boxShadow: ['0 0 0px 0px rgba(96,165,250,0)', '0 0 0px 8px rgba(96,165,250,0.3)', '0 0 0px 0px rgba(96,165,250,0)'] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <Share className="w-5 h-5 text-blue-400" />
+              <span className="text-blue-300 font-semibold text-sm">Botão "Compartilhar" do Safari</span>
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   const renderInstructions = () => {
     if (isInstalled) {
@@ -238,6 +314,9 @@ export default function Install() {
 
   return (
     <div className="h-[100dvh] bg-[#020617] flex flex-col items-center px-5 relative overflow-x-hidden overflow-y-auto">
+      {/* iOS Guide Overlay */}
+      <IOSGuideOverlay />
+
       {/* Background Effects */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[100%] h-[70%] bg-primary/10 blur-[150px] rounded-full opacity-40 animate-pulse-slow" />
