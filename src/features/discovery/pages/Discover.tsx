@@ -16,6 +16,7 @@ import { MatchCelebration } from '@/features/discovery/components/MatchCelebrati
 import { playNotification } from '@/lib/notifications';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { LocationPermissionModal } from '@/features/discovery/components/LocationPermissionModal';
+import { useLocationModal } from '@/contexts/LocationModalContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
 import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
@@ -71,7 +72,8 @@ export default function Discover() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const dragControls = useDragControls();
-  const { location: geoLocation, error: geoError, requestLocation, showLocationModal, dismissLocationModal } = useGeolocation();
+  const { location: geoLocation, error: geoError, requestLocation } = useGeolocation();
+  const { showLocationModal, setShowLocationModal } = useLocationModal();
   // Coordinates of the logged-in user — from live GPS or saved in profile
   const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [userLocation, setUserLocation] = useState<{ city?: string; state?: string }>({});
@@ -1369,12 +1371,15 @@ export default function Discover() {
 
       {/* Location Permission Modal — blocks interaction until dismissed */}
       <LocationPermissionModal
-        open={showLocationModal}
         onActivate={() => {
-          dismissLocationModal();
+          setShowLocationModal(false);
+          localStorage.setItem('geo-permission-dismissed', 'true');
           requestLocation();
         }}
-        onDismiss={dismissLocationModal}
+        onDismiss={() => {
+          setShowLocationModal(false);
+          localStorage.setItem('geo-permission-dismissed', 'true');
+        }}
       />
     </PageTransition>
   );

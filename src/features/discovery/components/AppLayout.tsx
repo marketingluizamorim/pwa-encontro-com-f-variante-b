@@ -6,6 +6,7 @@ import { useNotifications } from '@/features/discovery/hooks/useNotifications';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useLocationModal } from '@/contexts/LocationModalContext';
 
 const navItems = [
   { to: '/app/discover', icon: 'ri-compass-3-fill', inactiveIcon: 'ri-compass-3-line', label: 'Descobrir', notificationKey: 'discover' as const },
@@ -21,6 +22,7 @@ export function AppLayout() {
   const location = useLocation();
   const { notifications, clearNotification } = useNotifications();
   const queryClient = useQueryClient();
+  const { showLocationModal, shakeModal } = useLocationModal();
 
   // Prefetch critical queries so child pages render instantly (no skeleton)
   useEffect(() => {
@@ -198,6 +200,13 @@ export function AppLayout() {
                 key={item.to}
                 to={item.to}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
+                onClick={(e) => {
+                  // If location modal is open, block navigation and shake the modal
+                  if (showLocationModal && !isActive) {
+                    e.preventDefault();
+                    shakeModal();
+                  }
+                }}
                 className={cn(
                   "relative group flex flex-col items-center justify-center flex-1 py-1 outline-none ring-0 focus:ring-0 focus:outline-none select-none active:bg-transparent touch-none transition-transform active:scale-90",
                   isActive && "pointer-events-none"

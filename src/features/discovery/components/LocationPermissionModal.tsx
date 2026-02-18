@@ -1,35 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, X } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptics';
+import { useLocationModal } from '@/contexts/LocationModalContext';
 
 interface LocationPermissionModalProps {
-    open: boolean;
     onActivate: () => void;
     onDismiss: () => void;
 }
 
-export function LocationPermissionModal({ open, onActivate, onDismiss }: LocationPermissionModalProps) {
-    const [shake, setShake] = useState(false);
-
-    // Reset shake after animation
-    useEffect(() => {
-        if (shake) {
-            const t = setTimeout(() => setShake(false), 500);
-            return () => clearTimeout(t);
-        }
-    }, [shake]);
+export function LocationPermissionModal({ onActivate, onDismiss }: LocationPermissionModalProps) {
+    const { showLocationModal, isShaking, shakeModal } = useLocationModal();
 
     const handleBackdropClick = () => {
         triggerHaptic('light');
-        setShake(true);
+        shakeModal();
     };
 
     return (
         <AnimatePresence>
-            {open && (
+            {showLocationModal && (
                 <>
-                    {/* Backdrop — blocks interaction but shows shake on click */}
+                    {/* Backdrop — blocks interaction but shakes modal on click */}
                     <motion.div
                         className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
                         initial={{ opacity: 0 }}
@@ -38,7 +30,7 @@ export function LocationPermissionModal({ open, onActivate, onDismiss }: Locatio
                         onClick={handleBackdropClick}
                     />
 
-                    {/* Modal */}
+                    {/* Modal container — top position matching old toast */}
                     <motion.div
                         className="fixed top-0 left-0 right-0 z-[9999] flex items-start justify-center pt-[50px] px-4 pointer-events-none"
                         initial={{ opacity: 0 }}
@@ -48,12 +40,12 @@ export function LocationPermissionModal({ open, onActivate, onDismiss }: Locatio
                         <motion.div
                             className="w-full max-w-sm bg-[#1e293b] border border-white/10 rounded-2xl shadow-2xl p-5 pointer-events-auto"
                             initial={{ y: -60, opacity: 0 }}
-                            animate={shake
+                            animate={isShaking
                                 ? { y: 0, opacity: 1, x: [0, -10, 10, -8, 8, -4, 4, 0] }
                                 : { y: 0, opacity: 1, x: 0 }
                             }
                             exit={{ y: -60, opacity: 0 }}
-                            transition={shake
+                            transition={isShaking
                                 ? { duration: 0.45, ease: 'easeInOut' }
                                 : { type: 'spring', damping: 20, stiffness: 300 }
                             }
@@ -94,7 +86,7 @@ export function LocationPermissionModal({ open, onActivate, onDismiss }: Locatio
                                 {/* Pulsing "Ativar Agora" button */}
                                 <motion.button
                                     onClick={onActivate}
-                                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-[#0f172a] bg-amber-400 hover:bg-amber-300 active:scale-95 transition-colors relative overflow-hidden"
+                                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-[#0f172a] bg-amber-400 hover:bg-amber-300 active:scale-95 transition-colors"
                                     animate={{
                                         scale: [1, 1.04, 1],
                                         boxShadow: [

@@ -11,6 +11,7 @@ import SplashScreen from "@/features/discovery/components/SplashScreen";
 import { useSplashScreen } from "@/features/discovery/hooks/useSplashScreen";
 import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/theme-provider";
+import { LocationModalProvider } from "@/contexts/LocationModalContext";
 
 // Static imports for critical path (Performance)
 import Landing from "@/features/funnel/pages/Landing";
@@ -74,97 +75,99 @@ const AppContent = () => {
       {showSplash && <SplashScreen onComplete={completeSplash} />}
       <BrowserRouter>
         <AuthProvider>
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              {/* Root redirect */}
-              <Route path="/" element={<Login />} />
+          <LocationModalProvider>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                {/* Root redirect */}
+                <Route path="/" element={<Login />} />
 
-              {/* Funnel V1 routes */}
-              <Route path="/v1" element={<Landing />} />
-              <Route path="/v1/genero" element={<GenderV1 />} />
-              <Route path="/v1/quiz/:step?" element={<QuizV1 />} />
-              <Route path="/v1/analise" element={<AnalysisV1 />} />
-              <Route path="/v1/perfis" element={<ProfilesV1 />} />
-              <Route path="/v1/planos" element={<PlansV1 />} />
+                {/* Funnel V1 routes */}
+                <Route path="/v1" element={<Landing />} />
+                <Route path="/v1/genero" element={<GenderV1 />} />
+                <Route path="/v1/quiz/:step?" element={<QuizV1 />} />
+                <Route path="/v1/analise" element={<AnalysisV1 />} />
+                <Route path="/v1/perfis" element={<ProfilesV1 />} />
+                <Route path="/v1/planos" element={<PlansV1 />} />
 
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/install" element={<Install />} />
-              <Route path="/termos-de-uso" element={<TermosDeUso />} />
-              <Route path="/politica-de-reembolso" element={<PoliticaDeReembolso />} />
+                {/* Public routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/install" element={<Install />} />
+                <Route path="/termos-de-uso" element={<TermosDeUso />} />
+                <Route path="/politica-de-reembolso" element={<PoliticaDeReembolso />} />
 
-              {/* Protected app routes */}
-              <Route
-                path="/app"
-                element={
-                  <ProtectedRoute>
-                    <AppLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="discover" element={<Discover />} />
-                <Route path="explore" element={<Explore />} />
-                <Route path="matches" element={<Matches />} />
-                <Route path="chat" element={<Chat />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="profile/:userId" element={<Profile />} />
-              </Route>
+                {/* Protected app routes */}
+                <Route
+                  path="/app"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="discover" element={<Discover />} />
+                  <Route path="explore" element={<Explore />} />
+                  <Route path="matches" element={<Matches />} />
+                  <Route path="chat" element={<Chat />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="profile/:userId" element={<Profile />} />
+                </Route>
 
-              {/* Chat Room (Standalone layout to cover AppLayout) */}
-              <Route
-                path="/app/chat/:matchId"
-                element={
-                  <ProtectedRoute>
-                    <ChatRoom />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Chat Room (Standalone layout to cover AppLayout) */}
+                <Route
+                  path="/app/chat/:matchId"
+                  element={
+                    <ProtectedRoute>
+                      <ChatRoom />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Onboarding (protected but different layout) */}
-              <Route
-                path="/app/onboarding"
-                element={
-                  <ProtectedRoute>
-                    <Onboarding />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Onboarding (protected but different layout) */}
+                <Route
+                  path="/app/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <Onboarding />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Settings (protected but different layout) */}
-              <Route
-                path="/app/settings"
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Settings (protected but different layout) */}
+                <Route
+                  path="/app/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Profile edit (protected but different layout) */}
-              <Route
-                path="/app/profile/edit"
-                element={
-                  <ProtectedRoute>
-                    <ProfileEdit />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Profile edit (protected but different layout) */}
+                <Route
+                  path="/app/profile/edit"
+                  element={
+                    <ProtectedRoute>
+                      <ProfileEdit />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Profile setup (protected but different layout) */}
-              <Route
-                path="/app/profile/setup"
-                element={
-                  <ProtectedRoute>
-                    <ProfileSetup />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Profile setup (protected but different layout) */}
+                <Route
+                  path="/app/profile/setup"
+                  element={
+                    <ProtectedRoute>
+                      <ProfileSetup />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Catch-all */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+                {/* Catch-all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </LocationModalProvider>
         </AuthProvider>
       </BrowserRouter>
     </>

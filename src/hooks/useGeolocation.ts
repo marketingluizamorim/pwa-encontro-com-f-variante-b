@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useLocationModal } from '@/contexts/LocationModalContext';
 import { toast } from 'sonner';
 
 export function useGeolocation() {
     const { user } = useAuth();
+    const { setShowLocationModal } = useLocationModal();
     const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [showLocationModal, setShowLocationModal] = useState(false);
 
     const updateProfileLocation = useCallback(async (lat: number, lon: number) => {
         if (!user) return;
@@ -45,7 +46,6 @@ export function useGeolocation() {
                     const isDismissed = localStorage.getItem('geo-permission-dismissed') === 'true';
                     if (!isDismissed) {
                         msg = 'Localização negada.';
-                        // Show blocking modal instead of dismissible toast
                         setShowLocationModal(true);
                     }
                 } else {
@@ -64,12 +64,7 @@ export function useGeolocation() {
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 3600000 }
         );
-    }, [updateProfileLocation]);
-
-    const dismissLocationModal = useCallback(() => {
-        setShowLocationModal(false);
-        localStorage.setItem('geo-permission-dismissed', 'true');
-    }, []);
+    }, [updateProfileLocation, setShowLocationModal]);
 
     useEffect(() => {
         if (!user) return;
@@ -104,5 +99,5 @@ export function useGeolocation() {
         }
     }, [user, requestLocation]);
 
-    return { location, loading, error, requestLocation, showLocationModal, dismissLocationModal };
+    return { location, loading, error, requestLocation };
 }
