@@ -1372,12 +1372,19 @@ export default function Discover() {
       {/* Location Permission Modal — blocks interaction until dismissed */}
       <LocationPermissionModal
         onActivate={() => {
-          // Close modal and request location again (user may have enabled it in settings)
           setShowLocationModal(false);
-          requestLocation();
+          // In browser: go to install page so user can install the PWA
+          // In PWA (standalone): request location permission directly
+          const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+            (window.navigator as { standalone?: boolean }).standalone === true;
+          if (isPWA) {
+            requestLocation();
+          } else {
+            navigate('/install');
+          }
         }}
         onDismiss={() => {
-          // Close modal but do NOT save dismissed flag — modal will reappear next session
+          // Close modal — will reappear next time location is needed
           setShowLocationModal(false);
         }}
       />

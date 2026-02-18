@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, X } from 'lucide-react';
 import { triggerHaptic } from '@/lib/haptics';
@@ -21,7 +20,7 @@ export function LocationPermissionModal({ onActivate, onDismiss }: LocationPermi
         <AnimatePresence>
             {showLocationModal && (
                 <>
-                    {/* Backdrop — blocks interaction but shakes modal on click */}
+                    {/* Backdrop — blocks interaction, shakes modal on click */}
                     <motion.div
                         className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
                         initial={{ opacity: 0 }}
@@ -30,27 +29,22 @@ export function LocationPermissionModal({ onActivate, onDismiss }: LocationPermi
                         onClick={handleBackdropClick}
                     />
 
-                    {/* Modal container — top position matching old toast */}
-                    <motion.div
-                        className="fixed top-0 left-0 right-0 z-[9999] flex items-start justify-center pt-[50px] px-4 pointer-events-none"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
+                    {/* Centered modal wrapper */}
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 pointer-events-none">
                         <motion.div
-                            className="w-full max-w-sm bg-[#1e293b] border border-white/10 rounded-2xl shadow-2xl p-5 pointer-events-auto"
-                            initial={{ y: -60, opacity: 0 }}
+                            className="relative w-full max-w-sm bg-[#1e293b] border border-white/10 rounded-2xl shadow-2xl p-5 pointer-events-auto"
+                            initial={{ scale: 0.92, opacity: 0, y: 20 }}
                             animate={isShaking
-                                ? { y: 0, opacity: 1, x: [0, -10, 10, -8, 8, -4, 4, 0] }
-                                : { y: 0, opacity: 1, x: 0 }
+                                ? { scale: 1, opacity: 1, y: 0, x: [0, -10, 10, -8, 8, -4, 4, 0] }
+                                : { scale: 1, opacity: 1, y: 0, x: 0 }
                             }
-                            exit={{ y: -60, opacity: 0 }}
+                            exit={{ scale: 0.92, opacity: 0, y: 20 }}
                             transition={isShaking
                                 ? { duration: 0.45, ease: 'easeInOut' }
-                                : { type: 'spring', damping: 20, stiffness: 300 }
+                                : { type: 'spring', damping: 22, stiffness: 320 }
                             }
                         >
-                            {/* Close button */}
+                            {/* Close button — inside the card, top-right corner */}
                             <button
                                 onClick={onDismiss}
                                 className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all"
@@ -59,7 +53,7 @@ export function LocationPermissionModal({ onActivate, onDismiss }: LocationPermi
                             </button>
 
                             {/* Content */}
-                            <div className="flex items-start gap-4 pr-6">
+                            <div className="flex items-start gap-4 pr-8">
                                 <div className="w-10 h-10 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0 mt-0.5">
                                     <MapPin className="w-5 h-5 text-amber-400" />
                                 </div>
@@ -105,7 +99,7 @@ export function LocationPermissionModal({ onActivate, onDismiss }: LocationPermi
                                 </motion.button>
                             </div>
                         </motion.div>
-                    </motion.div>
+                    </div>
                 </>
             )}
         </AnimatePresence>
