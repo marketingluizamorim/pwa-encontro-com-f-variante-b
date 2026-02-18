@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
         short_name: "Encontro c/Fé",
         description: "Encontre pessoas que compartilham seus valores e sua fé. Conexões cristãs genuínas para relacionamentos duradouros.",
         theme_color: "#0f172a",
-        background_color: "#0f172a",
+        background_color: "#ffffff",
         display: "standalone",
         orientation: "portrait",
         scope: "/",
