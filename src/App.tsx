@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +12,30 @@ import { useSplashScreen } from "@/features/discovery/hooks/useSplashScreen";
 import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocationModalProvider } from "@/contexts/LocationModalContext";
+
+// Routes that should NEVER show the splash screen (funnel + public/auth)
+const NO_SPLASH_PREFIXES = [
+  '/v1',
+  '/login',
+  '/register',
+  '/install',
+  '/termos-de-uso',
+  '/politica-de-reembolso',
+  '/',
+];
+
+function SplashGate() {
+  const { showSplash, completeSplash } = useSplashScreen();
+  const location = useLocation();
+
+  // Suppress splash on funnel and public routes
+  const isSplashRoute = !NO_SPLASH_PREFIXES.some(
+    (prefix) => location.pathname === prefix || location.pathname.startsWith(prefix + '/')
+  ) || location.pathname.startsWith('/app');
+
+  if (!showSplash || !isSplashRoute) return null;
+  return <SplashScreen onComplete={completeSplash} />;
+}
 
 // Static imports for critical path (Performance)
 import Landing from "@/features/funnel/pages/Landing";
@@ -68,14 +92,12 @@ const LoadingFallback = () => (
 );
 
 const AppContent = () => {
-  const { showSplash, completeSplash } = useSplashScreen();
-
   return (
     <>
-      {showSplash && <SplashScreen onComplete={completeSplash} />}
       <BrowserRouter>
         <AuthProvider>
           <LocationModalProvider>
+            <SplashGate />
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 {/* Root redirect */}
