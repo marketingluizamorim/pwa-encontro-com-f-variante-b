@@ -706,7 +706,7 @@ export default function Chat() {
 
                                     {/* Imagem Hero */}
                                     <div
-                                        className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing overflow-hidden"
+                                        className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing"
                                         onPointerDown={(e) => dragControls.start(e)}
                                     >
                                         {/* Photo Indicators */}
@@ -738,6 +738,9 @@ export default function Chat() {
                                         />
                                         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
                                     </div>
+
+                                    {/* Line Cover - hides the photo container bottom border */}
+                                    <div className="relative z-20 h-2 -mt-2 bg-background" />
 
                                     {/* Conteúdo de Informações do Perfil */}
                                     <div className="px-4 -mt-16 relative z-10 space-y-4 pb-12">

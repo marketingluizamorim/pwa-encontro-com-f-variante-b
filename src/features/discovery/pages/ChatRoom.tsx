@@ -1322,7 +1322,7 @@ export default function ChatRoom() {
 
                 {/* Hero Image Section */}
                 <div
-                  className="relative w-full h-[60vh] shrink-0 touch-none cursor-grab active:cursor-grabbing overflow-hidden"
+                  className="relative w-full h-[60vh] shrink-0 touch-none cursor-grab active:cursor-grabbing"
                   onPointerDown={(e) => dragControls.start(e)}
                 >
                   {/* Photo Stories Progress Bar */}
@@ -1362,6 +1362,9 @@ export default function ChatRoom() {
                     <i className="ri-arrow-down-s-line text-2xl" />
                   </Button>
                 </div>
+
+                {/* Line Cover - hides the photo container bottom border */}
+                <div className="relative z-20 h-2 -mt-2 bg-background" />
 
                 {/* Profile Info Content - Overlaps Hero Image */}
                 <div className="px-4 -mt-16 relative z-10 space-y-4 pb-12">
