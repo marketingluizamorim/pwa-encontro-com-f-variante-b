@@ -24,13 +24,21 @@ function isPWAInstalled(): boolean {
   );
 }
 
+// Only enforce PWA install in production (not localhost/dev)
+function shouldEnforcePWA(): boolean {
+  const isLocalhost = window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.startsWith('192.168.');
+  return !isLocalhost && !isPWAInstalled();
+}
+
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading: authLoading } = useAuth();
   const { data: subscription, isLoading: subLoading } = useSubscription();
   const location = useLocation();
 
-  // 1. If accessed via browser (not installed PWA), redirect to install page
-  if (!isPWAInstalled()) {
+  // 1. If accessed via browser in production (not installed PWA), redirect to install page
+  if (shouldEnforcePWA()) {
     return <Navigate to="/install" replace />;
   }
 
