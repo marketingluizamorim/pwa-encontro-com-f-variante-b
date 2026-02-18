@@ -38,16 +38,17 @@ export function useGeolocation() {
                 localStorage.setItem('last-geo-update', Date.now().toString());
                 setLoading(false);
                 setError(null);
+                // Success: hide modal and mark as resolved
                 setShowLocationModal(false);
             },
             (err) => {
                 let msg = 'Erro ao obter localização.';
                 if (err.code === err.PERMISSION_DENIED) {
-                    const isDismissed = localStorage.getItem('geo-permission-dismissed') === 'true';
-                    if (!isDismissed) {
-                        msg = 'Localização negada.';
-                        setShowLocationModal(true);
-                    }
+                    msg = 'Localização negada.';
+                    // Show blocking modal — do NOT save dismissed flag here.
+                    // The modal will keep appearing until user explicitly dismisses ("Mais tarde")
+                    // or grants permission ("Ativar Agora").
+                    setShowLocationModal(true);
                 } else {
                     toast.error(msg, {
                         id: 'geolocation-error',
@@ -73,6 +74,7 @@ export function useGeolocation() {
         const now = Date.now();
         const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 
+        // Only auto-request if no recent location data
         if (!lastUpdate || (now - parseInt(lastUpdate)) > TWENTY_FOUR_HOURS) {
             let hasTriggered = false;
 

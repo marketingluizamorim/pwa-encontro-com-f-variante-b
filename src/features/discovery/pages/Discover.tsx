@@ -1372,13 +1372,13 @@ export default function Discover() {
       {/* Location Permission Modal — blocks interaction until dismissed */}
       <LocationPermissionModal
         onActivate={() => {
+          // Close modal and request location again (user may have enabled it in settings)
           setShowLocationModal(false);
-          localStorage.setItem('geo-permission-dismissed', 'true');
-          navigate('/install');
+          requestLocation();
         }}
         onDismiss={() => {
+          // Close modal but do NOT save dismissed flag — modal will reappear next session
           setShowLocationModal(false);
-          localStorage.setItem('geo-permission-dismissed', 'true');
         }}
       />
     </PageTransition>
