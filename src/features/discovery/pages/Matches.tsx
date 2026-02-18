@@ -279,7 +279,7 @@ export default function Matches() {
     }
   };
 
-  const { data: likes = [], isLoading: loading, refetch: fetchLikes } = useQuery({
+  const { data: likes = [], isLoading: loading, fetchStatus, refetch: fetchLikes } = useQuery({
     queryKey: ['likes', user?.id],
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
@@ -482,7 +482,7 @@ export default function Matches() {
     }
   };
 
-  if (loading) {
+  if (loading && fetchStatus !== 'idle') {
     return <MatchesListSkeleton />;
   }
 

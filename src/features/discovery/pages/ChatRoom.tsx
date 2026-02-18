@@ -13,7 +13,7 @@ import { TypingIndicator } from '@/features/discovery/components/TypingIndicator
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { MessageStatus } from '@/features/discovery/components/MessageStatus';
 import { playNotification } from '@/lib/notifications';
-import { ReportDialog, BlockDialog, DeleteConversationDialog } from '@/features/discovery/components/UserActions';
+import { ReportDialog, BlockDialog, DeleteConversationDialog, UnmatchDialog } from '@/features/discovery/components/UserActions';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -360,21 +360,12 @@ export default function ChatRoom() {
     });
   }, [queryClient, matchId]);
 
-  const setMySocials = useCallback((updater: SocialMediaLinks | ((prev: SocialMediaLinks) => SocialMediaLinks)) => {
-    queryClient.setQueryData(['my-socials', user?.id], (old: SocialMediaLinks | undefined) => {
-      const prev = old || {};
-      if (typeof updater === 'function') {
-        return updater(prev);
-      }
-      return updater;
-    });
-  }, [queryClient, user?.id]);
-
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showUnmatch, setShowUnmatch] = useState(false);
   const [showProfileInfo, setShowProfileInfo] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -923,7 +914,11 @@ export default function ChatRoom() {
     if (!valueToSave) return;
 
     const updatedSocials = { ...mySocials, [socialModal.platform]: valueToSave };
-    setMySocials(updatedSocials);
+    // Atualização otimista: atualiza o cache do perfil diretamente
+    queryClient.setQueryData(['my-profile', user?.id], (old: Record<string, unknown> | null | undefined) => {
+      if (!old) return old;
+      return { ...old, social_media: JSON.stringify(updatedSocials) };
+    });
 
     try {
       const { supabase } = await import('@/integrations/supabase/client');
@@ -1147,6 +1142,8 @@ export default function ChatRoom() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setShowBlock(true)} className="text-destructive">Bloquear</DropdownMenuItem>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setShowUnmatch(true)} className="text-destructive">Desfazer match</DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setShowDelete(true)} className="text-destructive">Excluir conversa</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -1290,6 +1287,9 @@ export default function ChatRoom() {
       )}
       {otherUserId && (
         <BlockDialog open={showBlock} onOpenChange={setShowBlock} userId={otherUserId} userName={matchProfile.display_name} onBlocked={() => navigate('/app/chat')} />
+      )}
+      {matchId && otherUserId && (
+        <UnmatchDialog open={showUnmatch} onOpenChange={setShowUnmatch} matchId={matchId} otherUserId={otherUserId} userName={matchProfile.display_name} />
       )}
       {matchId && (
         <DeleteConversationDialog open={showDelete} onOpenChange={setShowDelete} matchId={matchId} onDeleted={() => navigate('/app/chat')} />

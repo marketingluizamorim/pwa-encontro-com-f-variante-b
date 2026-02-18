@@ -50,14 +50,11 @@ const WelcomeScreen = () => {
         className="flex flex-col items-center gap-3 md:gap-8 z-10 shrink-0"
       >
         <div className="relative group cursor-pointer">
-          {/* Divine Halo Effect */}
-          <div className="absolute inset-0 bg-[#d4af37]/40 blur-3xl md:blur-[40px] rounded-full scale-150 animate-pulse-slow" style={{ animationDuration: '4s' }} />
-          <div className="relative w-16 h-16 md:w-28 md:h-28 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_0_40px_rgba(212,175,55,0.3)]">
-            <div className="w-full h-full rounded-full bg-gradient-to-br from-white/20 to-black/10 backdrop-blur-3xl flex items-center justify-center border border-white/30 shadow-inner overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-150%] group-hover:animate-shine pointer-events-none" />
-              <Heart className="w-8 h-8 md:w-14 md:h-14 text-white fill-white drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]" />
-            </div>
-          </div>
+          <img
+            src="/3logo-nova1080x1080.png"
+            alt="Encontro com Fé"
+            className="w-14 h-14 md:w-24 md:h-24 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.5)]"
+          />
         </div>
 
         <div className="text-center space-y-1 md:space-y-2">

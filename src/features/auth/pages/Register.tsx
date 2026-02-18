@@ -6,7 +6,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
-import { Heart, AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { AccountCreatedDialog } from '@/features/auth/components/AccountCreatedDialog';
 
 export default function Register() {
@@ -162,14 +162,12 @@ export default function Register() {
           transition={{ duration: 0 }}
           className="flex flex-col items-center gap-6 mb-8"
         >
-          <div className="relative group cursor-pointer">
-            <div className="absolute inset-0 bg-[#d4af37]/40 blur-3xl rounded-full scale-150 animate-pulse-slow" style={{ animationDuration: '4s' }} />
-            <div className="relative w-20 h-20 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_0_40px_rgba(212,175,55,0.3)]">
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-white/20 to-black/10 backdrop-blur-3xl flex items-center justify-center border border-white/30 shadow-inner overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-150%] group-hover:animate-shine pointer-events-none" />
-                <Heart className="w-10 h-10 text-white fill-white drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]" />
-              </div>
-            </div>
+          <div className="relative cursor-pointer">
+            <img
+              src="/3logo-nova1080x1080.png"
+              alt="Encontro com Fé"
+              className="w-20 h-20 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.5)]"
+            />
           </div>
 
           <div className="text-center">

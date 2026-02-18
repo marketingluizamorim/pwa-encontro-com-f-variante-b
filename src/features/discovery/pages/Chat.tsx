@@ -96,7 +96,7 @@ export default function Chat() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    const { data: conversations = [], isLoading: loading, refetch: fetchConversations } = useQuery({
+    const { data: conversations = [], isLoading: loading, fetchStatus, refetch: fetchConversations } = useQuery({
         queryKey: ['conversations', user?.id],
         enabled: !!user,
         staleTime: 1000 * 60 * 5, // 5 minutes cache
@@ -428,7 +428,7 @@ export default function Chat() {
         toast.success('Conversas atualizadas', { style: { marginTop: '50px' } });
     };
 
-    if (loading) {
+    if (loading && fetchStatus !== 'idle') {
         return <ChatListSkeleton />;
     }
 

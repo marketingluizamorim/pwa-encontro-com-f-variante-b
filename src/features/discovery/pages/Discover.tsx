@@ -179,6 +179,7 @@ export default function Discover() {
   const {
     data,
     isLoading,
+    fetchStatus,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -504,7 +505,7 @@ export default function Discover() {
     refetch();
   };
 
-  if (isLoading) return <DiscoverSkeleton />;
+  if (isLoading && fetchStatus !== 'idle') return <DiscoverSkeleton />;
 
   const isEmpty = profiles.length === 0 || currentIndex >= profiles.length;
 

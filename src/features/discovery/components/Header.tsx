@@ -1,4 +1,3 @@
-import { Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
@@ -13,11 +12,11 @@ export function Header({ action, className, isDiscover }: HeaderProps) {
             <div className="flex items-center gap-3">
                 {/* Logo Brand from Landing Page - Translucent Watermark Effect */}
                 <div className="flex items-center gap-3 opacity-40 grayscale-[0.2] hover:opacity-100 hover:grayscale-0 transition-all duration-500 cursor-default">
-                    <div className="relative w-8 h-8 rounded-full p-[1.5px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309]">
-                        <div className="w-full h-full rounded-full bg-background/50 backdrop-blur-md flex items-center justify-center border border-white/10 overflow-hidden relative">
-                            <Heart className="w-4 h-4 text-white fill-white" />
-                        </div>
-                    </div>
+                    <img
+                        src="/3logo-nova1080x1080.png"
+                        alt="Encontro com Fé"
+                        className="w-8 h-8 object-contain"
+                    />
 
                     <h1 className="font-serif font-bold text-lg text-foreground tracking-tight">
                         Encontro <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#fcd34d] to-[#d4af37]">com Fé</span>

@@ -26,7 +26,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
-import { Shield, Ban, AlertTriangle, Loader2 } from 'lucide-react';
+import { Shield, Ban, AlertTriangle, Loader2, HeartCrack } from 'lucide-react';
 
 const REPORT_REASONS = [
   { value: 'fake_profile', label: 'Perfil falso', description: 'Fotos ou informações falsas' },
@@ -480,6 +480,98 @@ export function DeleteConversationDialog({ open, onOpenChange, matchId, onDelete
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Desfazer Conexão
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface UnmatchDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  matchId: string;
+  otherUserId: string;
+  userName?: string;
+  onUnmatched?: () => void;
+}
+
+export function UnmatchDialog({ open, onOpenChange, matchId, otherUserId, userName, onUnmatched }: UnmatchDialogProps) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [loading, setLoading] = useState(false);
+
+  const handleUnmatch = async () => {
+    if (!user) return;
+    setLoading(true);
+
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+
+      // 1. Desativar o match
+      const { error: matchError } = await supabase
+        .from('matches')
+        .update({ is_active: false } as { is_active: boolean })
+        .eq('id', matchId);
+
+      if (matchError) throw matchError;
+
+      // 2. Remover os swipes para que possam se redescobrir futuramente
+      await supabase
+        .from('swipes')
+        .delete()
+        .or(`and(swiper_id.eq.${user.id},swiped_id.eq.${otherUserId}),and(swiper_id.eq.${otherUserId},swiped_id.eq.${user.id})`);
+
+      // 3. Invalidar queries
+      queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
+
+      toast.success('Match desfeito', {
+        description: 'Vocês não são mais um match.',
+        style: { marginTop: '50px' }
+      });
+
+      onOpenChange(false);
+      onUnmatched?.();
+      navigate('/app/chat');
+    } catch (err) {
+      console.error('Error unmatching:', err);
+      toast.error('Erro ao desfazer match', { style: { marginTop: '50px' } });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[90vw] max-w-md z-[10060] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <HeartCrack className="w-5 h-5 text-destructive" />
+            Desfazer match com {userName || 'este usuário'}?
+          </DialogTitle>
+          <DialogDescription className="space-y-2 text-left">
+            <p>Ao desfazer o match:</p>
+            <ul className="list-disc pl-5 space-y-1 text-left">
+              <li>Vocês deixarão de ser um match</li>
+              <li>A conversa será removida da sua lista</li>
+              <li>Vocês poderão se redescobrir no futuro</li>
+            </ul>
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleUnmatch}
+            disabled={loading}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Desfazer Match
           </Button>
         </DialogFooter>
       </DialogContent>

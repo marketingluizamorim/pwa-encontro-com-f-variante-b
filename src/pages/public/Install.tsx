@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Heart, ChevronLeft, Share, PlusSquare, MoreVertical, Download, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, Share, PlusSquare, MoreVertical, Download, CheckCircle2 } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -230,12 +230,11 @@ export default function Install() {
           transition={{ type: "spring", damping: 12, delay: 0.1 }}
           className="relative -mt-4 mb-1"
         >
-          <div className="absolute inset-0 bg-primary/40 blur-[40px] rounded-full scale-150 animate-pulse" />
-          <div className="relative w-12 h-12 rounded-[1.2rem] p-[2px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-[0_8px_25px_-6px_rgba(212,175,55,0.4)]">
-            <div className="w-full h-full rounded-[1.1rem] bg-[#020617] flex items-center justify-center border border-white/10 shadow-inner">
-              <Heart className="w-6 h-6 text-white fill-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
-            </div>
-          </div>
+          <img
+            src="/3logo-nova1080x1080.png"
+            alt="Encontro com Fé"
+            className="relative w-12 h-12 object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.5)]"
+          />
         </motion.div>
 
         {/* Main Content */}
