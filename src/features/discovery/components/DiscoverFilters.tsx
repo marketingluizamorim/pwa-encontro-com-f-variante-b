@@ -312,13 +312,16 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
       </DrawerTrigger>
       <DrawerContent className="h-[60vh] rounded-t-3xl outline-none focus:ring-0">
         <DrawerHeader className="mb-2 text-left relative pr-12">
-          <div className="flex items-center justify-between">
-            <DrawerTitle className="font-display text-2xl">Filtros Avançados</DrawerTitle>
-            {activeFiltersCount > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {activeFiltersCount} {activeFiltersCount === 1 ? 'filtro ativo' : 'filtros ativos'}
-              </Badge>
-            )}
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center justify-between">
+              <DrawerTitle className="font-display text-2xl">Filtros Avançados</DrawerTitle>
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="text-xs">
+                  {activeFiltersCount} {activeFiltersCount === 1 ? 'filtro ativo' : 'filtros ativos'}
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground font-medium">Deslize para visualizar mais filtros</p>
           </div>
           <button
             onClick={() => setOpen(false)}
