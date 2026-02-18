@@ -38,6 +38,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
@@ -231,9 +232,10 @@ export default function ChatRoom() {
     queryKey: ['chat-details', matchId, user?.id],
     enabled: !!matchId && !!user,
     staleTime: Infinity,
+    retry: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!matchId || !user) throw new Error("No user/match");
-      const { supabase } = await import('@/integrations/supabase/client');
 
       const { data: match, error: matchError } = await supabase
         .from('matches')
@@ -304,8 +306,9 @@ export default function ChatRoom() {
   const { data: messages = [], isLoading: loadingMessages } = useQuery({
     queryKey: ['chat-messages', matchId],
     enabled: !!matchId,
+    retry: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
-      const { supabase } = await import('@/integrations/supabase/client');
       const { data: messagesData } = await supabase
         .from('messages')
         .select('*')
@@ -319,9 +322,10 @@ export default function ChatRoom() {
     queryKey: ['my-profile', user?.id],
     enabled: !!user,
     staleTime: Infinity,
+    retry: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!user) return null;
-      const { supabase } = await import('@/integrations/supabase/client');
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -344,7 +348,8 @@ export default function ChatRoom() {
     return {};
   }, [myProfile?.social_media]);
 
-  const loading = loadingDetails || loadingMessages;
+  // Only show spinner on true first load (no cached data at all)
+  const loading = (loadingDetails && !matchDetails) || (loadingMessages && messages.length === 0);
   const matchProfile = matchDetails?.matchProfile || null;
   const otherUserId = matchDetails?.otherUserId || null;
   const isSuperLikeMatch = matchDetails?.isSuperLikeMatch || false;
