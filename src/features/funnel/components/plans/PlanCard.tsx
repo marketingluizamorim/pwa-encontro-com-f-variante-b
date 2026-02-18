@@ -133,7 +133,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
           <div className="space-y-5 flex-1 p-1">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 pl-1 mb-2">Principais Vantagens:</p>
             <div className="space-y-4">
-              {plan.features.slice(0, isExpanded ? undefined : 6).map((feature, i) => (
+              {plan.features.slice(0, isExpanded ? undefined : 4).map((feature, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all flex-shrink-0 mt-0.5 ${config.check}`}>
                     <Check className="w-4 h-4" strokeWidth={3} />

@@ -89,7 +89,7 @@ export function FeatureGateDialog({
 
                                     {/* Features Box */}
                                     <div className="w-full space-y-3.5 mb-8 text-left bg-white/[0.03] p-5 rounded-3xl border border-white/5">
-                                        {plan.features.slice(0, 5).map((feature, i) => (
+                                        {plan.features.slice(0, 6).map((feature, i) => (
                                             <div key={i} className="flex items-start gap-3">
                                                 <div className="bg-emerald-500/20 p-1 rounded-full mt-0.5">
                                                     <Check className="w-2.5 h-2.5 text-emerald-500" strokeWidth={3} />
