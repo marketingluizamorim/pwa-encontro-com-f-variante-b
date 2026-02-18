@@ -91,7 +91,7 @@ const DEFAULT_FILTERS: DiscoverFiltersState = {
   hasPhotos: false,
   isVerified: false,
   onlineRecently: false,
-  maxDistance: 100,
+  maxDistance: 500,
 };
 
 export default function DiscoverFilters({ filters, onFiltersChange, onApply, triggerId, triggerClassName }: DiscoverFiltersProps) {
@@ -219,7 +219,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
     if (filters.minAge !== 18 || filters.maxAge !== 60) count++;
     if (filters.state) count++;
     if (filters.city) count++;
-    if (filters.maxDistance !== 100) count++;
+    if (filters.maxDistance !== 500) count++;
     if (filters.religion) count++;
     if (filters.churchFrequency) count++;
     if (filters.lookingFor) count++;

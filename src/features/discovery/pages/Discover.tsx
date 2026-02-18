@@ -63,7 +63,7 @@ const DEFAULT_FILTERS: DiscoverFiltersState = {
   hasPhotos: false,
   isVerified: false,
   onlineRecently: false,
-  maxDistance: 100,
+  maxDistance: 500,
 };
 
 const SWIPE_THRESHOLD = 100;
@@ -79,11 +79,16 @@ export default function Discover() {
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<DiscoverFiltersState>(() => {
+    const FILTERS_VERSION = 'v2'; // bump when defaults change
+    const savedVersion = localStorage.getItem('discover-filters-version');
     const saved = localStorage.getItem('discover-filters');
-    if (saved) {
+    if (saved && savedVersion === FILTERS_VERSION) {
       const parsed = JSON.parse(saved);
       return { ...DEFAULT_FILTERS, ...parsed, christianInterests: parsed.christianInterests || [] };
     }
+    // Clear stale filters and save new version
+    localStorage.removeItem('discover-filters');
+    localStorage.setItem('discover-filters-version', FILTERS_VERSION);
     return DEFAULT_FILTERS;
   });
 
