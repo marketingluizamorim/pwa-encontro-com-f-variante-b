@@ -986,13 +986,7 @@ export default function Discover() {
                         </div>
                       )}
 
-                      {/* Church Frequency */}
-                      {currentProfile.church_frequency && (
-                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
-                          <Sparkles className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
-                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">{currentProfile.church_frequency}</span>
-                        </div>
-                      )}
+
 
                       {/* Education */}
                       {currentProfile.education && (
@@ -1091,7 +1085,7 @@ export default function Discover() {
                   )}
 
                   {/* Section: More Info */}
-                  {(currentProfile.about_children) && (
+                  {(currentProfile.about_children || currentProfile.church_frequency) && (
                     <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
                       <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
                         <LayoutList className="w-5 h-5" />
@@ -1099,8 +1093,18 @@ export default function Discover() {
                       </div>
 
                       <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
+                        {currentProfile.church_frequency && (
+                          <div className="pt-4 first:pt-2">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Frequência na Igreja</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Sparkles className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{currentProfile.church_frequency}</span>
+                            </div>
+                          </div>
+                        )}
+
                         {currentProfile.about_children && (
-                          <div className="pt-4 first:pt-2 pb-2">
+                          <div className="pt-4 pb-2">
                             <p className="text-xs font-bold text-muted-foreground mb-2">Família</p>
                             <div className="flex items-center gap-3 text-foreground/90">
                               <Baby className="w-5 h-5 text-muted-foreground/60" />
@@ -1120,7 +1124,7 @@ export default function Discover() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {(currentProfile.christian_interests || []).map((tag: string) => (
-                        <span key={tag} className="px-4 py-2 rounded-full bg-secondary/50 border border-border/50 text-foreground text-sm font-medium">
+                        <span key={tag} className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium">
                           {tag}
                         </span>
                       ))}
