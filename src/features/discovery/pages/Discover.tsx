@@ -832,7 +832,7 @@ export default function Discover() {
                     className="w-full h-full object-cover pointer-events-none"
                     alt={currentProfile.display_name}
                   />
-                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
 
                   {/* Destaque Badge - Expanded View */}
                   {currentProfile.is_boosted && (
