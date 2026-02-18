@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/features/discovery/hooks/useNotifications';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const navItems = [
   { to: '/app/discover', icon: 'ri-compass-3-fill', inactiveIcon: 'ri-compass-3-line', label: 'Descobrir', notificationKey: 'discover' as const },
@@ -18,6 +20,88 @@ export function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { notifications, clearNotification } = useNotifications();
+  const queryClient = useQueryClient();
+
+  // Prefetch critical queries so child pages render instantly (no skeleton)
+  useEffect(() => {
+    if (!user) return;
+
+    // Only prefetch if not already cached
+    const prefetchIfMissing = async (key: unknown[], fetcher: () => Promise<unknown>) => {
+      const cached = queryClient.getQueryData(key);
+      if (cached !== undefined) return; // already in cache
+      try {
+        await queryClient.prefetchQuery({ queryKey: key, queryFn: fetcher, staleTime: 1000 * 60 * 5 });
+      } catch {
+        // Non-critical — pages handle their own error states
+      }
+    };
+
+    // Prefetch conversations (Chat page)
+    prefetchIfMissing(['conversations', user.id], async () => {
+      const { data: matches } = await supabase
+        .from('matches')
+        .select('id, user1_id, user2_id, created_at')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .eq('is_active', true);
+      if (!matches || matches.length === 0) return [];
+      const otherIds = matches.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, avatar_url, photos, birth_date, bio, occupation, city, state, looking_for, christian_interests, religion, gender, pets, drink, smoke, physical_activity, church_frequency, about_children, education, languages, social_media, last_active_at, show_online_status, show_last_active')
+        .in('user_id', otherIds);
+      const profilesMap = new Map(profiles?.map(p => [p.user_id, p]));
+      const matchIds = matches.map(m => m.id);
+      const { data: msgs } = await supabase
+        .from('messages')
+        .select('match_id, content, created_at, sender_id, is_read')
+        .in('match_id', matchIds)
+        .order('created_at', { ascending: false });
+      const lastMsgByMatch = new Map<string, typeof msgs extends (infer T)[] | null ? T : never>();
+      for (const msg of (msgs || [])) {
+        if (!lastMsgByMatch.has(msg.match_id)) lastMsgByMatch.set(msg.match_id, msg);
+      }
+      return matches.map(m => {
+        const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
+        const profile = profilesMap.get(otherId);
+        if (!profile) return null;
+        const lastMsg = lastMsgByMatch.get(m.id);
+        return {
+          id: 'conv-' + m.id, match_id: m.id, created_at: m.created_at,
+          profile: { id: profile.user_id, display_name: profile.display_name || 'Usuário', avatar_url: profile.avatar_url, photos: profile.photos || [], ...profile },
+          last_message: lastMsg ? { content: lastMsg.content, created_at: lastMsg.created_at, is_read: lastMsg.is_read, sender_id: lastMsg.sender_id } : undefined
+        };
+      }).filter(Boolean);
+    });
+
+    // Prefetch profile (Profile page)
+    prefetchIfMissing(['profile', user.id], async () => {
+      const { data } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
+      return data;
+    });
+
+    // Prefetch likes count (Matches page)
+    prefetchIfMissing(['likes', user.id], async () => {
+      const { data: mySwipes } = await supabase.from('swipes').select('swiped_id').eq('swiper_id', user.id);
+      const mySwipedIds = new Set(mySwipes?.map(s => s.swiped_id));
+      const { data: swipesData } = await supabase
+        .from('swipes').select('created_at, swiper_id, message, direction')
+        .eq('swiped_id', user.id).in('direction', ['like', 'super_like'])
+        .order('created_at', { ascending: false });
+      const pendingIds = (swipesData || []).map(s => s.swiper_id).filter(id => !mySwipedIds.has(id));
+      if (pendingIds.length === 0) return [];
+      const { data: profiles } = await supabase.from('profiles')
+        .select('user_id, display_name, birth_date, avatar_url, photos, bio, city, state, religion, looking_for, gender')
+        .in('user_id', pendingIds);
+      const profilesMap = new Map(profiles?.map(p => [p.user_id, p]));
+      return (swipesData || []).filter(s => pendingIds.includes(s.swiper_id)).map(s => {
+        const profile = profilesMap.get(s.swiper_id);
+        if (!profile) return null;
+        return { id: s.swiper_id, user_id: s.swiper_id, liked_at: s.created_at, message: s.message, is_super_like: s.direction === 'super_like', profile };
+      }).filter(Boolean);
+    });
+
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSignOut = async () => {
     await signOut();
