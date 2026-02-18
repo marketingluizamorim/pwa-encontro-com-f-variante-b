@@ -79,7 +79,7 @@ export default function Discover() {
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<DiscoverFiltersState>(() => {
-    const FILTERS_VERSION = 'v2'; // bump when defaults change
+    const FILTERS_VERSION = 'v3'; // bump when defaults change
     const savedVersion = localStorage.getItem('discover-filters-version');
     const saved = localStorage.getItem('discover-filters');
     if (saved && savedVersion === FILTERS_VERSION) {
