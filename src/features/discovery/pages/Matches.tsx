@@ -511,6 +511,8 @@ export default function Matches() {
                 subscription?.canSeeWhoLiked
                   ? "Veja todos que gostaram de você e não perca nenhuma conexão."
                   : "Faça um upgrade de plano para ver as pessoas que já curtiram você."
+              ) : subscription?.tier === 'gold' ? null : subscription?.tier === 'bronze' ? (
+                "Nenhuma curtida até o momento. Use os filtros para expandir seu alcance!"
               ) : (
                 "Nenhuma curtida até o momento. Use o Boost para destacar seu perfil e aparecer mais!"
               )}
