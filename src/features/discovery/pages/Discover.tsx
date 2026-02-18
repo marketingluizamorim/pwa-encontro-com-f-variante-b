@@ -1374,7 +1374,7 @@ export default function Discover() {
         onActivate={() => {
           setShowLocationModal(false);
           localStorage.setItem('geo-permission-dismissed', 'true');
-          requestLocation();
+          navigate('/install');
         }}
         onDismiss={() => {
           setShowLocationModal(false);
