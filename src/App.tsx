@@ -45,14 +45,15 @@ import AnalysisV1 from "@/features/funnel/pages/Analysis";
 import ProfilesV1 from "@/features/funnel/pages/Profiles";
 import PlansV1 from "@/features/funnel/pages/Plans";
 
+// Auth pages — static so login appears instantly after HTML splash (no double loader)
+import Login from "@/features/auth/pages/Login";
+import Register from "@/features/auth/pages/Register";
+
 // Lazy load secondary public pages
 const Install = lazy(() => import("./pages/public/Install"));
 const Construction = lazy(() => import("./pages/public/Construction"));
 const NotFound = lazy(() => import("./pages/public/NotFound"));
 
-// Lazy load auth pages
-const Login = lazy(() => import("@/features/auth/pages/Login"));
-const Register = lazy(() => import("@/features/auth/pages/Register"));
 
 // Lazy load legal pages
 const TermosDeUso = lazy(() => import("./pages/legal/TermosDeUso"));
