@@ -15,7 +15,7 @@ export function Header({ action, className, isDiscover }: HeaderProps) {
                     <img
                         src="/3logo-nova1080x1080.png"
                         alt="Encontro com Fé"
-                        className="w-8 h-8 object-contain"
+                        className="w-8 h-8 object-contain logo-blend"
                     />
 
                     <h1 className="font-serif font-bold text-lg text-foreground tracking-tight">

@@ -233,7 +233,7 @@ export default function Install() {
           <img
             src="/3logo-nova1080x1080.png"
             alt="Encontro com Fé"
-            className="relative w-12 h-12 object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.5)]"
+            className="relative w-12 h-12 object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.5)] logo-blend"
           />
         </motion.div>
 

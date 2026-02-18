@@ -53,7 +53,7 @@ const WelcomeScreen = () => {
           <img
             src="/3logo-nova1080x1080.png"
             alt="Encontro com Fé"
-            className="w-14 h-14 md:w-24 md:h-24 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.5)]"
+            className="w-14 h-14 md:w-24 md:h-24 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.5)] logo-blend"
           />
         </div>
 

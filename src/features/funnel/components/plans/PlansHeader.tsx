@@ -26,7 +26,7 @@ export function PlansHeader({ onBack }: PlansHeaderProps) {
         <img
           src="/3logo-nova1080x1080.png"
           alt="Encontro com Fé"
-          className="w-10 h-10 object-contain"
+          className="w-10 h-10 object-contain logo-blend"
         />
 
         <h1 className="text-xl md:text-2xl font-serif font-bold text-white tracking-tight">

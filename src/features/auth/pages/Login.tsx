@@ -69,7 +69,7 @@ export default function Login() {
               src="/3logo-nova1080x1080.png"
               alt="Encontro com Fé"
               style={{ width: '4rem', height: '4rem' }}
-              className="object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.5)]"
+              className="object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.5)] logo-blend"
             />
           </div>
 

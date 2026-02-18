@@ -353,4 +353,9 @@
   [data-sonner-toast] [data-title] {
     color: #ffffff !important;
   }
+
+  /* Logo blend: remove white background on dark backgrounds */
+  .logo-blend {
+    mix-blend-mode: screen;
+  }
 }
