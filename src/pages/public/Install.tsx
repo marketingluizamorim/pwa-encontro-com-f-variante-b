@@ -218,23 +218,27 @@ export default function Install() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-150 contrast-150 pointer-events-none mix-blend-overlay" />
       </div>
 
-      <div className="relative z-10 w-full max-w-sm flex flex-col items-center py-3 min-h-full">
-        {/* Navigation */}
-        <header className="w-full flex items-center mb-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="group flex items-center justify-center text-white/40 hover:text-white transition-all bg-white/5 hover:bg-white/10 w-9 h-9 rounded-xl border border-white/5 active:scale-95 shadow-lg"
-          >
-            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
-          </button>
-        </header>
+      {/* Back button — fixed, respects safe area */}
+      <div
+        className="fixed top-0 left-0 right-0 z-20 flex items-start px-5"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)' }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          className="group flex items-center justify-center text-white/40 hover:text-white transition-all bg-white/5 hover:bg-white/10 w-9 h-9 rounded-xl border border-white/5 active:scale-95 shadow-lg"
+        >
+          <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+        </button>
+      </div>
+
+      {/* Main content — vertically centered */}
+      <div className="relative z-10 w-full max-w-sm flex flex-col items-center justify-center min-h-full gap-4 py-20">
 
         {/* Hero Branding */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", damping: 12, delay: 0.1 }}
-          className="mb-1"
         >
           <img
             src="/3logo-nova1080x1080.png"
@@ -244,7 +248,7 @@ export default function Install() {
         </motion.div>
 
         {/* Title */}
-        <div className="text-center mb-4">
+        <div className="text-center -mt-2">
           <motion.h1
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -273,7 +277,7 @@ export default function Install() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="w-full mt-5 grid grid-cols-3 gap-3"
+          className="w-full grid grid-cols-3 gap-3"
         >
           {[
             { icon: 'ri-flashlight-line', color: 'text-[#d4af37]', glow: 'drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]', label: 'Acesso\nDireto' },
@@ -296,7 +300,7 @@ export default function Install() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="mt-auto pt-4 flex flex-col items-center gap-1.5"
+          className="flex flex-col items-center gap-1.5"
         >
           <div className="h-px w-8 bg-white/10" />
           <p className="text-[8px] text-white/20 uppercase tracking-[0.4em] font-bold">
@@ -307,3 +311,4 @@ export default function Install() {
     </div>
   );
 }
+
