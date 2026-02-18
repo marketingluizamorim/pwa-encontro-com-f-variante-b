@@ -585,7 +585,7 @@ export default function Profile() {
                       onClick={() => setShowUpgradeDialog(true)}
                       className="w-full h-12 rounded-xl gradient-button text-white font-bold shadow-lg shadow-primary/20 transition-transform active:scale-[0.98] border-0"
                     >
-                      Dar um boost no meu perfil
+                      Dar um Boost no meu perfil
                     </Button>
                   </div>
                 </div>

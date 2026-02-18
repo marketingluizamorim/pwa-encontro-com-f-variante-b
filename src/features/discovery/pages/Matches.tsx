@@ -483,7 +483,7 @@ export default function Matches() {
                   ? "Veja todos que gostaram de você e não perca nenhuma conexão."
                   : "Faça um upgrade de plano para ver as pessoas que já curtiram você."
               ) : (
-                "Nenhuma curtida nova até o momento. Use o Boost para aparecer mais!"
+                "Nenhuma curtida nova até o momento. Use o Boost para destacar seu perfil e aparecer mais!"
               )}
             </p>
 
@@ -610,7 +610,7 @@ export default function Matches() {
                 }}
                 className="gradient-button text-white font-bold py-3 px-10 rounded-full shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2 border border-white/20"
               >
-                Dar um boost no meu perfil
+                Dar um Boost no meu perfil
               </button>
             </div>
           )}
