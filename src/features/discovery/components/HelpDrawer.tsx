@@ -24,7 +24,7 @@ const helpItems = [
     {
         icon: 'ri-heart-3-line',
         title: 'Matches',
-        description: 'Veja quem curtiu seu perfil! Se você curtir de volta, um Match acontece e vocês podem conversar.',
+        description: 'Veja quem curtiu seu perfil! Se você curtir de volta, uma conexão acontece e vocês podem conversar.',
         color: 'text-rose-500',
         bgColor: 'bg-rose-500/10'
     },
@@ -58,10 +58,10 @@ export function HelpDrawer({ open, onOpenChange }: HelpDrawerProps) {
                     </button>
 
                     <DrawerHeader className="px-0 pt-8 shrink-0">
-                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-5 mx-auto">
-                            <i className="ri-question-line text-4xl" />
+                        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-5 mx-auto">
+                            <i className="ri-question-line text-3xl" />
                         </div>
-                        <DrawerTitle className="text-3xl font-display font-bold text-center">Como funciona o App?</DrawerTitle>
+                        <DrawerTitle className="text-2xl font-display font-bold text-center">Como funciona o App?</DrawerTitle>
                         <DrawerDescription className="text-center text-muted-foreground text-sm mt-1">
                             Guia rápido para você aproveitar ao máximo sua jornada.
                         </DrawerDescription>
