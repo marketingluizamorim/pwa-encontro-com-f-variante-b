@@ -321,7 +321,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-muted-foreground font-medium">Deslize para visualizar mais filtros</p>
+            <p className="text-xs text-muted-foreground font-medium">Deslize para ver mais filtros</p>
           </div>
           <button
             onClick={() => setOpen(false)}
