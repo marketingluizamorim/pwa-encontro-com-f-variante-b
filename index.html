@@ -126,6 +126,16 @@
     })();
   </script>
 
+  <script>
+    // Capture beforeinstallprompt ASAP — before React even loads
+    // This ensures Install page can always access the deferred prompt
+    window.__pwaInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      window.__pwaInstallPrompt = e;
+    });
+  </script>
+
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

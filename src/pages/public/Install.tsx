@@ -10,9 +10,14 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+declare global {
+  interface Window {
+    __pwaInstallPrompt: BeforeInstallPromptEvent | null;
+  }
+}
+
 export default function Install() {
   const navigate = useNavigate();
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState({
     isIOS: false,
@@ -34,28 +39,50 @@ export default function Install() {
 
     setDeviceInfo({ isIOS, isAndroid, isSafari, isChrome });
 
+    // Also catch if the event fires after React loads (late capture)
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      window.__pwaInstallPrompt = e as BeforeInstallPromptEvent;
     };
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      toast.info("Use a opção 'Adicionar à tela inicial' no menu do seu navegador.", {
-        id: 'install-info',
-        duration: 4000
-      });
+    // Android / Chrome: use the deferred prompt captured globally
+    const prompt = window.__pwaInstallPrompt;
+    if (prompt) {
+      await prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
+        window.__pwaInstallPrompt = null;
+      }
       return;
     }
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') setIsInstalled(true);
-    setDeferredPrompt(null);
+
+    // iOS / Safari: open the native Share Sheet via navigator.share
+    // The user can then tap "Add to Home Screen" from the share menu
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Encontro com Fé',
+          text: 'Instale o app Encontro com Fé para uma experiência premium!',
+          url: window.location.href,
+        });
+      } catch {
+        // User cancelled share — no action needed
+      }
+      return;
+    }
+
+    // Fallback: nothing available, highlight the manual steps
+    toast.info("Siga os passos acima para instalar o app.", {
+      id: 'install-info',
+      duration: 3000,
+    });
   };
+
 
   const renderInstructions = () => {
     if (isInstalled) {
