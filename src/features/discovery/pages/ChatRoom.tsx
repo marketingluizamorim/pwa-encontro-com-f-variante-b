@@ -227,15 +227,15 @@ export default function ChatRoom() {
 
   const queryClient = useQueryClient();
 
-  // Optimized Data Fetching with React Query
-  const { data: matchDetails, isLoading: loadingDetails } = useQuery({
-    queryKey: ['chat-details', matchId, user?.id],
-    enabled: !!matchId && !!user,
+  // chat-details: enabled only on matchId — RLS ensures security, no need to wait for user
+  const { data: matchDetails, isPending: loadingDetails } = useQuery({
+    queryKey: ['chat-details', matchId],
+    enabled: !!matchId,
     staleTime: Infinity,
     retry: false,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      if (!matchId || !user) throw new Error("No user/match");
+      if (!matchId) throw new Error('No matchId');
 
       const { data: match, error: matchError } = await supabase
         .from('matches')
@@ -243,16 +243,26 @@ export default function ChatRoom() {
         .eq('id', matchId)
         .single();
 
-      if (matchError || !match) throw matchError;
+      if (matchError || !match) throw matchError ?? new Error('Match not found');
 
-      const matchedOtherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
+      // Determine the other user from the match (works even before user is loaded)
+      // We'll use auth.getUser() as a lightweight fallback if user context isn't ready
+      let currentUserId = user?.id;
+      if (!currentUserId) {
+        const { supabase: sb } = await import('@/integrations/supabase/client');
+        const { data: { user: authUser } } = await sb.auth.getUser();
+        currentUserId = authUser?.id;
+      }
+      if (!currentUserId) throw new Error('Not authenticated');
+
+      const matchedOtherUserId = match.user1_id === currentUserId ? match.user2_id : match.user1_id;
 
       // Check for Super Like
       const { data: superLike } = await supabase
         .from('swipes')
-        .select('*')
+        .select('id')
         .eq('swiper_id', matchedOtherUserId)
-        .eq('swiped_id', user.id)
+        .eq('swiped_id', currentUserId)
         .eq('direction', 'super_like')
         .maybeSingle();
 
@@ -303,7 +313,7 @@ export default function ChatRoom() {
     }
   });
 
-  const { data: messages = [], isLoading: loadingMessages } = useQuery({
+  const { data: messages = [], isPending: loadingMessages } = useQuery({
     queryKey: ['chat-messages', matchId],
     enabled: !!matchId,
     retry: false,
@@ -348,8 +358,9 @@ export default function ChatRoom() {
     return {};
   }, [myProfile?.social_media]);
 
-  // Only show spinner on true first load (no cached data at all)
-  const loading = (loadingDetails && !matchDetails) || (loadingMessages && messages.length === 0);
+  // isPending = query never ran yet (no cache). isLoading = fetching with no data.
+  // Use isPending so we only block render when there's truly no data at all.
+  const loading = loadingDetails || loadingMessages;
   const matchProfile = matchDetails?.matchProfile || null;
   const otherUserId = matchDetails?.otherUserId || null;
   const isSuperLikeMatch = matchDetails?.isSuperLikeMatch || false;
