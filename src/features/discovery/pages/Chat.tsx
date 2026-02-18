@@ -96,16 +96,18 @@ export default function Chat() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
-    const { data: conversations = [], isLoading: loading, fetchStatus, refetch: fetchConversations } = useQuery({
+    const { data: conversations = [], isLoading: loading, refetch: fetchConversations } = useQuery({
         queryKey: ['conversations', user?.id],
         enabled: !!user,
-        staleTime: 1000 * 60 * 5, // 5 minutes cache
-        gcTime: 1000 * 60 * 30, // 30 minutes garbage collection
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 30,
+        retry: false,
+        refetchOnWindowFocus: false,
         queryFn: async () => {
             if (!user) return [];
             const { supabase } = await import('@/integrations/supabase/client');
 
-            // 1.5. Buscar Bloqueios
+            // 1. Buscar Bloqueios
             const { data: blocks } = await supabase
                 .from('user_blocks')
                 .select('blocker_id, blocked_id')
@@ -115,7 +117,7 @@ export default function Chat() {
                 b.blocker_id === user.id ? b.blocked_id : b.blocker_id
             ));
 
-            // 1. Buscar Matches (Combinações)
+            // 2. Buscar Matches ativos
             const { data: matchesData, error: matchesError } = await supabase
                 .from('matches')
                 .select('id, user1_id, user2_id, created_at')
@@ -124,7 +126,6 @@ export default function Chat() {
 
             if (matchesError) throw matchesError;
 
-            // Filter out matches with blocked users
             const activeMatches = (matchesData as { id: string, user1_id: string, user2_id: string, created_at: string }[] || []).filter(m => {
                 const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
                 return !blockedUserIds.has(otherId);
@@ -132,40 +133,48 @@ export default function Chat() {
 
             if (activeMatches.length === 0) return [];
 
-            // 2. Buscar Perfis
+            const matchIds = activeMatches.map(m => m.id);
             const otherUserIds = activeMatches.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
-            const { data: profilesData } = await supabase
-                .from('profiles')
-                .select('user_id, display_name, avatar_url, photos, birth_date, bio, occupation, city, state, looking_for, christian_interests, religion, gender, pets, drink, smoke, physical_activity, church_frequency, about_children, education, languages, social_media, last_active_at, show_online_status, show_last_active')
-                .in('user_id', otherUserIds);
 
-            const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
+            // 3. Buscar Perfis, Super Likes e Últimas Mensagens em paralelo (3 queries, não N)
+            const [profilesResult, superLikesResult, lastMessagesResult] = await Promise.all([
+                supabase
+                    .from('profiles')
+                    .select('user_id, display_name, avatar_url, photos, birth_date, bio, occupation, city, state, looking_for, christian_interests, religion, gender, pets, drink, smoke, physical_activity, church_frequency, about_children, education, languages, social_media, last_active_at, show_online_status, show_last_active')
+                    .in('user_id', otherUserIds),
+                supabase
+                    .from('swipes')
+                    .select('swiper_id, swiped_id')
+                    .eq('direction', 'super_like')
+                    .or(`swiper_id.eq.${user.id},swiped_id.eq.${user.id}`),
+                // Busca a última mensagem de TODOS os matches de uma vez só
+                supabase
+                    .from('messages')
+                    .select('match_id, content, created_at, sender_id, is_read')
+                    .in('match_id', matchIds)
+                    .order('created_at', { ascending: false }),
+            ]);
 
-            // 3. Buscar Últimas Mensagens - E verificar Super Likes
-            const { data: superLikes } = await supabase
-                .from('swipes')
-                .select('swiper_id, swiped_id')
-                .eq('direction', 'super_like')
-                .or(`swiper_id.eq.${user.id},swiped_id.eq.${user.id}`);
+            const profilesMap = new Map(profilesResult.data?.map(p => [p.user_id, p]));
 
             const superLikePairs = new Set(
-                superLikes?.map(s => `${s.swiper_id}-${s.swiped_id}`)
+                superLikesResult.data?.map(s => `${s.swiper_id}-${s.swiped_id}`)
             );
 
-            const matchesWithMessages = await Promise.all(activeMatches.map(async (m) => {
-                const { data: msgs } = await supabase
-                    .from('messages')
-                    .select('content, created_at, sender_id, is_read')
-                    .eq('match_id', m.id)
-                    .order('created_at', { ascending: false })
-                    .limit(1);
+            // Pegar apenas a última mensagem por match_id
+            const lastMsgByMatch = new Map<string, typeof lastMessagesResult.data extends (infer T)[] | null ? T : never>();
+            for (const msg of (lastMessagesResult.data || [])) {
+                if (!lastMsgByMatch.has(msg.match_id)) {
+                    lastMsgByMatch.set(msg.match_id, msg);
+                }
+            }
 
-                const lastMsg = msgs?.[0];
+            const result = activeMatches.map(m => {
                 const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
                 const profile = profilesMap.get(otherId);
-
                 if (!profile) return null;
 
+                const lastMsg = lastMsgByMatch.get(m.id);
                 const isSuperLike = superLikePairs.has(`${user.id}-${otherId}`) || superLikePairs.has(`${otherId}-${user.id}`);
 
                 return {
@@ -206,9 +215,9 @@ export default function Chat() {
                         sender_id: lastMsg.sender_id
                     } : undefined
                 };
-            }));
+            });
 
-            return matchesWithMessages.filter((c) => c !== null) as Conversation[];
+            return result.filter((c) => c !== null) as Conversation[];
         }
     });
 
@@ -428,7 +437,9 @@ export default function Chat() {
         toast.success('Conversas atualizadas', { style: { marginTop: '50px' } });
     };
 
-    if (loading && fetchStatus !== 'idle') {
+    // Só exibe skeleton na primeira carga (sem dados em cache)
+    // Re-fetches em background não mostram skeleton
+    if (loading && conversations.length === 0) {
         return <ChatListSkeleton />;
     }
 
