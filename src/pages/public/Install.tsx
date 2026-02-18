@@ -88,25 +88,25 @@ export default function Install() {
           className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 space-y-4 shadow-2xl"
         >
           <div className="flex items-center gap-3 pb-3 border-b border-white/5">
-            <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
-              <i className="ri-apple-fill text-xl text-blue-400" />
+            <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center border border-blue-500/20 shrink-0">
+              <i className="ri-apple-fill text-2xl text-blue-400" />
             </div>
             <div>
-              <h2 className="font-bold text-white text-base font-display tracking-tight">Instalação no iOS</h2>
-              <p className="text-[9px] text-blue-400/60 uppercase tracking-widest font-bold">Usando o Safari</p>
+              <h2 className="font-bold text-white text-lg font-display tracking-tight">Instalação no iOS</h2>
+              <p className="text-[11px] text-blue-400/60 uppercase tracking-widest font-bold">Usando o Safari</p>
             </div>
           </div>
 
           <div className="space-y-4">
             {/* Step 1 */}
             <div className="flex items-start gap-3">
-              <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
-                <span className="text-xs font-bold text-white/80">1</span>
+              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
+                <span className="text-sm font-bold text-white/80">1</span>
               </div>
-              <p className="text-xs text-white/80 leading-relaxed">
+              <p className="text-sm text-white/80 leading-relaxed">
                 Toque no ícone de{' '}
-                <span className="inline-flex items-center justify-center w-6 h-6 bg-white/10 rounded-md mx-0.5 border border-white/10">
-                  <Share className="w-3 h-3" />
+                <span className="inline-flex items-center justify-center w-7 h-7 bg-white/10 rounded-md mx-0.5 border border-white/10">
+                  <Share className="w-3.5 h-3.5" />
                 </span>{' '}
                 na barra inferior do Safari.
               </p>
@@ -114,18 +114,18 @@ export default function Install() {
 
             {/* Step 2 */}
             <div className="flex items-start gap-3">
-              <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
-                <span className="text-xs font-bold text-white/80">2</span>
+              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
+                <span className="text-sm font-bold text-white/80">2</span>
               </div>
               <div className="flex flex-col gap-1.5">
-                <p className="text-xs text-white/80 leading-relaxed">
+                <p className="text-sm text-white/80 leading-relaxed">
                   Procure por "Adicionar à tela inicial" ou
                 </p>
                 <button
                   onClick={handleInstallClick}
-                  className="inline-flex items-center justify-center gap-1.5 bg-primary/20 hover:bg-primary/40 text-primary px-3 py-1.5 rounded-lg border border-primary/30 transition-all active:scale-95 font-bold text-xs w-max"
+                  className="inline-flex items-center justify-center gap-1.5 bg-primary/20 hover:bg-primary/40 text-primary px-3 py-2 rounded-lg border border-primary/30 transition-all active:scale-95 font-bold text-sm w-max"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-4 h-4" />
                   Clique Aqui
                 </button>
               </div>
@@ -133,10 +133,10 @@ export default function Install() {
 
             {/* Step 3 */}
             <div className="flex items-start gap-3">
-              <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
-                <span className="text-xs font-bold text-white/80">3</span>
+              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
+                <span className="text-sm font-bold text-white/80">3</span>
               </div>
-              <p className="text-xs text-white/80 leading-relaxed">
+              <p className="text-sm text-white/80 leading-relaxed">
                 Clique em <span className="text-blue-400 font-bold">Adicionar</span> no canto superior direito.
               </p>
             </div>
@@ -152,25 +152,25 @@ export default function Install() {
         className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 space-y-4 shadow-2xl"
       >
         <div className="flex items-center gap-3 pb-3 border-b border-white/5">
-          <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center border border-green-500/20 shrink-0">
-            <i className="ri-android-fill text-xl text-green-400" />
+          <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center border border-green-500/20 shrink-0">
+            <i className="ri-android-fill text-2xl text-green-400" />
           </div>
           <div>
-            <h2 className="font-bold text-white text-base font-display tracking-tight">Instalação no Android</h2>
-            <p className="text-[9px] text-green-400/60 uppercase tracking-widest font-bold">Chrome e navegadores Android</p>
+            <h2 className="font-bold text-white text-lg font-display tracking-tight">Instalação no Android</h2>
+            <p className="text-[11px] text-green-400/60 uppercase tracking-widest font-bold">Chrome e navegadores Android</p>
           </div>
         </div>
 
         <div className="space-y-4 text-left">
           {/* Step 1 */}
           <div className="flex items-start gap-3">
-            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
-              <span className="text-xs font-bold text-white/80">1</span>
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
+              <span className="text-sm font-bold text-white/80">1</span>
             </div>
-            <p className="text-xs text-white/80 leading-relaxed">
+            <p className="text-sm text-white/80 leading-relaxed">
               Toque nos três pontinhos{' '}
-              <span className="inline-flex items-center justify-center w-6 h-6 bg-white/10 rounded-md mx-0.5 border border-white/10">
-                <MoreVertical className="w-3 h-3" />
+              <span className="inline-flex items-center justify-center w-7 h-7 bg-white/10 rounded-md mx-0.5 border border-white/10">
+                <MoreVertical className="w-3.5 h-3.5" />
               </span>{' '}
               no canto superior.
             </p>
@@ -178,18 +178,18 @@ export default function Install() {
 
           {/* Step 2 */}
           <div className="flex items-start gap-3">
-            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
-              <span className="text-xs font-bold text-white/80">2</span>
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
+              <span className="text-sm font-bold text-white/80">2</span>
             </div>
             <div className="flex flex-col gap-1.5">
-              <p className="text-xs text-white/80 leading-relaxed">
+              <p className="text-sm text-white/80 leading-relaxed">
                 Procure por "Adicionar à tela inicial" ou
               </p>
               <button
                 onClick={handleInstallClick}
-                className="inline-flex items-center justify-center gap-1.5 bg-primary/20 hover:bg-primary/40 text-primary px-3 py-1.5 rounded-lg border border-primary/30 transition-all active:scale-95 font-bold text-xs w-max"
+                className="inline-flex items-center justify-center gap-1.5 bg-primary/20 hover:bg-primary/40 text-primary px-3 py-2 rounded-lg border border-primary/30 transition-all active:scale-95 font-bold text-sm w-max"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-4 h-4" />
                 Clique Aqui
               </button>
             </div>
@@ -197,10 +197,10 @@ export default function Install() {
 
           {/* Step 3 */}
           <div className="flex items-start gap-3">
-            <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
-              <span className="text-xs font-bold text-white/80">3</span>
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5 mt-0.5">
+              <span className="text-sm font-bold text-white/80">3</span>
             </div>
-            <p className="text-xs text-white/80 leading-relaxed">
+            <p className="text-sm text-white/80 leading-relaxed">
               Confirme a instalação e o app aparecerá em sua lista de aplicativos.
             </p>
           </div>
@@ -243,7 +243,7 @@ export default function Install() {
           <img
             src="/3logo-nova1080x1080.png"
             alt="Encontro com Fé"
-            className="w-12 h-12 object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.5)] logo-blend"
+            className="w-16 h-16 object-contain drop-shadow-[0_0_24px_rgba(212,175,55,0.5)] logo-blend"
           />
         </motion.div>
 
@@ -253,7 +253,7 @@ export default function Install() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-xl font-display font-bold text-white tracking-tight"
+            className="text-2xl font-display font-bold text-white tracking-tight"
           >
             Instale o App
           </motion.h1>
@@ -261,7 +261,7 @@ export default function Install() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-white/40 leading-relaxed px-2 text-xs font-medium mt-0.5"
+            className="text-white/40 leading-relaxed px-2 text-sm font-medium mt-1"
           >
             Adicione o <span className="text-primary font-bold">Encontro com Fé</span> para uma experiência premium.
           </motion.p>
@@ -285,10 +285,10 @@ export default function Install() {
             { icon: 'ri-map-pin-2-line', color: 'text-white/60', glow: '', label: 'Localização\nExata' },
           ].map((item) => (
             <div key={item.icon} className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg">
-                <i className={`${item.icon} text-xl ${item.color} ${item.glow}`} />
+              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg">
+                <i className={`${item.icon} text-2xl ${item.color} ${item.glow}`} />
               </div>
-              <span className="text-[9px] font-bold text-white/30 uppercase tracking-[0.15em] text-center leading-relaxed whitespace-pre-line">
+              <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.15em] text-center leading-relaxed whitespace-pre-line">
                 {item.label}
               </span>
             </div>
