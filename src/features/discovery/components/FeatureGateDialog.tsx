@@ -66,6 +66,12 @@ export function FeatureGateDialog({
                                 className="relative bg-[#0f172a] rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col overflow-visible"
                                 onClick={(e) => e.stopPropagation()}
                             >
+                                <button
+                                    onClick={() => onOpenChange(false)}
+                                    className="absolute top-6 right-6 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/10 active:scale-90 transition-all z-30"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
                                 <div className="p-7 pt-10 flex flex-col overflow-hidden rounded-[2.5rem]">
                                     {/* Header: Icon + Title Group */}
                                     <div className="flex items-center gap-4 mb-6">
