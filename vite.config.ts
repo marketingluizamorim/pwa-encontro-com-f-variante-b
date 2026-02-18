@@ -18,13 +18,13 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "pwa-192x192.png", "pwa-512x512.png", "2pwa-512x512.png"],
+      includeAssets: ["favicon.ico", "apple-touch-icon.png", "pwa-192x192.png", "pwa-512x512.png", "2pwa-512x512.png", "3logo-nova1080x1080.png"],
       manifest: {
         name: "Encontro com Fé",
         short_name: "Encontro c/Fé",
         description: "Encontre pessoas que compartilham seus valores e sua fé. Conexões cristãs genuínas para relacionamentos duradouros.",
         theme_color: "#0f172a",
-        background_color: "#ffffff",
+        background_color: "#0f172a",
         display: "standalone",
         orientation: "portrait",
         scope: "/",

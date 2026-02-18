@@ -60,7 +60,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               transition={{ delay: 0.6, duration: 0.5 }}
               className="mt-3 text-white/50 text-sm tracking-wide font-medium"
             >
-              Conexões que Transformam
+              Conexões que Transformam vidas
             </motion.p>
           </motion.div>
 
