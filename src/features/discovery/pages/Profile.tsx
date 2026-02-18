@@ -35,7 +35,6 @@ interface UserProfile {
   religion?: string;
   church_frequency?: string;
   looking_for?: string;
-  interests: string[];
   gender?: string;
   christian_interests?: string[];
   languages?: string[];
@@ -46,6 +45,8 @@ interface UserProfile {
   physical_activity?: string;
   social_media?: string;
   occupation?: string;
+  about_children?: string;
+  values_importance?: string;
 }
 
 export default function Profile() {
@@ -98,7 +99,7 @@ export default function Profile() {
             display_name: user.user_metadata?.display_name || 'Usuário',
             bio: 'Complete seu perfil para aparecer para outras pessoas.',
             photos: [],
-            interests: [],
+            christian_interests: [],
           } as UserProfile;
         }
 
@@ -112,7 +113,7 @@ export default function Profile() {
             display_name: user.user_metadata?.display_name || 'Usuário',
             bio: 'Complete seu perfil para aparecer para outras pessoas.',
             photos: [],
-            interests: [],
+            christian_interests: [],
           } as UserProfile;
         } else {
           toast.error('Perfil não encontrado', { style: { marginTop: '50px' } });
@@ -208,21 +209,43 @@ export default function Profile() {
   const calculateCompletion = () => {
     if (!profile) return 0;
     const fields = [
+      // Basic Info
       profile.display_name,
-      profile.bio,
       profile.birth_date,
+      profile.gender,
       profile.city,
       profile.state,
+      // About
+      profile.bio,
+      // Faith
       profile.religion,
       profile.church_frequency,
-      profile.looking_for,
-      profile.gender,
+      (profile.christian_interests && profile.christian_interests.length > 0),
+      // Personal Details
       profile.occupation,
-      (profile.photos && profile.photos.length > 0),
-      ((profile.christian_interests && profile.christian_interests.length > 0) || (profile.interests && profile.interests.length > 0))
+      profile.education,
+      (profile.languages && profile.languages.length > 0),
+      profile.social_media,
+      // Lifestyle
+      profile.drink,
+      profile.smoke,
+      profile.physical_activity,
+      profile.pets,
+      // Preferences
+      profile.looking_for,
+      profile.about_children,
+      profile.values_importance,
+      // Photos
+      (profile.photos && profile.photos.length > 0)
     ];
 
-    const filled = fields.filter(Boolean).length;
+    const filled = fields.filter(val => {
+      if (Array.isArray(val)) return val.length > 0;
+      if (typeof val === 'boolean') return val;
+      if (typeof val === 'string') return val.trim().length > 0;
+      return !!val;
+    }).length;
+
     return Math.round((filled / fields.length) * 100);
   };
 
@@ -608,10 +631,10 @@ export default function Profile() {
                   </div>
                   <div className="space-y-1.5">
                     <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                      Instale o App no seu celular
+                      Instale o App no seu Celular
                     </p>
                     <p className="text-xs text-muted-foreground leading-relaxed max-w-[280px]">
-                      Tenha uma experiência premium com notificações e acesso instantâneo. Toque para ver como instalar.
+                      Tenha uma experiência completa com notificações e acesso imediato. Toque para ver como instalar.
                     </p>
                   </div>
                 </button>
@@ -798,7 +821,7 @@ export default function Profile() {
 
                       if (error) throw error;
                       toast.success('Alterado para Ouro!', { id: toastId, style: { marginTop: '50px' } });
-                      setTimeout(() => window.location.reload(), 1000);
+                      queryClient.invalidateQueries();
                     } catch (err: unknown) {
                       console.error(err);
                       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';

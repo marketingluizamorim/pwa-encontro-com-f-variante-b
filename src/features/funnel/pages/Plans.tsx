@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { PlansSection } from '@/features/funnel/components/PlansSection';
 import { CheckoutDialog } from '@/features/funnel/components/CheckoutDialog';
 import { PixPaymentDialog } from '@/features/funnel/components/PixPaymentDialog';
@@ -28,6 +29,7 @@ const PLAN_NAMES: Record<string, string> = {
 
 export default function Plans() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
 
   const {
@@ -222,7 +224,7 @@ export default function Plans() {
 
                   if (error) throw error;
                   toast.success('Alterado para Bronze!', { id: toastId, style: { marginTop: '50px' } });
-                  setTimeout(() => window.location.reload(), 1000);
+                  queryClient.invalidateQueries();
                 } catch (err: unknown) {
                   console.error(err);
                   const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
@@ -255,7 +257,7 @@ export default function Plans() {
 
                   if (error) throw error;
                   toast.success('Alterado para Prata!', { id: toastId, style: { marginTop: '50px' } });
-                  setTimeout(() => window.location.reload(), 1000);
+                  queryClient.invalidateQueries();
                 } catch (err: unknown) {
                   console.error(err);
                   const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
@@ -288,7 +290,7 @@ export default function Plans() {
 
                   if (error) throw error;
                   toast.success('Alterado para Ouro!', { id: toastId, style: { marginTop: '50px' } });
-                  setTimeout(() => window.location.reload(), 1000);
+                  queryClient.invalidateQueries();
                 } catch (err: unknown) {
                   console.error(err);
                   const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';

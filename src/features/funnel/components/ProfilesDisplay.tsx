@@ -133,7 +133,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
 
                     {profile.unlocked && (
                       <div className="flex gap-1.5 flex-nowrap mt-2.5 overflow-hidden">
-                        {profile.interests.slice(0, 2).map(interest => (
+                        {profile.christian_interests.slice(0, 2).map(interest => (
                           <span key={interest} className="bg-black/40 px-2 py-1 rounded-md text-[8px] text-white font-bold uppercase tracking-wide whitespace-nowrap">
                             {interest}
                           </span>

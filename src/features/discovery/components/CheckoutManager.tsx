@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { CheckoutDialog } from '@/features/funnel/components/CheckoutDialog';
 import { PixPaymentDialog } from '@/features/funnel/components/PixPaymentDialog';
 import { ThankYouDialog } from '@/features/funnel/components/ThankYouDialog';
@@ -21,6 +22,7 @@ interface CheckoutManagerProps {
 
 export function CheckoutManager({ open, onOpenChange, planId, planPrice, planName }: CheckoutManagerProps) {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { user } = useAuth();
     const { quizAnswers, setCheckoutInfo, setOrderBumps } = useFunnelStore();
 
@@ -144,7 +146,9 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
                 name={initialData.name}
                 onRedirect={() => {
                     setShowThankYou(false);
-                    window.location.reload();
+                    // Invalidate all queries to refresh UI with new subscription status
+                    queryClient.invalidateQueries();
+                    navigate('/app/discover');
                 }}
             />
         </>

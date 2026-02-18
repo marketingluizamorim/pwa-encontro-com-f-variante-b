@@ -38,7 +38,7 @@ const helpItems = [
     {
         icon: 'ri-user-3-line',
         title: 'Perfil',
-        description: 'Personalize suas fotos, bio e detalhes sobre sua fé. Perfis completos ganham mais destaque!',
+        description: 'Personalize suas fotos, bio e detalhes sobre você. Perfis completos ganham mais destaque!',
         color: 'text-emerald-500',
         bgColor: 'bg-emerald-500/10'
     }

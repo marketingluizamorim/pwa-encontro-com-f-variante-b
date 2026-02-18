@@ -21,7 +21,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AlertTriangle, Ban, Lock, Video, Phone } from 'lucide-react';
+import {
+  AlertTriangle, Ban, Lock, Video, Phone, CheckCircle2, Search,
+  MapPin, Home, UserCircle, User2, MoreHorizontal, LayoutList,
+  PawPrint, Wine, Cigarette, Dumbbell, Share2, Baby, Sparkles, Briefcase, BookOpen,
+  GraduationCap, Languages
+} from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
 import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
@@ -32,6 +37,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { calculateAge, formatLastActive } from '@/lib/date-utils';
 
 interface Message {
   id: string;
@@ -57,11 +63,20 @@ interface MatchProfile {
   is_verified?: boolean;
   show_distance?: boolean;
   christian_interests?: string[];
-  interests?: string[];
   social_media?: string | Record<string, string>;
   last_active_at?: string;
   show_online_status?: boolean;
   show_last_active?: boolean;
+  gender?: string;
+  about_children?: string;
+  pets?: string;
+  drink?: string;
+  smoke?: string;
+  physical_activity?: string;
+  education?: string;
+  languages?: string[];
+  latitude?: number;
+  longitude?: number;
 }
 
 interface SocialMediaLinks {
@@ -75,6 +90,13 @@ const LOOKING_FOR_ICONS: Record<string, string> = {
   'Construir uma família': 'ri-home-heart-fill',
   'Conhecer pessoas novas': 'ri-sparkles-line',
   'Amizade verdadeira': 'ri-hand-heart-fill',
+};
+
+const LOOKING_FOR_EMOJIS: Record<string, string> = {
+  'Relacionamento sério': '💍',
+  'Construir uma família': '👨‍👩‍👧‍👦',
+  'Conhecer pessoas novas': '✨',
+  'Amizade verdadeira': '🤝',
 };
 
 // Custom WhatsApp-style Audio Player Component
@@ -234,7 +256,7 @@ export default function ChatRoom() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('user_id, display_name, avatar_url, photos, bio, birth_date, city, state, religion, church_frequency, looking_for, occupation, show_distance, christian_interests, interests, last_active_at, show_online_status, show_last_active')
+        .select('user_id, display_name, avatar_url, photos, bio, birth_date, city, state, religion, church_frequency, looking_for, occupation, show_distance, christian_interests, last_active_at, show_online_status, show_last_active, gender, pets, drink, smoke, physical_activity, about_children')
         .eq('user_id', matchedOtherUserId)
         .single();
 
@@ -257,10 +279,17 @@ export default function ChatRoom() {
           is_verified: !!p.is_verified,
           show_distance: !!p.show_distance,
           christian_interests: Array.isArray(p.christian_interests) ? p.christian_interests.map(String) : [],
-          interests: Array.isArray(p.interests) ? p.interests.map(String) : [],
           last_active_at: p.last_active_at ? String(p.last_active_at) : undefined,
           show_online_status: !!p.show_online_status,
-          show_last_active: !!p.show_last_active
+          show_last_active: !!p.show_last_active,
+          gender: p.gender ? String(p.gender) : undefined,
+          pets: p.pets ? String(p.pets) : undefined,
+          drink: p.drink ? String(p.drink) : undefined,
+          smoke: p.smoke ? String(p.smoke) : undefined,
+          physical_activity: p.physical_activity ? String(p.physical_activity) : undefined,
+          about_children: p.about_children ? String(p.about_children) : undefined,
+          education: p.education ? String(p.education) : undefined,
+          languages: Array.isArray(p.languages) ? p.languages.map(String) : undefined
         };
       }
 
@@ -420,40 +449,7 @@ export default function ChatRoom() {
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
-  const calculateAge = (birthDate: string): number => {
-    if (!birthDate) return 0;
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  };
 
-  const formatLastActive = (lastActiveAt?: string, showOnline?: boolean, showLastActive?: boolean) => {
-    if (showOnline === false) return null;
-    if (!lastActiveAt) return null;
-
-    const lastActive = new Date(lastActiveAt);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - lastActive.getTime()) / (1000 * 60));
-
-    if (diffInMinutes < 5) return 'Online';
-    if (showLastActive === false) return 'Visto recentemente';
-
-    if (diffInMinutes < 60) return `Visto há ${diffInMinutes} min`;
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return 'Visto hoje';
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays === 1) return 'Visto ontem';
-    if (diffInDays < 7) return 'Visto esta semana';
-
-    return 'Visto a algum tempo';
-  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -1368,106 +1364,250 @@ export default function ChatRoom() {
                 </div>
 
                 {/* Profile Info Content - Overlaps Hero Image */}
-                <div className="px-5 -mt-20 relative z-10 space-y-6">
+                <div className="px-4 -mt-16 relative z-10 space-y-4 pb-12">
 
-                  {/* Header: Name & Age */}
-                  <div>
+                  {/* Name, Age & Verified */}
+                  <div className="px-1 mb-6">
                     <div className="flex items-center gap-3">
-                      <h1 className="text-4xl font-display font-semibold text-foreground">
-                        {matchProfile.display_name}
-                      </h1>
-                      <span className="text-3xl font-light text-muted-foreground">
-                        {matchProfile.birth_date ? calculateAge(matchProfile.birth_date) : ''}
-                      </span>
-                    </div>
-
-                    {/* Metadata Badges */}
-                    <div className="flex flex-col gap-2.5 mt-4">
-                      {/* Status */}
-                      <div className="flex items-center gap-2">
-                        <div className={cn(
-                          "w-2 h-2 rounded-full",
-                          formatLastActive(matchProfile.last_active_at, matchProfile.show_online_status, matchProfile.show_last_active) === 'Online agora'
-                            ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
-                            : "bg-muted-foreground/30"
-                        )} />
-                        <span className="text-sm font-medium text-muted-foreground">
-                          {formatLastActive(matchProfile.last_active_at, matchProfile.show_online_status, matchProfile.show_last_active) || 'Offline'}
+                      <div className="text-4xl text-foreground tracking-tight">
+                        <span className="font-bold">{matchProfile.display_name}</span>
+                        <span className="font-extralight text-muted-foreground ml-2">
+                          {matchProfile.birth_date ? calculateAge(matchProfile.birth_date) : ''}
                         </span>
                       </div>
-
-                      {/* Job & Location */}
-                      <div className="flex items-center gap-4 text-sm text-foreground/70">
-                        {matchProfile.occupation && (
-                          <div className="flex items-center gap-1.5 leading-none">
-                            <i className="ri-briefcase-line text-lg" />
-                            <span>{matchProfile.occupation}</span>
-                          </div>
-                        )}
-                        {(matchProfile.city) && (matchProfile.show_distance !== false) && (
-                          <div className="flex items-center gap-1.5 leading-none">
-                            <i className="ri-map-pin-line text-lg" />
-                            <span>{matchProfile.city}</span>
-                          </div>
-                        )}
-                      </div>
+                      {/* {matchProfile.is_verified && (
+                        <div className="bg-blue-500 rounded-full p-1 shadow-lg">
+                          <CheckCircle2 className="w-5 h-5 text-white fill-blue-500" />
+                        </div>
+                      )} */}
                     </div>
-                  </div>
 
-                  {/* Section: Looking For */}
-                  <div className="bg-card/50 border border-border/50 rounded-2xl p-4 backdrop-blur-sm">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-widest font-bold">Tô procurando</h3>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-sm border border-primary/20">
-                        <i className={cn(
-                          "text-xl",
-                          LOOKING_FOR_ICONS[matchProfile.looking_for || ''] || 'ri-heart-2-fill'
-                        )} />
-                      </div>
-                      <span className="text-lg font-medium">{matchProfile.looking_for || 'Um encontro abençoado'}</span>
-                    </div>
+                    {/* Atividade Recente */}
+                    {(() => {
+                      const status = formatLastActive(matchProfile.last_active_at, matchProfile.show_online_status, matchProfile.show_last_active);
+                      if (!status) return null;
+
+                      return (
+                        <div className="flex items-center gap-1.5 mt-2.5 text-emerald-500 font-medium text-[15px]">
+                          <div className={cn("w-2 h-2 rounded-full", status === 'Online' ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-emerald-500/50")} />
+                          <span>{status === 'Online' ? 'Online agora' : status}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Section: About Me */}
                   {matchProfile.bio && (
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-semibold">Sobre mim</h3>
-                      <p className="text-muted-foreground leading-relaxed text-base">
+                    <div className="px-1 space-y-3 pt-2 pb-4">
+                      <h3 className="text-lg font-bold text-foreground">Sobre mim</h3>
+                      <p className="text-[17px] text-muted-foreground leading-relaxed">
                         {matchProfile.bio}
                       </p>
                     </div>
                   )}
 
-                  {/* Section: Basic Info */}
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold">Informações básicas</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
-                        <i className="ri-book-open-line text-foreground/50 text-xl" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Religião</p>
-                          <p className="font-medium">{matchProfile.religion || 'Cristão'}</p>
+                  {/* Section: Looking For */}
+                  {matchProfile.looking_for && (
+                    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-muted-foreground/80">
+                          <Search className="w-4 h-4" />
+                          <span className="text-sm font-semibold uppercase tracking-wider">Tô procurando</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl">
+                            {LOOKING_FOR_EMOJIS[matchProfile.looking_for] || '💍'}
+                          </span>
+                          <span className="text-xl font-bold text-foreground">
+                            {matchProfile.looking_for}
+                          </span>
                         </div>
                       </div>
+                    </div>
+                  )}
+                  {/* Section: Basic Info */}
+                  <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                    <div className="p-5 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5 text-foreground">
+                        <User2 className="w-5 h-5" />
+                        <h3 className="font-bold text-lg">Informações básicas</h3>
+                      </div>
+                    </div>
+
+                    <div className="px-5 pb-2">
+                      {/* City & State */}
+                      {(matchProfile.city || matchProfile.state) && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <Home className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">
+                            Mora em/no {matchProfile.city}
+                            {matchProfile.state ? `, ${matchProfile.state}` : ''}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Occupation */}
+                      {matchProfile.occupation && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <Briefcase className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">Trabalha como {matchProfile.occupation}</span>
+                        </div>
+                      )}
+
+                      {/* Religion */}
+                      {matchProfile.religion && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <BookOpen className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">{matchProfile.religion}</span>
+                        </div>
+                      )}
+
+                      {/* Church Frequency */}
                       {matchProfile.church_frequency && (
-                        <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
-                          <i className="ri-building-line text-foreground/50 text-xl" />
-                          <div>
-                            <p className="text-xs text-muted-foreground">Freq. Igreja</p>
-                            <p className="font-medium">{matchProfile.church_frequency}</p>
-                          </div>
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <Sparkles className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">{matchProfile.church_frequency}</span>
+                        </div>
+                      )}
+                      {/* Education */}
+                      {matchProfile.education && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <GraduationCap className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">{matchProfile.education}</span>
+                        </div>
+                      )}
+
+                      {/* Gender */}
+                      {matchProfile.gender && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <UserCircle className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">
+                            {matchProfile.gender.toLowerCase() === 'male' ? 'Homem' :
+                              matchProfile.gender.toLowerCase() === 'female' ? 'Mulher' :
+                                matchProfile.gender}
+                          </span>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Section: Interests */}
-                  {matchProfile.interests && matchProfile.interests.length > 0 && (
-                    <div className="space-y-3">
-                      <h3 className="text-lg font-semibold">Interesses</h3>
+                  {/* Section: Lifestyle */}
+                  {((matchProfile.pets || matchProfile.drink || matchProfile.smoke || matchProfile.physical_activity)) && (
+                    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                      <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
+                        <LayoutList className="w-5 h-5" />
+                        <h3 className="font-bold text-lg">Estilo de vida</h3>
+                      </div>
+
+                      <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
+                        {matchProfile.pets && (
+                          <div className="pt-4 first:pt-2">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Pets</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <PawPrint className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{matchProfile.pets}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {matchProfile.drink && (
+                          <div className="pt-4">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Bebida</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Wine className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{matchProfile.drink}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {matchProfile.smoke && (
+                          <div className="pt-4">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Você fuma?</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Cigarette className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{matchProfile.smoke}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {matchProfile.physical_activity && (
+                          <div className="pt-4">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Atividade física</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Dumbbell className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{matchProfile.physical_activity}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {matchProfile.social_media && (
+                          <div className="pt-4">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Redes sociais</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Share2 className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">
+                                {typeof matchProfile.social_media === 'string' ? matchProfile.social_media : JSON.stringify(matchProfile.social_media)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {matchProfile.languages && matchProfile.languages.length > 0 && (
+                          <div className="pt-4 pb-2">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Idiomas</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Languages className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">
+                                {Array.isArray(matchProfile.languages) ? matchProfile.languages.join(', ') : matchProfile.languages}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Section: More Info */}
+                  {(matchProfile.about_children || matchProfile.church_frequency) && (
+                    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                      <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
+                        <LayoutList className="w-5 h-5" />
+                        <h3 className="font-bold text-lg">Mais informações</h3>
+                      </div>
+
+                      <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
+                        {matchProfile.church_frequency && (
+                          <div className="pt-4 first:pt-2">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Frequência na Igreja</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <i className="ri-building-line text-xl text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{matchProfile.church_frequency}</span>
+                            </div>
+                          </div>
+                        )}
+                        {matchProfile.about_children && (
+                          <div className="pt-4 first:pt-2 pb-2">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Família</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Baby className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{matchProfile.about_children}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Interests */}
+                  {matchProfile.christian_interests && matchProfile.christian_interests.length > 0 && (
+                    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm space-y-4">
+                      <div className="flex items-center gap-2.5 text-foreground">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                        <h3 className="font-bold text-lg">Interesses</h3>
+                      </div>
                       <div className="flex flex-wrap gap-2">
-                        {matchProfile.interests.map((tag, i) => (
-                          <span key={i} className="px-4 py-2 rounded-full border border-primary/30 text-primary bg-primary/5 text-sm font-medium">
+                        {matchProfile.christian_interests.map((tag: string) => (
+                          <span key={tag} className="px-4 py-2 rounded-full bg-secondary/50 border border-border/50 text-foreground text-sm font-medium">
                             {tag}
                           </span>
                         ))}
@@ -1475,18 +1615,6 @@ export default function ChatRoom() {
                     </div>
                   )}
 
-                  {(matchProfile.christian_interests && matchProfile.christian_interests.length > 0) && (
-                    <div className="space-y-3">
-                      <h3 className="text-lg font-semibold">Interesses Cristãos</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {matchProfile.christian_interests.map((tag) => (
-                          <span key={tag} className="px-4 py-2 rounded-full border border-blue-500/30 text-blue-500 bg-blue-500/5 text-sm font-medium">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                   <div className="h-24" />
                 </div>
               </div>
@@ -1516,24 +1644,26 @@ export default function ChatRoom() {
         }}
       />
 
-      {showCheckoutManager && selectedCheckoutPlan && (
-        <CheckoutManager
-          key={`chatroom-checkout-v1-${selectedCheckoutPlan.id}`}
-          open={showCheckoutManager}
-          onOpenChange={(open) => {
-            setShowCheckoutManager(open);
-            if (!open) {
-              setTimeout(() => {
-                setSelectedCheckoutPlan(null);
-                setShowUpgradeDialog(true);
-              }, 50);
-            }
-          }}
-          planId={selectedCheckoutPlan.id}
-          planPrice={selectedCheckoutPlan.price}
-          planName={selectedCheckoutPlan.name}
-        />
-      )}
+      {
+        showCheckoutManager && selectedCheckoutPlan && (
+          <CheckoutManager
+            key={`chatroom-checkout-v1-${selectedCheckoutPlan.id}`}
+            open={showCheckoutManager}
+            onOpenChange={(open) => {
+              setShowCheckoutManager(open);
+              if (!open) {
+                setTimeout(() => {
+                  setSelectedCheckoutPlan(null);
+                  setShowUpgradeDialog(true);
+                }, 50);
+              }
+            }}
+            planId={selectedCheckoutPlan.id}
+            planPrice={selectedCheckoutPlan.price}
+            planName={selectedCheckoutPlan.name}
+          />
+        )
+      }
 
       {/* Modal de Entrada de Link de Rede Social */}
       <Dialog open={socialModal.isOpen} onOpenChange={(open) => setSocialModal(prev => ({ ...prev, isOpen: open }))}>
@@ -1729,6 +1859,6 @@ export default function ChatRoom() {
           </motion.div>
         )}
       </AnimatePresence>
-    </SlideTransition>
+    </SlideTransition >
   );
 }

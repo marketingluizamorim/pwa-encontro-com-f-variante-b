@@ -225,7 +225,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
                 onClick={(e) => { e.stopPropagation(); setShowComparison(true); }}
                 className="w-full h-12 mt-4 font-medium border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
               >
-                Compare os Planos
+                Comparar os Planos
               </Button>
             )}
 

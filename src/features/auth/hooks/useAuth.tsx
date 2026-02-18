@@ -25,11 +25,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Set up auth state listener FIRST
       const { data: { subscription } } = supabaseRuntime.auth.onAuthStateChange(
-        (_event, session) => {
+        async (_event, session) => {
           if (mounted) {
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
+
+            // Update last_active_at when user session is active
+            if (session?.user) {
+              try {
+                await supabaseRuntime
+                  .from('profiles')
+                  .update({ last_active_at: new Date().toISOString() })
+                  .eq('user_id', session.user.id);
+              } catch {
+                // Non-critical, ignore errors
+              }
+            }
           }
         }
       );

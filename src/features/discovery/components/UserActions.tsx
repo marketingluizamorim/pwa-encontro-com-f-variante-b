@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import {
   AlertDialog,
@@ -29,10 +30,9 @@ import { Shield, Ban, AlertTriangle, Loader2 } from 'lucide-react';
 
 const REPORT_REASONS = [
   { value: 'fake_profile', label: 'Perfil falso', description: 'Fotos ou informações falsas' },
-  { value: 'harassment', label: 'Assédio', description: 'Mensagens ofensivas ou persistentes' },
-  { value: 'inappropriate', label: 'Conteúdo inapropriado', description: 'Fotos ou textos inadequados' },
-  { value: 'scam', label: 'Golpe/Fraude', description: 'Tentativa de extorsão ou golpe' },
-  { value: 'other', label: 'Outro', description: 'Outro motivo não listado' },
+  { value: 'inappropriate', label: 'Assédio ou conteúdo inadequado', description: 'Mensagens ofensivas ou conteúdo impróprio' },
+  { value: 'scam', label: 'Golpe ou fraude', description: 'Tentativa de extorsão ou fraude' },
+  { value: 'other', label: 'Outro', description: 'Qualquer outro motivo' },
 ];
 
 const reportSchema = z.object({
@@ -51,6 +51,7 @@ interface ReportDialogProps {
 export function ReportDialog({ open, onOpenChange, userId, userName, onReported }: ReportDialogProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -90,9 +91,6 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
         try {
           const { supabase } = await import('@/integrations/supabase/client');
 
-          console.log('=== DEBUG EMAIL SENDING ===');
-          console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-          console.log('Tentando enviar email de denúncia...');
 
           const { data: { session } } = await supabase.auth.getSession();
           if (session) {
@@ -104,18 +102,12 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
               description: description.trim() || undefined,
             };
 
-            console.log('Payload:', payload);
-            console.log('Chamando função: send-report-email');
-
             const emailResult = await supabase.functions.invoke('send-report-email', {
               body: payload,
             });
 
-            console.log('Resultado do envio de email:', emailResult);
             if (emailResult.error) {
               console.error('Erro ao enviar email:', emailResult.error);
-            } else {
-              console.log('✅ Email enviado com sucesso!', emailResult.data);
             }
           } else {
             console.warn('Sessão não encontrada, email não enviado');
@@ -125,11 +117,7 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
           console.error('❌ Error sending report email:', emailError);
         }
       } else {
-        console.log('🔧 Desenvolvimento: Email não enviado (localhost detectado)');
-        console.log('📧 Em produção, o email será enviado para: suporte.encontrocomfe@gmail.com');
       }
-
-      console.log('🔒 Iniciando bloqueio automático...');
 
       // Automatically block the reported user
       const { error: blockError } = await supabase.from('user_blocks').insert({
@@ -141,12 +129,14 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
         console.error('❌ Error blocking user:', blockError);
       }
 
-      console.log('✅ Denúncia processada com sucesso!');
+      // Invalidate queries to update UI in real-time
+      queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
 
       // Show success state
       setShowSuccess(true);
 
-      console.log('🚪 Fechando popup...');
       onOpenChange(false);
       onReported?.();
 
@@ -164,7 +154,7 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[90vw] max-w-md max-h-[85vh] overflow-y-auto z-[10002] rounded-3xl border-white/10 bg-slate-900 shadow-2xl scrollbar-hide">
+        <DialogContent className="w-[90vw] max-w-md max-h-[85vh] overflow-y-auto z-[10060] rounded-3xl border-white/10 bg-slate-900 shadow-2xl scrollbar-hide">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-destructive" />
@@ -232,7 +222,7 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
 
       {/* Success Confirmation Dialog */}
       <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <AlertDialogContent className="z-[10003] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+        <AlertDialogContent className="z-[10070] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-green-500">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,6 +270,7 @@ interface BlockDialogProps {
 
 export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }: BlockDialogProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   const handleBlock = async () => {
@@ -325,6 +316,11 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
           .eq('id', matchData.id);
       }
 
+      // Invalidate queries to update UI in real-time
+      queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+
       onOpenChange(false);
       onBlocked?.();
     } catch (err) {
@@ -337,7 +333,7 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-md z-[10002] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+      <DialogContent className="w-[90vw] max-w-md z-[10060] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Ban className="w-5 h-5 text-destructive" />
@@ -432,6 +428,7 @@ interface DeleteConversationDialogProps {
 
 export function DeleteConversationDialog({ open, onOpenChange, matchId, onDeleted }: DeleteConversationDialogProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
@@ -449,6 +446,9 @@ export function DeleteConversationDialog({ open, onOpenChange, matchId, onDelete
 
       if (error) throw error;
 
+      // Invalidate queries to update UI in real-time
+      queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+
       toast.success('Conversa excluída', { style: { marginTop: '50px' } });
       onOpenChange(false);
       onDeleted?.();
@@ -462,9 +462,9 @@ export function DeleteConversationDialog({ open, onOpenChange, matchId, onDelete
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-md z-[10002] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+      <DialogContent className="w-[90vw] max-w-md z-[10060] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
         <DialogHeader>
-          <DialogTitle>Desfazer Match?</DialogTitle>
+          <DialogTitle>Desfazer Conexão?</DialogTitle>
           <DialogDescription>
             Essa ação não pode ser desfeita. A conversa sumirá da sua lista e vocês perderão a conexão.
           </DialogDescription>
@@ -479,7 +479,7 @@ export function DeleteConversationDialog({ open, onOpenChange, matchId, onDelete
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Desfazer Match
+            Desfazer Conexão
           </Button>
         </DialogFooter>
       </DialogContent>

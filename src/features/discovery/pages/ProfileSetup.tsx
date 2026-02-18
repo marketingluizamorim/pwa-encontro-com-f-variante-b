@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,16 +21,15 @@ const CHURCH_FREQUENCIES = ['Sim, sou ativo(a)', 'Às vezes', 'Raramente', 'Não
 const LOOKING_FOR = ['Relacionamento sério', 'Construir uma família', 'Conhecer pessoas novas', 'Amizade verdadeira'];
 const CHILDREN_OPTIONS = ['Já sou pai/mãe', 'Desejo ter filhos', 'Talvez no futuro', 'Não pretendo ter'];
 const VALUES_OPTIONS = ['Sim, é essencial', 'Muito importante', 'Não é prioridade', 'Indiferente'];
-
 export default function ProfileSetup() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { gender: funnelGender, quizAnswers } = useFunnelStore();
 
   const [step, setStep] = useState<Step>('basics');
   const [saving, setSaving] = useState(false);
   const [showInstallDrawer, setShowInstallDrawer] = useState(false);
-
   // Form Data
   const [birthDate, setBirthDate] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | ''>(funnelGender || '');
@@ -160,6 +160,11 @@ export default function ProfileSetup() {
         .eq('user_id', user?.id);
 
       if (error) throw error;
+
+      // Invalidate queries to update UI in real-time
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['profile', null] });
+
       setStep('complete');
     } catch (error: unknown) {
       console.error('Error saving profile:', error);
@@ -222,7 +227,7 @@ export default function ProfileSetup() {
                   {/* ... fields ... */}
 
                   <div className="space-y-5">
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-w-[200px]">
                       <label className={cn("text-xs font-semibold uppercase tracking-wider ml-1 transition-colors", errors.birthDate ? "text-red-400" : "text-white/50")}>
                         Data de Nascimento {errors.birthDate && "*"}
                       </label>
@@ -231,7 +236,7 @@ export default function ProfileSetup() {
                         value={birthDate}
                         onChange={(e) => { setBirthDate(e.target.value); delete errors.birthDate; }}
                         className={cn(
-                          "bg-card text-foreground h-14 text-lg rounded-xl transition-all",
+                          "bg-card text-foreground h-14 text-lg rounded-xl transition-all w-full",
                           errors.birthDate
                             ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                             : "border-border focus:border-[#d4af37]/50 focus:ring-[#d4af37]/20"

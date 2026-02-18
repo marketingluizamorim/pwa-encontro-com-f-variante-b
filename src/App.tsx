@@ -61,7 +61,6 @@ const LoadingFallback = () => (
 
 const AppContent = () => {
   const { showSplash, completeSplash } = useSplashScreen();
-  console.log("AppContent rendering, showSplash:", showSplash);
 
   return (
     <>

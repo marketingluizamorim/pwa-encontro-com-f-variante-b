@@ -245,7 +245,7 @@ export function MatchCelebration({ show, matchName, matchPhoto, onComplete }: Ma
               transition={{ delay: 0.4 }}
               className="font-display text-4xl font-bold text-white mb-2"
             >
-              É um Match! 💕
+              Nova Conexão! 💕
             </motion.h2>
 
             {matchName && (

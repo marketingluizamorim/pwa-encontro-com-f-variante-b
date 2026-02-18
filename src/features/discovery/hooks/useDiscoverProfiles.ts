@@ -27,6 +27,18 @@ export interface Profile {
   show_last_active?: boolean;
   show_distance?: boolean;
   last_active_at?: string;
+  is_boosted?: boolean;
+  latitude?: number;
+  longitude?: number;
+  pets?: string;
+  drink?: string;
+  smoke?: string;
+  physical_activity?: string;
+  social_media?: string;
+  gender?: string;
+  about_children?: string;
+  education?: string;
+  languages?: string[];
 }
 
 interface FetchProfilesParams {

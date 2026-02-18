@@ -97,15 +97,15 @@ export type Database = {
           education: string | null
           gender: string | null
           id: string
-          interests: string[] | null
           is_active: boolean | null
+          is_boosted: boolean | null
           is_profile_complete: boolean | null
+          is_verified: boolean | null
           languages: string[] | null
           last_active_at: string | null
           latitude: number | null
           longitude: number | null
           looking_for: string | null
-          looking_for_goals: string | null
           occupation: string | null
           pets: string | null
           photos: string[] | null
@@ -136,15 +136,15 @@ export type Database = {
           education?: string | null
           gender?: string | null
           id?: string
-          interests?: string[] | null
           is_active?: boolean | null
+          is_boosted?: boolean | null
           is_profile_complete?: boolean | null
+          is_verified?: boolean | null
           languages?: string[] | null
           last_active_at?: string | null
           latitude?: number | null
           longitude?: number | null
           looking_for?: string | null
-          looking_for_goals?: string | null
           occupation?: string | null
           pets?: string | null
           photos?: string[] | null
@@ -175,15 +175,15 @@ export type Database = {
           education?: string | null
           gender?: string | null
           id?: string
-          interests?: string[] | null
           is_active?: boolean | null
+          is_boosted?: boolean | null
           is_profile_complete?: boolean | null
+          is_verified?: boolean | null
           languages?: string[] | null
           last_active_at?: string | null
           latitude?: number | null
           longitude?: number | null
           looking_for?: string | null
-          looking_for_goals?: string | null
           occupation?: string | null
           pets?: string | null
           photos?: string[] | null
@@ -315,6 +315,7 @@ export type Database = {
           created_at: string
           direction: Database["public"]["Enums"]["swipe_direction"]
           id: string
+          message: string | null
           swiped_id: string
           swiper_id: string
         }
@@ -322,6 +323,7 @@ export type Database = {
           created_at?: string
           direction: Database["public"]["Enums"]["swipe_direction"]
           id?: string
+          message?: string | null
           swiped_id: string
           swiper_id: string
         }
@@ -329,6 +331,7 @@ export type Database = {
           created_at?: string
           direction?: Database["public"]["Enums"]["swipe_direction"]
           id?: string
+          message?: string | null
           swiped_id?: string
           swiper_id?: string
         }

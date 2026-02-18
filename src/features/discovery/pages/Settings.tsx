@@ -47,10 +47,11 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
 
-  // Load settings from localStorage
+  // Load settings from Supabase (source of truth), fallback to localStorage cache
   useEffect(() => {
     if (!user) return;
 
+    // Load from localStorage immediately for fast UI
     const savedPrivacy = localStorage.getItem(`privacy_settings_${user.id}`);
     if (savedPrivacy) {
       setPrivacySettings(JSON.parse(savedPrivacy));
@@ -60,6 +61,31 @@ export default function Settings() {
     if (savedNotifications !== null) {
       setNotificationsEnabled(savedNotifications === 'true');
     }
+
+    // Then sync from Supabase (source of truth)
+    (async () => {
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { data } = await supabase
+          .from('profiles')
+          .select('show_online_status, show_last_active, show_distance, show_read_receipts')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (data) {
+          const dbSettings: PrivacySettings = {
+            showOnlineStatus: data.show_online_status ?? true,
+            showLastActive: data.show_last_active ?? true,
+            showDistance: data.show_distance ?? true,
+            showReadReceipts: data.show_read_receipts ?? true,
+          };
+          setPrivacySettings(dbSettings);
+          localStorage.setItem(`privacy_settings_${user.id}`, JSON.stringify(dbSettings));
+        }
+      } catch (err) {
+        console.error('Error loading privacy settings from Supabase:', err);
+      }
+    })();
   }, [user?.id]);
 
   const updatePrivacySetting = async (key: keyof PrivacySettings, value: boolean) => {

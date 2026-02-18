@@ -19,12 +19,20 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
 import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
 import { LikeLimitDialog } from '@/features/discovery/components/LikeLimitDialog';
-import { MessageCircle, Zap, Search, MapPin } from 'lucide-react';
+import { MessageCircle, Zap, Search, MapPin, Home, CheckCircle2, Clock, Heart, User2, MoreHorizontal, Ruler, UserCircle, Dumbbell, Wine, Cigarette, Share2, LayoutList, Baby, MessageSquareText, Sparkles, PawPrint, Compass, Ban, AlertTriangle, Briefcase, BookOpen, GraduationCap, Languages } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ReportDialog, BlockDialog } from "@/features/discovery/components/UserActions";
 import { useTheme } from '@/components/theme-provider';
 import { Header } from '@/features/discovery/components/Header';
 import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
 import { SuperLikeExplainerDialog } from '@/features/discovery/components/SuperLikeExplainerDialog';
 import { SuperLikeMessageDialog } from '@/features/discovery/components/SuperLikeMessageDialog';
+import { calculateAge, formatLastActive } from '@/lib/date-utils';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Relacionamento sério': '💍',
@@ -89,6 +97,9 @@ export default function Discover() {
   const [showCompleteProfileDialog, setShowCompleteProfileDialog] = useState(false);
   const { data: subscription } = useSubscription();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
+
   const [upgradeData, setUpgradeData] = useState({
     title: '',
     description: '',
@@ -173,13 +184,9 @@ export default function Discover() {
 
   const swipeMutation = useSwipeMutation();
 
-  console.log('Discover Render. User:', user?.id);
-
   const profiles = useMemo(() => {
-    console.log('Discover: Memoizing profiles. Data:', data);
     if (!data?.pages) return [];
     const allProfiles = data.pages.flatMap((page) => page.profiles);
-    console.log('Discover: Flattened Profiles:', allProfiles.length, allProfiles);
     return allProfiles;
   }, [data]);
 
@@ -214,34 +221,22 @@ export default function Discover() {
     localStorage.setItem('discover-filters', JSON.stringify(filters));
   }, [filters]);
 
-  const calculateAge = (birthDate: string): number => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    return today.getFullYear() - birth.getFullYear();
-  };
 
-  const formatLastActive = (lastActiveAt?: string, showOnline?: boolean, showLastActive?: boolean) => {
-    if (showOnline === false) return null;
-    if (!lastActiveAt) return null;
+  const calculateDistance = (lat1?: number, lon1?: number, lat2?: number, lon2?: number): string | null => {
+    if (lat1 === undefined || lon1 === undefined || lat2 === undefined || lon2 === undefined) return null;
 
-    const lastActive = new Date(lastActiveAt);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - lastActive.getTime()) / (1000 * 60));
+    const R = 6371; // Raio da Terra em km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c;
 
-    // Considere "Online" se ativo nos últimos 5 minutos
-    if (diffInMinutes < 5) return 'Online';
-    if (showLastActive === false) return 'Visto recentemente';
-
-    if (diffInMinutes < 60) return `Visto há ${diffInMinutes} min`;
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return 'Visto hoje';
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays === 1) return 'Visto ontem';
-    if (diffInDays < 7) return 'Visto esta semana';
-
-    return 'Visto a algum tempo';
+    if (d < 1) return 'a menos de 1 km de distância';
+    return `a ${Math.round(d)} km de distância`;
   };
 
   const handleApplyFilters = (newFilters?: DiscoverFiltersState) => {
@@ -263,7 +258,6 @@ export default function Discover() {
     }
 
     const checkProfile = async () => {
-      console.log('Discover: Starting Profile Check...');
 
       const { supabase } = await import('@/integrations/supabase/client');
       const { data, error } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
@@ -288,7 +282,7 @@ export default function Discover() {
         profileData.gender,
         profileData.occupation,
         (Array.isArray(profileData.photos) && profileData.photos.length > 0),
-        ((Array.isArray(profileData.christian_interests) && profileData.christian_interests.length > 0) || (Array.isArray(profileData.interests) && profileData.interests.length > 0))
+        (Array.isArray(profileData.christian_interests) && profileData.christian_interests.length > 0)
       ];
 
       const filled = fields.filter(Boolean).length;
@@ -605,6 +599,14 @@ export default function Discover() {
                   </div>
                 )}
 
+                {/* Destaque Badge */}
+                {currentProfile.is_boosted && (
+                  <div className="absolute top-10 left-3 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
+                    <Zap className="w-3 h-3 fill-black animate-pulse" />
+                    <span>Perfil em Destaque</span>
+                  </div>
+                )}
+
                 {/* Navigation Zones (Left/Right) - Only Active if not swiping (handled by onClick vs Drag) */}
                 <div className="absolute inset-0 z-30 flex">
                   <div className="w-1/2 h-[80%]" onClick={handlePrevPhoto} />
@@ -626,55 +628,76 @@ export default function Discover() {
 
                 {/* Text Info */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
+                  {/* Online Badge */}
+                  {formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active) === 'Online' && (
+                    <div className="mb-2.5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                      ONLINE
+                    </div>
+                  )}
+
                   {/* Name and Age Group */}
-                  <div className="flex items-baseline gap-2 mb-3">
-                    <h1 className="font-display text-4xl font-bold tracking-tight drop-shadow-md">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-md">
                       {currentProfile.display_name}
                     </h1>
                     {currentProfile.birth_date && (
-                      <span className="text-xl font-light text-white/80">{calculateAge(currentProfile.birth_date)}</span>
+                      <span className="text-3xl font-extralight text-white/90 drop-shadow-md">
+                        {calculateAge(currentProfile.birth_date)}
+                      </span>
+                    )}
+                    {currentProfile.is_verified && (
+                      <div className="bg-blue-500 rounded-full p-0.5 shadow-lg border border-white/20">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-white fill-blue-500" />
+                      </div>
                     )}
                   </div>
 
-                  {/* Occupation & Location - Group */}
-                  <div className="flex items-center gap-3 mb-6 text-sm font-medium text-white/80 drop-shadow-sm uppercase tracking-wide">
-                    {currentProfile.occupation && (
-                      <div className="flex items-center gap-1">
-                        <i className="ri-briefcase-line" />
-                        <span>{currentProfile.occupation}</span>
-                      </div>
-                    )}
+                  <div className="space-y-1 mb-5">
                     {currentProfile.city && (
-                      <div className="flex items-center gap-1">
-                        <i className="ri-map-pin-line" />
-                        <span>{currentProfile.city}</span>
+                      <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
+                        <Home className="w-4 h-4 opacity-80" />
+                        <span>Mora em/no {currentProfile.city}</span>
                       </div>
                     )}
+
+                    {/* Distância */}
+                    {(() => {
+                      const distance = calculateDistance(
+                        //@ts-ignore
+                        user?.latitude || user?.profile?.latitude,
+                        //@ts-ignore
+                        user?.longitude || user?.profile?.longitude,
+                        currentProfile.latitude,
+                        currentProfile.longitude
+                      );
+
+                      if (!distance) return null;
+
+                      return (
+                        <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
+                          <MapPin className="w-4 h-4 opacity-80" />
+                          <span>{distance}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
 
-                  {/* Looking For Section - Strategic Grouping */}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 opacity-60">
-                      <Search className="w-3 h-3 text-white" strokeWidth={2.5} />
-                      <span className="text-[16px] font-normal text-white">Tô procurando</span>
+                  {/* Relationship Goal */}
+                  {currentProfile.looking_for && (
+                    <div className="flex items-center gap-2.5 bg-black/30 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/10 w-fit shadow-xl group transition-all">
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        {currentProfile.looking_for.toLowerCase().includes('relacionamento') || currentProfile.looking_for.toLowerCase().includes('família') ? (
+                          <Heart className="w-4 h-4 text-white fill-white/20" />
+                        ) : (
+                          <Search className="w-4 h-4 text-white" />
+                        )}
+                      </div>
+                      <span className="text-[14px] font-bold text-white tracking-tight drop-shadow-sm">
+                        {currentProfile.looking_for}
+                      </span>
                     </div>
-
-                    {currentProfile.looking_for ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl drop-shadow-md filter saturate-[1.2]">
-                          {LOOKING_FOR_EMOJIS[currentProfile.looking_for] || '💘'}
-                        </span>
-                        <span className="text-lg font-bold text-white tracking-tight drop-shadow-sm leading-tight">
-                          {currentProfile.looking_for}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 opacity-50">
-                        <span className="text-xl">✨</span>
-                        <span className="text-base font-medium text-white">Buscando conexões</span>
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
 
                 {/* Stamps */}
@@ -805,124 +828,299 @@ export default function Discover() {
                     alt={currentProfile.display_name}
                   />
                   <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+
+                  {/* Destaque Badge - Expanded View */}
+                  {currentProfile.is_boosted && (
+                    <div className="absolute bottom-24 left-5 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
+                      <Zap className="w-3 h-3 fill-black animate-pulse" />
+                      <span>Perfil em Destaque</span>
+                    </div>
+                  )}
                 </motion.div>
 
                 {/* Profile Info Content */}
-                <div className="px-5 -mt-20 relative z-10 space-y-6">
+                <div className="px-4 -mt-16 relative z-10 space-y-4 pb-12">
 
-                  {/* Header: Name & Age */}
-                  <div>
+                  {/* Name, Age & Verified */}
+                  <div className="px-1 mb-6">
                     <div className="flex items-center gap-3">
-                      <h1 className="text-4xl font-display font-semibold text-foreground">
-                        {currentProfile.display_name}
-                      </h1>
-                      <span className="text-3xl font-light text-muted-foreground">
-                        {currentProfile.birth_date ? calculateAge(currentProfile.birth_date) : ''}
-                      </span>
-                    </div>
-
-                    {/* Metadata Badges */}
-                    <div className="flex flex-col gap-2.5 mt-4">
-                      {/* Status */}
-                      <div className="flex items-center gap-2">
-                        <div className={cn(
-                          "w-2 h-2 rounded-full",
-                          formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active) === 'Online agora'
-                            ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
-                            : "bg-muted-foreground/30"
-                        )} />
-                        <span className="text-sm font-medium text-muted-foreground">
-                          {formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active) || 'Offline'}
+                      <div className="text-4xl text-foreground tracking-tight">
+                        <span className="font-bold">{currentProfile.display_name}</span>
+                        <span className="font-extralight text-muted-foreground ml-2">
+                          {currentProfile.birth_date ? calculateAge(currentProfile.birth_date) : ''}
                         </span>
                       </div>
-
-                      {/* Job & Location */}
-                      <div className="flex items-center gap-4 text-sm text-foreground/70">
-                        {currentProfile.occupation && (
-                          <div className="flex items-center gap-1.5 leading-none">
-                            <i className="ri-briefcase-line text-lg" />
-                            <span>{currentProfile.occupation}</span>
-                          </div>
-                        )}
-                        {(currentProfile.city) && (currentProfile.show_distance !== false) && (
-                          <div className="flex items-center gap-1.5 leading-none">
-                            <i className="ri-map-pin-line text-lg" />
-                            <span>{currentProfile.city}</span>
-                          </div>
-                        )}
-                      </div>
+                      {/* {currentProfile.is_verified && (
+                        <div className="bg-blue-500 rounded-full p-1 shadow-lg">
+                          <CheckCircle2 className="w-5 h-5 text-white fill-blue-500" />
+                        </div>
+                      )} */}
                     </div>
-                  </div>
 
-                  {/* Section: Looking For */}
-                  <div className="bg-card/50 border border-border/50 rounded-2xl p-4 backdrop-blur-sm">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tô procurando</h3>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/20">
-                        <i className="ri-heart-2-fill text-xl" />
-                      </div>
-                      <span className="text-lg font-medium">{currentProfile.looking_for || 'Um encontro abençoado'}</span>
-                    </div>
+                    {/* Atividade Recente */}
+                    {(() => {
+                      const status = formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active);
+                      if (!status) return null;
+
+                      return (
+                        <div className="flex items-center gap-1.5 mt-2.5 text-emerald-500 font-medium text-[15px]">
+                          <div className={cn("w-2 h-2 rounded-full", status === 'Online' ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-emerald-500/50")} />
+                          <span>{status === 'Online' ? 'Online agora' : status}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Section: About Me */}
                   {currentProfile.bio && (
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-semibold">Sobre mim</h3>
-                      <p className="text-muted-foreground leading-relaxed text-base">
+                    <div className="px-1 space-y-3 pt-2 pb-4">
+                      <h3 className="text-lg font-bold text-foreground">Sobre mim</h3>
+                      <p className="text-[17px] text-muted-foreground leading-relaxed">
                         {currentProfile.bio}
                       </p>
                     </div>
                   )}
 
-                  {/* Section: Basic Info */}
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold">Informações básicas</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
-                        <i className="ri-ruler-line text-foreground/50 text-xl" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Altura</p>
-                          <p className="font-medium">170 cm</p> {/* Placeholder if not in DB */}
+                  {/* Section: Looking For */}
+                  {currentProfile.looking_for && (
+                    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-muted-foreground/80">
+                          <Search className="w-4 h-4" />
+                          <span className="text-sm font-semibold uppercase tracking-wider">Tô procurando</span>
                         </div>
-                      </div>
-                      <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
-                        <i className="ri-translate-2 text-foreground/50 text-xl" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Idiomas</p>
-                          <p className="font-medium">Português</p>
-                        </div>
-                      </div>
-                      <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
-                        <i className="ri-book-open-line text-foreground/50 text-xl" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Religião</p>
-                          <p className="font-medium">{currentProfile.religion || 'Cristão'}</p>
-                        </div>
-                      </div>
-                      <div className="bg-secondary/30 rounded-xl p-3 flex items-center gap-3">
-                        <i className="ri-graduation-cap-line text-foreground/50 text-xl" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Formação</p>
-                          <p className="font-medium">Superior</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Section: Interests */}
-                  {(currentProfile.christian_interests && currentProfile.christian_interests.length > 0) && (
-                    <div className="space-y-3">
-                      <h3 className="text-lg font-semibold">Interesses</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {currentProfile.christian_interests.map((tag: string) => (
-                          <span key={tag} className="px-4 py-2 rounded-full border border-primary/30 text-primary bg-primary/5 text-sm font-medium">
-                            {tag}
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl">
+                            {LOOKING_FOR_EMOJIS[currentProfile.looking_for] || '💍'}
                           </span>
-                        ))}
+                          <span className="text-xl font-bold text-foreground">
+                            {currentProfile.looking_for}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   )}
+
+                  {/* Section: Basic Info */}
+                  <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                    <div className="p-5 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5 text-foreground">
+                        <User2 className="w-5 h-5" />
+                        <h3 className="font-bold text-lg">Informações básicas</h3>
+                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="w-10 h-10 rounded-xl bg-secondary/40 flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
+                            <MoreHorizontal className="w-5 h-5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 bg-slate-900/95 backdrop-blur-xl border-white/10 rounded-2xl p-1 z-[10000]">
+                          <DropdownMenuItem
+                            onClick={() => setShowReportDialog(true)}
+                            className="flex items-center gap-2 p-3 text-amber-500 focus:bg-amber-500/10 focus:text-amber-500 rounded-xl cursor-pointer"
+                          >
+                            <AlertTriangle className="w-4 h-4" />
+                            Denunciar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setShowBlockDialog(true)}
+                            className="flex items-center gap-2 p-3 text-rose-500 focus:bg-rose-500/10 focus:text-rose-500 rounded-xl cursor-pointer"
+                          >
+                            <Ban className="w-4 h-4" />
+                            Bloquear
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <div className="px-5 pb-2">
+                      {/* Distance Row */}
+                      {(() => {
+                        const distance = calculateDistance(
+                          //@ts-ignore
+                          user?.latitude || user?.profile?.latitude,
+                          //@ts-ignore
+                          user?.longitude || user?.profile?.longitude,
+                          currentProfile.latitude,
+                          currentProfile.longitude
+                        );
+                        if (!distance) return null;
+                        return (
+                          <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                            <MapPin className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                            <span className="text-[15px] font-medium text-foreground/90">{distance} daqui</span>
+                          </div>
+                        );
+                      })()}
+
+                      {/* City & State */}
+                      {(currentProfile.city || currentProfile.state) && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <Home className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">
+                            Mora em/no {currentProfile.city}
+                            {currentProfile.state ? `, ${currentProfile.state}` : ''}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Occupation */}
+                      {currentProfile.occupation && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <Briefcase className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">Trabalha como {currentProfile.occupation}</span>
+                        </div>
+                      )}
+
+                      {/* Religion */}
+                      {currentProfile.religion && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <BookOpen className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">{currentProfile.religion}</span>
+                        </div>
+                      )}
+
+                      {/* Church Frequency */}
+                      {currentProfile.church_frequency && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <Sparkles className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">{currentProfile.church_frequency}</span>
+                        </div>
+                      )}
+
+                      {/* Education */}
+                      {currentProfile.education && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <GraduationCap className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">{currentProfile.education}</span>
+                        </div>
+                      )}
+
+                      {/* Gender */}
+                      {currentProfile.gender && (
+                        <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                          <UserCircle className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                          <span className="text-[15px] font-medium text-foreground/90 leading-tight">
+                            {currentProfile.gender.toLowerCase() === 'male' ? 'Homem' :
+                              currentProfile.gender.toLowerCase() === 'female' ? 'Mulher' :
+                                currentProfile.gender}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section: Lifestyle */}
+                  {((currentProfile.pets || currentProfile.drink || currentProfile.smoke || currentProfile.physical_activity || currentProfile.social_media || (currentProfile.languages && currentProfile.languages.length > 0))) && (
+                    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                      <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
+                        <LayoutList className="w-5 h-5" />
+                        <h3 className="font-bold text-lg">Estilo de vida</h3>
+                      </div>
+
+                      <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
+                        {currentProfile.pets && (
+                          <div className="pt-4 first:pt-2">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Pets</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <PawPrint className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{currentProfile.pets}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {currentProfile.drink && (
+                          <div className="pt-4">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Bebida</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Wine className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{currentProfile.drink}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {currentProfile.smoke && (
+                          <div className="pt-4">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Você fuma?</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Cigarette className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{currentProfile.smoke}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {currentProfile.physical_activity && (
+                          <div className="pt-4">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Atividade física</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Dumbbell className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{currentProfile.physical_activity}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {currentProfile.social_media && (
+                          <div className="pt-4">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Redes sociais</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Share2 className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{currentProfile.social_media}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {currentProfile.languages && currentProfile.languages.length > 0 && (
+                          <div className="pt-4 pb-2">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Idiomas</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Languages className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">
+                                {Array.isArray(currentProfile.languages) ? currentProfile.languages.join(', ') : currentProfile.languages}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Section: More Info */}
+                  {(currentProfile.about_children) && (
+                    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                      <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
+                        <LayoutList className="w-5 h-5" />
+                        <h3 className="font-bold text-lg">Mais informações</h3>
+                      </div>
+
+                      <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
+                        {currentProfile.about_children && (
+                          <div className="pt-4 first:pt-2 pb-2">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Família</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Baby className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">{currentProfile.about_children}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Interests */}
+                  <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm space-y-4">
+                    <div className="flex items-center gap-2.5 text-foreground">
+                      <Sparkles className="w-5 h-5 text-primary" />
+                      <h3 className="font-bold text-lg">Interesses</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(currentProfile.christian_interests || []).map((tag: string) => (
+                        <span key={tag} className="px-4 py-2 rounded-full bg-secondary/50 border border-border/50 text-foreground text-sm font-medium">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
 
                   {/* Section: Direct Message (Direct Connect) */}
                   <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group">
@@ -956,6 +1154,28 @@ export default function Discover() {
                   {/* Bottom Spacer */}
                   <div className="h-24" />
                 </div>
+
+                {/* Interaction Dialogs (Report/Block) */}
+                <ReportDialog
+                  open={showReportDialog}
+                  onOpenChange={setShowReportDialog}
+                  userId={currentProfile.id}
+                  userName={currentProfile.display_name}
+                  onReported={() => {
+                    handleSwipe('dislike');
+                    setShowInfo(false);
+                  }}
+                />
+                <BlockDialog
+                  open={showBlockDialog}
+                  onOpenChange={setShowBlockDialog}
+                  userId={currentProfile.id}
+                  userName={currentProfile.display_name}
+                  onBlocked={() => {
+                    handleSwipe('dislike');
+                    setShowInfo(false);
+                  }}
+                />
               </div>
 
               {/* Floating Action Controls (Expanded View) */}

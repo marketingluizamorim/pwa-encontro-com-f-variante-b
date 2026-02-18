@@ -136,7 +136,7 @@ export const getProfilesData = (gender: 'male' | 'female' | null, quizAnswers: Q
         ...profile,
         state: stateAbbr,
         city: quizAnswers.city || 'São Paulo',
-        interests: generateMatchingInterests(quizAnswers, index),
+        christian_interests: generateMatchingInterests(quizAnswers, index),
         unlocked: index === 0
     }));
 };

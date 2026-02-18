@@ -22,13 +22,20 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Search, MapPin, Home, UserCircle, User2, MoreHorizontal,
+    AlertTriangle, Ban, LayoutList, PawPrint, Wine, Cigarette,
+    Dumbbell, Share2, Baby, Sparkles, CheckCircle2, Briefcase, BookOpen,
+    GraduationCap, Languages
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { calculateAge, formatLastActive } from '@/lib/date-utils';
 
-const LOOKING_FOR_ICONS: Record<string, string> = {
-    'Relacionamento sério': 'ri-heart-pulse-fill',
-    'Construir uma família': 'ri-home-heart-fill',
-    'Conhecer pessoas novas': 'ri-sparkles-line',
-    'Amizade verdadeira': 'ri-hand-heart-fill',
+const LOOKING_FOR_EMOJIS: Record<string, string> = {
+    'Relacionamento sério': '💍',
+    'Construir uma família': '👨‍👩‍👧‍👦',
+    'Conhecer pessoas novas': '✨',
+    'Amizade verdadeira': '🤝',
 };
 
 interface Conversation {
@@ -47,6 +54,20 @@ interface Conversation {
         looking_for?: string;
         christian_interests?: string[];
         religion?: string;
+        gender?: string;
+        pets?: string;
+        drink?: string;
+        smoke?: string;
+        physical_activity?: string;
+        church_frequency?: string;
+        about_children?: string;
+        education?: string;
+        languages?: string[];
+        social_media?: string;
+        state?: string;
+        last_active_at?: string;
+        show_online_status?: boolean;
+        show_last_active?: boolean;
     };
     is_super_like?: boolean;
     last_message?: {
@@ -57,17 +78,6 @@ interface Conversation {
     };
 }
 
-const calculateAge = (birthDate?: string) => {
-    if (!birthDate) return '20';
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-        age--;
-    }
-    return age;
-};
 
 const FloatingHeart = () => (
     <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-[40] pointer-events-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
@@ -126,7 +136,7 @@ export default function Chat() {
             const otherUserIds = activeMatches.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
             const { data: profilesData } = await supabase
                 .from('profiles')
-                .select('user_id, display_name, avatar_url, photos, birth_date, bio, occupation, city, looking_for, religion')
+                .select('user_id, display_name, avatar_url, photos, birth_date, bio, occupation, city, state, looking_for, christian_interests, religion, gender, pets, drink, smoke, physical_activity, church_frequency, about_children, education, languages, social_media, last_active_at, show_online_status, show_last_active')
                 .in('user_id', otherUserIds);
 
             const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]));
@@ -173,7 +183,21 @@ export default function Chat() {
                         occupation: profile.occupation,
                         city: profile.city,
                         looking_for: profile.looking_for,
-                        religion: profile.religion
+                        religion: profile.religion,
+                        gender: profile.gender,
+                        pets: profile.pets,
+                        drink: profile.drink,
+                        smoke: profile.smoke,
+                        physical_activity: profile.physical_activity,
+                        church_frequency: profile.church_frequency,
+                        about_children: (profile as any).about_children,
+                        education: (profile as any).education,
+                        languages: (profile as any).languages,
+                        social_media: (profile as any).social_media,
+                        state: (profile as any).state,
+                        last_active_at: (profile as any).last_active_at,
+                        show_online_status: (profile as any).show_online_status,
+                        show_last_active: (profile as any).show_last_active,
                     },
                     last_message: lastMsg ? {
                         content: lastMsg.content,
@@ -444,7 +468,7 @@ export default function Chat() {
                                     <i className="ri-fire-fill text-2xl text-white"></i>
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-bold text-sm">Saia na frente e encontre a pessoa ideal</h3>
+                                    <h3 className="text-white font-bold text-sm">Alguém próximo está te esperando</h3>
                                     <p className="text-gray-400 text-xs mt-1">
                                         Perfil em destaque, mensagens diretas e filtros avançados. Aumente em até 3x suas chances.
                                     </p>
@@ -716,75 +740,254 @@ export default function Chat() {
                                     </div>
 
                                     {/* Conteúdo de Informações do Perfil */}
-                                    <div className="px-5 -mt-20 relative z-10 space-y-6">
-                                        {/* Cabeçalho: Nome e Idade */}
-                                        <div>
-                                            <div className="flex items-center gap-3">
-                                                <h1 className="text-4xl font-display font-bold text-foreground">
-                                                    {selectedProfile.display_name}
-                                                </h1>
-                                                <span className="text-3xl font-light text-muted-foreground">
-                                                    {calculateAge(selectedProfile.birth_date)}
-                                                </span>
-                                            </div>
+                                    <div className="px-4 -mt-16 relative z-10 space-y-4 pb-12">
 
-                                            {/* Selos Principais */}
-                                            <div className="flex items-center gap-3 mt-3 text-sm text-foreground/80">
-                                                {selectedProfile.occupation && (
-                                                    <div className="flex items-center gap-1.5">
-                                                        <i className="ri-briefcase-line" />
-                                                        <span>{selectedProfile.occupation}</span>
-                                                    </div>
-                                                )}
-                                                {(selectedProfile.city) && (
-                                                    <div className="flex items-center gap-1.5">
-                                                        <i className="ri-map-pin-line" />
-                                                        <span>{selectedProfile.city}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Seção: Procurando */}
-                                        <div className="bg-card/50 border border-border/50 rounded-2xl p-4 backdrop-blur-sm">
-                                            <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tô procurando</h3>
+                                        {/* Name, Age & Verified */}
+                                        <div className="px-1 mb-10">
                                             <div className="flex items-center gap-3">
-                                                <div className="relative flex items-center justify-center scale-110">
-                                                    <div className="absolute w-6 h-6 bg-primary/20 blur-lg rounded-full" />
-                                                    <i className={cn(
-                                                        "relative text-xl z-10 drop-shadow-sm text-primary",
-                                                        LOOKING_FOR_ICONS[selectedProfile.looking_for || ''] || 'ri-heart-2-fill'
-                                                    )} />
+                                                <div className="text-4xl text-foreground tracking-tight">
+                                                    <span className="font-bold">{selectedProfile.display_name}</span>
+                                                    <span className="font-extralight text-muted-foreground ml-2">
+                                                        {selectedProfile.birth_date ? calculateAge(selectedProfile.birth_date) : ''}
+                                                    </span>
                                                 </div>
-                                                <span className="text-base font-medium tracking-normal text-foreground">
-                                                    {selectedProfile.looking_for || 'Buscando conexões'}
-                                                </span>
+                                                {/* {(selectedProfile as any).is_verified && (
+                                                    <div className="bg-blue-500 rounded-full p-1 shadow-lg">
+                                                        <CheckCircle2 className="w-5 h-5 text-white fill-blue-500" />
+                                                    </div>
+                                                )} */}
                                             </div>
+
+                                            {/* Atividade Recente */}
+                                            {(() => {
+                                                const status = formatLastActive(selectedProfile.last_active_at, selectedProfile.show_online_status, selectedProfile.show_last_active);
+                                                if (!status) return null;
+
+                                                return (
+                                                    <div className="flex items-center gap-1.5 mt-2.5 text-emerald-500 font-medium text-[15px]">
+                                                        <div className={cn("w-2 h-2 rounded-full", status === 'Online' ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-emerald-500/50")} />
+                                                        <span>{status === 'Online' ? 'Online agora' : status}</span>
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
 
-                                        {/* Seção: Sobre Mim */}
+                                        {/* Section: About Me */}
                                         {selectedProfile.bio && (
-                                            <div className="space-y-2">
-                                                <h3 className="text-lg font-bold">Sobre mim</h3>
-                                                <p className="text-muted-foreground leading-relaxed text-base">
+                                            <div className="px-1 space-y-3 pt-2 pb-4">
+                                                <h3 className="text-lg font-bold text-foreground">Sobre mim</h3>
+                                                <p className="text-[17px] text-muted-foreground leading-relaxed">
                                                     {selectedProfile.bio}
                                                 </p>
                                             </div>
                                         )}
 
-                                        {/* Seção: Interesses */}
-                                        {(selectedProfile.christian_interests && selectedProfile.christian_interests.length > 0) && (
-                                            <div className="space-y-3">
-                                                <h3 className="text-lg font-bold">Interesses</h3>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {selectedProfile.christian_interests.map((tag: string) => (
-                                                        <span key={tag} className="px-4 py-2 rounded-full border border-primary/30 text-primary bg-primary/5 text-sm font-medium">
-                                                            {tag}
+                                        {/* Section: Looking For */}
+                                        {selectedProfile.looking_for && (
+                                            <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm space-y-4">
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center gap-2 text-muted-foreground/80">
+                                                        <Search className="w-4 h-4" />
+                                                        <span className="text-sm font-semibold uppercase tracking-wider">Tô procurando</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-3xl">
+                                                            {LOOKING_FOR_EMOJIS[selectedProfile.looking_for] || '💍'}
                                                         </span>
-                                                    ))}
+                                                        <span className="text-xl font-bold text-foreground">
+                                                            {selectedProfile.looking_for}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
+
+                                        {/* Section: Basic Info */}
+                                        <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                                            <div className="p-5 flex items-center justify-between">
+                                                <div className="flex items-center gap-2.5 text-foreground">
+                                                    <User2 className="w-5 h-5" />
+                                                    <h3 className="font-bold text-lg">Informações básicas</h3>
+                                                </div>
+                                            </div>
+
+                                            <div className="px-5 pb-2">
+                                                {/* City & State */}
+                                                {(selectedProfile.city || (selectedProfile as any).state) && (
+                                                    <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                                        <Home className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                                        <span className="text-[15px] font-medium text-foreground/90 leading-tight">
+                                                            Mora em/no {selectedProfile.city}
+                                                            {(selectedProfile as any).state ? `, ${(selectedProfile as any).state}` : ''}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {/* Occupation */}
+                                                {selectedProfile.occupation && (
+                                                    <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                                        <Briefcase className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                                        <span className="text-[15px] font-medium text-foreground/90 leading-tight">Trabalha como {selectedProfile.occupation}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Religion */}
+                                                {selectedProfile.religion && (
+                                                    <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                                        <BookOpen className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                                        <span className="text-[15px] font-medium text-foreground/90 leading-tight">{selectedProfile.religion}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Church Frequency */}
+                                                {selectedProfile.church_frequency && (
+                                                    <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                                        <Sparkles className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                                        <span className="text-[15px] font-medium text-foreground/90 leading-tight">{selectedProfile.church_frequency}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Education */}
+                                                {(selectedProfile as any).education && (
+                                                    <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                                        <GraduationCap className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                                        <span className="text-[15px] font-medium text-foreground/90 leading-tight">{(selectedProfile as any).education}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Gender */}
+                                                {selectedProfile.gender && (
+                                                    <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                                        <UserCircle className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                                        <span className="text-[15px] font-medium text-foreground/90 leading-tight">
+                                                            {selectedProfile.gender.toLowerCase() === 'male' ? 'Homem' :
+                                                                selectedProfile.gender.toLowerCase() === 'female' ? 'Mulher' :
+                                                                    selectedProfile.gender}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Section: Lifestyle */}
+                                        {((selectedProfile.pets || selectedProfile.drink || selectedProfile.smoke || selectedProfile.physical_activity)) && (
+                                            <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                                                <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
+                                                    <LayoutList className="w-5 h-5" />
+                                                    <h3 className="font-bold text-lg">Estilo de vida</h3>
+                                                </div>
+
+                                                <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
+                                                    {selectedProfile.pets && (
+                                                        <div className="pt-4 first:pt-2">
+                                                            <p className="text-xs font-bold text-muted-foreground mb-2">Pets</p>
+                                                            <div className="flex items-center gap-3 text-foreground/90">
+                                                                <PawPrint className="w-5 h-5 text-muted-foreground/60" />
+                                                                <span className="text-[15px] font-medium">{selectedProfile.pets}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {selectedProfile.drink && (
+                                                        <div className="pt-4">
+                                                            <p className="text-xs font-bold text-muted-foreground mb-2">Bebida</p>
+                                                            <div className="flex items-center gap-3 text-foreground/90">
+                                                                <Wine className="w-5 h-5 text-muted-foreground/60" />
+                                                                <span className="text-[15px] font-medium">{selectedProfile.drink}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {selectedProfile.smoke && (
+                                                        <div className="pt-4">
+                                                            <p className="text-xs font-bold text-muted-foreground mb-2">Você fuma?</p>
+                                                            <div className="flex items-center gap-3 text-foreground/90">
+                                                                <Cigarette className="w-5 h-5 text-muted-foreground/60" />
+                                                                <span className="text-[15px] font-medium">{selectedProfile.smoke}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {selectedProfile.physical_activity && (
+                                                        <div className="pt-4">
+                                                            <p className="text-xs font-bold text-muted-foreground mb-2">Atividade física</p>
+                                                            <div className="flex items-center gap-3 text-foreground/90">
+                                                                <Dumbbell className="w-5 h-5 text-muted-foreground/60" />
+                                                                <span className="text-[15px] font-medium">{selectedProfile.physical_activity}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {(selectedProfile as any).social_media && (
+                                                        <div className="pt-4">
+                                                            <p className="text-xs font-bold text-muted-foreground mb-2">Redes sociais</p>
+                                                            <div className="flex items-center gap-3 text-foreground/90">
+                                                                <Share2 className="w-5 h-5 text-muted-foreground/60" />
+                                                                <span className="text-[15px] font-medium">{(selectedProfile as any).social_media}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {(selectedProfile as any).languages && (selectedProfile as any).languages?.length > 0 && (
+                                                        <div className="pt-4 pb-2">
+                                                            <p className="text-xs font-bold text-muted-foreground mb-2">Idiomas</p>
+                                                            <div className="flex items-center gap-3 text-foreground/90">
+                                                                <Languages className="w-5 h-5 text-muted-foreground/60" />
+                                                                <span className="text-[15px] font-medium">
+                                                                    {Array.isArray((selectedProfile as any).languages) ? (selectedProfile as any).languages.join(', ') : (selectedProfile as any).languages}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Section: More Info */}
+                                        {(selectedProfile.about_children || selectedProfile.church_frequency) && (
+                                            <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                                                <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
+                                                    <LayoutList className="w-5 h-5" />
+                                                    <h3 className="font-bold text-lg">Mais informações</h3>
+                                                </div>
+
+                                                <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
+                                                    {selectedProfile.church_frequency && (
+                                                        <div className="pt-4 first:pt-2">
+                                                            <p className="text-xs font-bold text-muted-foreground mb-2">Frequência na Igreja</p>
+                                                            <div className="flex items-center gap-3 text-foreground/90">
+                                                                <i className="ri-building-line text-xl text-muted-foreground/60" />
+                                                                <span className="text-[15px] font-medium">{selectedProfile.church_frequency}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {selectedProfile.about_children && (
+                                                        <div className="pt-4 first:pt-2 pb-2">
+                                                            <p className="text-xs font-bold text-muted-foreground mb-2">Família</p>
+                                                            <div className="flex items-center gap-3 text-foreground/90">
+                                                                <Baby className="w-5 h-5 text-muted-foreground/60" />
+                                                                <span className="text-[15px] font-medium">{selectedProfile.about_children}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Interests */}
+                                        <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm space-y-4">
+                                            <div className="flex items-center gap-2.5 text-foreground">
+                                                <Sparkles className="w-5 h-5 text-primary" />
+                                                <h3 className="font-bold text-lg">Interesses</h3>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {(selectedProfile.christian_interests || []).map((tag: string) => (
+                                                    <span key={tag} className="px-4 py-2 rounded-full bg-secondary/50 border border-border/50 text-foreground text-sm font-medium">
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
 
                                         <div className="h-24" />
                                     </div>

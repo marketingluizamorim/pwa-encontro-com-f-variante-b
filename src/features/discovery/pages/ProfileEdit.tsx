@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PhotoUpload } from '@/features/discovery/components/PhotoUpload';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
-import { ChevronLeft, Loader2 } from 'lucide-react';
+import { ChevronLeft, Loader2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { BRAZIL_CITIES, BRAZIL_STATES } from '@/config/brazil-cities';
 
 const RELIGIONS = [
   'Evangélica',
@@ -116,6 +118,7 @@ const LANGUAGE_OPTIONS = ['Português', 'Inglês', 'Espanhol', 'Francês', 'Alem
 
 export default function ProfileEdit() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -209,6 +212,33 @@ export default function ProfileEdit() {
     try {
       const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
 
+      // Calculate if profile is complete based on same logic as Discover/Profile pages
+      const completionFields = [
+        profile.display_name,
+        profile.bio,
+        profile.birth_date,
+        profile.city,
+        profile.state,
+        profile.religion,
+        profile.church_frequency,
+        profile.looking_for,
+        profile.gender,
+        profile.occupation,
+        (profile.photos && profile.photos.length > 0),
+        (profile.christian_interests && profile.christian_interests.length > 0),
+        (profile.languages && profile.languages.length > 0),
+        profile.education,
+        profile.social_media
+      ];
+
+      const filledCount = completionFields.filter(val => {
+        if (Array.isArray(val)) return val.length > 0;
+        if (typeof val === 'string') return val.trim().length > 0;
+        return !!val;
+      }).length;
+
+      const isComplete = filledCount === completionFields.length;
+
       const { error } = await supabaseRuntime
         .from('profiles')
         .update({
@@ -234,10 +264,16 @@ export default function ProfileEdit() {
           physical_activity: profile.physical_activity,
           social_media: profile.social_media,
           about_children: profile.about_children,
+          is_profile_complete: isComplete,
+          updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);
 
       if (error) throw error;
+
+      // Invalidate queries to update UI in real-time
+      queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['profile', null] }); // For own profile shortcuts
 
       toast.success('Perfil atualizado!', { style: { marginTop: '50px' } });
       navigate('/app/profile');
@@ -251,6 +287,25 @@ export default function ProfileEdit() {
 
   const updateField = <K extends keyof ProfileData>(field: K, value: ProfileData[K]) => {
     setProfile(prev => ({ ...prev, [field]: value }));
+  };
+
+  const isSectionComplete = (section: 'photos' | 'basic' | 'faith' | 'details' | 'lifestyle' | 'preferences') => {
+    switch (section) {
+      case 'photos':
+        return profile.photos && profile.photos.length > 0;
+      case 'basic':
+        return !!(profile.display_name && profile.birth_date && profile.gender && profile.city && profile.state);
+      case 'faith':
+        return !!(profile.religion && profile.church_frequency && profile.christian_interests && profile.christian_interests.length > 0);
+      case 'details':
+        return !!(profile.occupation && profile.education && profile.languages && profile.languages.length > 0 && profile.social_media);
+      case 'lifestyle':
+        return !!(profile.drink && profile.smoke && profile.physical_activity && profile.pets);
+      case 'preferences':
+        return !!(profile.looking_for && profile.about_children && profile.values_importance);
+      default:
+        return false;
+    }
   };
 
   if (loading) {
@@ -278,14 +333,19 @@ export default function ProfileEdit() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto scrollbar-hide">
+      <main className="flex-1 overflow-y-auto scrollbar-hide pb-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="container px-4 py-6 space-y-6 pb-24"
         >
           {/* Photo Upload */}
-          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10">
+          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 relative">
+            {isSectionComplete('photos') && (
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg z-20 border-2 border-background">
+                <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
+              </div>
+            )}
             <PhotoUpload
               photos={profile.photos}
               onPhotosChange={(photos) => updateField('photos', photos)}
@@ -293,7 +353,12 @@ export default function ProfileEdit() {
           </section>
 
           {/* Basic Info */}
-          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4">
+          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4 relative">
+            {isSectionComplete('basic') && (
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg z-20 border-2 border-background">
+                <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
+              </div>
+            )}
             <h2 className="font-display font-semibold text-foreground">Informações Básicas</h2>
 
             <div>
@@ -305,12 +370,13 @@ export default function ProfileEdit() {
               />
             </div>
 
-            <div>
+            <div className="max-w-[200px]">
               <label className="text-sm text-muted-foreground mb-1 block">Data de nascimento</label>
               <Input
                 type="date"
                 value={profile.birth_date}
                 onChange={(e) => updateField('birth_date', e.target.value)}
+                className="w-full"
               />
             </div>
 
@@ -329,21 +395,45 @@ export default function ProfileEdit() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm text-muted-foreground mb-1 block">Cidade</label>
-                <Input
-                  value={profile.city}
-                  onChange={(e) => updateField('city', e.target.value)}
-                  placeholder="Sua cidade"
-                />
-              </div>
-              <div>
                 <label className="text-sm text-muted-foreground mb-1 block">Estado</label>
-                <Input
-                  value={profile.state}
-                  onChange={(e) => updateField('state', e.target.value)}
-                  placeholder="UF"
-                  maxLength={2}
-                />
+                <Select
+                  value={BRAZIL_STATES.includes(profile.state) ? profile.state : undefined}
+                  onValueChange={(v) => {
+                    updateField('state', v);
+                    updateField('city', ''); // Reset city when state changes
+                  }}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px] bg-background">
+                    {BRAZIL_STATES.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm text-muted-foreground mb-1 block">Cidade</label>
+                <Select
+                  value={profile.state && BRAZIL_CITIES[profile.state]?.includes(profile.city) ? profile.city : undefined}
+                  onValueChange={(v) => updateField('city', v)}
+                  disabled={!profile.state}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder={!profile.state ? "Selecione o estado" : "Selecione"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px] bg-background">
+                    {profile.state && BRAZIL_CITIES[profile.state]?.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -353,7 +443,12 @@ export default function ProfileEdit() {
           </section>
 
           {/* Faith Info */}
-          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4">
+          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4 relative">
+            {isSectionComplete('faith') && (
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg z-20 border-2 border-background">
+                <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
+              </div>
+            )}
             <h2 className="font-display font-semibold text-foreground">Fé e Religião</h2>
 
             <div>
@@ -442,7 +537,12 @@ export default function ProfileEdit() {
           </section>
 
           {/* Detailed Info */}
-          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4">
+          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4 relative">
+            {isSectionComplete('details') && (
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg z-20 border-2 border-background">
+                <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
+              </div>
+            )}
             <h2 className="font-display font-semibold text-foreground">Detalhes Pessoais</h2>
 
             <div className="space-y-4">
@@ -614,7 +714,12 @@ export default function ProfileEdit() {
           </section>
 
           {/* Lifestyle */}
-          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4">
+          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4 relative">
+            {isSectionComplete('lifestyle') && (
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg z-20 border-2 border-background">
+                <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
+              </div>
+            )}
             <h2 className="font-display font-semibold text-foreground">Estilo de Vida</h2>
 
             <div className="grid grid-cols-2 gap-3">
@@ -650,7 +755,12 @@ export default function ProfileEdit() {
           </section>
 
           {/* Preferences */}
-          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4">
+          <section className="bg-card dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-border dark:border-white/10 space-y-4 relative">
+            {isSectionComplete('preferences') && (
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg z-20 border-2 border-background">
+                <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
+              </div>
+            )}
             <h2 className="font-display font-semibold text-foreground">Preferências</h2>
 
             <div>
