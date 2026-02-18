@@ -73,7 +73,9 @@ export default function Discover() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const dragControls = useDragControls();
-  const { error: geoError, requestLocation } = useGeolocation();
+  const { location: geoLocation, error: geoError, requestLocation } = useGeolocation();
+  // Coordinates of the logged-in user — from live GPS or saved in profile
+  const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const { theme, toggleTheme } = useTheme();
   const isDarkMode = theme === 'dark';
   const queryClient = useQueryClient();
@@ -227,7 +229,29 @@ export default function Discover() {
   }, [filters]);
 
 
+  // Sync userCoords: prefer live GPS, fallback to saved profile coords
+  useEffect(() => {
+    if (geoLocation) {
+      setUserCoords(geoLocation);
+      return;
+    }
+    // No live GPS — try to load saved coords from the user's profile
+    if (!user) return;
+    (async () => {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data } = await supabase
+        .from('profiles')
+        .select('latitude, longitude')
+        .eq('user_id', user.id)
+        .single();
+      if (data?.latitude && data?.longitude) {
+        setUserCoords({ latitude: data.latitude, longitude: data.longitude });
+      }
+    })();
+  }, [geoLocation, user]);
+
   const calculateDistance = (lat1?: number, lon1?: number, lat2?: number, lon2?: number): string | null => {
+
     if (lat1 === undefined || lon1 === undefined || lat2 === undefined || lon2 === undefined) return null;
 
     const R = 6371; // Raio da Terra em km
@@ -668,14 +692,14 @@ export default function Discover() {
 
                     {/* Distância */}
                     {(() => {
-                      const distance = calculateDistance(
-                        //@ts-ignore
-                        user?.latitude || user?.profile?.latitude,
-                        //@ts-ignore
-                        user?.longitude || user?.profile?.longitude,
-                        currentProfile.latitude,
-                        currentProfile.longitude
-                      );
+                      const distance = userCoords
+                        ? calculateDistance(
+                          userCoords.latitude,
+                          userCoords.longitude,
+                          currentProfile.latitude,
+                          currentProfile.longitude
+                        )
+                        : null;
 
                       if (!distance) return null;
 
@@ -945,14 +969,14 @@ export default function Discover() {
                     <div className="px-5 pb-2">
                       {/* Distance Row */}
                       {(() => {
-                        const distance = calculateDistance(
-                          //@ts-ignore
-                          user?.latitude || user?.profile?.latitude,
-                          //@ts-ignore
-                          user?.longitude || user?.profile?.longitude,
-                          currentProfile.latitude,
-                          currentProfile.longitude
-                        );
+                        const distance = userCoords
+                          ? calculateDistance(
+                            userCoords.latitude,
+                            userCoords.longitude,
+                            currentProfile.latitude,
+                            currentProfile.longitude
+                          )
+                          : null;
                         if (!distance) return null;
                         return (
                           <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
