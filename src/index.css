@@ -324,4 +324,33 @@
     scrollbar-width: none;
   }
 
+  /* Sonner Toast Overrides - High Priority for iOS/Safari */
+  [data-sonner-toast] {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  [data-sonner-toast] [data-close-button] {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    opacity: 1 !important;
+  }
+
+  [data-sonner-toast] [data-button] {
+    background: #d4af37 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+  }
+
+  [data-sonner-toast] [data-cancel] {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+  }
+
+  [data-sonner-toast] [data-title] {
+    color: #ffffff !important;
+  }
 }
