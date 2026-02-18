@@ -1322,7 +1322,7 @@ export default function ChatRoom() {
 
                 {/* Hero Image Section */}
                 <div
-                  className="relative w-full h-[60vh] shrink-0 touch-none cursor-grab active:cursor-grabbing"
+                  className="relative w-full h-[60vh] shrink-0 touch-none cursor-grab active:cursor-grabbing overflow-hidden"
                   onPointerDown={(e) => dragControls.start(e)}
                 >
                   {/* Photo Stories Progress Bar */}
@@ -1350,7 +1350,7 @@ export default function ChatRoom() {
                     src={matchProfile.photos?.[currentPhotoIndex] || matchProfile.avatar_url || '/placeholder.svg'}
                     className="h-full w-full object-cover pointer-events-none"
                   />
-                  <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
 
                   {/* Close Button - Top Right */}
                   <Button
