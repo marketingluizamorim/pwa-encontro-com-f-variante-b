@@ -47,33 +47,41 @@ const helpItems = [
 export function HelpDrawer({ open, onOpenChange }: HelpDrawerProps) {
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
-            <DrawerContent className="bg-background/95 backdrop-blur-xl border-border/50 h-[92vh] max-h-[92vh]">
-                <div className="mx-auto w-full max-w-sm px-6 flex flex-col h-full overflow-hidden">
-                    <DrawerHeader className="px-0 pt-6 shrink-0">
-                        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 mx-auto">
-                            <i className="ri-question-line text-3xl" />
+            <DrawerContent className="bg-background/95 backdrop-blur-xl border-border/50 h-[65vh] max-h-[65vh] outline-none">
+                <div className="mx-auto w-full max-w-sm px-6 flex flex-col h-full overflow-hidden relative">
+                    {/* Botão de Fechar Discreto */}
+                    <button
+                        onClick={() => onOpenChange(false)}
+                        className="absolute top-4 right-4 w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center text-foreground/40 hover:text-foreground/60 active:scale-95 transition-all z-30"
+                    >
+                        <i className="ri-close-line text-xl" />
+                    </button>
+
+                    <DrawerHeader className="px-0 pt-8 shrink-0">
+                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-5 mx-auto">
+                            <i className="ri-question-line text-4xl" />
                         </div>
-                        <DrawerTitle className="text-2xl font-display font-bold text-center">Como funciona o App?</DrawerTitle>
-                        <DrawerDescription className="text-center text-muted-foreground">
+                        <DrawerTitle className="text-3xl font-display font-bold text-center">Como funciona o App?</DrawerTitle>
+                        <DrawerDescription className="text-center text-muted-foreground text-sm mt-1">
                             Guia rápido para você aproveitar ao máximo sua jornada.
                         </DrawerDescription>
                     </DrawerHeader>
 
-                    <div className="flex-1 min-h-0 overflow-y-auto py-4 space-y-4 overscroll-contain">
+                    <div className="flex-1 min-h-0 overflow-y-auto py-4 space-y-4 overscroll-contain px-1">
                         {helpItems.map((item, index) => (
                             <motion.div
                                 key={item.title}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className="flex gap-4 p-4 rounded-2xl bg-card border border-border/50 shadow-sm"
+                                className="flex gap-5 p-5 rounded-2xl bg-card border border-border/40 shadow-sm"
                             >
-                                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", item.bgColor, item.color)}>
-                                    <i className={cn(item.icon, "text-xl")} />
+                                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner", item.bgColor, item.color)}>
+                                    <i className={cn(item.icon, "text-2xl")} />
                                 </div>
-                                <div className="space-y-1">
-                                    <h4 className="font-bold text-sm text-foreground">{item.title}</h4>
-                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                <div className="space-y-1.5 pt-0.5">
+                                    <h4 className="font-bold text-base text-foreground">{item.title}</h4>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
                                         {item.description}
                                     </p>
                                 </div>
@@ -84,7 +92,7 @@ export function HelpDrawer({ open, onOpenChange }: HelpDrawerProps) {
                     <div className="pt-4 pb-10 shrink-0">
                         <button
                             onClick={() => onOpenChange(false)}
-                            className="w-full h-12 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                            className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg shadow-lg shadow-primary/20 active:scale-95 transition-all"
                         >
                             Entendi!
                         </button>
