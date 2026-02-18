@@ -354,8 +354,14 @@
     color: #ffffff !important;
   }
 
-  /* Logo blend: remove white background on dark backgrounds */
+  /* Logo blend: makes logo transparent on dark backgrounds
+     Uses screen blend-mode with iOS Safari fallback via filter */
   .logo-blend {
     mix-blend-mode: screen;
+    /* iOS Safari: backdrop-filter on parent breaks mix-blend-mode.
+       Use -webkit prefix and force a new stacking context */
+    -webkit-mix-blend-mode: screen;
+    position: relative;
+    z-index: 1;
   }
 }
