@@ -153,7 +153,7 @@ export function PixPaymentDialog({
             {/* Total Amount */}
             <div className="text-center">
               <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em]">Total a Pagar</p>
-              <p className="text-2xl font-sans font-bold text-[#fcd34d] mt-0.5 drop-shadow-md">
+              <p className="text-2xl font-sans font-bold text-white mt-0.5 drop-shadow-md">
                 {formatCurrency(totalAmount)}
               </p>
             </div>
