@@ -155,16 +155,19 @@ function FilterSheet({ open, onClose, children }: FilterSheetProps) {
         onClick={onClose}
       />
 
-      {/* Sheet */}
+      {/* Sheet — overflow:hidden em todas as direções no container raiz */}
       <div
         className="absolute bottom-0 inset-x-0 bg-background rounded-t-3xl flex flex-col"
         style={{
           height: '75dvh',
           maxHeight: '75dvh',
+          width: '100%',
+          maxWidth: '100%',
           animation: 'slideUp 280ms cubic-bezier(0.32, 0.72, 0, 1)',
-          overflow: 'hidden',
-          touchAction: 'pan-y',          // permite scroll vertical, bloqueia horizontal
-          overscrollBehavior: 'contain', // sem rubber-band fora do sheet
+          overflow: 'hidden',            // corta QUALQUER overflow interno
+          overflowX: 'hidden',           // força: sem scroll horizontal
+          touchAction: 'pan-y',          // browser: apenas gesto vertical
+          overscrollBehavior: 'contain', // sem rubber-band
         }}
       >
         {children}
@@ -375,15 +378,17 @@ export default function DiscoverFilters({
           </button>
         </div>
 
-        {/* Scroll area — cresce, scrollável */}
+        {/* Scroll area — apenas vertical, sem overflow horizontal */}
         <div
           className="flex-1 overflow-y-auto overscroll-contain"
           style={{
             WebkitOverflowScrolling: 'touch',
             touchAction: 'pan-y',
+            overflowX: 'hidden',   // scroll horizontal BLOQUEADO nesta camada
+            width: '100%',
           }}
         >
-          <div className="px-5 py-4 space-y-5">
+          <div className="py-4 space-y-5" style={{ width: '100%', boxSizing: 'border-box', paddingLeft: '1.25rem', paddingRight: '1.25rem', overflowX: 'hidden' }}>
 
             {/* ── Faixa de Idade ── */}
             <div>
@@ -452,14 +457,14 @@ export default function DiscoverFilters({
                   planNeeded: 'silver', icon: <MapPin className="w-8 h-8" />, price: 29.90, planId: 'silver',
                 })}
               />
-              <div className={cn('grid grid-cols-2 gap-3', isBronze && 'opacity-40 grayscale pointer-events-none')}>
+              <div className={cn('grid grid-cols-2 gap-3 w-full overflow-x-hidden', isBronze && 'opacity-40 grayscale pointer-events-none')}>
                 <div>
                   <Label className="text-xs text-muted-foreground mb-1.5 block">Estado</Label>
                   <Select
                     value={localFilters.state || 'all'}
                     onValueChange={(v) => setLocalFilters(p => ({ ...p, state: v === 'all' ? '' : v, city: '' }))}
                   >
-                    <SelectTrigger className={cn('h-10', localFilters.state && 'border-primary/40 font-medium')}>
+                    <SelectTrigger className={cn('h-10 w-full min-w-0', localFilters.state && 'border-primary/40 font-medium')}>
                       <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px] bg-background">
@@ -475,7 +480,7 @@ export default function DiscoverFilters({
                     onValueChange={(v) => setLocalFilters(p => ({ ...p, city: v === 'all' ? '' : v }))}
                     disabled={!localFilters.state}
                   >
-                    <SelectTrigger className={cn('h-10', localFilters.city && 'border-primary/40 font-medium')}>
+                    <SelectTrigger className={cn('h-10 w-full min-w-0', localFilters.city && 'border-primary/40 font-medium')}>
                       <SelectValue placeholder={!localFilters.state ? 'Selecione um estado' : 'Todas'} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[200px] bg-background">
@@ -530,9 +535,9 @@ export default function DiscoverFilters({
                 </div>
 
                 {/* Interesses cristãos */}
-                <div>
+                <div className="overflow-x-hidden w-full">
                   <Label className="text-xs text-muted-foreground mb-2 block">Interesses cristãos</Label>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1.5 w-full">
                     {(showAllInterests && isGold ? CHRISTIAN_INTERESTS : CHRISTIAN_INTERESTS.slice(0, 16)).map(interest => {
                       const sel = localFilters.christianInterests?.includes(interest);
                       return (
