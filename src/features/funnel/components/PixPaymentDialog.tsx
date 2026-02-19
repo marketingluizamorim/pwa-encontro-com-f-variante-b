@@ -186,11 +186,11 @@ export function PixPaymentDialog({
                   <img
                     src={pixQrCode}
                     alt="QR Code PIX"
-                    className="w-24 h-24 rounded"
+                    className="w-12 h-12 rounded"
                   />
                 ) : (
-                  <div className="w-24 h-24 flex items-center justify-center bg-gray-100 rounded">
-                    <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+                  <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded">
+                    <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
                   </div>
                 )}
               </div>
