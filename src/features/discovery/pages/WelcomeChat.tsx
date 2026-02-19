@@ -65,7 +65,7 @@ const MESSAGES = [
         type: 'section',
         icon: <Sparkles className="w-5 h-5 text-amber-400" />,
         title: 'Perfil em Destaque',
-        text: 'Com os planos Prata ou Ouro, seu perfil aparece em primeiro para mais pessoas — aumentando muito suas chances de novas Conexões!',
+        text: 'Com o plano Ouro, seu perfil aparece em primeiro para mais pessoas — aumentando muito suas chances de novas Conexões!',
     },
     {
         id: 10,
