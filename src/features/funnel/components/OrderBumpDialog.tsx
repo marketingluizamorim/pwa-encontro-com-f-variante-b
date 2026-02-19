@@ -31,7 +31,6 @@ const ORDER_BUMPS: OrderBump[] = [{
   description: 'Encontre pessoas na faixa de idade e distância ideal.',
   price: 5.0,
   image: filtrosImage,
-  badge: '✨ Exclusivo Plano Prata',
   onlyForPlan: 'silver',
 }, {
   id: 'evangelico',
