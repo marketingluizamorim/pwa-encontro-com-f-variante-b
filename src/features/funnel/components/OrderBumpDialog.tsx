@@ -131,14 +131,17 @@ export function OrderBumpDialog({
           }).map(bump => {
             const isSelected = selectedBumps.includes(bump.id);
             return <div key={bump.id} onClick={() => toggleBump(bump.id)} className={`relative p-4 rounded-xl cursor-pointer transition-all duration-300 border group ${isSelected ? 'bg-gradient-to-br from-[#fcd34d]/20 to-transparent border-[#fcd34d]/60 shadow-[0_4px_20px_-5px_rgba(252,211,77,0.25)] scale-[1.02] z-10 ring-1 ring-[#fcd34d]/30' : 'bg-[#0f172a]/50 border-white/5 hover:border-white/20 hover:bg-[#0f172a]/70'}`}>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 {/* Radio Button */}
-                <div className={`w-6 h-6 rounded-full border-[2px] flex items-center justify-center transition-all duration-300 flex-shrink-0 ${isSelected ? 'border-[#fcd34d] bg-[#fcd34d] scale-110 shadow-[0_0_10px_rgba(252,211,77,0.4)]' : 'border-white/20 group-hover:border-white/40 bg-white/5'}`}>
-                  {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b]" />}
+                <div
+                  className={`rounded-full border-[2px] flex items-center justify-center transition-all duration-300 flex-shrink-0 ${isSelected ? 'border-[#fcd34d] bg-[#fcd34d] scale-110 shadow-[0_0_10px_rgba(252,211,77,0.4)]' : 'border-white/20 group-hover:border-white/40 bg-white/5'}`}
+                  style={{ width: '0.85rem', height: '0.85rem' }}
+                >
+                  {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#1e293b]" />}
                 </div>
 
-                {/* Image */}
-                <div className={`w-12 h-12 rounded-xl bg-black/30 p-0.5 border overflow-hidden flex-shrink-0 transition-colors ${isSelected ? 'border-[#fcd34d]/40' : 'border-white/5'}`}>
+                {/* Image — menor e mais junto */}
+                <div className={`w-10 h-10 rounded-xl bg-black/30 p-0.5 border overflow-hidden flex-shrink-0 transition-colors ${isSelected ? 'border-[#fcd34d]/40' : 'border-white/5'}`}>
                   <img
                     src={bump.image}
                     alt={bump.name}
@@ -153,7 +156,7 @@ export function OrderBumpDialog({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1 gap-2">
                     <h4
-                      className={`leading-tight font-serif font-bold tracking-wide transition-colors ${isSelected ? 'text-white' : 'text-white/90'}`}
+                      className={`leading-tight font-serif font-bold tracking-wide transition-colors whitespace-nowrap ${isSelected ? 'text-white' : 'text-white/90'}`}
                       style={{ fontSize: '0.975rem' }}
                     >
                       {bump.name}
