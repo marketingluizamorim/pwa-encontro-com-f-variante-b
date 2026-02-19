@@ -358,7 +358,7 @@ export function CheckoutDialog({
                                 isValid={isPhoneValid}
                             />
                         </div>
-                        {errors.phone && <p className="text-[10px] text-red-400 mt-1 pl-1">{errors.phone}</p>}
+                        {errors.phone && <p className="text-[12px] text-red-400 mt-1 pl-1">{errors.phone}</p>}
                     </div>
                 </form>
 
