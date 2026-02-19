@@ -44,6 +44,7 @@ export default function Plans() {
     allRegions: false,
     grupoEvangelico: false,
     grupoCatolico: false,
+    filtrosAvancados: false,
     lifetime: false,
   });
 
@@ -75,7 +76,7 @@ export default function Plans() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('plan') === 'gold' || params.get('plan') === 'plus') {
       setIsUpgradeFlow(true);
-      const bumps = { allRegions: true, grupoEvangelico: true, grupoCatolico: true, lifetime: true };
+      const bumps = { allRegions: true, grupoEvangelico: true, grupoCatolico: true, filtrosAvancados: true, lifetime: true };
       handleSelectPlan(GOLD_PLAN_ID, GOLD_PLAN_PRICE, bumps);
       // Clean URL to avoid reopening on refresh
       window.history.replaceState({}, '', window.location.pathname);
@@ -301,6 +302,34 @@ export default function Plans() {
             >
               Plano Ouro
             </Button>
+
+            {/* ── Flow demo buttons ── */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setPixCode('00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-42661417400052040000530398654040.005802BR5913EncontroComFe6008Brasilia62070503***6304E2CA');
+                setPixQrCode('https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Link_pra_pagina_principal_da_Wikipedia-PT_em_codigo_QR_b.svg/1200px-Link_pra_pagina_principal_da_Wikipedia-PT_em_codigo_QR_b.svg.png');
+                setPaymentId('mock-demo-' + Date.now());
+                setPixTotalAmount(12.90);
+                setShowPixPayment(true);
+              }}
+              className="bg-cyan-950/30 border-cyan-500/20 text-cyan-200 hover:bg-cyan-900/50 h-8 text-xs col-span-2"
+            >
+              🧧 Simular Tela PIX
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setCheckoutInfo({ name: 'Demo User', email: 'demo@demo.com', phone: '' });
+                setShowThankYou(true);
+              }}
+              className="bg-green-950/30 border-green-500/20 text-green-200 hover:bg-green-900/50 h-8 text-xs col-span-2"
+            >
+              🎉 Simular Tela Obrigado
+            </Button>
           </div>
         </div>
       )}
@@ -313,13 +342,6 @@ export default function Plans() {
         isLoading={isProcessing}
         planName={PLAN_NAMES[selectedPlanId] || 'Plano Gold'}
         orderBumps={currentBumpsRef.current}
-        planId={selectedPlanId}
-        quizData={quizAnswers as Record<string, unknown>}
-        onTestPurchaseComplete={(data) => {
-          setCheckoutInfo(data);
-          setShowCheckout(false);
-          setShowThankYou(true);
-        }}
       />
 
       <SpecialOfferCheckoutDialog
