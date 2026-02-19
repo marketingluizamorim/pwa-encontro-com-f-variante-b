@@ -185,10 +185,9 @@ export function CheckoutDialog({
 
     // Resources
     const bronzeResources = [
-        'Curtidas ilimitadas',
-        'Visualizar perfis de outros usuários',
+        'A conversa só começa quando ambos curtirem',
         'Enviar e receber mensagens de texto',
-        'Acesso ao feed de descoberta',
+        '20 curtidas por dia',
     ];
     const silverResources = [
         'Ver quem curtiu você',
