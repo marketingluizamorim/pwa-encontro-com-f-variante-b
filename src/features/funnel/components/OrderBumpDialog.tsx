@@ -53,7 +53,7 @@ function renderDesc(text: string, highlighted: boolean) {
     <>
       {parts.map((part, i) =>
         part.startsWith('**') && part.endsWith('**')
-          ? <strong key={i} className={highlighted ? 'text-white font-semibold' : 'text-white/70 font-semibold'}>{part.slice(2, -2)}</strong>
+          ? <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>
           : <span key={i}>{part}</span>
       )}
     </>
