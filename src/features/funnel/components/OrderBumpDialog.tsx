@@ -186,7 +186,7 @@ export function OrderBumpDialog({
             <span className="text-white/90 font-bold text-sm uppercase tracking-wide">
               {selectedPlan.name}
             </span>
-            <span className="text-white font-black text-lg">
+            <span className="text-white font-normal text-lg">
               R$ {selectedPlan.price.toFixed(2).replace('.', ',')}
             </span>
           </div>
@@ -199,11 +199,11 @@ export function OrderBumpDialog({
                   onClick={() => setExtrasExpanded(!extrasExpanded)}
                   className="flex items-center justify-between w-full text-xs mt-2 py-1 group"
                 >
-                  <span className="text-[#fcd34d]/80 text-xs flex items-center gap-1 group-hover:text-[#fcd34d] transition-colors">
+                  <span className="text-white/60 text-xs flex items-center gap-1 group-hover:text-white/80 transition-colors">
                     + Extras ({selectedBumps.length})
                     {extrasExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                   </span>
-                  <span className="font-medium text-[#fcd34d]">
+                  <span className="font-medium text-white">
                     R$ {calculateExtra().toFixed(2).replace('.', ',')}
                   </span>
                 </button>
@@ -212,7 +212,7 @@ export function OrderBumpDialog({
                     {selectedBumpsList.map(bump => (
                       <div key={bump.id} className="flex items-center justify-between text-xs">
                         <span className="text-white/60 text-[10px]">{bump.name}</span>
-                        <span className="font-medium text-[#fcd34d] text-[10px]">
+                        <span className="font-medium text-white text-[10px]">
                           R$ {bump.price.toFixed(2).replace('.', ',')}
                         </span>
                       </div>
@@ -224,8 +224,8 @@ export function OrderBumpDialog({
               // Single bump - show directly
               selectedBumpsList.map(bump => (
                 <div key={bump.id} className="flex items-center justify-between text-xs mt-1.5">
-                  <span className="text-[#fcd34d]/80 text-xs font-medium border-b border-dashed border-[#fcd34d]/30 pb-0.5">+ {bump.name}</span>
-                  <span className="font-bold text-[#fcd34d]">
+                  <span className="text-white/60 text-xs font-medium border-b border-dashed border-white/20 pb-0.5">+ {bump.name}</span>
+                  <span className="font-bold text-white">
                     R$ {bump.price.toFixed(2).replace('.', ',')}
                   </span>
                 </div>
@@ -233,7 +233,7 @@ export function OrderBumpDialog({
             )}
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
               <span className="font-bold text-white text-sm uppercase">Total a Pagar</span>
-              <span className="font-black text-[#fcd34d] text-2xl drop-shadow-sm">
+              <span className="font-black text-white text-2xl drop-shadow-sm">
                 R$ {calculateTotal().toFixed(2).replace('.', ',')}
               </span>
             </div>
