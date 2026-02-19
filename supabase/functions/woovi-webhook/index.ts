@@ -1,3 +1,4 @@
+/// <reference path="../deno.d.ts" />
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
@@ -29,7 +30,7 @@ function formatDateForWebhook(date: Date): string {
 
 const DISABLE_WEBHOOKS = true;
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
     try {
@@ -127,8 +128,9 @@ Deno.serve(async (req) => {
             status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
     } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         console.error("Webhook error:", error);
-        return new Response(JSON.stringify({ success: false, error: error.message }), {
+        return new Response(JSON.stringify({ success: false, error: message }), {
             status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
     }
