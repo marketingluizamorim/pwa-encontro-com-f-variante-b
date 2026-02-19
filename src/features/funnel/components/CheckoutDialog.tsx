@@ -187,9 +187,9 @@ export function CheckoutDialog({
         'Todos os recursos do Plano Prata',
         'Enviar mensagem sem curtir antes',
         'Ver perfis online recentemente',
-        'Filtro por distância e interesses',
+        'Filtro por distância e idade',
+        'Filtro por relacionamento e interesses',
         'Perfil em destaque',
-        'Filtros avançados (idade e distância)',
     ];
     const silverResources = [
         'Ver quem curtiu você',

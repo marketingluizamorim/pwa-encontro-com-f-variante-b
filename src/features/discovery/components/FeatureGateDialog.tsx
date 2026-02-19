@@ -133,7 +133,7 @@ export function FeatureGateDialog({
                                                     navigate(`/v1/planos?plan=${plan.id === 'gold' ? 'gold' : 'silver'}`);
                                                 }
                                             }}
-                                            className="w-full h-14 rounded-2xl gradient-button text-white font-bold text-base tracking-widest uppercase border-0 shadow-lg shadow-amber-900/20 active:scale-[0.98] transition-all"
+                                            className="w-full h-14 rounded-2xl gradient-button text-white text-[14px] font-extrabold tracking-[0.6px] uppercase border-0 shadow-lg shadow-amber-900/20 active:scale-[0.98] transition-all"
                                         >
                                             ASSINAR AGORA
                                         </Button>

@@ -90,6 +90,45 @@ const FloatingHeart = () => (
     </div>
 );
 
+// ── Welcome Card (pinned at top of messages list) ──────────────────────────
+function WelcomeCard() {
+    const navigate = useNavigate();
+    const [read, setRead] = useState(() => localStorage.getItem('welcome-chat-read') === '1');
+
+    const handleClick = () => {
+        localStorage.setItem('welcome-chat-read', '1');
+        setRead(true);
+        navigate('/app/chat/welcome');
+    };
+
+    return (
+        <button
+            onClick={handleClick}
+            className="flex items-center gap-4 w-full -mx-2 px-2 py-2 rounded-lg active:bg-muted/50 transition-colors mb-1"
+        >
+            <div className="relative flex-shrink-0">
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/40 shadow-md">
+                    <img src="/pwa-512x512.png" alt="Bem-vindo" className="w-full h-full object-cover" />
+                </div>
+                {!read && (
+                    <div className="absolute right-0 top-0 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background animate-pulse" />
+                )}
+            </div>
+            <div className="flex-1 min-w-0 border-b border-border/40 pb-4 text-left">
+                <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-bold text-base">Bem-vindo(a) ao aplicativo</h3>
+                    {!read && (
+                        <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-full text-[10px] font-bold">NOVO</span>
+                    )}
+                </div>
+                <p className="text-sm text-muted-foreground truncate">
+                    👋 Olá! Seja muito bem-vindo(a)! Toque para ver o guia completo do app.
+                </p>
+            </div>
+        </button>
+    );
+}
+
 export default function Chat() {
     const { user } = useAuth();
     const { data: subscription } = useSubscription();
@@ -575,6 +614,9 @@ export default function Chat() {
                     {/* Lista de Mensagens */}
                     <div className="px-4">
                         <h2 className="font-bold text-lg mb-4">Mensagens</h2>
+
+                        {/* ── Card de Boas-vindas (sempre visível, fixado no topo) ── */}
+                        <WelcomeCard />
 
                         {existingChats.length === 0 ? (
                             <div className="flex flex-col items-center justify-center text-center opacity-60 py-10">

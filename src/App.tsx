@@ -71,6 +71,7 @@ const Discover = lazy(() => import("@/features/discovery/pages/Discover"));
 const Matches = lazy(() => import("@/features/discovery/pages/Matches"));
 const Chat = lazy(() => import("@/features/discovery/pages/Chat"));
 const ChatRoom = lazy(() => import("@/features/discovery/pages/ChatRoom"));
+const WelcomeChat = lazy(() => import("@/features/discovery/pages/WelcomeChat"));
 const Profile = lazy(() => import("@/features/discovery/pages/Profile"));
 const ProfileSetup = lazy(() => import("@/features/discovery/pages/ProfileSetup"));
 const ProfileEdit = lazy(() => import("@/features/discovery/pages/ProfileEdit"));
@@ -141,6 +142,16 @@ const AppContent = () => {
                   <Route path="profile" element={<Profile />} />
                   <Route path="profile/:userId" element={<Profile />} />
                 </Route>
+
+                {/* Welcome Chat — must be before :matchId to avoid route conflicts */}
+                <Route
+                  path="/app/chat/welcome"
+                  element={
+                    <ProtectedRoute>
+                      <WelcomeChat />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Chat Room (Standalone layout to cover AppLayout) */}
                 <Route
