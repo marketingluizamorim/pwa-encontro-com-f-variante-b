@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 // Rotas onde o splash NUNCA deve aparecer
 const NO_SPLASH_PREFIXES = [
@@ -10,31 +10,26 @@ const NO_SPLASH_PREFIXES = [
   '/politica-de-reembolso',
 ];
 
-function isNoSplashPath(pathname: string): boolean {
-  if (pathname === '/') return true;
-  return NO_SPLASH_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(prefix + '/'),
-  );
+function shouldShowSplash(): boolean {
+  // Bloqueia nas rotas públicas e do funil — verificação síncrona, antes do primeiro render
+  const path = window.location.pathname;
+  if (path === '/') return false;
+  if (NO_SPLASH_PREFIXES.some((p) => path === p || path.startsWith(p + '/'))) return false;
+
+  // Só mostra em PWA instalado (standalone)
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+
+  // Não mostrar se já foi exibido nesta sessão
+  const splashShown = sessionStorage.getItem('splashShown') === 'true';
+
+  return isStandalone && !splashShown;
 }
 
 export function useSplashScreen() {
-  const [showSplash, setShowSplash] = useState(false);
-
-  useEffect(() => {
-    // Nunca mostrar splash nas rotas do funil e públicas
-    if (isNoSplashPath(window.location.pathname)) return;
-
-    // Only show splash screen if running as installed PWA
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-      || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
-
-    // Check if splash was already shown this session
-    const splashShown = sessionStorage.getItem('splashShown');
-
-    if (isStandalone && !splashShown) {
-      setShowSplash(true);
-    }
-  }, []);
+  // Inicializador síncrono: decide ANTES do primeiro render — zero janela de tempo
+  const [showSplash, setShowSplash] = useState<boolean>(() => shouldShowSplash());
 
   const completeSplash = () => {
     sessionStorage.setItem('splashShown', 'true');
@@ -43,3 +38,4 @@ export function useSplashScreen() {
 
   return { showSplash, completeSplash };
 }
+
