@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import regionsImage from '@/assets/bump-regions-premium.png';
 import evangelicoImage from '@/assets/bump-evangelico-premium.png';
 import catolicoImage from '@/assets/bump-catolico-premium.png';
+import filtrosImage from '@/assets/bump-filtros-premium.png';
 
 interface OrderBump {
   id: string;
@@ -14,6 +15,7 @@ interface OrderBump {
   price: number;
   image: string;
   badge?: string;
+  onlyForPlan?: string;
 }
 
 const ORDER_BUMPS: OrderBump[] = [{
@@ -23,6 +25,14 @@ const ORDER_BUMPS: OrderBump[] = [{
   price: 5.0,
   image: regionsImage,
   badge: '🔥 67% das pessoas escolhem esta opção'
+}, {
+  id: 'filtros',
+  name: 'Filtros de Idade e Distância',
+  description: 'Encontre pessoas na faixa de idade e distância ideal.',
+  price: 5.0,
+  image: filtrosImage,
+  badge: '✨ Exclusivo Plano Prata',
+  onlyForPlan: 'silver',
 }, {
   id: 'evangelico',
   name: 'Grupo Evangélico',
@@ -40,6 +50,7 @@ export interface SelectedBumps {
   allRegions: boolean;
   grupoEvangelico: boolean;
   grupoCatolico: boolean;
+  filtrosAvancados: boolean;
   lifetime: boolean;
 }
 
@@ -78,6 +89,7 @@ export function OrderBumpDialog({
       allRegions: selectedBumps.includes('regions'),
       grupoEvangelico: selectedBumps.includes('evangelico'),
       grupoCatolico: selectedBumps.includes('catolico'),
+      filtrosAvancados: selectedBumps.includes('filtros'),
       lifetime: false,
     };
     // Save to store for UI purposes
@@ -93,6 +105,7 @@ export function OrderBumpDialog({
       allRegions: false,
       grupoEvangelico: false,
       grupoCatolico: false,
+      filtrosAvancados: false,
       lifetime: false,
     };
     // Reset order bumps in store
@@ -126,7 +139,10 @@ export function OrderBumpDialog({
         {/* Order Bump Cards */}
         <div className="space-y-3 pb-0">
           {ORDER_BUMPS.filter(bump => {
+            // 'regions' hidden for silver (they already have all regions)
             if (selectedPlan?.id === 'silver' && bump.id === 'regions') return false;
+            // 'filtros' shown ONLY for silver
+            if (bump.id === 'filtros' && selectedPlan?.id !== 'silver') return false;
             return true;
           }).map(bump => {
             const isSelected = selectedBumps.includes(bump.id);

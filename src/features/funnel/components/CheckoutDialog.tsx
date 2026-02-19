@@ -13,7 +13,7 @@ interface CheckoutDialogProps {
     onSubmit: (data: { name: string; email: string; phone: string }) => void;
     isLoading?: boolean;
     planName?: string;
-    orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean };
+    orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean };
     initialData?: { name: string; email: string; phone: string };
     /** Called after a successful test purchase — triggers the same flow as a real payment */
     onTestPurchaseComplete?: (data: { name: string; email: string; phone: string }) => void;
@@ -178,11 +178,12 @@ export function CheckoutDialog({
         ? 0
         : (orderBumps?.allRegions ? 5 : 0)
         + (orderBumps?.grupoEvangelico ? 5 : 0)
-        + (orderBumps?.grupoCatolico ? 5 : 0);
+        + (orderBumps?.grupoCatolico ? 5 : 0)
+        + (orderBumps?.filtrosAvancados ? 5 : 0);
 
     const basePlanPrice = isPackagePlan ? planPrice : planPrice - extrasTotal;
 
-    const hasExtras = orderBumps?.allRegions || orderBumps?.grupoEvangelico || orderBumps?.grupoCatolico;
+    const hasExtras = orderBumps?.allRegions || orderBumps?.grupoEvangelico || orderBumps?.grupoCatolico || orderBumps?.filtrosAvancados;
 
     // Label: "Plano Prata · Mensal"
     const planPeriod = cleanPlanName.includes('bronze') ? 'Semanal' : 'Mensal';
@@ -251,6 +252,7 @@ export function CheckoutDialog({
             if (orderBumps?.allRegions) orderBumpsList.push('allRegions');
             if (orderBumps?.grupoEvangelico) orderBumpsList.push('grupoEvangelico');
             if (orderBumps?.grupoCatolico) orderBumpsList.push('grupoCatolico');
+            if (orderBumps?.filtrosAvancados) orderBumpsList.push('filtrosAvancados');
 
             const mockPaymentId = `dev-test-${Date.now()}`;
 
@@ -309,7 +311,8 @@ export function CheckoutDialog({
     const extrasCount =
         (orderBumps?.allRegions ? 1 : 0) +
         (orderBumps?.grupoEvangelico ? 1 : 0) +
-        (orderBumps?.grupoCatolico ? 1 : 0);
+        (orderBumps?.grupoCatolico ? 1 : 0) +
+        (orderBumps?.filtrosAvancados ? 1 : 0);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

@@ -28,6 +28,7 @@ const BUMP_NAMES: Record<string, string> = {
   allRegions: "Desbloquear Regiões",
   grupoEvangelico: "Grupo Evangélico",
   grupoCatolico: "Grupo Católico",
+  filtrosAvancados: "Filtros de Idade e Distância",
   lifetime: "Acesso Vitalício",
 };
 
@@ -116,6 +117,7 @@ Deno.serve(async (req) => {
           const hasAllRegions = orderBumpsArray.includes("allRegions");
           const hasGrupoEvangelico = orderBumpsArray.includes("grupoEvangelico");
           const hasGrupoCatolico = orderBumpsArray.includes("grupoCatolico");
+          const hasFiltrosAvancados = orderBumpsArray.includes("filtrosAvancados");
           const hasLifetime = orderBumpsArray.includes("lifetime") || ["lifetime", "special", "special-offer-lifetime"].includes(purchase.plan_id);
 
           if (purchase.user_id) {
@@ -135,7 +137,8 @@ Deno.serve(async (req) => {
               can_see_who_liked: purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly',
               is_profile_boosted: ["gold", "annual", "plus"].includes(purchase.plan_id) || hasLifetime,
               can_video_call: purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly',
-              can_use_advanced_filters: purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly',
+              // silver base plan already has advanced filters; bump also grants them
+              can_use_advanced_filters: hasFiltrosAvancados || (purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly'),
             }, { onConflict: "user_id" });
           }
 

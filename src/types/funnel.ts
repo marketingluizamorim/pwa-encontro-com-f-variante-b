@@ -15,6 +15,7 @@ export interface OrderBumps {
     allRegions: boolean;
     grupoEvangelico: boolean;
     grupoCatolico: boolean;
+    filtrosAvancados: boolean;
     lifetime: boolean;
 }
 

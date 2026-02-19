@@ -34,6 +34,7 @@ const initialState = {
     allRegions: false,
     grupoEvangelico: false,
     grupoCatolico: false,
+    filtrosAvancados: false,
     lifetime: false,
   },
   checkoutInfo: {
