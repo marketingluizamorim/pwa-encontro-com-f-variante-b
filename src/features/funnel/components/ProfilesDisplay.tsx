@@ -1,10 +1,7 @@
 import { motion } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { QuizAnswers } from "@/types/funnel";
 import { useFunnelStore } from "@/features/funnel/hooks/useFunnelStore";
-import { MapPin, Lock, HandHeart, ArrowRight, Heart, Sparkles, ArrowLeft } from 'lucide-react';
+import { MapPin, Lock, HandHeart, ArrowRight, Heart, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 import { getProfilesData, getStateAbbreviation } from "../utils/profiles";
 
 interface ProfilesDisplayProps {
@@ -19,19 +16,16 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
 
   return (
     <div className="h-[100dvh] bg-[#0f172a] relative overflow-y-auto pb-48 flex flex-col items-center w-full">
-      {/* Background Ambience - Clean & Premium */}
+
+      {/* Background Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Main ambient light - Top Center (Teal/Blue mix) */}
         <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[140%] h-[70%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/30 via-[#0f172a]/0 to-transparent blur-[90px]" />
-
-        {/* Bottom warm light - (Amber/Gold mix) for grounding */}
         <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/15 via-[#0f172a]/0 to-transparent blur-[110px]" />
-
-        {/* Global Noise Texture for cinematic feel */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
       </div>
 
       <div className="w-full max-w-md mx-auto relative z-10">
+
         {/* Header Section */}
         <div className="pt-8 pb-8 px-6 text-center relative">
           {onBack && (
@@ -45,6 +39,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
             </Button>
           )}
 
+          {/* FIX: animate (not whileInView) — prevents re-trigger flickering on scroll */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,11 +58,12 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
           >
             Sua busca <span className="text-amber-400">teve sucesso!</span>
           </motion.h1>
+
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-white/70 text-sm md:text-base leading-relaxed whitespace-nowrap text-center w-full"
+            className="text-white/70 text-sm md:text-base leading-relaxed text-center w-full"
           >
             Essas pessoas compartilham valores semelhantes.
           </motion.p>
@@ -82,7 +78,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                 className="group relative rounded-[2rem] overflow-hidden shadow-2xl aspect-[3/4.2] border border-white/10 fade-in-fast"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                {/* Profile Image with Hover Effects */}
+                {/* Profile Image */}
                 <div className="w-full h-full relative overflow-hidden">
                   <img
                     src={profile.photo}
@@ -90,10 +86,8 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                     loading={index < 4 ? "eager" : "lazy"}
                     decoding="async"
                     fetchPriority={index < 2 ? "high" : "auto"}
-                    className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!profile.unlocked ? 'blur-sm grayscale-0 opacity-60 brightness-75' : ''}`}
+                    className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!profile.unlocked ? 'blur-sm opacity-60 brightness-75' : ''}`}
                   />
-
-                  {/* Glassy Overlays */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
                   <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/20 to-transparent" />
                 </div>
@@ -114,8 +108,6 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                   )}
                 </div>
 
-
-
                 {/* Profile Information */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 pt-10">
                   <div className="space-y-1.5">
@@ -123,14 +115,12 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                       {profile.name}, {profile.age}
                       <div className="w-2 h-2 rounded-full bg-teal-400" />
                     </h3>
-
                     <div className="flex items-center gap-1.5 text-white/60">
                       <MapPin className="w-3 h-3 text-teal-400" />
                       <span className="text-[11px] font-medium tracking-wide">
                         {profile.distance}
                       </span>
                     </div>
-
                     {profile.unlocked && (
                       <div className="flex gap-1.5 flex-nowrap mt-2.5 overflow-hidden">
                         {profile.christian_interests.slice(0, 2).map(interest => (
@@ -143,14 +133,10 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                   </div>
                 </div>
 
-                {/* Locked Message Layer */}
+                {/* Locked Message Layer — static div (no motion) to prevent flickering */}
                 {!profile.unlocked && (
                   <div className="absolute inset-0 flex items-center justify-center p-4">
-                    <motion.div
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      whileInView={{ scale: 1, opacity: 1 }}
-                      className="text-center space-y-2 pb-12"
-                    >
+                    <div className="text-center space-y-2 pb-12">
                       <p className="text-[10px] text-white/50 font-bold uppercase tracking-[0.2em] mb-1">Privado</p>
                       <button
                         onClick={onViewPlans}
@@ -159,18 +145,19 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                       >
                         Desbloquear
                       </button>
-                    </motion.div>
+                    </div>
                   </div>
                 )}
               </div>
             ))}
           </div>
 
-          {/* Locked Counter Summary */}
+          {/* Locked Counter — FIX: animate instead of whileInView */}
           <motion.div
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            className="flex justify-center"
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex justify-center mb-4"
           >
             <div className="bg-white/10 border border-white/10 rounded-2xl px-6 py-4 text-center w-full shadow-lg">
               <p className="text-sm text-white/90 leading-relaxed">
@@ -183,14 +170,21 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
 
       </div>
 
-      {/* Floating Sticky CTA - Redesigned for Conversion */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/95 to-transparent pt-32 pb-10 px-6 z-50">
-        <div className="max-w-md mx-auto relative">
-          {/* Social Proof label above button */}
+      {/* ── Floating CTA ──
+          FIX: pointer-events-none on the whole fixed container (gradient area),
+          so it never intercepts touch/scroll events on the cards beneath.
+          pointer-events-auto is restored only on the interactive button area. */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+        {/* Gradient fade — purely visual, no pointer events */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/95 to-transparent" />
+
+        {/* Button area — interactive zone only */}
+        <div className="relative max-w-md mx-auto px-6 pb-10 pt-32 pointer-events-auto">
+          {/* Social Proof */}
           <motion.div
             animate={{ y: [0, -4, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-8 left-0 right-0 text-center"
+            className="absolute top-20 left-0 right-0 text-center"
           >
             <p className="text-white text-xs font-bold tracking-tight drop-shadow-md">
               <HandHeart className="w-4 h-4 inline-block mr-1.5 text-amber-400" />
@@ -216,6 +210,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
           </p>
         </div>
       </div>
+
     </div>
   );
 }
