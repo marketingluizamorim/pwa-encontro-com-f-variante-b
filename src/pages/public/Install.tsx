@@ -19,6 +19,7 @@ declare global {
 export default function Install() {
   const navigate = useNavigate();
   const [isInstalled, setIsInstalled] = useState(false);
+  const [showInstalledPopup, setShowInstalledPopup] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [showAndroidGuide, setShowAndroidGuide] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState({
@@ -62,6 +63,7 @@ export default function Install() {
       const { outcome } = await prompt.userChoice;
       if (outcome === 'accepted') {
         setIsInstalled(true);
+        setShowInstalledPopup(true);
         window.__pwaInstallPrompt = null;
       }
       return;
@@ -85,6 +87,71 @@ export default function Install() {
       duration: 3000,
     });
   };
+
+  // ── Installed Success Popup ──────────────────────────────────────────────
+  const InstalledPopup = () => (
+    <AnimatePresence>
+      {showInstalledPopup && (
+        <motion.div
+          className="fixed inset-0 z-[99999] flex items-end justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+
+          {/* Sheet */}
+          <motion.div
+            className="relative z-10 w-full max-w-sm mx-4 mb-6 bg-[#0f172a] border border-white/10 rounded-3xl p-6 shadow-2xl"
+            initial={{ y: 80, opacity: 0, scale: 0.95 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+          >
+            {/* Success icon */}
+            <motion.div
+              className="w-20 h-20 rounded-full bg-green-500/15 border border-green-400/30 flex items-center justify-center mx-auto mb-5"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.15, type: 'spring', damping: 12 }}
+            >
+              <motion.div
+                initial={{ scale: 0, rotate: -30 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.25, type: 'spring', damping: 10 }}
+              >
+                <CheckCircle2 className="w-10 h-10 text-green-400" />
+              </motion.div>
+            </motion.div>
+
+            {/* Text */}
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold text-white font-display mb-1">App Instalado! 🎉</h2>
+              <p className="text-white/50 text-sm leading-relaxed">
+                O <span className="text-primary font-semibold">Encontro com Fé</span> foi adicionado à sua tela inicial.
+              </p>
+            </div>
+
+            {/* Open button */}
+            <Button
+              onClick={() => navigate('/login')}
+              className="w-full h-12 rounded-2xl bg-gradient-to-r from-primary to-amber-500 text-black font-bold text-base shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-95"
+            >
+              Abrir o App →
+            </Button>
+
+            <button
+              onClick={() => setShowInstalledPopup(false)}
+              className="w-full mt-3 text-white/30 text-sm hover:text-white/50 transition-colors"
+            >
+              Fechar
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   // ── iOS Guide Overlay ──────────────────────────────────────────────────────
   const IOSGuideOverlay = () => (
@@ -418,6 +485,7 @@ export default function Install() {
   return (
     <div className="h-[100dvh] bg-[#020617] flex flex-col items-center px-5 relative overflow-x-hidden overflow-y-auto">
       {/* Overlays */}
+      <InstalledPopup />
       <IOSGuideOverlay />
       <AndroidGuideOverlay />
 
