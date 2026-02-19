@@ -102,6 +102,20 @@
     // Remove splash screen after React mounts (with fade-out)
     (function () {
       var splash = document.getElementById('pwa-splash');
+
+      // Rotas onde o splash NUNCA deve aparecer
+      var noSplashPrefixes = ['/v1', '/login', '/register', '/install', '/termos-de-uso', '/politica-de-reembolso'];
+      var path = window.location.pathname;
+      var isNoSplashRoute = path === '/' || noSplashPrefixes.some(function (p) {
+        return path === p || path.indexOf(p + '/') === 0;
+      });
+
+      // Se for rota pública ou do funil → remove imediatamente, sem fade
+      if (isNoSplashRoute) {
+        if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+        return;
+      }
+
       // MutationObserver watches for React rendering into #root
       var observer = new MutationObserver(function () {
         var root = document.getElementById('root');
@@ -125,6 +139,7 @@
       }, 5000);
     })();
   </script>
+
 
   <script>
     // Capture beforeinstallprompt ASAP — before React even loads
