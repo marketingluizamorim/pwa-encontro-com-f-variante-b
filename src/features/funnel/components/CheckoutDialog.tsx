@@ -288,7 +288,9 @@ export function CheckoutDialog({
                                 className="flex items-center gap-1 mt-[6px] text-[12px] font-semibold text-[#fcd34d]/70 hover:text-[#fcd34d] transition-colors"
                             >
                                 {isPackagePlan
-                                    ? 'Ver o que está incluído'
+                                    ? hasExtras
+                                        ? `Ver o que está incluído + ${extrasCount} extra${extrasCount > 1 ? 's' : ''}`
+                                        : 'Ver o que está incluído'
                                     : `Extras (${extrasCount})`}
                                 {extrasExpanded
                                     ? <ChevronUp className="w-3 h-3" />
@@ -298,12 +300,46 @@ export function CheckoutDialog({
                             {extrasExpanded && (
                                 <div className="mt-2 pt-2 border-t border-white/[0.06] flex flex-col gap-[6px]">
                                     {isPackagePlan ? (
-                                        resources.map((r, i) => (
-                                            <div key={i} className="flex items-center gap-[7px] text-[12px] text-white/55">
-                                                <Check className="w-[11px] h-[11px] text-emerald-400 flex-shrink-0" />
-                                                {r}
-                                            </div>
-                                        ))
+                                        <>
+                                            {/* Plan included features */}
+                                            {resources.map((r, i) => (
+                                                <div key={i} className="flex items-center gap-[7px] text-[12px] text-white/55">
+                                                    <Check className="w-[11px] h-[11px] text-emerald-400 flex-shrink-0" />
+                                                    {r}
+                                                </div>
+                                            ))}
+
+                                            {/* Selected order bumps with amber "+" */}
+                                            {hasExtras && (
+                                                <>
+                                                    <div className="h-px bg-white/[0.06] my-0.5" />
+                                                    {orderBumps?.allRegions && (
+                                                        <div className="flex items-center gap-[7px] text-[12px] text-white/55">
+                                                            <span className="w-[11px] h-[11px] flex-shrink-0 flex items-center justify-center text-[#fcd34d] font-black text-[13px] leading-none">+</span>
+                                                            Desbloquear Região
+                                                        </div>
+                                                    )}
+                                                    {orderBumps?.grupoEvangelico && (
+                                                        <div className="flex items-center gap-[7px] text-[12px] text-white/55">
+                                                            <span className="w-[11px] h-[11px] flex-shrink-0 flex items-center justify-center text-[#fcd34d] font-black text-[13px] leading-none">+</span>
+                                                            Grupo Evangélico
+                                                        </div>
+                                                    )}
+                                                    {orderBumps?.grupoCatolico && (
+                                                        <div className="flex items-center gap-[7px] text-[12px] text-white/55">
+                                                            <span className="w-[11px] h-[11px] flex-shrink-0 flex items-center justify-center text-[#fcd34d] font-black text-[13px] leading-none">+</span>
+                                                            Grupo Católico
+                                                        </div>
+                                                    )}
+                                                    {orderBumps?.filtrosAvancados && (
+                                                        <div className="flex items-center gap-[7px] text-[12px] text-white/55">
+                                                            <span className="w-[11px] h-[11px] flex-shrink-0 flex items-center justify-center text-[#fcd34d] font-black text-[13px] leading-none">+</span>
+                                                            Filtros Avançados
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
+                                        </>
                                     ) : (
                                         <>
                                             {orderBumps?.allRegions && (
