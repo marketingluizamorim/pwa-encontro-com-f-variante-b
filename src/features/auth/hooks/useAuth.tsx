@@ -19,61 +19,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    // Flag to skip the first onAuthStateChange event that fires before
-    // getSession() restores the real session from storage (race condition on refresh)
-    let initialSessionResolved = false;
+    let authSubscription: { unsubscribe: () => void } | null = null;
+
+    // Safety timeout — never stay in loading > 8s (handles import failures, network issues)
+    const safetyTimer = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 8000);
 
     const setupAuth = async () => {
-      const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+      try {
+        const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
 
-      // Set up auth state listener FIRST — but ignore the very first event
-      // because Supabase fires it with session=null before restoring from storage
-      const { data: { subscription } } = supabaseRuntime.auth.onAuthStateChange(
-        async (_event, session) => {
-          if (!mounted) return;
+        let initialSessionResolved = false;
 
-          // Skip the initial synthetic event; wait for getSession() below
-          if (!initialSessionResolved) return;
+        // Set up auth state listener FIRST
+        const { data: { subscription } } = supabaseRuntime.auth.onAuthStateChange(
+          async (_event, session) => {
+            if (!mounted) return;
+            if (!initialSessionResolved) return;
 
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
 
-          // Update last_active_at when user session is active
-          if (session?.user) {
-            try {
-              await supabaseRuntime
-                .from('profiles')
-                .update({ last_active_at: new Date().toISOString() })
-                .eq('user_id', session.user.id);
-            } catch {
-              // Non-critical, ignore errors
+            if (session?.user) {
+              try {
+                await supabaseRuntime
+                  .from('profiles')
+                  .update({ last_active_at: new Date().toISOString() })
+                  .eq('user_id', session.user.id);
+              } catch {
+                // Non-critical
+              }
             }
           }
+        );
+
+        // Store for cleanup — OUTSIDE the async so useEffect cleanup can access it
+        authSubscription = subscription;
+
+        const { data: { session: initialSession } } = await supabaseRuntime.auth.getSession();
+        initialSessionResolved = true;
+
+        if (mounted) {
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
+          setLoading(false);
+          clearTimeout(safetyTimer);
         }
-      );
-
-      // Get the real initial session from storage
-      const { data: { session: initialSession } } = await supabaseRuntime.auth.getSession();
-      initialSessionResolved = true;
-
-      if (mounted) {
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
-        setLoading(false);
+      } catch (err) {
+        console.error('Auth setup failed:', err);
+        if (mounted) setLoading(false);
       }
-
-      return () => {
-        subscription.unsubscribe();
-      };
     };
 
     setupAuth();
 
     return () => {
       mounted = false;
+      clearTimeout(safetyTimer);
+      authSubscription?.unsubscribe();
     };
   }, []);
+
 
   const signUp = async (email: string, password: string, displayName: string) => {
 
