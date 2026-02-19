@@ -21,30 +21,44 @@ interface OrderBump {
 const ORDER_BUMPS: OrderBump[] = [{
   id: 'regions',
   name: 'Desbloquear Região',
-  description: 'Busque por relacionamento na sua cidade.',
+  description: 'Busque por relacionamento na sua **cidade**.',
   price: 5.0,
   image: regionsImage,
   badge: '🔥 67% das pessoas escolhem esta opção'
 }, {
   id: 'filtros',
   name: 'Filtros Avançados',
-  description: 'Encontre pessoas na faixa de idade e distância ideal.',
+  description: 'Encontre pela **idade** e **distância** ideal.',
   price: 5.0,
   image: filtrosImage,
   onlyForPlan: 'silver',
 }, {
   id: 'evangelico',
   name: 'Grupo Evangélico',
-  description: 'Junte-se a outros cristãos no Whatsapp.',
+  description: 'Junte-se a outros **cristãos** no Whatsapp.',
   price: 5.0,
   image: evangelicoImage
 }, {
   id: 'catolico',
   name: 'Grupo Católico',
-  description: 'Junte-se a outros devotos no whatsapp.',
+  description: 'Junte-se a outros **devotos** no whatsapp.',
   price: 5.0,
   image: catolicoImage
 }];
+
+/** Renders description with **word** as <strong> */
+function renderDesc(text: string, highlighted: boolean) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**')
+          ? <strong key={i} className={highlighted ? 'text-white font-semibold' : 'text-white/70 font-semibold'}>{part.slice(2, -2)}</strong>
+          : <span key={i}>{part}</span>
+      )}
+    </>
+  );
+}
 export interface SelectedBumps {
   allRegions: boolean;
   grupoEvangelico: boolean;
@@ -181,7 +195,7 @@ export function OrderBumpDialog({
                     </p>
                   </div>
                   <p className={`text-sm font-light leading-snug transition-colors ${isSelected ? 'text-white/70' : 'text-white/40'}`}>
-                    {bump.description}
+                    {renderDesc(bump.description, isSelected)}
                   </p>
                 </div>
               </div>
