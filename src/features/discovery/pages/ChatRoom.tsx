@@ -222,15 +222,16 @@ function AudioMessage({ url, isOwn, avatarUrl }: { url: string; isOwn: boolean; 
 export default function ChatRoom() {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const dragControls = useDragControls();
 
   const queryClient = useQueryClient();
 
-  // chat-details: enabled only on matchId — RLS ensures security, no need to wait for user
-  const { data: matchDetails, isPending: loadingDetails } = useQuery({
+  // chat-details: wait for auth to resolve before fetching
+  // This prevents the race condition where user is null on first open
+  const { data: matchDetails, isLoading: loadingDetails } = useQuery({
     queryKey: ['chat-details', matchId],
-    enabled: !!matchId,
+    enabled: !!matchId && !authLoading,
     staleTime: Infinity,
     retry: false,
     refetchOnWindowFocus: false,
@@ -313,9 +314,9 @@ export default function ChatRoom() {
     }
   });
 
-  const { data: messages = [], isPending: loadingMessages } = useQuery({
+  const { data: messages = [], isLoading: loadingMessages } = useQuery({
     queryKey: ['chat-messages', matchId],
-    enabled: !!matchId,
+    enabled: !!matchId && !authLoading,
     retry: false,
     refetchOnWindowFocus: false,
     queryFn: async () => {
@@ -358,9 +359,8 @@ export default function ChatRoom() {
     return {};
   }, [myProfile?.social_media]);
 
-  // isPending = query never ran yet (no cache). isLoading = fetching with no data.
-  // Use isPending so we only block render when there's truly no data at all.
-  const loading = loadingDetails || loadingMessages;
+  // Show loading if auth is still resolving OR queries are fetching
+  const loading = authLoading || loadingDetails || loadingMessages;
   const matchProfile = matchDetails?.matchProfile || null;
   const otherUserId = matchDetails?.otherUserId || null;
   const isSuperLikeMatch = matchDetails?.isSuperLikeMatch || false;
