@@ -425,6 +425,8 @@ export type Database = {
           daily_swipes_limit: number | null
           expires_at: string | null
           has_all_regions: boolean | null
+          has_grupo_catolico: boolean | null
+          has_grupo_evangelico: boolean | null
           id: string
           is_active: boolean | null
           is_lifetime: boolean | null
@@ -444,6 +446,8 @@ export type Database = {
           daily_swipes_limit?: number | null
           expires_at?: string | null
           has_all_regions?: boolean | null
+          has_grupo_catolico?: boolean | null
+          has_grupo_evangelico?: boolean | null
           id?: string
           is_active?: boolean | null
           is_lifetime?: boolean | null
@@ -463,6 +467,8 @@ export type Database = {
           daily_swipes_limit?: number | null
           expires_at?: string | null
           has_all_regions?: boolean | null
+          has_grupo_catolico?: boolean | null
+          has_grupo_evangelico?: boolean | null
           id?: string
           is_active?: boolean | null
           is_lifetime?: boolean | null

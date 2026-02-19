@@ -114,6 +114,8 @@ Deno.serve(async (req) => {
 
           const orderBumpsArray: string[] = Array.isArray(purchase.order_bumps) ? purchase.order_bumps : [];
           const hasAllRegions = orderBumpsArray.includes("allRegions");
+          const hasGrupoEvangelico = orderBumpsArray.includes("grupoEvangelico");
+          const hasGrupoCatolico = orderBumpsArray.includes("grupoCatolico");
           const hasLifetime = orderBumpsArray.includes("lifetime") || ["lifetime", "special", "special-offer-lifetime"].includes(purchase.plan_id);
 
           if (purchase.user_id) {
@@ -127,6 +129,8 @@ Deno.serve(async (req) => {
               is_active: true,
               is_lifetime: hasLifetime,
               has_all_regions: hasAllRegions,
+              has_grupo_evangelico: hasGrupoEvangelico,
+              has_grupo_catolico: hasGrupoCatolico,
               daily_swipes_limit: (purchase.plan_id === 'bronze' || purchase.plan_id === 'weekly') ? 20 : 9999,
               can_see_who_liked: purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly',
               is_profile_boosted: ["gold", "annual", "plus"].includes(purchase.plan_id) || hasLifetime,
