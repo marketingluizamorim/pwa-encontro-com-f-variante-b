@@ -289,9 +289,7 @@ export function CheckoutDialog({
                                 className="flex items-center gap-1 mt-[6px] text-[12px] font-semibold text-[#fcd34d]/70 hover:text-[#fcd34d] transition-colors"
                             >
                                 {isPackagePlan
-                                    ? hasExtras
-                                        ? `Ver o que está incluído + ${extrasCount} extra${extrasCount > 1 ? 's' : ''}`
-                                        : 'Ver o que está incluído'
+                                    ? 'Ver o que está incluído'
                                     : `Extras (${extrasCount})`}
                                 {extrasExpanded
                                     ? <ChevronUp className="w-3 h-3" />
@@ -313,7 +311,6 @@ export function CheckoutDialog({
                                             {/* Selected order bumps with amber "+" */}
                                             {hasExtras && (
                                                 <>
-                                                    <div className="h-px bg-white/[0.06] my-0.5" />
                                                     {orderBumps?.allRegions && (
                                                         <div className="flex items-center gap-[7px] text-[12px] text-white/55">
                                                             <span className="w-[11px] h-[11px] flex-shrink-0 flex items-center justify-center text-[#fcd34d] font-black text-[13px] leading-none">+</span>
