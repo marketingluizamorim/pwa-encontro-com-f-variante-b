@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+
 import { motion } from 'framer-motion';
-import { ArrowLeft, Download, Heart, MessageCircle, Star, Users, Zap, Shield, Bell, Sparkles } from 'lucide-react';
+import { ArrowLeft, Download, Heart, MessageCircle, Star, Users, Zap, Shield, Bell, Sparkles, MoreHorizontal } from 'lucide-react';
+
 
 const MESSAGES = [
     {
@@ -9,7 +13,7 @@ const MESSAGES = [
     },
     {
         id: 2,
-        text: 'Para a melhor experiência, instale o app no seu celular e receba notificações em tempo real!',
+        text: 'Para a melhor experiência, instale o app no seu celular e tenha acesso direto com notificações em tempo real!',
     },
     {
         id: 3,
@@ -58,14 +62,14 @@ const MESSAGES = [
         type: 'section',
         icon: <Zap className="w-5 h-5 text-yellow-400" />,
         title: 'Perfil',
-        text: 'Adicione fotos, bio e interesses. Perfis completos têm até 3x mais Conexões!',
+        text: 'Adicione fotos, bio e interesses. Perfis completos tem mais chances de Conexões!',
     },
     {
         id: 9.5,
         type: 'section',
         icon: <Sparkles className="w-5 h-5 text-amber-400" />,
         title: 'Perfil em Destaque',
-        text: 'Com o plano Ouro, seu perfil aparece em primeiro para mais pessoas — aumentando muito suas chances de novas Conexões!',
+        text: 'Seu perfil aparece em primeiro para mais pessoas — aumentando em até 3x suas chances de novas Conexões!',
     },
     {
         id: 10,
@@ -79,16 +83,24 @@ const MESSAGES = [
         type: 'tip',
         icon: <Shield className="w-5 h-5 text-emerald-400" />,
         title: 'Segurança em primeiro lugar',
-        text: 'Denuncie ou bloqueie qualquer usuário pelos 3 pontos (⋯) em uma conversa ou perfil.',
+        text: 'Exclua, denuncie ou bloqueie qualquer usuário pelos 3 pontos (⋯) em uma conversa ou perfil.',
     },
     {
         id: 12,
-        text: 'Felizes em ter você aqui! Que você encontre a pessoa certa.',
+        text: 'Felizes em ter você aqui! Que você encontre a pessoa certa. 🙏',
     },
 ];
 
 export default function WelcomeChat() {
     const navigate = useNavigate();
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    const handleDelete = () => {
+        localStorage.setItem('welcome-chat-hidden', '1');
+        localStorage.setItem('welcome-chat-read', '1');
+        setMenuOpen(false);
+        navigate(-1);
+    };
 
     return (
         <div className="flex flex-col h-screen bg-background">
@@ -100,12 +112,36 @@ export default function WelcomeChat() {
                 >
                     <ArrowLeft className="w-5 h-5" />
                 </button>
-                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-500/40 shadow-md">
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-500/40 shadow-md flex-shrink-0">
                     <img src="/pwa-512x512.png" alt="App" className="w-full h-full object-cover" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                     <p className="font-bold text-[15px] leading-tight">Bem-vindo(a) ao aplicativo</p>
                     <p className="text-xs text-emerald-500 font-medium">Equipe do App</p>
+                </div>
+
+                {/* 3-dots menu */}
+                <div className="relative flex-shrink-0">
+                    <button
+                        onClick={() => setMenuOpen(v => !v)}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-foreground/60 hover:bg-muted transition-colors"
+                    >
+                        <MoreHorizontal className="w-5 h-5" />
+                    </button>
+                    {menuOpen && (
+                        <>
+                            <div className="fixed inset-0 z-[100]" onClick={() => setMenuOpen(false)} />
+                            <div className="absolute right-0 top-10 z-[101] bg-background border border-border/40 rounded-xl shadow-xl w-44 overflow-hidden">
+                                <button
+                                    onClick={handleDelete}
+                                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-500 hover:bg-muted transition-colors"
+                                >
+                                    <i className="ri-delete-bin-line text-base" />
+                                    Excluir conversa
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -150,7 +186,7 @@ export default function WelcomeChat() {
 
             {/* Bottom note */}
             <div className="px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-3 border-t border-border/20 text-center">
-                <p className="text-xs text-muted-foreground">Esta é uma mensagem automática de boas-vindas 🙏</p>
+                <p className="text-xs text-muted-foreground">Esta é uma mensagem automática de boas-vindas.</p>
             </div>
         </div>
     );
