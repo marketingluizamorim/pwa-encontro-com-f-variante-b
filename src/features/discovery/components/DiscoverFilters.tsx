@@ -361,11 +361,11 @@ export default function DiscoverFilters({
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border/50 shrink-0">
           <div>
             <h2 className="text-xl font-bold tracking-tight">Filtros Avançados</h2>
-            {activeCount > 0 && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {activeCount} {activeCount === 1 ? 'filtro ativo' : 'filtros ativos'}
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {activeCount > 0
+                ? `${activeCount} ${activeCount === 1 ? 'filtro ativo' : 'filtros ativos'} · Deslize para ver mais`
+                : 'Deslize para ver mais'}
+            </p>
           </div>
           <button
             onClick={handleClose}
