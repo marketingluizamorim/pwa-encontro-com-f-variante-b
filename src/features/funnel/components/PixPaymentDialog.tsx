@@ -142,14 +142,14 @@ export function PixPaymentDialog({
       <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2.5rem] bg-[#0f172a]/95 backdrop-blur-3xl border-white/10 text-white shadow-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden top-[5%] translate-y-0 selection:bg-amber-500/30">
 
 
-        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6 scrollbar-hide">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="font-serif text-center text-2xl font-bold text-white tracking-tight drop-shadow-sm">
+        <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-6 sm:py-4 scrollbar-hide">
+          <DialogHeader className="mb-2">
+            <DialogTitle className="font-serif text-center text-xl font-bold text-white tracking-tight drop-shadow-sm">
               PIX Gerado
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Total Amount */}
             <div className="text-center">
               <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em]">Total a Pagar</p>
@@ -159,11 +159,11 @@ export function PixPaymentDialog({
             </div>
 
             {/* Instructions Card */}
-            <div className="rounded-2xl bg-white/[0.03] p-5 border border-white/5 backdrop-blur-sm mx-1">
-              <p className="text-sm font-bold text-white mb-4 font-serif tracking-tight">
+            <div className="rounded-xl bg-white/[0.03] p-3 border border-white/5 backdrop-blur-sm mx-1">
+              <p className="text-sm font-bold text-white mb-2 font-serif tracking-tight">
                 Como finalizar seu pagamento:
               </p>
-              <ol className="text-xs text-white/70 space-y-3.5">
+              <ol className="text-xs text-white/70 space-y-2">
                 <li className="flex gap-3 items-center whitespace-nowrap">
                   <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20">1</span>
                   <span>Abra o aplicativo do seu banco</span>
@@ -180,7 +180,7 @@ export function PixPaymentDialog({
             </div>
 
             {/* QR Code */}
-            <div className="flex justify-center -my-2">
+            <div className="flex justify-center">
               <div className="p-2.5 bg-white rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.05)] ring-1 ring-[#fcd34d]/10">
                 {pixQrCode ? (
                   <img
@@ -197,7 +197,7 @@ export function PixPaymentDialog({
             </div>
 
             {/* PIX Code */}
-            <div className="space-y-2 mt-2 px-1">
+            <div className="space-y-1 px-1">
               <div className="flex justify-center items-end px-1">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center">
                   Ou copie o código:
@@ -214,10 +214,10 @@ export function PixPaymentDialog({
             </div>
 
             {/* Copy Button */}
-            <div className="grid gap-3 pt-2">
+            <div className="grid gap-2 pt-1">
               <Button
                 onClick={copyToClipboard}
-                className="w-full h-14 rounded-2xl gradient-button text-[#0f172a] font-bold text-sm uppercase tracking-wider transition-all shadow-xl shadow-amber-500/10 border border-white/20 active:scale-95"
+                className="w-full h-12 rounded-2xl gradient-button text-[#0f172a] font-bold text-sm uppercase tracking-wider transition-all shadow-xl shadow-amber-500/10 border border-white/20 active:scale-95"
               >
                 {copied ? (
                   <>
@@ -235,7 +235,7 @@ export function PixPaymentDialog({
               <Button
                 onClick={() => checkPayment(true)}
                 disabled={isChecking || retryCooldown > 0}
-                className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 text-xs uppercase font-bold tracking-widest transition-all"
+                className="w-full h-12 rounded-2xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 text-xs uppercase font-bold tracking-widest transition-all"
               >
                 {isChecking ? (
                   <>
