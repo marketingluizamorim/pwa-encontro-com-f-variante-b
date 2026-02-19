@@ -118,6 +118,7 @@ export type Database = {
           smoke: string | null
           social_media: string | null
           state: string | null
+          suspended_until: string | null
           updated_at: string
           user_id: string
           values_importance: string | null
@@ -157,8 +158,8 @@ export type Database = {
           smoke?: string | null
           social_media?: string | null
           state?: string | null
+          suspended_until?: string | null
           updated_at?: string
-          user_id: string
           values_importance?: string | null
         }
         Update: {
@@ -196,8 +197,8 @@ export type Database = {
           smoke?: string | null
           social_media?: string | null
           state?: string | null
+          suspended_until?: string | null
           updated_at?: string
-          user_id?: string
           values_importance?: string | null
         }
         Relationships: []

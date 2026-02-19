@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/features/auth/hooks/useAuth";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import { AppLayout } from "@/features/discovery/components/AppLayout";
 import SplashScreen from "@/features/discovery/components/SplashScreen";
 import { useSplashScreen } from "@/features/discovery/hooks/useSplashScreen";
@@ -76,6 +77,7 @@ const ProfileEdit = lazy(() => import("@/features/discovery/pages/ProfileEdit"))
 const Onboarding = lazy(() => import("@/features/discovery/pages/Onboarding"));
 const Settings = lazy(() => import("@/features/discovery/pages/Settings"));
 const Explore = lazy(() => import("@/features/discovery/pages/Explore"));
+const AdminPanel = lazy(() => import("./pages/admin/AdminPanel"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -187,6 +189,16 @@ const AppContent = () => {
                     <ProtectedRoute>
                       <ProfileSetup />
                     </ProtectedRoute>
+                  }
+                />
+
+                {/* Admin panel (admin role only) */}
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminRoute>
+                      <AdminPanel />
+                    </AdminRoute>
                   }
                 />
 
