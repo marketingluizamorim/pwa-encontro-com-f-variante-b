@@ -1,29 +1,110 @@
 /**
- * DualRangeSlider — double range slider com dois handles arrastáveis.
+ * RangeSlider — slider custom com Pointer Events + setPointerCapture.
  *
- * Implementação: dois <input type="range"> sobrepostos com CSS.
- * O browser lida com toda a mecânica de drag nativamente, o que é
- * à prova de falha em qualquer container (Drawer, Modal, etc).
+ * Por que pointer events (não touch)?
+ * - Pointer events unificam mouse, touch e stylus numa única API.
+ * - setPointerCapture no thumb garante que TODOS os futuros pointermove
+ *   vão exclusivamente para esse thumb — mesmo que o dedo saia da área.
+ * - React registra onPointerMove de forma síncrona (não passive), então
+ *   e.preventDefault() funciona normalmente.
  *
- * Requer no Drawer pai: dismissible={false}  ← deixa vaul fora do caminho.
- * Requer no wrapper:    data-vaul-no-drag    ← segunda camada de proteção.
+ * Por que funciona com vaul Drawer?
+ * - O Drawer tem dismissible={false}: vaul retorna cedo do onPress()
+ *   sem chamar setPointerCapture. Nosso thumb pode chamar livremente.
  *
- * Features:
- * - Labels flutuantes sobre cada handle mostrando o valor em tempo real
- * - Fill colorido entre os dois thumbs
- * - Animação de escala ao pressionar
- * - Cross-browser: webkit (iOS Safari / Chrome) e moz (Firefox)
+ * Por que posição contínua (sem step)?
+ * - Calculamos a posição por pixel via getBoundingClientRect.
+ * - O step é aplicado SOMENTE no snap final ao valor, não no movimento visual.
+ * - Resultado: arrasto livre como Tinder/Spotify.
  */
 
-import { useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import './dual-range-slider.css';
+
+// ── Utils ──────────────────────────────────────────────────────────────────
+
+function clamp(v: number, min: number, max: number) {
+    return Math.min(max, Math.max(min, v));
+}
+
+function snapToStep(value: number, min: number, step: number) {
+    return Math.round((value - min) / step) * step + min;
+}
+
+function clientXToRaw(clientX: number, trackEl: HTMLElement, min: number, max: number): number {
+    const rect = trackEl.getBoundingClientRect();
+    const pct = clamp((clientX - rect.left) / rect.width, 0, 1);
+    return min + pct * (max - min);
+}
+
+// ── Thumb ──────────────────────────────────────────────────────────────────
+
+function Thumb({
+    pct,
+    label,
+    active,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    zIndex,
+}: {
+    pct: number;
+    label: string;
+    active: boolean;
+    onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
+    onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => void;
+    onPointerUp: (e: React.PointerEvent<HTMLDivElement>) => void;
+    zIndex: number;
+}) {
+    return (
+        <div
+            className="absolute top-1/2 -translate-y-1/2"
+            style={{ left: `${pct}%`, transform: `translateX(-50%) translateY(-50%)`, zIndex, touchAction: 'none' }}
+        >
+            {/* Label flutuante */}
+            <div
+                className={cn(
+                    'absolute -top-10 left-1/2 -translate-x-1/2 transition-all duration-100',
+                    'flex flex-col items-center pointer-events-none',
+                )}
+            >
+                <span
+                    className={cn(
+                        'text-[11px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap',
+                        'bg-primary text-primary-foreground shadow-lg shadow-primary/30',
+                        'transition-transform duration-100',
+                        active ? 'scale-110' : 'scale-100',
+                    )}
+                >
+                    {label}
+                </span>
+                <div className="w-px h-2.5 bg-primary/50 mt-0.5" />
+            </div>
+
+            {/* Handle */}
+            <div
+                className={cn(
+                    'w-7 h-7 rounded-full bg-background border-[2.5px] border-primary',
+                    'shadow-[0_2px_10px_rgba(0,0,0,0.45)] cursor-grab active:cursor-grabbing',
+                    'transition-[transform,box-shadow] duration-75 select-none',
+                    active
+                        ? 'scale-125 shadow-[0_4px_16px_rgba(0,0,0,0.5),0_0_0_8px_hsl(var(--primary)/0.2)]'
+                        : 'scale-100',
+                )}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={onPointerUp}
+            />
+        </div>
+    );
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Dual Range Slider (dois handles — ex: faixa de idade)
+// RangeSlider — dois handles (ex: faixa de idade)
 // ══════════════════════════════════════════════════════════════════════════════
 
-interface DualRangeSliderProps {
+interface RangeSliderProps {
     values: [number, number];
     onChange: (values: [number, number]) => void;
     min: number;
@@ -34,7 +115,7 @@ interface DualRangeSliderProps {
     className?: string;
 }
 
-export function DualRangeSlider({
+export function RangeSlider({
     values,
     onChange,
     min,
@@ -43,100 +124,107 @@ export function DualRangeSlider({
     unit = '',
     disabled = false,
     className,
-}: DualRangeSliderProps) {
+}: RangeSliderProps) {
+    const trackRef = useRef<HTMLDivElement>(null);
+    const [activeThumb, setActiveThumb] = useState<'lo' | 'hi' | null>(null);
+
+    // Usar refs para valores atuais — evita closures stale nos handlers
+    const valuesRef = useRef(values);
+    valuesRef.current = values;
+
     const [lo, hi] = values;
     const loPct = ((lo - min) / (max - min)) * 100;
     const hiPct = ((hi - min) / (max - min)) * 100;
 
-    const handleLo = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const next = Math.min(Number(e.target.value), hi - step);
-            onChange([next, hi]);
-        },
-        [hi, step, onChange],
-    );
+    // ── Lo thumb handlers ───────────────────────────────────────────────────
 
-    const handleHi = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const next = Math.max(Number(e.target.value), lo + step);
-            onChange([lo, next]);
-        },
-        [lo, step, onChange],
-    );
+    const onLoPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        if (disabled) return;
+        e.stopPropagation();
+        e.preventDefault();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setActiveThumb('lo');
+    }, [disabled]);
+
+    const onLoPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+        if (!trackRef.current) return;
+        const raw = clientXToRaw(e.clientX, trackRef.current, min, max);
+        const snapped = clamp(snapToStep(raw, min, step), min, valuesRef.current[1] - step);
+        onChange([snapped, valuesRef.current[1]]);
+    }, [min, max, step, onChange]);
+
+    const onLoPointerUp = useCallback(() => {
+        setActiveThumb(null);
+    }, []);
+
+    // ── Hi thumb handlers ───────────────────────────────────────────────────
+
+    const onHiPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        if (disabled) return;
+        e.stopPropagation();
+        e.preventDefault();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setActiveThumb('hi');
+    }, [disabled]);
+
+    const onHiPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+        if (!trackRef.current) return;
+        const raw = clientXToRaw(e.clientX, trackRef.current, min, max);
+        const snapped = clamp(snapToStep(raw, min, step), valuesRef.current[0] + step, max);
+        onChange([valuesRef.current[0], snapped]);
+    }, [min, max, step, onChange]);
+
+    const onHiPointerUp = useCallback(() => {
+        setActiveThumb(null);
+    }, []);
 
     return (
-        <div className={cn('w-full', className)} data-vaul-no-drag>
-            {/* Labels flutuantes sobre os handles */}
-            <div className="relative mb-6 mx-[14px]">
-                {/* Label do handle mínimo */}
-                <div
-                    className="absolute -translate-x-1/2 transition-all duration-75"
-                    style={{ left: `${loPct}%` }}
-                >
-                    <div className="relative flex flex-col items-center">
-                        <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full shadow-lg shadow-primary/30 whitespace-nowrap">
-                            {lo}{unit}
-                        </span>
-                        <div className="w-px h-2 bg-primary/40 mt-0.5" />
-                    </div>
-                </div>
-
-                {/* Label do handle máximo */}
-                <div
-                    className="absolute -translate-x-1/2 transition-all duration-75"
-                    style={{ left: `${hiPct}%` }}
-                >
-                    <div className="relative flex flex-col items-center">
-                        <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full shadow-lg shadow-primary/30 whitespace-nowrap">
-                            {hi}{unit}
-                        </span>
-                        <div className="w-px h-2 bg-primary/40 mt-0.5" />
-                    </div>
-                </div>
-            </div>
-
-            {/* Track + thumbs */}
-            <div className="relative mx-[14px]" style={{ height: 44 }}>
-                {/* Track background */}
+        <div
+            className={cn('w-full pt-12 pb-2', className)}
+            data-vaul-no-drag
+        >
+            {/* Track */}
+            <div
+                ref={trackRef}
+                className="relative mx-3.5"
+                style={{ height: 44 }}
+            >
+                {/* Track bg */}
                 <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-white/10" />
 
-                {/* Fill colorido entre os handles */}
+                {/* Fill entre os thumbs */}
                 <div
                     className="absolute top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
                     style={{ left: `${loPct}%`, width: `${hiPct - loPct}%` }}
                 />
 
-                {/* Input LO */}
-                <input
-                    type="range"
-                    min={min}
-                    max={max}
-                    step={step}
-                    value={lo}
-                    disabled={disabled}
-                    onChange={handleLo}
-                    data-vaul-no-drag
-                    className="dual-range-input"
-                    style={{ '--pct': `${loPct}%` } as React.CSSProperties}
+                {/* Lo thumb */}
+                <Thumb
+                    pct={loPct}
+                    label={`${lo}${unit}`}
+                    active={activeThumb === 'lo'}
+                    onPointerDown={onLoPointerDown}
+                    onPointerMove={onLoPointerMove}
+                    onPointerUp={onLoPointerUp}
+                    zIndex={activeThumb === 'lo' ? 30 : 20}
                 />
 
-                {/* Input HI */}
-                <input
-                    type="range"
-                    min={min}
-                    max={max}
-                    step={step}
-                    value={hi}
-                    disabled={disabled}
-                    onChange={handleHi}
-                    data-vaul-no-drag
-                    className="dual-range-input dual-range-input-hi"
-                    style={{ '--pct': `${hiPct}%` } as React.CSSProperties}
+                {/* Hi thumb */}
+                <Thumb
+                    pct={hiPct}
+                    label={`${hi}${unit}`}
+                    active={activeThumb === 'hi'}
+                    onPointerDown={onHiPointerDown}
+                    onPointerMove={onHiPointerMove}
+                    onPointerUp={onHiPointerUp}
+                    zIndex={activeThumb === 'hi' ? 30 : 20}
                 />
             </div>
 
-            {/* Limites mínimo/máximo */}
-            <div className="flex justify-between mt-1 mx-[14px]">
+            {/* Min / Max labels */}
+            <div className="flex justify-between mx-3.5 mt-1">
                 <span className="text-xs text-muted-foreground">{min}{unit}</span>
                 <span className="text-xs text-muted-foreground">{max}{unit}</span>
             </div>
@@ -145,7 +233,7 @@ export function DualRangeSlider({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Single Slider (um handle — ex: distância máxima)
+// SingleSlider — um handle (ex: distância máxima)
 // ══════════════════════════════════════════════════════════════════════════════
 
 interface SingleSliderProps {
@@ -169,57 +257,69 @@ export function SingleSlider({
     disabled = false,
     className,
 }: SingleSliderProps) {
+    const trackRef = useRef<HTMLDivElement>(null);
+    const [active, setActive] = useState(false);
+
+    const valueRef = useRef(value);
+    valueRef.current = value;
+
     const pct = ((value - min) / (max - min)) * 100;
 
-    return (
-        <div className={cn('w-full', className)} data-vaul-no-drag>
-            {/* Label flutuante */}
-            <div className="relative mb-6 mx-[14px]">
-                <div
-                    className="absolute -translate-x-1/2 transition-all duration-75"
-                    style={{ left: `${pct}%` }}
-                >
-                    <div className="relative flex flex-col items-center">
-                        <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full shadow-lg shadow-primary/30 whitespace-nowrap">
-                            {value}{unit}
-                        </span>
-                        <div className="w-px h-2 bg-primary/40 mt-0.5" />
-                    </div>
-                </div>
-            </div>
+    const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        if (disabled) return;
+        e.stopPropagation();
+        e.preventDefault();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setActive(true);
+    }, [disabled]);
 
-            {/* Track + thumb */}
-            <div className="relative mx-[14px]" style={{ height: 44 }}>
+    const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+        if (!trackRef.current) return;
+        const raw = clientXToRaw(e.clientX, trackRef.current, min, max);
+        const snapped = clamp(snapToStep(raw, min, step), min, max);
+        onChange(snapped);
+    }, [min, max, step, onChange]);
+
+    const onPointerUp = useCallback(() => {
+        setActive(false);
+    }, []);
+
+    return (
+        <div
+            className={cn('w-full pt-12 pb-2', className)}
+            data-vaul-no-drag
+        >
+            <div
+                ref={trackRef}
+                className="relative mx-3.5"
+                style={{ height: 44 }}
+            >
                 {/* Track bg */}
                 <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-white/10" />
+
                 {/* Fill */}
                 <div
                     className="absolute top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
                     style={{ left: 0, width: `${pct}%` }}
                 />
 
-                <input
-                    type="range"
-                    min={min}
-                    max={max}
-                    step={step}
-                    value={value}
-                    disabled={disabled}
-                    onChange={(e) => onChange(Number(e.target.value))}
-                    data-vaul-no-drag
-                    className="dual-range-input"
-                    style={{ '--pct': `${pct}%` } as React.CSSProperties}
+                {/* Thumb */}
+                <Thumb
+                    pct={pct}
+                    label={`${value}${unit}`}
+                    active={active}
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={onPointerUp}
+                    zIndex={20}
                 />
             </div>
 
-            {/* Limites */}
-            <div className="flex justify-between mt-1 mx-[14px]">
+            <div className="flex justify-between mx-3.5 mt-1">
                 <span className="text-xs text-muted-foreground">{min}{unit}</span>
                 <span className="text-xs text-muted-foreground">{max}{unit}</span>
             </div>
         </div>
     );
 }
-
-// Alias para compatibilidade
-export { DualRangeSlider as RangeSlider };
