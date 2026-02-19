@@ -283,11 +283,11 @@ export function CheckoutDialog({
 
             if (error) throw new Error(error.message);
 
-            // If logged in, activate subscription via Edge Function
+            // Fire-and-forget: activate subscription (non-critical, may abort on unmount)
             if (user && purchase) {
-                await supabaseRuntime.functions.invoke('check-payment-status', {
+                supabaseRuntime.functions.invoke('check-payment-status', {
                     body: { paymentId: mockPaymentId },
-                });
+                }).catch(() => { /* aborted on navigation — purchase already saved */ });
             }
 
             toast.success('✅ Compra de teste criada!', { style: { marginTop: '50px' } });
