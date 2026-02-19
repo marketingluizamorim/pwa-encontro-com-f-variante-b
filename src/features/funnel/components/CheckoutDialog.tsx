@@ -98,7 +98,7 @@ function FloatingInput({
                 htmlFor={id}
                 className="
           absolute left-3 top-1/2 -translate-y-1/2
-          text-[13px] text-white/30 pointer-events-none
+          text-[14px] text-white/30 pointer-events-none
           transition-all duration-200 origin-left
           peer-focus:top-[8px] peer-focus:translate-y-0 peer-focus:text-[10px] peer-focus:text-white/50
           peer-[:not(:placeholder-shown)]:top-[8px]
