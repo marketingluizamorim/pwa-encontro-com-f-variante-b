@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { ChevronDown, ChevronUp, Lock, Check, ShieldCheck, X, FlaskConical } from 'lucide-react';
-import { toast } from 'sonner';
+import { ChevronDown, ChevronUp, Lock, Check, ShieldCheck, X } from 'lucide-react';
+
 
 // ─────────────────────────────────────────────
 // Types
@@ -15,10 +15,6 @@ interface CheckoutDialogProps {
     planName?: string;
     orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean };
     initialData?: { name: string; email: string; phone: string };
-    /** Called after a successful test purchase — triggers the same flow as a real payment */
-    onTestPurchaseComplete?: (data: { name: string; email: string; phone: string }) => void;
-    planId?: string;
-    quizData?: Record<string, unknown>;
 }
 
 interface FloatingInputProps {
@@ -143,16 +139,12 @@ export function CheckoutDialog({
     planName,
     orderBumps,
     initialData,
-    onTestPurchaseComplete,
-    planId,
-    quizData,
 }: CheckoutDialogProps) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [extrasExpanded, setExtrasExpanded] = useState(false);
-    const [isTesting, setIsTesting] = useState(false);
 
     useEffect(() => {
         if (open) {
@@ -238,73 +230,6 @@ export function CheckoutDialog({
         if (validate()) onSubmit({ name, email, phone: '+55 ' + phone });
     };
 
-    // ── TEST PURCHASE: creates a real PAID purchase row instantly ──
-    const handleTestPurchase = async () => {
-        if (!name.trim() || !email.trim()) {
-            toast.error('Preencha nome e email para testar', { style: { marginTop: '50px' } });
-            return;
-        }
-        setIsTesting(true);
-        try {
-            const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-
-            // Try to get the logged-in user (optional — funnel runs before registration)
-            const { data: { user } } = await supabaseRuntime.auth.getUser();
-
-            const orderBumpsList: string[] = [];
-            if (orderBumps?.allRegions) orderBumpsList.push('allRegions');
-            if (orderBumps?.grupoEvangelico) orderBumpsList.push('grupoEvangelico');
-            if (orderBumps?.grupoCatolico) orderBumpsList.push('grupoCatolico');
-            if (orderBumps?.filtrosAvancados) orderBumpsList.push('filtrosAvancados');
-
-            const mockPaymentId = `dev-test-${Date.now()}`;
-
-            // If logged in: include user_id so RLS "Users can insert own purchases" passes.
-            // If anonymous: omit user_id so RLS "Anonymous can insert without user_id" passes.
-            const { data: purchase, error } = await supabaseRuntime
-                .from('purchases')
-                .insert({
-                    plan_id: planId || 'gold',
-                    plan_name: planName || 'Plano Teste',
-                    plan_price: planPrice,
-                    total_price: planPrice,
-                    ...(user ? { user_id: user.id } : {}),
-                    user_name: name,
-                    user_email: email,
-                    user_phone: phone ? `+55 ${phone}` : null,
-                    payment_id: mockPaymentId,
-                    payment_status: 'PAID',
-                    payment_method: 'PIX',
-                    order_bumps: orderBumpsList,
-                    quiz_data: (quizData || {}) as import('@/integrations/supabase/types').Json,
-                })
-                .select()
-                .single();
-
-            if (error) throw new Error(error.message);
-
-            // Fire-and-forget: activate subscription (non-critical, may abort on unmount)
-            if (user && purchase) {
-                supabaseRuntime.functions.invoke('check-payment-status', {
-                    body: { paymentId: mockPaymentId },
-                }).catch(() => { /* aborted on navigation — purchase already saved */ });
-            }
-
-            toast.success('✅ Compra de teste criada!', { style: { marginTop: '50px' } });
-
-            if (onTestPurchaseComplete) {
-                onTestPurchaseComplete({ name, email, phone: phone ? `+55 ${phone}` : '' });
-            } else {
-                onSubmit({ name, email, phone: phone ? `+55 ${phone}` : '' });
-            }
-        } catch (err) {
-            const msg = err instanceof Error ? err.message : 'Erro desconhecido';
-            console.error('[TestPurchase]', msg);
-            toast.error(`Erro: ${msg}`, { style: { marginTop: '50px' } });
-        } finally {
-            setIsTesting(false);
-        }
-    };
 
     const extrasCount =
         (orderBumps?.allRegions ? 1 : 0) +
@@ -461,7 +386,7 @@ export function CheckoutDialog({
                     <button
                         type="button"
                         onClick={() => handleSubmit()}
-                        disabled={isLoading || isTesting}
+                        disabled={isLoading}
                         className="
               relative w-full py-[14px] rounded-[12px] border-0 overflow-hidden
               gradient-button text-white
@@ -482,27 +407,6 @@ export function CheckoutDialog({
                             <><i className="ri-loader-4-line animate-spin" /> Processando...</>
                         ) : (
                             <><Lock className="w-[13px] h-[13px]" /> Finalizar Pagamento</>
-                        )}
-                    </button>
-
-                    {/* ── TEST PURCHASE BUTTON ── */}
-                    <button
-                        type="button"
-                        onClick={handleTestPurchase}
-                        disabled={isTesting || isLoading}
-                        className="
-              mt-2 w-full py-[11px] rounded-[12px] border border-dashed border-amber-500/40
-              bg-amber-500/5 hover:bg-amber-500/10
-              text-[12px] font-bold tracking-[0.5px] uppercase text-amber-400
-              flex items-center justify-center gap-2
-              transition-all duration-150
-              disabled:opacity-50 disabled:cursor-not-allowed
-            "
-                    >
-                        {isTesting ? (
-                            <><i className="ri-loader-4-line animate-spin" /> Criando teste...</>
-                        ) : (
-                            <><FlaskConical className="w-[13px] h-[13px]" /> Testar Compra</>
                         )}
                     </button>
 
