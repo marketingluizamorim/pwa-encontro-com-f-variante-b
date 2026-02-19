@@ -162,7 +162,8 @@ export function CheckoutDialog({
     const cleanPlanName = planName?.toLowerCase() || '';
     const isOuroPlan = cleanPlanName.includes('ouro') || planPrice >= 40;
     const isSilverPlan = cleanPlanName.includes('prata') || (planPrice >= 20 && planPrice < 40);
-    const isPackagePlan = isOuroPlan || isSilverPlan;
+    const isBronzePlan = cleanPlanName.includes('bronze') || planPrice < 20;
+    const isPackagePlan = isOuroPlan || isSilverPlan || isBronzePlan;
 
     const extrasTotal = isPackagePlan
         ? 0
@@ -183,13 +184,11 @@ export function CheckoutDialog({
     const oldPrice = oldPriceKey ? OLD_PRICES[oldPriceKey] : Math.round(basePlanPrice * 2);
 
     // Resources
-    const ouroResources = [
-        'Todos os recursos do Plano Prata',
-        'Enviar mensagem sem curtir antes',
-        'Ver perfis online recentemente',
-        'Filtro por distância e idade',
-        'Filtro por relacionamento e interesses',
-        'Perfil em destaque',
+    const bronzeResources = [
+        'Curtidas ilimitadas',
+        'Visualizar perfis de outros usuários',
+        'Enviar e receber mensagens de texto',
+        'Acesso ao feed de descoberta',
     ];
     const silverResources = [
         'Ver quem curtiu você',
@@ -199,7 +198,15 @@ export function CheckoutDialog({
         'Fazer chamadas de voz e vídeo',
         'Comunidade cristã no WhatsApp',
     ];
-    const resources = isOuroPlan ? ouroResources : isSilverPlan ? silverResources : [];
+    const ouroResources = [
+        'Todos os recursos do Plano Prata',
+        'Enviar mensagem sem curtir antes',
+        'Ver perfis online recentemente',
+        'Filtro por distância e idade',
+        'Filtro por relacionamento e interesses',
+        'Perfil em destaque',
+    ];
+    const resources = isOuroPlan ? ouroResources : isSilverPlan ? silverResources : bronzeResources;
 
     // Validation helpers
     const isNameValid = name.trim().length >= 3;
