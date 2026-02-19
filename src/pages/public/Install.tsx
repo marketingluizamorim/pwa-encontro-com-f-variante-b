@@ -414,6 +414,16 @@ export default function Install() {
                 Clique em <span className="text-blue-400 font-bold">Adicionar</span> no canto superior direito.
               </p>
             </div>
+
+            {/* App list notice */}
+            <div className="flex items-center gap-3 mt-2 p-3 rounded-xl bg-blue-500/10 border border-blue-400/20">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+                <i className="ri-apps-2-line text-base text-blue-400" />
+              </div>
+              <p className="text-xs text-blue-300/80 leading-relaxed">
+                ✅ O app <span className="font-semibold text-blue-300">Encontro com Fé</span> aparecerá na sua lista de aplicativos e na tela inicial.
+              </p>
+            </div>
           </div>
         </motion.div>
       );
@@ -473,7 +483,17 @@ export default function Install() {
               <span className="text-sm font-bold text-white/80">3</span>
             </div>
             <p className="text-sm text-white/80 leading-relaxed">
-              Confirme a instalação e o app aparecerá em sua lista de aplicativos.
+              Confirme tocando em <span className="text-green-400 font-bold">Instalar</span> — o processo leva apenas alguns segundos.
+            </p>
+          </div>
+
+          {/* App list notice */}
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-green-500/10 border border-green-400/20">
+            <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
+              <i className="ri-apps-2-line text-base text-green-400" />
+            </div>
+            <p className="text-xs text-green-300/80 leading-relaxed">
+              ✅ O app <span className="font-semibold text-green-300">Encontro com Fé</span> aparecerá na sua lista de aplicativos e na tela inicial.
             </p>
           </div>
         </div>
