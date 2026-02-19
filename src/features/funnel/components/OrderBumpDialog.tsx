@@ -186,7 +186,7 @@ export function OrderBumpDialog({
             <span className="text-white/90 font-bold text-sm uppercase tracking-wide">
               {selectedPlan.name}
             </span>
-            <span className="text-white font-normal text-lg">
+            <span className="text-white text-lg" style={{ fontWeight: 500 }}>
               R$ {selectedPlan.price.toFixed(2).replace('.', ',')}
             </span>
           </div>
