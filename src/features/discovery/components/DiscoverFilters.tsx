@@ -299,7 +299,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
   );
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={setOpen} dismissible={false}>
       <DrawerTrigger asChild>
         <Button variant="outline" size="icon" className={cn("relative", triggerClassName)} id={triggerId} onClick={handleOpenFilters}>
           <i className="ri-equalizer-line text-lg" />
