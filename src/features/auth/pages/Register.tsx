@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { AccountCreatedDialog } from '@/features/auth/components/AccountCreatedDialog';
+import { applyQuizDataToStore } from '@/features/funnel/utils/syncQuizData';
 
 export default function Register() {
   const [searchParams] = useSearchParams();
@@ -117,6 +117,11 @@ export default function Register() {
                   .from('purchases')
                   .update({ user_id: user.id })
                   .eq('id', purchase.id);
+
+                // Sync quiz_data from purchase into funnelStore (works cross-device)
+                if (purchase.quiz_data && typeof purchase.quiz_data === 'object') {
+                  applyQuizDataToStore(purchase.quiz_data as Record<string, unknown>);
+                }
 
                 // Force subscription activation via Edge Function
                 await supabaseRuntime.functions.invoke('check-payment-status', {

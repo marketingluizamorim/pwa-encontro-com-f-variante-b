@@ -13,6 +13,7 @@ import { useSplashScreen } from "@/features/discovery/hooks/useSplashScreen";
 import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocationModalProvider } from "@/contexts/LocationModalContext";
+import { useQuizSync } from "@/features/funnel/hooks/useQuizSync";
 
 // Rotas onde o splash NUNCA deve aparecer
 const NO_SPLASH_ROUTES = [
@@ -39,6 +40,12 @@ function SplashGate() {
 
   if (!showSplash || isNoSplashRoute) return null;
   return <SplashScreen onComplete={completeSplash} />;
+}
+
+/** Zero-render component: activates cross-device quiz sync hook */
+function QuizSyncGate() {
+  useQuizSync();
+  return null;
 }
 
 
@@ -105,6 +112,7 @@ const AppContent = () => {
       <BrowserRouter>
         <AuthProvider>
           <LocationModalProvider>
+            <QuizSyncGate />
             <SplashGate />
             <Suspense fallback={<LoadingFallback />}>
               <Routes>

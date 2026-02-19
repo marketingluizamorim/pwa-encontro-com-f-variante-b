@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
+import { syncQuizDataFromPurchase } from '@/features/funnel/utils/syncQuizData';
 import { BRAZIL_STATES, BRAZIL_CITIES } from '@/config/brazil-cities';
 import { PhotoUpload } from '@/features/discovery/components/PhotoUpload';
 import { InstallPwaDrawer } from '@/components/pwa/InstallPwaDrawer';
@@ -64,6 +65,23 @@ export default function ProfileSetup() {
       return () => clearTimeout(timer);
     }
   }, [showErrorBanner]);
+
+  // Cross-device: fetch quiz_data from DB if funnelStore is empty
+  useEffect(() => {
+    if (!user || Object.keys(quizAnswers).length > 0) return;
+    syncQuizDataFromPurchase(user.id);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync form fields when quizAnswers update after async DB fetch
+  useEffect(() => {
+    if (quizAnswers.city && !city) setCity(quizAnswers.city);
+    if (quizAnswers.state && !state) setState(quizAnswers.state);
+    if (quizAnswers.religion && !religion) setReligion(quizAnswers.religion);
+    if (quizAnswers.churchFrequency && !churchFrequency) setChurchFrequency(quizAnswers.churchFrequency);
+    if (quizAnswers.lookingFor && !lookingFor) setLookingFor(quizAnswers.lookingFor);
+    if (quizAnswers.children && !aboutChildren) setAboutChildren(quizAnswers.children);
+    if (quizAnswers.valuesImportance && !valuesImportance) setValuesImportance(quizAnswers.valuesImportance);
+  }, [quizAnswers]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const validateBasics = () => {
     const newErrors: Record<string, boolean> = {};
