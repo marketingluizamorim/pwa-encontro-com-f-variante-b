@@ -159,11 +159,12 @@ export function CheckoutDialog({
         }
     }, [open, initialData, planPrice, planName]);
 
-    // Plan detection
+    // Plan detection — name always wins; price only used as last resort
     const cleanPlanName = planName?.toLowerCase() || '';
-    const isOuroPlan = cleanPlanName.includes('ouro') || planPrice >= 40;
-    const isSilverPlan = cleanPlanName.includes('prata') || (planPrice >= 20 && planPrice < 40);
-    const isBronzePlan = cleanPlanName.includes('bronze') || planPrice < 20;
+    const hasPlanName = cleanPlanName.length > 0;
+    const isOuroPlan = cleanPlanName.includes('ouro') || (!hasPlanName && planPrice >= 40);
+    const isSilverPlan = !isOuroPlan && (cleanPlanName.includes('prata') || (!hasPlanName && planPrice >= 20 && planPrice < 40));
+    const isBronzePlan = !isOuroPlan && !isSilverPlan && (cleanPlanName.includes('bronze') || (!hasPlanName && planPrice < 20));
     const isPackagePlan = isOuroPlan || isSilverPlan || isBronzePlan;
 
     const extrasTotal = isPackagePlan
