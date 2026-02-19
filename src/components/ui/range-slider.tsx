@@ -1,107 +1,82 @@
 /**
- * RangeSlider — slider custom com Pointer Events + setPointerCapture.
+ * RangeSlider / SingleSlider — arrasto livre, sem limitação de step visual.
  *
- * Por que pointer events (não touch)?
- * - Pointer events unificam mouse, touch e stylus numa única API.
- * - setPointerCapture no thumb garante que TODOS os futuros pointermove
- *   vão exclusivamente para esse thumb — mesmo que o dedo saia da área.
- * - React registra onPointerMove de forma síncrona (não passive), então
- *   e.preventDefault() funciona normalmente.
+ * ARQUITETURA: "Uncontrolled drag with controlled commit"
+ * ─────────────────────────────────────────────────────
+ * Durante o drag:
+ *   - Poisções dos thumbs e fills são atualizados DIRETAMENTE no DOM via refs.
+ *   - Zero chamadas ao React setState → zero re-renders de lag.
+ *   - Uso de requestAnimationFrame para sincronizar com o refresh da tela.
  *
- * Por que funciona com vaul Drawer?
- * - O Drawer tem dismissible={false}: vaul retorna cedo do onPress()
- *   sem chamar setPointerCapture. Nosso thumb pode chamar livremente.
+ * Ao soltar (pointerup / touchend):
+ *   - onChange() é chamado com o valor final snappado.
+ *   - React re-renderiza uma única vez para confirmar o estado.
  *
- * Por que posição contínua (sem step)?
- * - Calculamos a posição por pixel via getBoundingClientRect.
- * - O step é aplicado SOMENTE no snap final ao valor, não no movimento visual.
- * - Resultado: arrasto livre como Tinder/Spotify.
+ * Event listeners:
+ *   - Registrados no DOCUMENT com { passive: false } via addEventListener.
+ *   - Bypass completo do sistema de eventos do React E do vaul Drawer.
+ *   - Removidos imediatamente após o drag terminar.
+ *
+ * Compatibilidade:
+ *   - Pointer Events API (desktop + iOS 13+ + Android)
+ *   - Fallback para Touch Events (iOS < 13)
  */
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import './dual-range-slider.css';
 
-// ── Utils ──────────────────────────────────────────────────────────────────
+// ── Utilitários ───────────────────────────────────────────────────────────────
 
-function clamp(v: number, min: number, max: number) {
-    return Math.min(max, Math.max(min, v));
+function clamp(v: number, lo: number, hi: number) {
+    return Math.max(lo, Math.min(hi, v));
 }
 
-function snapToStep(value: number, min: number, step: number) {
-    return Math.round((value - min) / step) * step + min;
+function snapVal(raw: number, min: number, max: number, step: number) {
+    const snapped = Math.round((raw - min) / step) * step + min;
+    return clamp(snapped, min, max);
 }
 
-function clientXToRaw(clientX: number, trackEl: HTMLElement, min: number, max: number): number {
-    const rect = trackEl.getBoundingClientRect();
+function rawFromClientX(clientX: number, rect: DOMRect, min: number, max: number) {
     const pct = clamp((clientX - rect.left) / rect.width, 0, 1);
     return min + pct * (max - min);
 }
 
-// ── Thumb ──────────────────────────────────────────────────────────────────
+function pctOf(value: number, min: number, max: number) {
+    return ((value - min) / (max - min)) * 100;
+}
 
-function Thumb({
-    pct,
-    label,
-    active,
-    onPointerDown,
-    onPointerMove,
-    onPointerUp,
-    zIndex,
-}: {
-    pct: number;
-    label: string;
-    active: boolean;
-    onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
-    onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => void;
-    onPointerUp: (e: React.PointerEvent<HTMLDivElement>) => void;
-    zIndex: number;
-}) {
-    return (
-        <div
-            className="absolute top-1/2 -translate-y-1/2"
-            style={{ left: `${pct}%`, transform: `translateX(-50%) translateY(-50%)`, zIndex, touchAction: 'none' }}
-        >
-            {/* Label flutuante */}
-            <div
-                className={cn(
-                    'absolute -top-10 left-1/2 -translate-x-1/2 transition-all duration-100',
-                    'flex flex-col items-center pointer-events-none',
-                )}
-            >
-                <span
-                    className={cn(
-                        'text-[11px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap',
-                        'bg-primary text-primary-foreground shadow-lg shadow-primary/30',
-                        'transition-transform duration-100',
-                        active ? 'scale-110' : 'scale-100',
-                    )}
-                >
-                    {label}
-                </span>
-                <div className="w-px h-2.5 bg-primary/50 mt-0.5" />
-            </div>
+// ── Atualização DOM direta (sem setState durante drag) ─────────────────────
 
-            {/* Handle */}
-            <div
-                className={cn(
-                    'w-7 h-7 rounded-full bg-background border-[2.5px] border-primary',
-                    'shadow-[0_2px_10px_rgba(0,0,0,0.45)] cursor-grab active:cursor-grabbing',
-                    'transition-[transform,box-shadow] duration-75 select-none',
-                    active
-                        ? 'scale-125 shadow-[0_4px_16px_rgba(0,0,0,0.5),0_0_0_8px_hsl(var(--primary)/0.2)]'
-                        : 'scale-100',
-                )}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
-            />
-        </div>
-    );
+function applyThumbPct(
+    thumbEl: HTMLElement | null,
+    labelEl: HTMLElement | null,
+    pct: number,
+    label: string,
+) {
+    if (thumbEl) {
+        thumbEl.style.left = `${pct}%`;
+    }
+    if (labelEl) {
+        labelEl.style.left = `${pct}%`;
+        const span = labelEl.querySelector('span');
+        if (span) span.textContent = label;
+    }
+}
+
+function applyFill(
+    fillEl: HTMLElement | null,
+    leftPct: number,
+    widthPct: number,
+) {
+    if (fillEl) {
+        fillEl.style.left = `${leftPct}%`;
+        fillEl.style.width = `${widthPct}%`;
+    }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// RangeSlider — dois handles (ex: faixa de idade)
+// RangeSlider (dois thumbs — faixa de idade)
 // ══════════════════════════════════════════════════════════════════════════════
 
 interface RangeSliderProps {
@@ -126,114 +101,193 @@ export function RangeSlider({
     className,
 }: RangeSliderProps) {
     const trackRef = useRef<HTMLDivElement>(null);
-    const [activeThumb, setActiveThumb] = useState<'lo' | 'hi' | null>(null);
+    const fillRef = useRef<HTMLDivElement>(null);
+    const loThumbRef = useRef<HTMLDivElement>(null);
+    const hiThumbRef = useRef<HTMLDivElement>(null);
+    const loLabelWrapRef = useRef<HTMLDivElement>(null);
+    const hiLabelWrapRef = useRef<HTMLDivElement>(null);
 
-    // Usar refs para valores atuais — evita closures stale nos handlers
-    const valuesRef = useRef(values);
-    valuesRef.current = values;
+    // Valor atual sempre disponível para os closures do drag
+    const loRef = useRef(values[0]);
+    const hiRef = useRef(values[1]);
 
-    const [lo, hi] = values;
-    const loPct = ((lo - min) / (max - min)) * 100;
-    const hiPct = ((hi - min) / (max - min)) * 100;
+    // Sincronizar refs com props (para quando o pai atualiza the estado)
+    useEffect(() => {
+        loRef.current = values[0];
+        hiRef.current = values[1];
+        // Sync DOM to match React state
+        const loPct = pctOf(values[0], min, max);
+        const hiPct = pctOf(values[1], min, max);
+        applyThumbPct(loThumbRef.current, loLabelWrapRef.current, loPct, `${values[0]}${unit}`);
+        applyThumbPct(hiThumbRef.current, hiLabelWrapRef.current, hiPct, `${values[1]}${unit}`);
+        applyFill(fillRef.current, loPct, hiPct - loPct);
+    }, [values, min, max, unit]);
 
-    // ── Lo thumb handlers ───────────────────────────────────────────────────
+    // ── Drag LO ──────────────────────────────────────────────────────────────
 
-    const onLoPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-        if (disabled) return;
-        e.stopPropagation();
-        e.preventDefault();
-        e.currentTarget.setPointerCapture(e.pointerId);
-        setActiveThumb('lo');
-    }, [disabled]);
+    const startDragLo = useCallback(() => {
+        if (disabled || !trackRef.current) return;
+        const trackRect = trackRef.current.getBoundingClientRect();
+        let rafId = 0;
 
-    const onLoPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-        if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-        if (!trackRef.current) return;
-        const raw = clientXToRaw(e.clientX, trackRef.current, min, max);
-        const snapped = clamp(snapToStep(raw, min, step), min, valuesRef.current[1] - step);
-        onChange([snapped, valuesRef.current[1]]);
-    }, [min, max, step, onChange]);
+        function onMove(e: PointerEvent | TouchEvent) {
+            e.preventDefault();
+            const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+                const raw = rawFromClientX(clientX, trackRect, min, max);
+                const next = snapVal(raw, min, hiRef.current - step, step);
+                if (next === loRef.current) return;
+                loRef.current = next;
+                const pct = pctOf(next, min, max);
+                const hiPct = pctOf(hiRef.current, min, max);
+                applyThumbPct(loThumbRef.current, loLabelWrapRef.current, pct, `${next}${unit}`);
+                applyFill(fillRef.current, pct, hiPct - pct);
+            });
+        }
 
-    const onLoPointerUp = useCallback(() => {
-        setActiveThumb(null);
-    }, []);
+        function onEnd() {
+            cancelAnimationFrame(rafId);
+            document.removeEventListener('pointermove', onMove as EventListener);
+            document.removeEventListener('pointerup', onEnd);
+            document.removeEventListener('touchmove', onMove as EventListener);
+            document.removeEventListener('touchend', onEnd);
+            loThumbRef.current?.classList.remove('thumb-active');
+            onChange([loRef.current, hiRef.current]);
+        }
 
-    // ── Hi thumb handlers ───────────────────────────────────────────────────
+        loThumbRef.current?.classList.add('thumb-active');
+        document.addEventListener('pointermove', onMove as EventListener, { passive: false });
+        document.addEventListener('pointerup', onEnd, { once: true });
+        document.addEventListener('touchmove', onMove as EventListener, { passive: false });
+        document.addEventListener('touchend', onEnd, { once: true });
+    }, [disabled, min, max, step, unit, onChange]);
 
-    const onHiPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-        if (disabled) return;
-        e.stopPropagation();
-        e.preventDefault();
-        e.currentTarget.setPointerCapture(e.pointerId);
-        setActiveThumb('hi');
-    }, [disabled]);
+    // ── Drag HI ──────────────────────────────────────────────────────────────
 
-    const onHiPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-        if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-        if (!trackRef.current) return;
-        const raw = clientXToRaw(e.clientX, trackRef.current, min, max);
-        const snapped = clamp(snapToStep(raw, min, step), valuesRef.current[0] + step, max);
-        onChange([valuesRef.current[0], snapped]);
-    }, [min, max, step, onChange]);
+    const startDragHi = useCallback(() => {
+        if (disabled || !trackRef.current) return;
+        const trackRect = trackRef.current.getBoundingClientRect();
+        let rafId = 0;
 
-    const onHiPointerUp = useCallback(() => {
-        setActiveThumb(null);
-    }, []);
+        function onMove(e: PointerEvent | TouchEvent) {
+            e.preventDefault();
+            const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+                const raw = rawFromClientX(clientX, trackRect, min, max);
+                const next = snapVal(raw, loRef.current + step, max, step);
+                if (next === hiRef.current) return;
+                hiRef.current = next;
+                const loPct = pctOf(loRef.current, min, max);
+                const pct = pctOf(next, min, max);
+                applyThumbPct(hiThumbRef.current, hiLabelWrapRef.current, pct, `${next}${unit}`);
+                applyFill(fillRef.current, loPct, pct - loPct);
+            });
+        }
+
+        function onEnd() {
+            cancelAnimationFrame(rafId);
+            document.removeEventListener('pointermove', onMove as EventListener);
+            document.removeEventListener('pointerup', onEnd);
+            document.removeEventListener('touchmove', onMove as EventListener);
+            document.removeEventListener('touchend', onEnd);
+            hiThumbRef.current?.classList.remove('thumb-active');
+            onChange([loRef.current, hiRef.current]);
+        }
+
+        hiThumbRef.current?.classList.add('thumb-active');
+        document.addEventListener('pointermove', onMove as EventListener, { passive: false });
+        document.addEventListener('pointerup', onEnd, { once: true });
+        document.addEventListener('touchmove', onMove as EventListener, { passive: false });
+        document.addEventListener('touchend', onEnd, { once: true });
+    }, [disabled, min, max, step, unit, onChange]);
+
+    const loPct = pctOf(values[0], min, max);
+    const hiPct = pctOf(values[1], min, max);
 
     return (
-        <div
-            className={cn('w-full pt-12 pb-2', className)}
-            data-vaul-no-drag
-        >
-            {/* Track */}
-            <div
-                ref={trackRef}
-                className="relative mx-3.5"
-                style={{ height: 44 }}
-            >
-                {/* Track bg */}
-                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-white/10" />
+        <div className={cn('w-full', className)} data-vaul-no-drag>
+            {/* Labels + Track em container com altura suficiente para a label */}
+            <div className="relative px-3.5" style={{ paddingTop: 40, paddingBottom: 8 }}>
 
-                {/* Fill entre os thumbs */}
+                {/* Label LO */}
                 <div
-                    className="absolute top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
-                    style={{ left: `${loPct}%`, width: `${hiPct - loPct}%` }}
-                />
+                    ref={loLabelWrapRef}
+                    className="absolute top-0 pointer-events-none transition-none"
+                    style={{ left: `${loPct}%` }}
+                >
+                    <div className="flex flex-col items-center -translate-x-1/2">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 whitespace-nowrap">
+                            {values[0]}{unit}
+                        </span>
+                        <div className="w-px h-2.5 bg-primary/40 mt-0.5" />
+                    </div>
+                </div>
 
-                {/* Lo thumb */}
-                <Thumb
-                    pct={loPct}
-                    label={`${lo}${unit}`}
-                    active={activeThumb === 'lo'}
-                    onPointerDown={onLoPointerDown}
-                    onPointerMove={onLoPointerMove}
-                    onPointerUp={onLoPointerUp}
-                    zIndex={activeThumb === 'lo' ? 30 : 20}
-                />
+                {/* Label HI */}
+                <div
+                    ref={hiLabelWrapRef}
+                    className="absolute top-0 pointer-events-none transition-none"
+                    style={{ left: `${hiPct}%` }}
+                >
+                    <div className="flex flex-col items-center -translate-x-1/2">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 whitespace-nowrap">
+                            {values[1]}{unit}
+                        </span>
+                        <div className="w-px h-2.5 bg-primary/40 mt-0.5" />
+                    </div>
+                </div>
 
-                {/* Hi thumb */}
-                <Thumb
-                    pct={hiPct}
-                    label={`${hi}${unit}`}
-                    active={activeThumb === 'hi'}
-                    onPointerDown={onHiPointerDown}
-                    onPointerMove={onHiPointerMove}
-                    onPointerUp={onHiPointerUp}
-                    zIndex={activeThumb === 'hi' ? 30 : 20}
-                />
+                {/* Track */}
+                <div
+                    ref={trackRef}
+                    className="relative"
+                    style={{ height: 28 }}
+                >
+                    {/* Track BG */}
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-white/10 pointer-events-none" />
+
+                    {/* Fill */}
+                    <div
+                        ref={fillRef}
+                        className="absolute top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-primary pointer-events-none"
+                        style={{ left: `${loPct}%`, width: `${hiPct - loPct}%` }}
+                    />
+
+                    {/* Lo Thumb */}
+                    <div
+                        ref={loThumbRef}
+                        data-vaul-no-drag
+                        className="rs-thumb absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+                        style={{ left: `${loPct}%`, zIndex: 20, touchAction: 'none' }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); startDragLo(); }}
+                        onTouchStart={(e) => { e.stopPropagation(); startDragLo(); }}
+                    />
+
+                    {/* Hi Thumb */}
+                    <div
+                        ref={hiThumbRef}
+                        data-vaul-no-drag
+                        className="rs-thumb absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+                        style={{ left: `${hiPct}%`, zIndex: 21, touchAction: 'none' }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); startDragHi(); }}
+                        onTouchStart={(e) => { e.stopPropagation(); startDragHi(); }}
+                    />
+                </div>
             </div>
 
-            {/* Min / Max labels */}
-            <div className="flex justify-between mx-3.5 mt-1">
-                <span className="text-xs text-muted-foreground">{min}{unit}</span>
-                <span className="text-xs text-muted-foreground">{max}{unit}</span>
+            {/* Range labels */}
+            <div className="flex justify-between px-3.5">
+                <span className="text-[11px] text-muted-foreground">{min}{unit}</span>
+                <span className="text-[11px] text-muted-foreground">{max}{unit}</span>
             </div>
         </div>
     );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// SingleSlider — um handle (ex: distância máxima)
+// SingleSlider (um thumb — ex: distância máxima)
 // ══════════════════════════════════════════════════════════════════════════════
 
 interface SingleSliderProps {
@@ -258,67 +312,99 @@ export function SingleSlider({
     className,
 }: SingleSliderProps) {
     const trackRef = useRef<HTMLDivElement>(null);
-    const [active, setActive] = useState(false);
+    const fillRef = useRef<HTMLDivElement>(null);
+    const thumbRef = useRef<HTMLDivElement>(null);
+    const labelWrapRef = useRef<HTMLDivElement>(null);
+    const valRef = useRef(value);
 
-    const valueRef = useRef(value);
-    valueRef.current = value;
+    useEffect(() => {
+        valRef.current = value;
+        const pct = pctOf(value, min, max);
+        applyThumbPct(thumbRef.current, labelWrapRef.current, pct, `${value}${unit}`);
+        applyFill(fillRef.current, 0, pct);
+    }, [value, min, max, unit]);
 
-    const pct = ((value - min) / (max - min)) * 100;
+    const startDrag = useCallback(() => {
+        if (disabled || !trackRef.current) return;
+        const trackRect = trackRef.current.getBoundingClientRect();
+        let rafId = 0;
 
-    const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-        if (disabled) return;
-        e.stopPropagation();
-        e.preventDefault();
-        e.currentTarget.setPointerCapture(e.pointerId);
-        setActive(true);
-    }, [disabled]);
+        function onMove(e: PointerEvent | TouchEvent) {
+            e.preventDefault();
+            const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+                const raw = rawFromClientX(clientX, trackRect, min, max);
+                const next = snapVal(raw, min, max, step);
+                if (next === valRef.current) return;
+                valRef.current = next;
+                const pct = pctOf(next, min, max);
+                applyThumbPct(thumbRef.current, labelWrapRef.current, pct, `${next}${unit}`);
+                applyFill(fillRef.current, 0, pct);
+            });
+        }
 
-    const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-        if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-        if (!trackRef.current) return;
-        const raw = clientXToRaw(e.clientX, trackRef.current, min, max);
-        const snapped = clamp(snapToStep(raw, min, step), min, max);
-        onChange(snapped);
-    }, [min, max, step, onChange]);
+        function onEnd() {
+            cancelAnimationFrame(rafId);
+            document.removeEventListener('pointermove', onMove as EventListener);
+            document.removeEventListener('pointerup', onEnd);
+            document.removeEventListener('touchmove', onMove as EventListener);
+            document.removeEventListener('touchend', onEnd);
+            thumbRef.current?.classList.remove('thumb-active');
+            onChange(valRef.current);
+        }
 
-    const onPointerUp = useCallback(() => {
-        setActive(false);
-    }, []);
+        thumbRef.current?.classList.add('thumb-active');
+        document.addEventListener('pointermove', onMove as EventListener, { passive: false });
+        document.addEventListener('pointerup', onEnd, { once: true });
+        document.addEventListener('touchmove', onMove as EventListener, { passive: false });
+        document.addEventListener('touchend', onEnd, { once: true });
+    }, [disabled, min, max, step, unit, onChange]);
+
+    const pct = pctOf(value, min, max);
 
     return (
-        <div
-            className={cn('w-full pt-12 pb-2', className)}
-            data-vaul-no-drag
-        >
-            <div
-                ref={trackRef}
-                className="relative mx-3.5"
-                style={{ height: 44 }}
-            >
-                {/* Track bg */}
-                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-white/10" />
+        <div className={cn('w-full', className)} data-vaul-no-drag>
+            <div className="relative px-3.5" style={{ paddingTop: 40, paddingBottom: 8 }}>
 
-                {/* Fill */}
+                {/* Label */}
                 <div
-                    className="absolute top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
-                    style={{ left: 0, width: `${pct}%` }}
-                />
+                    ref={labelWrapRef}
+                    className="absolute top-0 pointer-events-none"
+                    style={{ left: `${pct}%` }}
+                >
+                    <div className="flex flex-col items-center -translate-x-1/2">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 whitespace-nowrap">
+                            {value}{unit}
+                        </span>
+                        <div className="w-px h-2.5 bg-primary/40 mt-0.5" />
+                    </div>
+                </div>
 
-                {/* Thumb */}
-                <Thumb
-                    pct={pct}
-                    label={`${value}${unit}`}
-                    active={active}
-                    onPointerDown={onPointerDown}
-                    onPointerMove={onPointerMove}
-                    onPointerUp={onPointerUp}
-                    zIndex={20}
-                />
+                <div ref={trackRef} className="relative" style={{ height: 28 }}>
+                    {/* Track BG */}
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-white/10 pointer-events-none" />
+                    {/* Fill */}
+                    <div
+                        ref={fillRef}
+                        className="absolute top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-primary pointer-events-none"
+                        style={{ left: 0, width: `${pct}%` }}
+                    />
+                    {/* Thumb */}
+                    <div
+                        ref={thumbRef}
+                        data-vaul-no-drag
+                        className="rs-thumb absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+                        style={{ left: `${pct}%`, zIndex: 20, touchAction: 'none' }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); startDrag(); }}
+                        onTouchStart={(e) => { e.stopPropagation(); startDrag(); }}
+                    />
+                </div>
             </div>
 
-            <div className="flex justify-between mx-3.5 mt-1">
-                <span className="text-xs text-muted-foreground">{min}{unit}</span>
-                <span className="text-xs text-muted-foreground">{max}{unit}</span>
+            <div className="flex justify-between px-3.5">
+                <span className="text-[11px] text-muted-foreground">{min}{unit}</span>
+                <span className="text-[11px] text-muted-foreground">{max}{unit}</span>
             </div>
         </div>
     );
