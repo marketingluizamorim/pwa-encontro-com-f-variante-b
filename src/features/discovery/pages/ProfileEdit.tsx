@@ -119,7 +119,7 @@ const LANGUAGE_OPTIONS = ['Português', 'Inglês', 'Espanhol', 'Francês', 'Alem
 export default function ProfileEdit() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showAllInterests, setShowAllInterests] = useState(false);
@@ -148,9 +148,17 @@ export default function ProfileEdit() {
     about_children: '',
   });
 
+  // Wait for auth to resolve before loading profile.
+  // Without this guard, user starts as null, loadProfile returns early
+  // without calling setLoading(false), causing infinite spinner.
   useEffect(() => {
+    if (authLoading) return;   // auth still initializing — wait
+    if (!user) {
+      setLoading(false);       // not logged in — stop spinner
+      return;
+    }
     loadProfile();
-  }, [user]);
+  }, [user, authLoading]);
 
   const loadProfile = async () => {
     if (!user) return;
