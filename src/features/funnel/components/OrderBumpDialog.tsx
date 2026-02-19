@@ -112,7 +112,7 @@ export function OrderBumpDialog({
       <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide min-h-0">
         {/* Header - Compact */}
         <div className="text-center mb-3 flex-shrink-0">
-          <DialogTitle className="font-serif text-2xl font-bold text-white tracking-tight leading-none">
+          <DialogTitle className="font-serif text-2xl text-white tracking-tight leading-none" style={{ fontWeight: 600 }}>
             Ofertas de Ano Novo 🎉
           </DialogTitle>
           <DialogDescription
@@ -154,7 +154,7 @@ export function OrderBumpDialog({
                   <div className="flex items-center justify-between mb-1 gap-2">
                     <h4
                       className={`leading-tight font-serif font-bold tracking-wide transition-colors ${isSelected ? 'text-white' : 'text-white/90'}`}
-                      style={{ fontSize: (bump.id === 'evangelico' || bump.id === 'catolico') ? '1.05rem' : '1.1rem' }}
+                      style={{ fontSize: '0.975rem' }}
                     >
                       {bump.name}
                     </h4>
