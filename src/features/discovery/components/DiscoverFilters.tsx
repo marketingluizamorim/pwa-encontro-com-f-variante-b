@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
+import { RangeSlider, SingleSlider } from '@/components/ui/range-slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Drawer,
@@ -175,7 +175,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
     }
   };
 
-  const handleAgeChange = (values: number[]) => {
+  const handleAgeChange = (values: [number, number]) => {
     setLocalFilters((prev) => ({
       ...prev,
       minAge: values[0],
@@ -358,20 +358,15 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               setShowUpgradeDialog(true);
             }}
           >
-            <div
-              className={cn("px-2 pt-2 pb-3 transition-all", !isGold && "opacity-40 grayscale pointer-events-none")}
-              onPointerDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-            >
-              <Slider
-                value={[localFilters.minAge, localFilters.maxAge]}
-                onValueChange={handleAgeChange}
+            <div className={cn("px-1 pt-1 pb-3 transition-all", !isGold && "opacity-40 grayscale pointer-events-none")}>
+              <RangeSlider
+                values={[localFilters.minAge, localFilters.maxAge]}
+                onChange={handleAgeChange}
                 min={18}
                 max={80}
                 step={1}
-                className="w-full"
               />
-              <div className="flex justify-between mt-3">
+              <div className="flex justify-between mt-1">
                 <Badge variant="outline" className="text-sm">
                   {localFilters.minAge} anos
                 </Badge>
@@ -408,20 +403,15 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               setShowUpgradeDialog(true);
             }}
           >
-            <div
-              className={cn("px-2 pt-2 pb-3 transition-all", !isGold && "opacity-40 grayscale")}
-              onPointerDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-            >
-              <Slider
-                value={[localFilters.maxDistance]}
-                onValueChange={(values) => setLocalFilters(prev => ({ ...prev, maxDistance: values[0] }))}
+            <div className={cn("px-1 pt-1 pb-3 transition-all", !isGold && "opacity-40 grayscale")}>
+              <SingleSlider
+                value={localFilters.maxDistance}
+                onChange={(v) => setLocalFilters(prev => ({ ...prev, maxDistance: v }))}
                 min={1}
                 max={100}
                 step={5}
-                className="w-full"
               />
-              <div className="flex justify-between mt-3">
+              <div className="flex justify-between mt-1">
                 <Badge variant="outline" className="text-sm">
                   Até {localFilters.maxDistance} km
                 </Badge>
