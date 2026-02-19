@@ -310,7 +310,7 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
           )}
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="h-[60vh] rounded-t-3xl outline-none focus:ring-0">
+      <DrawerContent className="h-[70vh] rounded-t-3xl outline-none focus:ring-0">
         <DrawerHeader className="mb-2 text-left relative pr-12">
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center justify-between">
