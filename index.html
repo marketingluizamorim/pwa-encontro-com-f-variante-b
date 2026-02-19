@@ -104,7 +104,7 @@
       var splash = document.getElementById('pwa-splash');
 
       // Rotas onde o splash NUNCA deve aparecer
-      var noSplashPrefixes = ['/v1', '/login', '/register', '/install', '/termos-de-uso', '/politica-de-reembolso'];
+      var noSplashPrefixes = ['/v1', '/termos-de-uso', '/politica-de-reembolso'];
       var path = window.location.pathname;
       var isNoSplashRoute = path === '/' || noSplashPrefixes.some(function (p) {
         return path === p || path.indexOf(p + '/') === 0;

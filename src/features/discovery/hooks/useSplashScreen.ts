@@ -3,9 +3,6 @@ import { useState } from 'react';
 // Rotas onde o splash NUNCA deve aparecer
 const NO_SPLASH_PREFIXES = [
   '/v1',
-  '/login',
-  '/register',
-  '/install',
   '/termos-de-uso',
   '/politica-de-reembolso',
 ];
