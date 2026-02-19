@@ -536,9 +536,11 @@ export default function Chat() {
                                     )}>
                                         <div className="absolute inset-0 rounded-[2.1rem] overflow-hidden">
                                             <img
-                                                src={conv.profile.photos[0] || conv.profile.avatar_url}
+                                                src={conv.profile.photos[0] || conv.profile.avatar_url || '/placeholder.svg'}
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 alt={conv.profile.display_name}
+                                                loading="eager"
+                                                fetchPriority="high"
                                             />
                                         </div>
 
@@ -593,9 +595,11 @@ export default function Chat() {
                                         <div className="relative">
                                             <div className="w-16 h-16 rounded-full overflow-hidden border border-border">
                                                 <img
-                                                    src={conv.profile.photos[0] || conv.profile.avatar_url}
+                                                    src={conv.profile.photos[0] || conv.profile.avatar_url || '/placeholder.svg'}
                                                     alt={conv.profile.display_name}
                                                     className="w-full h-full object-cover"
+                                                    loading="eager"
+                                                    fetchPriority="high"
                                                 />
                                             </div>
                                             {conv.last_message && !conv.last_message.is_read && conv.last_message.sender_id !== user?.id && (
@@ -649,16 +653,6 @@ export default function Chat() {
                                 exit={{ y: '100%' }}
                                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                                 className="fixed inset-0 z-[9999] bg-background flex flex-col overflow-hidden"
-                                drag="y"
-                                dragControls={dragControls}
-                                dragListener={false}
-                                dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
-                                dragElastic={{ top: 0, bottom: 0.7, left: 0.1, right: 0.8 }}
-                                onDragEnd={(e, info) => {
-                                    if (info.offset.y > 100 || info.velocity.y > 500 || info.offset.x > 100 || info.velocity.x > 500) {
-                                        handleManualBack();
-                                    }
-                                }}
                             >
                                 {/* Scrollable Content */}
                                 <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide relative">
@@ -715,10 +709,17 @@ export default function Chat() {
                                         </DropdownMenuContent>
                                     </DropdownMenu>
 
-                                    {/* Imagem Hero */}
-                                    <div
+                                    {/* Imagem Hero - drag apenas aqui para fechar */}
+                                    <motion.div
                                         className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
-                                        onPointerDown={(e) => dragControls.start(e)}
+                                        drag="y"
+                                        dragConstraints={{ top: 0, bottom: 0 }}
+                                        dragElastic={{ top: 0, bottom: 0.7 }}
+                                        onDragEnd={(_e, info) => {
+                                            if (info.offset.y > 80 || info.velocity.y > 400) {
+                                                handleManualBack();
+                                            }
+                                        }}
                                     >
                                         {/* Photo Indicators */}
                                         {selectedProfile.photos && selectedProfile.photos.length > 1 && (
@@ -748,7 +749,7 @@ export default function Chat() {
                                             alt={selectedProfile.display_name}
                                         />
                                         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
-                                    </div>
+                                    </motion.div>
 
                                     {/* Line Cover - hides the photo container bottom border */}
                                     <div className="relative z-[5] h-3 -mt-3 bg-background" />

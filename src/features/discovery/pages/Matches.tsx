@@ -140,13 +140,16 @@ const SwipeableMatchCard = ({
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
     >
       <img
-        src={like.profile.photos[0] || like.profile.avatar_url}
+        src={like.profile.photos[0] || like.profile.avatar_url || '/placeholder.svg'}
         alt="Foto oculta"
         className={cn(
           "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none",
           locked && "blur-lg scale-110"
         )}
         draggable={false}
+        loading="eager"
+        fetchPriority="high"
+        style={{ minHeight: '100%', display: 'block' }}
       />
 
       {/* Super Like Star Badge */}
@@ -660,18 +663,8 @@ export default function Matches() {
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="fixed inset-0 z-[9999] bg-background flex flex-col overflow-hidden"
-              drag="y"
-              dragControls={dragControls}
-              dragListener={false}
-              dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
-              dragElastic={{ top: 0, bottom: 0.7, left: 0.1, right: 0.8 }}
-              onDragEnd={(e, info) => {
-                if (info.offset.y > 100 || info.velocity.y > 500 || info.offset.x > 100 || info.velocity.x > 500) {
-                  handleManualBack();
-                }
-              }}
             >
-              {/* Scrollable Content */}
+              {/* Scrollable Content — drag is only on the hero photo, not here */}
               <div className="flex-1 overflow-y-auto pb-24 h-full overscroll-contain touch-pan-y scrollbar-hide relative">
 
                 {/* Close Button */}
@@ -683,9 +676,16 @@ export default function Matches() {
                 </button>
 
                 {/* Hero Image - Drag Handle for Closing */}
-                <div
+                <motion.div
                   className="relative w-full h-[60vh] touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
-                  onPointerDown={(e) => dragControls.start(e)}
+                  drag="y"
+                  dragConstraints={{ top: 0, bottom: 0 }}
+                  dragElastic={{ top: 0, bottom: 0.7 }}
+                  onDragEnd={(_e, info) => {
+                    if (info.offset.y > 80 || info.velocity.y > 400) {
+                      handleManualBack();
+                    }
+                  }}
                 >
                   {/* Photo Indicators */}
                   {selectedLike.profile.photos && selectedLike.profile.photos.length > 1 && (
@@ -716,7 +716,7 @@ export default function Matches() {
                   />
                   {/* Gradient for Text Readability */}
                   <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
-                </div>
+                </motion.div>
 
                 {/* Line Cover - hides the photo container bottom border */}
                 <div className="relative z-[5] h-3 -mt-3 bg-background" />
