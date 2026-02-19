@@ -158,7 +158,7 @@ export function OrderBumpDialog({
                     >
                       {bump.name}
                     </h4>
-                    <p className={`font-black text-sm whitespace-nowrap flex-shrink-0 transition-colors ${isSelected ? 'text-white' : 'text-white/80'}`}>
+                    <p className={`font-normal text-sm whitespace-nowrap flex-shrink-0 transition-colors ${isSelected ? 'text-white' : 'text-white/80'}`}>
                       +R$ {bump.price.toFixed(2).replace('.', ',')}
                     </p>
                   </div>
