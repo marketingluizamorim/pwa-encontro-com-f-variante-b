@@ -83,26 +83,29 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
 
       if (insertError) throw insertError;
 
-      // Send email notification to support team
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          const emailResult = await supabase.functions.invoke('send-report-email', {
-            body: {
-              reporterId: user.id,
-              reportedId: userId,
-              reportedName: userName || 'Usuário',
-              reason,
-              description: description.trim() || undefined,
-            },
-          });
-          if (emailResult.error) {
-            console.error('Erro ao enviar email de denúncia:', emailResult.error);
+      // Send email notification to support team (production only)
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (!isLocalhost) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            const emailResult = await supabase.functions.invoke('send-report-email', {
+              body: {
+                reporterId: user.id,
+                reportedId: userId,
+                reportedName: userName || 'Usuário',
+                reason,
+                description: description.trim() || undefined,
+              },
+            });
+            if (emailResult.error) {
+              console.error('Erro ao enviar email de denúncia:', emailResult.error);
+            }
           }
+        } catch (emailError) {
+          // Não impede o fluxo principal se o email falhar
+          console.error('Falha ao enviar email de denúncia:', emailError);
         }
-      } catch (emailError) {
-        // Não impede o fluxo principal se o email falhar
-        console.error('Falha ao enviar email de denúncia:', emailError);
       }
 
       // Automatically block the reported user
