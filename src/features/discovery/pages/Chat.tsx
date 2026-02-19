@@ -94,6 +94,10 @@ const FloatingHeart = () => (
 function WelcomeCard() {
     const navigate = useNavigate();
     const [read, setRead] = useState(() => localStorage.getItem('welcome-chat-read') === '1');
+    const [hidden, setHidden] = useState(() => localStorage.getItem('welcome-chat-hidden') === '1');
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    if (hidden) return null;
 
     const handleClick = () => {
         localStorage.setItem('welcome-chat-read', '1');
@@ -101,31 +105,61 @@ function WelcomeCard() {
         navigate('/app/chat/welcome');
     };
 
+    const handleDelete = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        localStorage.setItem('welcome-chat-hidden', '1');
+        setHidden(true);
+        setMenuOpen(false);
+    };
+
     return (
-        <button
-            onClick={handleClick}
-            className="flex items-center gap-4 w-full -mx-2 px-2 py-2 rounded-lg active:bg-muted/50 transition-colors mb-1"
-        >
-            <div className="relative flex-shrink-0">
-                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/40 shadow-md">
-                    <img src="/pwa-512x512.png" alt="Bem-vindo" className="w-full h-full object-cover" />
-                </div>
-                {!read && (
-                    <div className="absolute right-0 top-0 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background animate-pulse" />
-                )}
-            </div>
-            <div className="flex-1 min-w-0 border-b border-border/40 pb-4 text-left">
-                <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-bold text-base">Bem-vindo(a) ao aplicativo</h3>
+        <div className="relative flex items-center gap-4 w-full -mx-2 px-2 py-2 rounded-lg transition-colors mb-1">
+            {/* Clickable area */}
+            <button onClick={handleClick} className="flex items-center gap-4 flex-1 min-w-0 active:opacity-70 transition-opacity text-left">
+                <div className="relative flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/40 shadow-md">
+                        <img src="/pwa-512x512.png" alt="Bem-vindo" className="w-full h-full object-cover" />
+                    </div>
                     {!read && (
-                        <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-full text-[10px] font-bold">NOVO</span>
+                        <div className="absolute right-0 top-0 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background animate-pulse" />
                     )}
                 </div>
-                <p className="text-sm text-muted-foreground truncate">
-                    👋 Olá! Seja muito bem-vindo(a)! Toque para ver o guia completo do app.
-                </p>
+                <div className="flex-1 min-w-0 border-b border-border/40 pb-4">
+                    <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-base">Bem-vindo(a) ao aplicativo</h3>
+                        {!read && (
+                            <span className="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 rounded-full text-[10px] font-bold flex-shrink-0">NOVO</span>
+                        )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Toque para abrir...</p>
+                </div>
+            </button>
+
+            {/* 3-dots menu */}
+            <div className="relative flex-shrink-0 self-start mt-1">
+                <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v); }}
+                    className="w-8 h-8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted"
+                >
+                    <MoreHorizontal className="w-4 h-4" />
+                </button>
+                {menuOpen && (
+                    <>
+                        {/* Backdrop to close */}
+                        <div className="fixed inset-0 z-[100]" onClick={() => setMenuOpen(false)} />
+                        <div className="absolute right-0 top-9 z-[101] bg-background border border-border/40 rounded-xl shadow-xl w-40 overflow-hidden">
+                            <button
+                                onClick={handleDelete}
+                                className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-500 hover:bg-muted transition-colors"
+                            >
+                                <i className="ri-delete-bin-line text-base" />
+                                Excluir
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
-        </button>
+        </div>
     );
 }
 

@@ -5,75 +5,78 @@ import { ArrowLeft, Download, Heart, MessageCircle, Star, Users, Zap, Shield, Be
 const MESSAGES = [
     {
         id: 1,
-        text: '👋 Olá! Seja muito bem-vindo(a) ao nosso aplicativo de relacionamentos cristãos!',
+        text: '👋 Bem-vindo(a) ao aplicativo de relacionamentos cristãos!',
     },
     {
         id: 2,
-        text: '📲 Antes de qualquer coisa, te recomendamos instalar o app no seu celular para ter a melhor experiência possível — acesso rápido, notificações em tempo real e muito mais!',
+        text: 'Para a melhor experiência, instale o app no seu celular e receba notificações em tempo real!',
     },
     {
         id: 3,
         type: 'tip',
         icon: <Download className="w-5 h-5 text-emerald-400" />,
-        title: 'Como instalar o app',
-        text: 'No seu navegador, toque em "Compartilhar" (iPhone) ou no ícone de menu (Android) e selecione "Adicionar à Tela Inicial". Pronto! O app abrirá como nativo.',
+        title: 'Como instalar',
+        bullets: [
+            '📱 iPhone: toque em "Compartilhar" e selecione "Adicionar à Tela Inicial"',
+            '🤖 Android: toque no menu (⋯) e selecione "Adicionar à Tela Inicial"',
+        ],
     },
     {
         id: 4,
-        text: '🗺️ Agora veja o que cada aba do aplicativo faz:',
+        text: 'VEJA COMO FUNCIONA:',
     },
     {
         id: 5,
         type: 'section',
         icon: <Heart className="w-5 h-5 text-rose-400" />,
-        title: '❤️ Descobrir',
-        text: 'Aqui você encontra pessoas próximas a você. Deslize para a direita para curtir e para a esquerda para passar. Quando dois usuários se curtem, é um Match!',
+        title: 'Descobrir',
+        text: 'Encontre pessoas próximas. Deslize para direita para curtir, esquerda para passar. Dois likes = uma Conexão!',
     },
     {
         id: 6,
         type: 'section',
         icon: <Star className="w-5 h-5 text-amber-400" />,
-        title: '⭐ Super Like',
-        text: 'Quer demonstrar um interesse especial? Use o Super Like! A outra pessoa saberá que você teve um destaque especial ao deslizá-la.',
+        title: 'Super Like',
+        text: 'Deslize para cima para demonstrar um interesse especial com mensagem direta.',
     },
     {
         id: 7,
         type: 'section',
         icon: <Users className="w-5 h-5 text-blue-400" />,
-        title: '💛 Curtidas',
-        text: 'Veja quem já curtiu o seu perfil! Com o plano Prata ou Ouro, você consegue ver quem são todas as pessoas que curtiram você — sem precisar esperar um Match.',
+        title: 'Curtidas',
+        text: 'Veja quem já curtiu o seu perfil e saia na frente para novas Conexões!',
     },
     {
         id: 8,
         type: 'section',
         icon: <MessageCircle className="w-5 h-5 text-teal-400" />,
-        title: '💬 Mensagens',
-        text: 'Aqui ficam todas as suas conversas com os seus Matches. Você pode enviar textos, áudios e fotos (planos Prata/Ouro), além de fazer chamadas de voz e vídeo.',
+        title: 'Mensagens',
+        text: 'Converse com suas Conexões via texto, áudio, foto e chamadas de voz ou vídeo.',
     },
     {
         id: 9,
         type: 'section',
         icon: <Zap className="w-5 h-5 text-yellow-400" />,
-        title: '👤 Perfil',
-        text: 'Complete seu perfil com fotos, bio, interesses e informações sobre você. Perfis completos têm até 3x mais chances de conseguir Matches!',
+        title: 'Perfil',
+        text: 'Adicione fotos, bio e interesses. Perfis completos têm até 3x mais Conexões!',
     },
     {
         id: 10,
         type: 'tip',
         icon: <Bell className="w-5 h-5 text-indigo-400" />,
         title: 'Ative as notificações',
-        text: 'Não perca nenhum Match ou mensagem! Ative as notificações para ser avisado(a) em tempo real quando alguém curtir você ou enviar uma mensagem.',
+        text: 'Seja avisado(a) em tempo real sobre curtidas e mensagens.',
     },
     {
         id: 11,
         type: 'tip',
         icon: <Shield className="w-5 h-5 text-emerald-400" />,
         title: 'Segurança em primeiro lugar',
-        text: 'Você pode denunciar ou bloquear qualquer usuário a qualquer momento. Toque nos 3 pontos (⋯) dentro de uma conversa ou perfil para acessar essas opções.',
+        text: 'Denuncie ou bloqueie qualquer usuário pelos 3 pontos (⋯) em uma conversa ou perfil.',
     },
     {
         id: 12,
-        text: '✨ Estamos muito felizes em ter você aqui! Que essa jornada seja abençoada e que você encontre a pessoa certa. Qualquer dúvida, estamos sempre aqui. 🙏',
+        text: '✨ Felizes em ter você aqui! Que você encontre a pessoa certa. Qualquer dúvida, estamos aqui. 🙏',
     },
 ];
 
@@ -108,7 +111,7 @@ export default function WelcomeChat() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05, duration: 0.3 }}
                     >
-                        {msg.type === 'section' || msg.type === 'tip' ? (
+                        {(msg.type === 'section' || msg.type === 'tip') ? (
                             <div className={`rounded-2xl p-4 border ${msg.type === 'tip'
                                 ? 'bg-emerald-500/[0.07] border-emerald-500/20'
                                 : 'bg-muted/60 border-border/30'
@@ -117,7 +120,17 @@ export default function WelcomeChat() {
                                     {msg.icon}
                                     <span className="font-bold text-[14px]">{msg.title}</span>
                                 </div>
-                                <p className="text-[13.5px] text-muted-foreground leading-relaxed">{msg.text}</p>
+                                {'bullets' in msg && msg.bullets ? (
+                                    <ul className="space-y-1.5">
+                                        {msg.bullets.map((b, bi) => (
+                                            <li key={bi} className="text-[13.5px] text-muted-foreground leading-relaxed">
+                                                {b}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-[13.5px] text-muted-foreground leading-relaxed">{msg.text}</p>
+                                )}
                             </div>
                         ) : (
                             <div className="bg-muted/70 rounded-2xl rounded-tl-sm px-4 py-3 max-w-[88%]">
