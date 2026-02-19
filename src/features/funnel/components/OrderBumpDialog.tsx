@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import regionsImage from '@/assets/bump-regions-premium.png';
 import evangelicoImage from '@/assets/bump-evangelico-premium.png';
 import catolicoImage from '@/assets/bump-catolico-premium.png';
-import filtrosImage from '@/assets/bump-filtros-premium.png';
+import filtrosImage from '@/assets/lupa-ordembump.png';
 
 interface OrderBump {
   id: string;
