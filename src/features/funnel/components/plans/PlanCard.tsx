@@ -216,7 +216,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
               onClick={() => onSelect(plan)}
               className={`w-full h-16 rounded-full font-bold text-lg transition-all duration-300 active:scale-[0.98] relative overflow-hidden group/btn ${config.button}`}
             >
-              <span className="relative z-10">Assinar Agora</span>
+              <span className="relative z-10 uppercase">ASSINAR AGORA</span>
             </Button>
 
             {plan.id === 'gold' && (
