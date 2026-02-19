@@ -313,6 +313,13 @@ export default function Plans() {
         isLoading={isProcessing}
         planName={PLAN_NAMES[selectedPlanId] || 'Plano Gold'}
         orderBumps={currentBumpsRef.current}
+        planId={selectedPlanId}
+        quizData={quizAnswers as Record<string, unknown>}
+        onTestPurchaseComplete={(data) => {
+          setCheckoutInfo(data);
+          setShowCheckout(false);
+          setShowThankYou(true);
+        }}
       />
 
       <SpecialOfferCheckoutDialog
