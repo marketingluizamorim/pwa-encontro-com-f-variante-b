@@ -358,23 +358,15 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               setShowUpgradeDialog(true);
             }}
           >
-            <div className={cn("px-1 pt-1 pb-3 transition-all", !isGold && "opacity-40 grayscale pointer-events-none")}>
+            <div className={cn("pb-2 transition-all", !isGold && "opacity-40 grayscale pointer-events-none")}>
               <RangeSlider
                 values={[localFilters.minAge, localFilters.maxAge]}
                 onChange={handleAgeChange}
                 min={18}
                 max={80}
                 step={1}
+                unit=" anos"
               />
-              <div className="flex justify-between mt-1">
-                <Badge variant="outline" className="text-sm">
-                  {localFilters.minAge} anos
-                </Badge>
-                <span className="text-muted-foreground">até</span>
-                <Badge variant="outline" className="text-sm">
-                  {localFilters.maxAge} anos
-                </Badge>
-              </div>
             </div>
           </FilterSection>
 
@@ -403,19 +395,15 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               setShowUpgradeDialog(true);
             }}
           >
-            <div className={cn("px-1 pt-1 pb-3 transition-all", !isGold && "opacity-40 grayscale")}>
+            <div className={cn("pb-2 transition-all", !isGold && "opacity-40 grayscale")}>
               <SingleSlider
                 value={localFilters.maxDistance}
                 onChange={(v) => setLocalFilters(prev => ({ ...prev, maxDistance: v }))}
                 min={1}
                 max={100}
                 step={5}
+                unit=" km"
               />
-              <div className="flex justify-between mt-1">
-                <Badge variant="outline" className="text-sm">
-                  Até {localFilters.maxDistance} km
-                </Badge>
-              </div>
             </div>
           </FilterSection>
 
