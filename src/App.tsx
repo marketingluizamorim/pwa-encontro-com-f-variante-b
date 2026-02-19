@@ -13,29 +13,33 @@ import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocationModalProvider } from "@/contexts/LocationModalContext";
 
-// Routes that should NEVER show the splash screen (funnel + public/auth)
-const NO_SPLASH_PREFIXES = [
+// Rotas onde o splash NUNCA deve aparecer
+const NO_SPLASH_ROUTES = [
   '/v1',
   '/login',
   '/register',
   '/install',
   '/termos-de-uso',
   '/politica-de-reembolso',
-  '/',
 ];
 
 function SplashGate() {
   const { showSplash, completeSplash } = useSplashScreen();
   const location = useLocation();
 
-  // Suppress splash on funnel and public routes
-  const isSplashRoute = !NO_SPLASH_PREFIXES.some(
-    (prefix) => location.pathname === prefix || location.pathname.startsWith(prefix + '/')
-  ) || location.pathname.startsWith('/app');
+  // Splash ONLY on /app/* routes — never on funnel, public or root
+  const isNoSplashRoute =
+    location.pathname === '/' ||
+    NO_SPLASH_ROUTES.some(
+      (route) =>
+        location.pathname === route ||
+        location.pathname.startsWith(route + '/'),
+    );
 
-  if (!showSplash || !isSplashRoute) return null;
+  if (!showSplash || isNoSplashRoute) return null;
   return <SplashScreen onComplete={completeSplash} />;
 }
+
 
 // Static imports for critical path (Performance)
 import Landing from "@/features/funnel/pages/Landing";
