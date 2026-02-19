@@ -525,33 +525,38 @@ export default function Discover() {
 
   const isEmpty = profiles.length === 0 || currentIndex >= profiles.length;
 
-  const swipeFeedbackEl = swipeFeedback && createPortal(
-    <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none">
-      <motion.div
-        key={swipeFeedback + Date.now()}
-        initial={{ opacity: 0, scale: 0.4 }}
-        animate={{ opacity: [0, 1, 1, 0], scale: [0.4, 1.15, 1, 0.8] }}
-        transition={{ duration: 0.55, times: [0, 0.25, 0.6, 1], ease: 'easeOut' }}
-        className={cn(
-          'w-20 h-20 rounded-full flex items-center justify-center shadow-2xl border-2',
-          swipeFeedback === 'like'
-            ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-white/30 shadow-orange-500/40'
-            : swipeFeedback === 'dislike'
-              ? 'bg-gradient-to-br from-red-500 to-rose-600 border-white/30 shadow-red-500/40'
-              : 'bg-gradient-to-br from-blue-400 to-indigo-600 border-white/30 shadow-blue-500/40',
-        )}
-      >
-        {swipeFeedback === 'like' && <i className="ri-heart-fill text-white text-4xl" />}
-        {swipeFeedback === 'dislike' && <i className="ri-close-line text-white text-4xl font-bold" />}
-        {swipeFeedback === 'super_like' && <i className="ri-star-fill text-white text-3xl" />}
-      </motion.div>
-    </div>,
-    document.body,
-  );
-
   return (
     <>
-      {swipeFeedbackEl}
+      {createPortal(
+        <AnimatePresence>
+          {swipeFeedback && (
+            <motion.div
+              key={swipeFeedback}
+              className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              <div
+                className={cn(
+                  'w-20 h-20 rounded-full flex items-center justify-center shadow-2xl border-2',
+                  swipeFeedback === 'like'
+                    ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-white/30'
+                    : swipeFeedback === 'dislike'
+                      ? 'bg-gradient-to-br from-red-500 to-rose-600 border-white/30'
+                      : 'bg-gradient-to-br from-blue-400 to-indigo-600 border-white/30',
+                )}
+              >
+                {swipeFeedback === 'like' && <i className="ri-heart-fill text-white text-4xl" />}
+                {swipeFeedback === 'dislike' && <i className="ri-close-line text-white text-4xl" />}
+                {swipeFeedback === 'super_like' && <i className="ri-star-fill text-white text-3xl" />}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
       <PageTransition className="relative w-full h-full flex flex-col items-center">
         <Header
           isDiscover
