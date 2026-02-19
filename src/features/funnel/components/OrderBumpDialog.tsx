@@ -233,7 +233,7 @@ export function OrderBumpDialog({
             )}
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
               <span className="font-bold text-white text-sm uppercase">Total a Pagar</span>
-              <span className="font-black text-white text-2xl drop-shadow-sm">
+              <span className="font-extrabold text-white text-2xl drop-shadow-sm">
                 R$ {calculateTotal().toFixed(2).replace('.', ',')}
               </span>
             </div>
