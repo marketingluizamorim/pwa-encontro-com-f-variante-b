@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+
 import { PlansSection } from '@/features/funnel/components/PlansSection';
 import { CheckoutDialog } from '@/features/funnel/components/CheckoutDialog';
 import { PixPaymentDialog } from '@/features/funnel/components/PixPaymentDialog';
@@ -8,12 +8,12 @@ import { ThankYouDialog } from '@/features/funnel/components/ThankYouDialog';
 import { ExitIntentDialog } from '@/features/funnel/components/ExitIntentDialog';
 import { SpecialOfferCheckoutDialog } from '@/features/funnel/components/SpecialOfferCheckoutDialog';
 import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
+
+
 
 import { funnelService } from '../services/funnel.service';
 import type { SelectedBumps } from '@/features/funnel/components/OrderBumpDialog';
-import { toast } from 'sonner';
+
 
 const SPECIAL_OFFER_PRICE = 9.90;
 const SPECIAL_OFFER_PLAN_ID = 'special-offer-lifetime';
@@ -29,8 +29,6 @@ const PLAN_NAMES: Record<string, string> = {
 
 export default function Plans() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-
 
   const {
     quizAnswers,
@@ -38,7 +36,7 @@ export default function Plans() {
     setCheckoutInfo,
     setOrderBumps,
   } = useFunnelStore();
-  const { user } = useAuth();
+
 
   const currentBumpsRef = useRef<SelectedBumps>({
     allRegions: false,
@@ -196,143 +194,7 @@ export default function Plans() {
         isDialogOpen={showCheckout || showPixPayment || showThankYou || showExitIntent || showSpecialOfferCheckout}
       />
 
-      {/* Debug Plan Switcher - Only for specific user */}
-      {user?.email === 'marketing.luizamorim@gmail.com' && (
-        <div className="fixed bottom-4 left-4 z-[9999] p-4 bg-red-900/90 border border-red-500/30 rounded-xl space-y-3 backdrop-blur-md shadow-2xl">
-          <h3 className="text-red-400 font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-            <i className="ri-bug-line" /> Área de Teste (Admin)
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                const toastId = toast.loading('Alterando para Bronze...', { style: { marginTop: '50px' } });
-                try {
-                  const { supabase } = await import('@/integrations/supabase/client');
 
-                  const { error } = await supabase.from('user_subscriptions').upsert({
-                    user_id: user.id,
-                    plan_id: 'bronze',
-                    plan_name: 'Bronze',
-                    is_active: true,
-                    can_see_who_liked: false,
-                    can_video_call: false,
-                    can_use_advanced_filters: false,
-                    is_profile_boosted: false,
-                    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                  }, { onConflict: 'user_id' });
-
-                  if (error) throw error;
-                  toast.success('Alterado para Bronze!', { id: toastId, style: { marginTop: '50px' } });
-                  queryClient.invalidateQueries();
-                } catch (err: unknown) {
-                  console.error(err);
-                  const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-                  toast.error(`Erro: ${errorMessage}`, { id: toastId, style: { marginTop: '50px' } });
-                }
-              }}
-              className="bg-orange-950/30 border-orange-500/20 text-orange-200 hover:bg-orange-900/50 h-8 text-xs"
-            >
-              Plano Bronze
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                const toastId = toast.loading('Alterando para Prata...', { style: { marginTop: '50px' } });
-                try {
-                  const { supabase } = await import('@/integrations/supabase/client');
-
-                  const { error } = await supabase.from('user_subscriptions').upsert({
-                    user_id: user.id,
-                    plan_id: 'silver',
-                    plan_name: 'Prata',
-                    is_active: true,
-                    can_see_who_liked: true,
-                    can_video_call: true,
-                    can_use_advanced_filters: false,
-                    is_profile_boosted: false,
-                    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                  }, { onConflict: 'user_id' });
-
-                  if (error) throw error;
-                  toast.success('Alterado para Prata!', { id: toastId, style: { marginTop: '50px' } });
-                  queryClient.invalidateQueries();
-                } catch (err: unknown) {
-                  console.error(err);
-                  const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-                  toast.error(`Erro: ${errorMessage}`, { id: toastId, style: { marginTop: '50px' } });
-                }
-              }}
-              className="bg-slate-800/50 border-slate-400/20 text-slate-200 hover:bg-slate-700/50 h-8 text-xs"
-            >
-              Plano Prata
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                const toastId = toast.loading('Alterando para Ouro...', { style: { marginTop: '50px' } });
-                try {
-                  const { supabase } = await import('@/integrations/supabase/client');
-
-                  const { error } = await supabase.from('user_subscriptions').upsert({
-                    user_id: user.id,
-                    plan_id: 'gold',
-                    plan_name: 'Ouro',
-                    is_active: true,
-                    can_see_who_liked: true,
-                    can_video_call: true,
-                    can_use_advanced_filters: true,
-                    is_profile_boosted: true,
-                    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                  }, { onConflict: 'user_id' });
-
-                  if (error) throw error;
-                  toast.success('Alterado para Ouro!', { id: toastId, style: { marginTop: '50px' } });
-                  queryClient.invalidateQueries();
-                } catch (err: unknown) {
-                  console.error(err);
-                  const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-                  toast.error(`Erro: ${errorMessage}`, { id: toastId, style: { marginTop: '50px' } });
-                }
-              }}
-              className="bg-yellow-950/30 border-yellow-500/20 text-yellow-200 hover:bg-yellow-900/50 h-8 text-xs"
-            >
-              Plano Ouro
-            </Button>
-
-            {/* ── Flow demo buttons ── */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setPixCode('00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-42661417400052040000530398654040.005802BR5913EncontroComFe6008Brasilia62070503***6304E2CA');
-                setPixQrCode('https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Link_pra_pagina_principal_da_Wikipedia-PT_em_codigo_QR_b.svg/1200px-Link_pra_pagina_principal_da_Wikipedia-PT_em_codigo_QR_b.svg.png');
-                setPaymentId('mock-demo-' + Date.now());
-                setPixTotalAmount(12.90);
-                setShowPixPayment(true);
-              }}
-              className="bg-cyan-950/30 border-cyan-500/20 text-cyan-200 hover:bg-cyan-900/50 h-8 text-xs col-span-2"
-            >
-              🧧 Simular Tela PIX
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setCheckoutInfo({ name: 'Demo User', email: 'demo@demo.com', phone: '' });
-                setShowThankYou(true);
-              }}
-              className="bg-green-950/30 border-green-500/20 text-green-200 hover:bg-green-900/50 h-8 text-xs col-span-2"
-            >
-              🎉 Simular Tela Obrigado
-            </Button>
-          </div>
-        </div>
-      )}
 
       <CheckoutDialog
         open={showCheckout}
