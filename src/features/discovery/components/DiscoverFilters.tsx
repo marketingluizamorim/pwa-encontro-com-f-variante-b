@@ -358,7 +358,11 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               setShowUpgradeDialog(true);
             }}
           >
-            <div className={cn("px-2 pt-2 transition-all", !isGold && "opacity-40 grayscale pointer-events-none")}>
+            <div
+              className={cn("px-2 pt-2 pb-3 transition-all", !isGold && "opacity-40 grayscale pointer-events-none")}
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
               <Slider
                 value={[localFilters.minAge, localFilters.maxAge]}
                 onValueChange={handleAgeChange}
@@ -404,7 +408,11 @@ export default function DiscoverFilters({ filters, onFiltersChange, onApply, tri
               setShowUpgradeDialog(true);
             }}
           >
-            <div className={cn("px-2 pt-2 transition-all", !isGold && "opacity-40 grayscale")}>
+            <div
+              className={cn("px-2 pt-2 pb-3 transition-all", !isGold && "opacity-40 grayscale")}
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
               <Slider
                 value={[localFilters.maxDistance]}
                 onValueChange={(values) => setLocalFilters(prev => ({ ...prev, maxDistance: values[0] }))}
