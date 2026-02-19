@@ -248,12 +248,8 @@ export function CheckoutDialog({
         try {
             const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
 
-            // Get the logged-in user BEFORE the insert (required by RLS)
+            // Try to get the logged-in user (optional — funnel runs before registration)
             const { data: { user } } = await supabaseRuntime.auth.getUser();
-            if (!user) {
-                toast.error('Faça login para testar a compra', { style: { marginTop: '50px' } });
-                return;
-            }
 
             const orderBumpsList: string[] = [];
             if (orderBumps?.allRegions) orderBumpsList.push('allRegions');
@@ -263,7 +259,8 @@ export function CheckoutDialog({
 
             const mockPaymentId = `dev-test-${Date.now()}`;
 
-            // Insert purchase with user_id upfront so RLS WITH CHECK passes
+            // If logged in: include user_id so RLS "Users can insert own purchases" passes.
+            // If anonymous: omit user_id so RLS "Anonymous can insert without user_id" passes.
             const { data: purchase, error } = await supabaseRuntime
                 .from('purchases')
                 .insert({
@@ -271,7 +268,7 @@ export function CheckoutDialog({
                     plan_name: planName || 'Plano Teste',
                     plan_price: planPrice,
                     total_price: planPrice,
-                    user_id: user.id,
+                    ...(user ? { user_id: user.id } : {}),
                     user_name: name,
                     user_email: email,
                     user_phone: phone ? `+55 ${phone}` : null,
@@ -286,8 +283,8 @@ export function CheckoutDialog({
 
             if (error) throw new Error(error.message);
 
-            // Activate subscription via Edge Function
-            if (purchase) {
+            // If logged in, activate subscription via Edge Function
+            if (user && purchase) {
                 await supabaseRuntime.functions.invoke('check-payment-status', {
                     body: { paymentId: mockPaymentId },
                 });
@@ -295,7 +292,6 @@ export function CheckoutDialog({
 
             toast.success('✅ Compra de teste criada!', { style: { marginTop: '50px' } });
 
-            // Trigger same post-payment flow as real purchase
             if (onTestPurchaseComplete) {
                 onTestPurchaseComplete({ name, email, phone: phone ? `+55 ${phone}` : '' });
             } else {
