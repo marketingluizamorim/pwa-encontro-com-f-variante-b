@@ -121,7 +121,7 @@ function FloatingInput({
                 <Check className="w-3.5 h-3.5 text-emerald-400" />
             </span>
 
-            {error && <p className="text-[10px] text-red-400 mt-1 pl-1">{error}</p>}
+            {error && <p className="text-[12px] text-red-400 mt-1 pl-1">{error}</p>}
         </div>
     );
 }
