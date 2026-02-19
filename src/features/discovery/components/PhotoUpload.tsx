@@ -2,8 +2,9 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Camera, X, Plus, Loader2, GripVertical, Image as ImageIcon } from 'lucide-react';
+import { Camera, X, Plus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PhotoUploadProps {
@@ -24,9 +25,8 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
       return null;
     }
 
-    // Bypass for Mock/Test Users
+    // Mock/test users: bypass storage
     if (user.id.startsWith('mock-')) {
-      console.log('Mock upload - returning local URL');
       return URL.createObjectURL(file);
     }
 
@@ -42,16 +42,11 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
     }
 
     try {
-      const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-
-
-
       // Generate unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-      // Upload to storage
-      const { error: uploadError } = await supabaseRuntime.storage
+      const { error: uploadError } = await supabase.storage
         .from('profile-photos')
         .upload(fileName, file, {
           cacheControl: '3600',
@@ -63,8 +58,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
         throw uploadError;
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabaseRuntime.storage
+      const { data: { publicUrl } } = supabase.storage
         .from('profile-photos')
         .getPublicUrl(fileName);
 
@@ -114,16 +108,13 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
   const removePhoto = async (index: number) => {
     const photoUrl = photos[index];
 
-    // Extract file path from URL
     try {
-      const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
       const urlParts = photoUrl.split('/profile-photos/');
       if (urlParts.length > 1) {
-        const filePath = urlParts[1];
-        await supabaseRuntime.storage.from('profile-photos').remove([filePath]);
+        await supabase.storage.from('profile-photos').remove([urlParts[1]]);
       }
-    } catch (error) {
-      console.warn('Could not delete from storage:', error);
+    } catch {
+      // Non-critical: photo removed from UI even if storage cleanup fails
     }
 
     // Update photos array

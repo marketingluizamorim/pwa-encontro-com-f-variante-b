@@ -147,8 +147,7 @@ export default function Profile() {
             table: 'profiles',
             filter: `user_id=eq.${targetUserId}`,
           },
-          (payload: any) => {
-            console.log('Profile updated in real-time:', payload);
+          () => {
             queryClient.invalidateQueries({ queryKey: ['profile', targetUserId] });
           }
         )
