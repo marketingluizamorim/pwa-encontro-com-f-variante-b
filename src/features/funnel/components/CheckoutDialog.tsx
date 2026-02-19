@@ -260,7 +260,7 @@ export function CheckoutDialog({
                             {planLabel || 'Plano'}
                         </span>
                         <div className="flex items-baseline gap-[6px]">
-                            <span className="text-[12px] text-white/25 line-through">
+                            <span className="text-[13px] text-white/25 line-through">
                                 R$ {oldPrice.toFixed(2).replace('.', ',')}
                             </span>
                             <span className="text-[15px] font-medium text-white">
