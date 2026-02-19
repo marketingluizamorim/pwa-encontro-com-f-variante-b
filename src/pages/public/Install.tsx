@@ -493,7 +493,7 @@ export default function Install() {
               <i className="ri-apps-2-line text-base text-green-400" />
             </div>
             <p className="text-xs text-green-300/80 leading-relaxed">
-              ✅ O app <span className="font-semibold text-green-300">Encontro com Fé</span> aparecerá na sua lista de aplicativos e na tela inicial.
+              O app <span className="font-semibold text-green-300">Encontro com Fé</span> aparecerá na sua lista de aplicativos e na tela inicial.
             </p>
           </div>
         </div>
