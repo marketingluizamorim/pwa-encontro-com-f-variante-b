@@ -248,6 +248,13 @@ export function CheckoutDialog({
         try {
             const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
 
+            // Get the logged-in user BEFORE the insert (required by RLS)
+            const { data: { user } } = await supabaseRuntime.auth.getUser();
+            if (!user) {
+                toast.error('Faça login para testar a compra', { style: { marginTop: '50px' } });
+                return;
+            }
+
             const orderBumpsList: string[] = [];
             if (orderBumps?.allRegions) orderBumpsList.push('allRegions');
             if (orderBumps?.grupoEvangelico) orderBumpsList.push('grupoEvangelico');
@@ -256,7 +263,7 @@ export function CheckoutDialog({
 
             const mockPaymentId = `dev-test-${Date.now()}`;
 
-            // Insert purchase directly as PAID
+            // Insert purchase with user_id upfront so RLS WITH CHECK passes
             const { data: purchase, error } = await supabaseRuntime
                 .from('purchases')
                 .insert({
@@ -264,6 +271,7 @@ export function CheckoutDialog({
                     plan_name: planName || 'Plano Teste',
                     plan_price: planPrice,
                     total_price: planPrice,
+                    user_id: user.id,
                     user_name: name,
                     user_email: email,
                     user_phone: phone ? `+55 ${phone}` : null,
@@ -276,17 +284,10 @@ export function CheckoutDialog({
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) throw new Error(error.message);
 
-            // Try to link to logged-in user and activate subscription
-            const { data: { user } } = await supabaseRuntime.auth.getUser();
-            if (user && purchase) {
-                await supabaseRuntime
-                    .from('purchases')
-                    .update({ user_id: user.id })
-                    .eq('id', purchase.id);
-
-                // Activate subscription via Edge Function
+            // Activate subscription via Edge Function
+            if (purchase) {
                 await supabaseRuntime.functions.invoke('check-payment-status', {
                     body: { paymentId: mockPaymentId },
                 });
@@ -301,8 +302,9 @@ export function CheckoutDialog({
                 onSubmit({ name, email, phone: phone ? `+55 ${phone}` : '' });
             }
         } catch (err) {
-            console.error('[TestPurchase]', err);
-            toast.error('Erro ao criar compra de teste', { style: { marginTop: '50px' } });
+            const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+            console.error('[TestPurchase]', msg);
+            toast.error(`Erro: ${msg}`, { style: { marginTop: '50px' } });
         } finally {
             setIsTesting(false);
         }
