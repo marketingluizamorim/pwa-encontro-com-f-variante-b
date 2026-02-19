@@ -1,73 +1,37 @@
 /**
- * TouchSlider — drag slider that works inside vaul Drawer.
+ * TouchSlider — slider com drag que funciona dentro de vaul Drawer.
  *
- * Architecture:
- * - Uses touch events (touchstart/touchmove/touchend) via React.
- * - The outer container has data-vaul-no-drag so vaul's swipe handler skips it.
- * - Tracks active drag state in refs (no state updates during drag = no lag).
- * - Supports single thumb and dual range thumbs.
- * - Premium visual: large hit area (44px), teal fill, scale-on-press thumb.
+ * Por que não usar onTouchMove do React?
+ * React 17+ registra todos os handlers de toque como `passive: true` no root.
+ * Isso significa que e.preventDefault() dentro de onTouchMove é um no-op.
+ * O browser então interpreta o toque como scroll, move o container,
+ * e getBoundingClientRect() retorna posições erradas → slider "anda só uma casa".
+ *
+ * Solução:
+ * 1. `touch-action: none` no container: browser nunca usa esse elemento para scroll.
+ * 2. addEventListener manual com { passive: false } para os move/end events:
+ *    permite e.preventDefault() real que bloqueia qualquer scroll residual.
+ * 3. Refs para onChange/values: sem closures staleas durante o drag.
+ * 4. data-vaul-no-drag: bypasa o shouldDrag() do vaul como segunda barreira.
+ * 5. dismissible={false} no Drawer pai: vaul não chama setPointerCapture.
  */
 
 import { useRef, useCallback, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function snap(value: number, min: number, max: number, step: number): number {
     const snapped = Math.round((value - min) / step) * step + min;
     return Math.min(max, Math.max(min, snapped));
 }
 
-function clientXToValue(clientX: number, el: HTMLElement, min: number, max: number, step: number): number {
-    const rect = el.getBoundingClientRect();
-    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    return snap(min + pct * (max - min), min, max, step);
-}
-
-// ── Thumb component ───────────────────────────────────────────────────────────
-
-function Thumb({ pct, active }: { pct: number; active: boolean }) {
-    return (
-        <div
-            className={cn(
-                'absolute top-1/2 -translate-y-1/2 -translate-x-1/2',
-                'w-7 h-7 rounded-full bg-background border-[2.5px] border-primary',
-                'shadow-[0_2px_10px_rgba(0,0,0,0.4)] transition-transform duration-75',
-                active && 'scale-125 shadow-[0_0_0_8px_hsl(var(--primary)/0.2)]',
-            )}
-            style={{ left: `${pct}%` }}
-        />
-    );
-}
-
-// ── Track / Fill ──────────────────────────────────────────────────────────────
-
-function Track({
-    fillLeft,
-    fillWidth,
-    children,
-}: {
-    fillLeft: number;
-    fillWidth: number;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="relative flex items-center w-full h-11">
-            {/* Track bg */}
-            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-white/10 pointer-events-none" />
-            {/* Fill */}
-            <div
-                className="absolute top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-primary pointer-events-none"
-                style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
-            />
-            {children}
-        </div>
-    );
+function clientXFromEvent(e: TouchEvent | MouseEvent): number {
+    return 'touches' in e ? e.touches[0].clientX : e.clientX;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Single Slider
+// SingleSlider
 // ══════════════════════════════════════════════════════════════════════════════
 
 interface SingleSliderProps {
@@ -90,72 +54,99 @@ export function SingleSlider({
     className,
 }: SingleSliderProps) {
     const trackRef = useRef<HTMLDivElement>(null);
-    const dragging = useRef(false);
+    const isDragging = useRef(false);
     const [active, setActive] = useState(false);
 
-    const pct = ((value - min) / (max - min)) * 100;
+    // Refs para evitar closures stale no handler de evento manual
+    const onChangeRef = useRef(onChange);
+    const valueRef = useRef(value);
+    useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+    useEffect(() => { valueRef.current = value; }, [value]);
 
-    const getValue = useCallback(
-        (clientX: number) => clientXToValue(clientX, trackRef.current!, min, max, step),
-        [min, max, step],
-    );
-
-    const onTouchStart = (e: React.TouchEvent) => {
-        if (disabled) return;
-        // Only start drag if touch is near the thumb (within 36px)
+    const getValueFromClientX = useCallback((clientX: number) => {
         const rect = trackRef.current!.getBoundingClientRect();
-        const thumbX = rect.left + (pct / 100) * rect.width;
-        const touchX = e.touches[0].clientX;
-        if (Math.abs(touchX - thumbX) > 44) {
-            // Touch on track: jump to position immediately
-            onChange(getValue(touchX));
+        const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        return snap(min + pct * (max - min), min, max, step);
+    }, [min, max, step]);
+
+    const getValueFromClientXRef = useRef(getValueFromClientX);
+    useEffect(() => { getValueFromClientXRef.current = getValueFromClientX; }, [getValueFromClientX]);
+
+    useEffect(() => {
+        const el = trackRef.current;
+        if (!el) return;
+
+        function onMove(e: TouchEvent | MouseEvent) {
+            if (!isDragging.current) return;
+            e.preventDefault(); // funciona pois ispassive:false
+            const newVal = getValueFromClientXRef.current(clientXFromEvent(e));
+            onChangeRef.current(newVal);
         }
-        dragging.current = true;
-        setActive(true);
-        e.stopPropagation();
-    };
 
-    const onTouchMove = (e: React.TouchEvent) => {
-        if (!dragging.current || disabled) return;
-        e.preventDefault(); // prevent page scroll while dragging
-        e.stopPropagation();
-        onChange(getValue(e.touches[0].clientX));
-    };
+        function onEnd() {
+            if (!isDragging.current) return;
+            isDragging.current = false;
+            setActive(false);
+        }
 
-    const onTouchEnd = () => {
-        dragging.current = false;
-        setActive(false);
-    };
+        el.addEventListener('touchmove', onMove, { passive: false });
+        el.addEventListener('touchend', onEnd, { passive: true });
+        el.addEventListener('mousemove', onMove);
+        el.addEventListener('mouseup', onEnd);
+
+        return () => {
+            el.removeEventListener('touchmove', onMove);
+            el.removeEventListener('touchend', onEnd);
+            el.removeEventListener('mousemove', onMove);
+            el.removeEventListener('mouseup', onEnd);
+        };
+    }, []); // só registra uma vez — usa refs dentro
+
+    const pct = ((value - min) / (max - min)) * 100;
 
     return (
         <div
             ref={trackRef}
-            className={cn('relative cursor-pointer select-none', className)}
+            className={cn('relative flex items-center w-full select-none cursor-pointer', className)}
+            style={{ height: 44, touchAction: 'none' }}
             data-vaul-no-drag
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-            // Mouse support for desktop
+            onTouchStart={(e) => {
+                if (disabled) return;
+                isDragging.current = true;
+                setActive(true);
+                onChangeRef.current(getValueFromClientXRef.current(e.touches[0].clientX));
+                e.stopPropagation();
+            }}
             onMouseDown={(e) => {
                 if (disabled) return;
-                dragging.current = true;
+                isDragging.current = true;
                 setActive(true);
-                onChange(getValue(e.clientX));
-                const move = (ev: MouseEvent) => { if (dragging.current) onChange(getValue(ev.clientX)); };
-                const up = () => { dragging.current = false; setActive(false); window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
-                window.addEventListener('mousemove', move);
-                window.addEventListener('mouseup', up);
+                onChangeRef.current(getValueFromClientXRef.current(e.clientX));
             }}
         >
-            <Track fillLeft={0} fillWidth={pct}>
-                <Thumb pct={pct} active={active} />
-            </Track>
+            {/* Track BG */}
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-white/10 pointer-events-none" />
+            {/* Fill */}
+            <div
+                className="absolute top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-primary pointer-events-none"
+                style={{ left: 0, width: `${pct}%` }}
+            />
+            {/* Thumb */}
+            <div
+                className={cn(
+                    'absolute top-1/2 -translate-y-1/2 -translate-x-1/2',
+                    'w-7 h-7 rounded-full bg-background border-[2.5px] border-primary',
+                    'shadow-[0_2px_10px_rgba(0,0,0,0.4)] pointer-events-none transition-transform duration-75',
+                    active && 'scale-125 shadow-[0_0_0_8px_hsl(var(--primary)/0.2)]',
+                )}
+                style={{ left: `${pct}%` }}
+            />
         </div>
     );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Range Slider (two thumbs)
+// RangeSlider (dois thumbs)
 // ══════════════════════════════════════════════════════════════════════════════
 
 interface RangeSliderProps {
@@ -178,95 +169,120 @@ export function RangeSlider({
     className,
 }: RangeSliderProps) {
     const trackRef = useRef<HTMLDivElement>(null);
-    // 'lo' | 'hi' | null
     const activeThumb = useRef<'lo' | 'hi' | null>(null);
     const [activeState, setActiveState] = useState<'lo' | 'hi' | null>(null);
+
+    // Refs para evitar closures stale durante o drag
+    const onChangeRef = useRef(onChange);
+    const valuesRef = useRef(values);
+    useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+    useEffect(() => { valuesRef.current = values; }, [values]);
+
+    const getValueFromClientX = useCallback((clientX: number) => {
+        const rect = trackRef.current!.getBoundingClientRect();
+        const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        return snap(min + pct * (max - min), min, max, step);
+    }, [min, max, step]);
+
+    const getValueFromClientXRef = useRef(getValueFromClientX);
+    useEffect(() => { getValueFromClientXRef.current = getValueFromClientX; }, [getValueFromClientX]);
+
+    const applyMove = useCallback((clientX: number, thumb: 'lo' | 'hi') => {
+        const raw = getValueFromClientXRef.current(clientX);
+        const [lo, hi] = valuesRef.current;
+        if (thumb === 'lo') {
+            onChangeRef.current([Math.min(raw, hi - step), hi]);
+        } else {
+            onChangeRef.current([lo, Math.max(raw, lo + step)]);
+        }
+    }, [step]);
+
+    const applyMoveRef = useRef(applyMove);
+    useEffect(() => { applyMoveRef.current = applyMove; }, [applyMove]);
+
+    // Registra move/end como non-passive uma vez
+    useEffect(() => {
+        const el = trackRef.current;
+        if (!el) return;
+
+        function onMove(e: TouchEvent | MouseEvent) {
+            if (!activeThumb.current) return;
+            e.preventDefault();
+            applyMoveRef.current(clientXFromEvent(e), activeThumb.current);
+        }
+
+        function onEnd() {
+            if (!activeThumb.current) return;
+            activeThumb.current = null;
+            setActiveState(null);
+        }
+
+        el.addEventListener('touchmove', onMove, { passive: false });
+        el.addEventListener('touchend', onEnd, { passive: true });
+        el.addEventListener('mousemove', onMove);
+        el.addEventListener('mouseup', onEnd);
+
+        return () => {
+            el.removeEventListener('touchmove', onMove);
+            el.removeEventListener('touchend', onEnd);
+            el.removeEventListener('mousemove', onMove);
+            el.removeEventListener('mouseup', onEnd);
+        };
+    }, []);
+
+    const closestThumb = useCallback((clientX: number): 'lo' | 'hi' => {
+        const rect = trackRef.current!.getBoundingClientRect();
+        const [lo, hi] = valuesRef.current;
+        const loX = rect.left + ((lo - min) / (max - min)) * rect.width;
+        const hiX = rect.left + ((hi - min) / (max - min)) * rect.width;
+        return Math.abs(clientX - loX) <= Math.abs(clientX - hiX) ? 'lo' : 'hi';
+    }, [min, max]);
 
     const [lo, hi] = values;
     const loPct = ((lo - min) / (max - min)) * 100;
     const hiPct = ((hi - min) / (max - min)) * 100;
 
-    const getValue = useCallback(
-        (clientX: number) => clientXToValue(clientX, trackRef.current!, min, max, step),
-        [min, max, step],
-    );
-
-    // Determine which thumb is closer to the touch point
-    const closestThumb = useCallback(
-        (clientX: number): 'lo' | 'hi' => {
-            const rect = trackRef.current!.getBoundingClientRect();
-            const loX = rect.left + (loPct / 100) * rect.width;
-            const hiX = rect.left + (hiPct / 100) * rect.width;
-            return Math.abs(clientX - loX) <= Math.abs(clientX - hiX) ? 'lo' : 'hi';
-        },
-        [loPct, hiPct],
-    );
-
-    const applyValue = useCallback(
-        (rawValue: number, thumb: 'lo' | 'hi') => {
-            if (thumb === 'lo') {
-                onChange([Math.min(rawValue, hi - step), hi]);
-            } else {
-                onChange([lo, Math.max(rawValue, lo + step)]);
-            }
-        },
-        [lo, hi, step, onChange],
-    );
-
-    const onTouchStart = (e: React.TouchEvent) => {
-        if (disabled) return;
-        const clientX = e.touches[0].clientX;
-        const thumb = closestThumb(clientX);
-        activeThumb.current = thumb;
-        setActiveState(thumb);
-        applyValue(getValue(clientX), thumb);
-        e.stopPropagation();
-    };
-
-    const onTouchMove = (e: React.TouchEvent) => {
-        if (!activeThumb.current || disabled) return;
-        e.preventDefault();
-        e.stopPropagation();
-        applyValue(getValue(e.touches[0].clientX), activeThumb.current);
-    };
-
-    const onTouchEnd = () => {
-        activeThumb.current = null;
-        setActiveState(null);
-    };
+    const thumbCls = (which: 'lo' | 'hi') =>
+        cn(
+            'absolute top-1/2 -translate-y-1/2 -translate-x-1/2',
+            'w-7 h-7 rounded-full bg-background border-[2.5px] border-primary',
+            'shadow-[0_2px_10px_rgba(0,0,0,0.4)] pointer-events-none transition-transform duration-75',
+            activeState === which && 'scale-125 shadow-[0_0_0_8px_hsl(var(--primary)/0.2)]',
+        );
 
     return (
         <div
             ref={trackRef}
-            className={cn('relative cursor-pointer select-none', className)}
+            className={cn('relative flex items-center w-full select-none cursor-pointer', className)}
+            style={{ height: 44, touchAction: 'none' }}
             data-vaul-no-drag
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-            // Mouse support
+            onTouchStart={(e) => {
+                if (disabled) return;
+                const thumb = closestThumb(e.touches[0].clientX);
+                activeThumb.current = thumb;
+                setActiveState(thumb);
+                applyMoveRef.current(e.touches[0].clientX, thumb);
+                e.stopPropagation();
+            }}
             onMouseDown={(e) => {
                 if (disabled) return;
                 const thumb = closestThumb(e.clientX);
                 activeThumb.current = thumb;
                 setActiveState(thumb);
-                applyValue(getValue(e.clientX), thumb);
-                const move = (ev: MouseEvent) => {
-                    if (activeThumb.current) applyValue(getValue(ev.clientX), activeThumb.current);
-                };
-                const up = () => {
-                    activeThumb.current = null;
-                    setActiveState(null);
-                    window.removeEventListener('mousemove', move);
-                    window.removeEventListener('mouseup', up);
-                };
-                window.addEventListener('mousemove', move);
-                window.addEventListener('mouseup', up);
+                applyMoveRef.current(e.clientX, thumb);
             }}
         >
-            <Track fillLeft={loPct} fillWidth={hiPct - loPct}>
-                <Thumb pct={loPct} active={activeState === 'lo'} />
-                <Thumb pct={hiPct} active={activeState === 'hi'} />
-            </Track>
+            {/* Track BG */}
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-white/10 pointer-events-none" />
+            {/* Fill entre os dois thumbs */}
+            <div
+                className="absolute top-1/2 -translate-y-1/2 h-[6px] rounded-full bg-primary pointer-events-none"
+                style={{ left: `${loPct}%`, width: `${hiPct - loPct}%` }}
+            />
+            {/* Low thumb */}
+            <div className={thumbCls('lo')} style={{ left: `${loPct}%` }} />
+            {/* High thumb */}
+            <div className={thumbCls('hi')} style={{ left: `${hiPct}%` }} />
         </div>
     );
 }
