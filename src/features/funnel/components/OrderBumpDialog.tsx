@@ -224,8 +224,8 @@ export function OrderBumpDialog({
               // Single bump - show directly
               selectedBumpsList.map(bump => (
                 <div key={bump.id} className="flex items-center justify-between text-xs mt-1.5">
-                  <span className="text-white/60 text-xs font-medium border-b border-dashed border-white/20 pb-0.5">+ {bump.name}</span>
-                  <span className="font-bold text-white">
+                  <span className="text-white/60 text-xs font-medium pb-0.5">+ {bump.name}</span>
+                  <span className="font-medium text-white/60">
                     R$ {bump.price.toFixed(2).replace('.', ',')}
                   </span>
                 </div>
