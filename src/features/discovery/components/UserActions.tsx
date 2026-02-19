@@ -233,9 +233,9 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
             <AlertDialogDescription className="space-y-3 text-left">
               <p className="text-base">Sua denúncia foi registrada e as seguintes ações foram tomadas:</p>
               <ul className="list-disc pl-5 space-y-2 text-left">
-                <li>✅ Denúncia enviada para nossa equipe de moderação</li>
-                <li>🔒 Usuário bloqueado automaticamente</li>
-                <li>👁️ Você não verá mais este perfil</li>
+                <li>Denúncia enviada para nossa equipe de moderação</li>
+                <li>Usuário bloqueado automaticamente</li>
+                <li>Você não verá mais este perfil</li>
               </ul>
               <p className="text-sm text-muted-foreground mt-4">
                 Nossa equipe irá analisar e tomar as providências necessárias.

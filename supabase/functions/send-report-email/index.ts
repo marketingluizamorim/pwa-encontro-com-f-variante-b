@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: "Encontro com Fé <noreply@encontroscomfe.site>",
-        to: ["suporte@encontroscomfe.site"],
+        to: ["suporte.encontrocomfe@gmail.com"],
         subject: emailSubject,
         html: emailBody,
       }),
