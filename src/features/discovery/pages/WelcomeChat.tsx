@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Download, Heart, MessageCircle, Star, Users, Zap, Shield, Bell } from 'lucide-react';
+import { ArrowLeft, Download, Heart, MessageCircle, Star, Users, Zap, Shield, Bell, Sparkles } from 'lucide-react';
 
 const MESSAGES = [
     {
@@ -61,6 +61,13 @@ const MESSAGES = [
         text: 'Adicione fotos, bio e interesses. Perfis completos têm até 3x mais Conexões!',
     },
     {
+        id: 9.5,
+        type: 'section',
+        icon: <Sparkles className="w-5 h-5 text-amber-400" />,
+        title: 'Perfil em Destaque',
+        text: 'Com os planos Prata ou Ouro, seu perfil aparece em primeiro para mais pessoas — aumentando muito suas chances de novas Conexões!',
+    },
+    {
         id: 10,
         type: 'tip',
         icon: <Bell className="w-5 h-5 text-indigo-400" />,
@@ -76,7 +83,7 @@ const MESSAGES = [
     },
     {
         id: 12,
-        text: '✨ Felizes em ter você aqui! Que você encontre a pessoa certa. Qualquer dúvida, estamos aqui. 🙏',
+        text: 'Felizes em ter você aqui! Que você encontre a pessoa certa.',
     },
 ];
 
