@@ -27,7 +27,7 @@ const ORDER_BUMPS: OrderBump[] = [{
   badge: '🔥 67% das pessoas escolhem esta opção'
 }, {
   id: 'filtros',
-  name: 'Filtros de Idade e Distância',
+  name: 'Filtros Avançados',
   description: 'Encontre pessoas na faixa de idade e distância ideal.',
   price: 5.0,
   image: filtrosImage,
