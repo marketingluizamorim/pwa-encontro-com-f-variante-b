@@ -203,7 +203,7 @@ export function OrderBumpDialog({
                     + Extras ({selectedBumps.length})
                     {extrasExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                   </span>
-                  <span className="font-medium text-white">
+                  <span className="font-medium text-white/60">
                     R$ {calculateExtra().toFixed(2).replace('.', ',')}
                   </span>
                 </button>
