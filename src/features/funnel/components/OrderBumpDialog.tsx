@@ -109,7 +109,7 @@ export function OrderBumpDialog({
   return <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto rounded-[2rem] bg-[#1e293b]/95 backdrop-blur-2xl border-white/10 text-white shadow-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
       {/* Content Area - Scrollable */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide min-h-0">
+      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2 scrollbar-hide min-h-0">
         {/* Header - Compact */}
         <div className="text-center mb-3 flex-shrink-0">
           <DialogTitle className="font-serif text-2xl text-white tracking-tight leading-none" style={{ fontWeight: 600 }}>
@@ -124,7 +124,7 @@ export function OrderBumpDialog({
         </div>
 
         {/* Order Bump Cards */}
-        <div className="space-y-3 pb-2">
+        <div className="space-y-3 pb-0">
           {ORDER_BUMPS.filter(bump => {
             if (selectedPlan?.id === 'silver' && bump.id === 'regions') return false;
             return true;
