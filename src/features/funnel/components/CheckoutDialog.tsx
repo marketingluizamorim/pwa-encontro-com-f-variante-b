@@ -241,7 +241,7 @@ export function CheckoutDialog({
 
                 {/* ── Header ── */}
                 <div className="flex items-center justify-between px-4 pt-4 pb-0">
-                    <h2 className="text-[17px] font-extrabold text-white">
+                    <h2 className="text-[17px] text-white" style={{ fontWeight: 700 }}>
                         Finalizar Assinatura
                     </h2>
                     <button
