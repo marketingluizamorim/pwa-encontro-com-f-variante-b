@@ -388,7 +388,7 @@ export default function DiscoverFilters({
             width: '100%',
           }}
         >
-          <div className="py-4 space-y-5" style={{ width: '100%', boxSizing: 'border-box', paddingLeft: '1.25rem', paddingRight: '1.25rem', overflowX: 'hidden' }}>
+          <div className="py-4 space-y-5" style={{ width: '100%', boxSizing: 'border-box', paddingLeft: '1.25rem', paddingRight: '1.25rem', overflowX: 'hidden', fontSize: '0.95rem' }}>
 
             {/* ── Faixa de Idade ── */}
             <div>
