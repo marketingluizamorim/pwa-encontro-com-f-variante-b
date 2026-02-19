@@ -1,0 +1,145 @@
+/**
+ * native-slider.css
+ * Cross-browser styling for <input type="range"> (webkit + moz + ms).
+ * Uses CSS custom property --pct to drive the fill gradient.
+ */
+
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+.native-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 28px;
+    /* tall hit area for easy touch */
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+    margin: 0;
+    padding: 0;
+    display: block;
+    touch-action: none;
+    /* prevent scroll conflict on the slider itself */
+}
+
+/* ── Track ─────────────────────────────────────────────────────────────────── */
+.native-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    /* Fill from left to --pct using primary color; rest is muted */
+    background: linear-gradient(to right,
+            hsl(var(--primary)) 0%,
+            hsl(var(--primary)) var(--pct, 50%),
+            hsl(var(--muted)) var(--pct, 50%),
+            hsl(var(--muted)) 100%);
+}
+
+.native-slider::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: hsl(var(--muted));
+}
+
+.native-slider::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+}
+
+/* ── Thumb ─────────────────────────────────────────────────────────────────── */
+.native-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: hsl(var(--background));
+    border: 2.5px solid hsl(var(--primary));
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 0 0 0 hsl(var(--primary) / 0.3);
+    margin-top: -11px;
+    /* center thumb on track: (28 - 6) / 2 */
+    cursor: grab;
+    transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.native-slider:active::-webkit-slider-thumb {
+    cursor: grabbing;
+    transform: scale(1.18);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 6px hsl(var(--primary) / 0.2);
+}
+
+.native-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: hsl(var(--background));
+    border: 2.5px solid hsl(var(--primary));
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    cursor: grab;
+    transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.native-slider:active::-moz-range-thumb {
+    cursor: grabbing;
+    transform: scale(1.18);
+}
+
+/* ── Range (dual thumb) layout ─────────────────────────────────────────────── */
+/* Both inputs are stacked; thumb-only shows on each */
+
+.range-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    /* track won't intercept clicks, only thumb will */
+}
+
+/* Allow pointer events only on the thumb */
+.range-overlay::-webkit-slider-thumb {
+    pointer-events: all;
+}
+
+.range-overlay::-moz-range-thumb {
+    pointer-events: all;
+}
+
+/* Hide the track on overlay inputs (the custom track is rendered in HTML) */
+.range-overlay::-webkit-slider-runnable-track {
+    background: transparent;
+}
+
+.range-overlay::-moz-range-track {
+    background: transparent;
+}
+
+.range-overlay::-moz-range-progress {
+    background: transparent;
+}
+
+/* ── Shared track container (for dual-thumb) ───────────────────────────────── */
+.range-track-container {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 6px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: hsl(var(--muted));
+    pointer-events: none;
+}
+
+.range-track-fill {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    pointer-events: none;
+}
+
+/* ── Disabled state ────────────────────────────────────────────────────────── */
+.native-slider:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
