@@ -1,9 +1,12 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-
 import { motion } from 'framer-motion';
-import { ArrowLeft, Download, Heart, MessageCircle, Star, Users, Zap, Shield, Bell, Sparkles, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, Download, Heart, MessageCircle, Star, Users, Zap, Shield, Bell, Sparkles } from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 
 const MESSAGES = [
@@ -93,12 +96,10 @@ const MESSAGES = [
 
 export default function WelcomeChat() {
     const navigate = useNavigate();
-    const [menuOpen, setMenuOpen] = useState(false);
 
     const handleDelete = () => {
         localStorage.setItem('welcome-chat-hidden', '1');
         localStorage.setItem('welcome-chat-read', '1');
-        setMenuOpen(false);
         navigate(-1);
     };
 
@@ -120,29 +121,19 @@ export default function WelcomeChat() {
                     <p className="text-xs text-emerald-500 font-medium">Equipe do App</p>
                 </div>
 
-                {/* 3-dots menu */}
-                <div className="relative flex-shrink-0">
-                    <button
-                        onClick={() => setMenuOpen(v => !v)}
-                        className="w-9 h-9 rounded-full flex items-center justify-center text-foreground/60 hover:bg-muted transition-colors"
-                    >
-                        <MoreHorizontal className="w-5 h-5" />
-                    </button>
-                    {menuOpen && (
-                        <>
-                            <div className="fixed inset-0 z-[100]" onClick={() => setMenuOpen(false)} />
-                            <div className="absolute right-0 top-10 z-[101] bg-background border border-border/40 rounded-xl shadow-xl w-44 overflow-hidden">
-                                <button
-                                    onClick={handleDelete}
-                                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-500 hover:bg-muted transition-colors"
-                                >
-                                    <i className="ri-delete-bin-line text-base" />
-                                    Excluir conversa
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </div>
+                {/* 3-dots menu — igual ao ChatRoom */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="p-2">
+                            <i className="ri-more-2-fill text-xl" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                            Excluir conversa
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {/* Messages */}
