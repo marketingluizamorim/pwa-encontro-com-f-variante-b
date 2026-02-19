@@ -15,7 +15,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
   const profiles = getProfilesData(gender, quizAnswers);
 
   return (
-    <div className="h-[100dvh] bg-[#0f172a] relative overflow-y-auto pb-48 flex flex-col items-center w-full">
+    <div className="h-[100dvh] bg-[#0f172a] relative overflow-y-auto pb-52 flex flex-col items-center w-full">
 
       {/* Background Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -171,20 +171,18 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
       </div>
 
       {/* ── Floating CTA ──
-          FIX: pointer-events-none on the whole fixed container (gradient area),
-          so it never intercepts touch/scroll events on the cards beneath.
-          pointer-events-auto is restored only on the interactive button area. */}
+          pointer-events-none on everything except the button itself,
+          so touching the gradient or the social proof label still scrolls the page. */}
       <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
-        {/* Gradient fade — purely visual, no pointer events */}
+        {/* Gradient fade — purely visual */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/95 to-transparent" />
 
-        {/* Button area — interactive zone only */}
-        <div className="relative max-w-md mx-auto px-6 pb-10 pt-32 pointer-events-auto">
-          {/* Social Proof */}
+        <div className="relative max-w-md mx-auto px-6 pb-10 pt-32">
+          {/* Social Proof — pointer-events-none so scroll passes through */}
           <motion.div
             animate={{ y: [0, -4, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-20 left-0 right-0 text-center"
+            className="absolute top-24 left-0 right-0 text-center pointer-events-none"
           >
             <p className="text-white text-xs font-bold tracking-tight drop-shadow-md">
               <HandHeart className="w-4 h-4 inline-block mr-1.5 text-amber-400" />
@@ -192,24 +190,29 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
             </p>
           </motion.div>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onViewPlans}
-            onMouseEnter={() => import('@/features/funnel/pages/Plans')}
-            className="w-full h-14 md:h-16 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] shadow-lg flex items-center justify-center gap-3 text-white font-bold text-lg group transition-all relative overflow-hidden border border-white/20 outline-none focus:outline-none"
-          >
-            <span className="relative flex items-center justify-center gap-2 drop-shadow-md">
-              Ver Quem Quer Te Conhecer
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </motion.button>
+          {/* Button + footnote — only interactive zone */}
+          <div className="pointer-events-auto">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onViewPlans}
+              onMouseEnter={() => import('@/features/funnel/pages/Plans')}
+              className="w-full h-14 md:h-16 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] shadow-lg flex items-center justify-center gap-3 text-white font-bold text-lg group transition-all relative overflow-hidden border border-white/20 outline-none focus:outline-none"
+            >
+              <span className="relative flex items-center justify-center gap-2 drop-shadow-md">
+                Ver Quem Quer Te Conhecer
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </motion.button>
 
-          <p className="text-center text-white/30 text-[9px] font-bold tracking-[0.2em] mt-4 uppercase">
-            Plataforma 100% Segura e Cristã
-          </p>
+            <p className="text-center text-white/30 text-[9px] font-bold tracking-[0.2em] mt-4 uppercase">
+              Plataforma 100% Segura e Cristã
+            </p>
+          </div>
         </div>
       </div>
+
+
 
     </div>
   );
