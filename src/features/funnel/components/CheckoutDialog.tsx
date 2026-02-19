@@ -275,7 +275,7 @@ export function CheckoutDialog({
                             <button
                                 type="button"
                                 onClick={() => setExtrasExpanded(!extrasExpanded)}
-                                className="flex items-center gap-1 mt-[6px] text-[11px] font-semibold text-[#fcd34d]/70 hover:text-[#fcd34d] transition-colors"
+                                className="flex items-center gap-1 mt-[6px] text-[12px] font-semibold text-[#fcd34d]/70 hover:text-[#fcd34d] transition-colors"
                             >
                                 {isPackagePlan
                                     ? 'Ver o que está incluído'
