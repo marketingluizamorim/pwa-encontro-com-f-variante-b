@@ -11,8 +11,20 @@ const NO_SPLASH_PREFIXES = [
 ];
 
 function shouldShowSplash(): boolean {
-  // TEMPORARIAMENTE DESATIVADO PARA DIAGNÓSTICO
-  return false;
+  // Splash SOMENTE em /app/* — nunca em rotas públicas ou do funil
+  const path = window.location.pathname;
+  if (path === '/') return false;
+  if (NO_SPLASH_PREFIXES.some((p) => path === p || path.startsWith(p + '/'))) return false;
+
+  // Só mostra em PWA instalado (standalone)
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+
+  // Não mostrar se já foi exibido nesta sessão
+  const splashShown = sessionStorage.getItem('splashShown') === 'true';
+
+  return isStandalone && !splashShown;
 }
 
 export function useSplashScreen() {
