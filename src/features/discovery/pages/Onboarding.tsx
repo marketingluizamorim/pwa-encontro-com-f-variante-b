@@ -92,14 +92,16 @@ export default function Onboarding() {
   const [[currentSlide, direction], setCurrentSlide] = useState([0, 0]);
 
   // Forward fromConvite state so ProfileSetup can skip the PWA modal
-  const fromConvite = (location.state as { fromConvite?: boolean } | null)?.fromConvite === true;
+  const fromConvite = (location.state as { fromConvite?: boolean; afterSetup?: boolean } | null)?.fromConvite === true;
+  // afterSetup = arrived from ProfileSetup, skip the isCompleted redirect guard
+  const afterSetup = (location.state as { afterSetup?: boolean } | null)?.afterSetup === true;
 
-  // Redirect if already completed onboarding
+  // Redirect if already completed onboarding — but NOT if coming from ProfileSetup
   useEffect(() => {
-    if (!isLoading && isCompleted) {
+    if (!isLoading && isCompleted && !afterSetup) {
       navigate('/app/profile/setup', { replace: true });
     }
-  }, [isLoading, isCompleted, navigate]);
+  }, [isLoading, isCompleted, afterSetup, navigate]);
 
   const paginate = (newDirection: number) => {
     const newSlide = currentSlide + newDirection;
@@ -110,12 +112,12 @@ export default function Onboarding() {
 
   const handleComplete = () => {
     completeOnboarding();
-    navigate('/app/profile/setup', { state: { fromConvite } });
+    navigate('/app/discover', { replace: true });
   };
 
   const handleSkip = () => {
     completeOnboarding();
-    navigate('/app/profile/setup', { state: { fromConvite } });
+    navigate('/app/discover', { replace: true });
   };
 
   if (isLoading) {

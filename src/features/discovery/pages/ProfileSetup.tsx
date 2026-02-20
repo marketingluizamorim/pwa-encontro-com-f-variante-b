@@ -448,7 +448,10 @@ export default function ProfileSetup() {
                   </p>
 
                   <Button
-                    onClick={() => isFromConvite ? navigate('/app/discover', { replace: true }) : setShowInstallDrawer(true)}
+                    onClick={() => isFromConvite
+                      ? navigate('/app/onboarding', { replace: true, state: { fromConvite: true, afterSetup: true } })
+                      : setShowInstallDrawer(true)
+                    }
                     className="w-full h-14 rounded-xl gradient-button text-white font-semibold tracking-wide text-lg shadow-lg shadow-amber-500/20"
                   >
                     Começar a Explorar
