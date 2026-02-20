@@ -37,7 +37,7 @@ function buildWelcomeEmail(userName: string, planName: string): string {
                    style="border-radius:50%;object-fit:contain;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(212,175,55,0.5));"/>
 
               <h1 style="margin:0 0 8px;font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">
-                ✨ Bem-vindo(a), <span style="color:#d4af37;">${firstName}!</span>
+                Bem-vindo(a), <span style="color:#d4af37;">${firstName}!</span>
               </h1>
               <p style="margin:0;font-size:15px;color:rgba(255,255,255,0.7);line-height:1.6;">
                 Seu acesso ao <strong style="color:#d4af37;">${planName}</strong> foi ativado.
@@ -61,7 +61,7 @@ function buildWelcomeEmail(userName: string, planName: string): string {
                 <tr>
                   <td style="padding:20px;">
                     <p style="margin:0 0 12px;font-size:17px;font-weight:700;color:#fcd34d;">
-                      💌 Pessoas cristãs do Brasil inteiro já estão te esperando
+                      Pessoas cristãs do Brasil inteiro já estão te esperando
                     </p>
                     <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.75);line-height:1.7;">
                       Mais de <strong style="color:#fff;">8.000 pessoas</strong> encontraram seus relacionamentos através
@@ -78,7 +78,7 @@ function buildWelcomeEmail(userName: string, planName: string): string {
           <tr>
             <td style="padding:8px 32px 16px;text-align:center;">
               <p style="margin:0;font-size:18px;font-weight:700;color:#ffffff;">
-                📱 Instale o App em <span style="color:#14b8a6;">30 segundos</span>
+                Instale o App em <span style="color:#14b8a6;">30 segundos</span>
               </p>
               <p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.55);">
                 Melhor experiência, notificações e acesso rápido — sem ocupar espaço extra.
@@ -93,7 +93,7 @@ function buildWelcomeEmail(userName: string, planName: string): string {
                      style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;">
                 <tr>
                   <td style="padding:20px;">
-                    <p style="margin:0 0 14px;font-size:14px;font-weight:700;color:#fcd34d;">🍎 iPhone / iPad (Safari)</p>
+                    <p style="margin:0 0 14px;font-size:14px;font-weight:700;color:#fcd34d;">iPhone / iPad (Safari)</p>
                     <table cellpadding="0" cellspacing="0" border="0">
                       <tr>
                         <td style="padding:6px 0;vertical-align:top;">
@@ -149,7 +149,7 @@ function buildWelcomeEmail(userName: string, planName: string): string {
                      style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;">
                 <tr>
                   <td style="padding:20px;">
-                    <p style="margin:0 0 14px;font-size:14px;font-weight:700;color:#34d399;">🤖 Android (Chrome)</p>
+                    <p style="margin:0 0 14px;font-size:14px;font-weight:700;color:#34d399;">Android (Chrome)</p>
                     <table cellpadding="0" cellspacing="0" border="0">
                       <tr>
                         <td style="padding:6px 0;vertical-align:top;">
@@ -281,7 +281,7 @@ Deno.serve(async (req: Request) => {
             body: JSON.stringify({
                 from: "Encontro com Fé <noreply@encontrocomfe.site>",
                 to: [userEmail],
-                subject: `${firstName}, seu acesso está ativo ✨ — instale o app agora`,
+                subject: `${firstName}, seu acesso está ativo — instale o app agora`,
                 html,
             }),
         });
