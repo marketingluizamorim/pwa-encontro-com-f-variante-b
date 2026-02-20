@@ -182,9 +182,14 @@ export function CheckoutDialog({
 
     const hasExtras = orderBumps?.allRegions || orderBumps?.grupoEvangelico || orderBumps?.grupoCatolico || orderBumps?.filtrosAvancados;
 
-    // Label: "Plano Prata · Mensal"
+    // Label: "Plano Prata · Mensal" — skip suffix if plan name already includes period info
+    const alreadyHasPeriod = cleanPlanName.includes('meses') || cleanPlanName.includes('semanal') || cleanPlanName.includes('mensal') || cleanPlanName.includes('anual');
     const planPeriod = cleanPlanName.includes('bronze') ? 'Semanal' : 'Mensal';
-    const planLabel = planName ? `${toTitleCase(planName)} · ${planPeriod}` : '';
+    const planLabel = planName
+        ? alreadyHasPeriod
+            ? toTitleCase(planName)
+            : `${toTitleCase(planName)} · ${planPeriod}`
+        : '';
 
     // Old (crossed-out) price
     const oldPriceKey = Object.keys(OLD_PRICES).find(k => cleanPlanName.includes(k));
