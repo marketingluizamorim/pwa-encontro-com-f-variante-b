@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Heart, Users, MessageCircle, Shield, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -87,21 +87,15 @@ const textVariants = {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { isCompleted, isLoading, completeOnboarding } = useOnboarding();
   const [[currentSlide, direction], setCurrentSlide] = useState([0, 0]);
 
-  // Forward fromConvite state so ProfileSetup can skip the PWA modal
-  const fromConvite = (location.state as { fromConvite?: boolean; afterSetup?: boolean } | null)?.fromConvite === true;
-  // afterSetup = arrived from ProfileSetup, skip the isCompleted redirect guard
-  const afterSetup = (location.state as { afterSetup?: boolean } | null)?.afterSetup === true;
-
-  // Redirect if already completed onboarding — but NOT if coming from ProfileSetup
+  // If slides already seen, go straight to the app
   useEffect(() => {
-    if (!isLoading && isCompleted && !afterSetup) {
-      navigate('/app/profile/setup', { replace: true });
+    if (!isLoading && isCompleted) {
+      navigate('/app/discover', { replace: true });
     }
-  }, [isLoading, isCompleted, afterSetup, navigate]);
+  }, [isLoading, isCompleted, navigate]);
 
   const paginate = (newDirection: number) => {
     const newSlide = currentSlide + newDirection;

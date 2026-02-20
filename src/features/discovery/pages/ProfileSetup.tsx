@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -25,12 +25,8 @@ const VALUES_OPTIONS = ['Sim, é essencial', 'Muito importante', 'Não é priori
 export default function ProfileSetup() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const queryClient = useQueryClient();
   const { gender: funnelGender, quizAnswers } = useFunnelStore();
-
-  // Detect if user came from /convite (state passed by Convite.tsx navigate)
-  const isFromConvite = (location.state as { fromConvite?: boolean } | null)?.fromConvite === true;
 
   const [step, setStep] = useState<Step>('basics');
   const [saving, setSaving] = useState(false);
@@ -187,13 +183,11 @@ export default function ProfileSetup() {
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['profile', null] });
 
-      // If user came from /convite, ensure seed data uses real profile fields
-      if (isFromConvite) {
-        try {
-          await (supabaseRuntime as unknown as { rpc: (fn: string) => Promise<unknown> })
-            .rpc('seed_whatsapp_user_profiles');
-        } catch { /* non-critical */ }
-      }
+      // Update seed profiles with actual user data (non-critical, runs for all new users)
+      try {
+        await (supabaseRuntime as unknown as { rpc: (fn: string) => Promise<unknown> })
+          .rpc('seed_whatsapp_user_profiles');
+      } catch { /* non-critical */ }
 
       setStep('complete');
     } catch (error: unknown) {
@@ -448,10 +442,7 @@ export default function ProfileSetup() {
                   </p>
 
                   <Button
-                    onClick={() => isFromConvite
-                      ? navigate('/app/onboarding', { replace: true, state: { fromConvite: true, afterSetup: true } })
-                      : setShowInstallDrawer(true)
-                    }
+                    onClick={() => setShowInstallDrawer(true)}
                     className="w-full h-14 rounded-xl gradient-button text-white font-semibold tracking-wide text-lg shadow-lg shadow-amber-500/20"
                   >
                     Começar a Explorar

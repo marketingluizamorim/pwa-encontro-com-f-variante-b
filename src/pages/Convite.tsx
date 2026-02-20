@@ -122,7 +122,7 @@ export default function Convite() {
     };
 
     const handleContinueToProfile = () => {
-        navigate('/app/profile/setup', { replace: true, state: { fromConvite: true } });
+        navigate('/app/onboarding', { replace: true });
     };
 
     return (
