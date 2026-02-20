@@ -683,231 +683,198 @@ export default function Discover() {
                 </div>
               )}
 
-              {/* ── SEED CARD (shown on top, blocks real stack) ── */}
-              {currentSeedCard ? (
-                <motion.div
-                  key={`seed-${currentSeedCard.seedId}`}
-                  style={{ x, y, rotate }}
-                  drag
-                  dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                  dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
-                  onDragEnd={handleDragEnd}
-                  className="w-full h-full absolute inset-0 px-4 pt-4 pb-24 z-20 cursor-grab active:cursor-grabbing touch-none"
-                  initial={false}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{
-                    x: exitDirection === 'left' ? -1000 : exitDirection === 'right' ? 1000 : 0,
-                    y: exitDirection === 'up' ? -1000 : 0,
-                    opacity: 0,
-                    rotate: exitDirection === 'left' ? -45 : exitDirection === 'right' ? 45 : 0,
-                    transition: { duration: 0.3 }
-                  }}
-                >
-                  <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative select-none">
-                    {/* Like / Nope indicators */}
-                    <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 right-6 z-50 rotate-[-20deg]">
-                      <span className="text-green-400 text-4xl font-black border-4 border-green-400 rounded-xl px-3 py-1 uppercase tracking-widest">Like</span>
-                    </motion.div>
-                    <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 left-6 z-50 rotate-[20deg]">
-                      <span className="text-red-400 text-4xl font-black border-4 border-red-400 rounded-xl px-3 py-1 uppercase tracking-widest">Nope</span>
-                    </motion.div>
-                    <motion.div style={{ opacity: superLikeOpacity }} className="absolute top-8 left-1/2 -translate-x-1/2 z-50">
-                      <span className="text-blue-400 text-4xl font-black border-4 border-blue-400 rounded-xl px-3 py-1 uppercase tracking-widest">Super</span>
-                    </motion.div>
+              {/* ── UNIFIED CARD: seed or real profile, same template ── */}
+              {(() => {
+                // Normalize seed or real profile to a common shape
+                const activeCard = currentSeedCard ? {
+                  id: `seed-${currentSeedCard.seedId}`,
+                  display_name: currentSeedCard.display_name,
+                  birth_date: null as null,
+                  age: currentSeedCard.age,
+                  photos: currentSeedCard.photos,
+                  avatar_url: currentSeedCard.avatar_url,
+                  city: currentSeedCard.city,
+                  state: currentSeedCard.state,
+                  looking_for: currentSeedCard.looking_for,
+                  is_verified: false,
+                  is_boosted: false,
+                  last_active_at: null as null,
+                  show_online_status: false,
+                  show_last_active: false,
+                  latitude: null as null,
+                  longitude: null as null,
+                } : currentProfile;
 
-                    {/* Photo */}
-                    <img
-                      src={currentSeedCard.photos[0] || currentSeedCard.avatar_url || '/placeholder.svg'}
-                      className="w-full h-full object-cover"
-                      alt={currentSeedCard.display_name}
-                      draggable={false}
-                    />
+                const cardKey = currentSeedCard ? `seed-${currentSeedCard.seedId}` : currentProfile.id;
 
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                return (
+                  <motion.div
+                    key={cardKey}
+                    style={{ x, y, rotate }}
+                    drag
+                    dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                    dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
+                    onDragEnd={handleDragEnd}
+                    className="w-full h-full absolute inset-0 px-4 pt-4 pb-24 z-20 cursor-grab active:cursor-grabbing touch-none"
+                    initial={false}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{
+                      x: exitDirection === 'left' ? -1000 : exitDirection === 'right' ? 1000 : 0,
+                      y: exitDirection === 'up' ? -1000 : 0,
+                      opacity: 0,
+                      rotate: exitDirection === 'left' ? -45 : exitDirection === 'right' ? 45 : 0,
+                      transition: { duration: 0.3 }
+                    }}
+                  >
+                    <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative select-none">
 
-                    {/* Info */}
-                    <div className="absolute bottom-0 left-0 right-0 p-5 pb-6">
-                      <div className="flex items-end gap-3 mb-2">
-                        <h2 className="text-white font-serif font-bold text-2xl leading-tight">
-                          {currentSeedCard.display_name}, {currentSeedCard.age}
-                        </h2>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-white/70 text-xs mb-3">
-                        <MapPin className="w-3 h-3" />
-                        <span>{currentSeedCard.city}, {currentSeedCard.state}</span>
-                      </div>
-                      {currentSeedCard.christian_interests.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5">
-                          {currentSeedCard.christian_interests.map((tag) => (
-                            <span key={tag} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/80 border border-white/10">
-                              {tag}
-                            </span>
+                      {/* Photo Stories Progress Bar — only for real profiles with multiple photos */}
+                      {!currentSeedCard && currentProfile.photos && currentProfile.photos.length > 1 && (
+                        <div className="absolute top-3 left-3 right-3 z-40 flex gap-1.5 h-1">
+                          {currentProfile.photos.map((_, idx) => (
+                            <div
+                              key={idx}
+                              className={`flex-1 rounded-full h-full shadow-sm transition-colors duration-300 ${idx === currentPhotoIndex ? 'bg-white' : 'bg-white/30'}`}
+                            />
                           ))}
                         </div>
                       )}
-                    </div>
 
-
-                  </div>
-                </motion.div>
-              ) : (
-                /* CURRENT CARD (Foreground) */
-                <motion.div
-                  key={currentProfile.id}
-                  style={{ x, y, rotate }}
-                  drag
-                  dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                  dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
-                  onDragEnd={handleDragEnd}
-                  className="w-full h-full absolute inset-0 px-4 pt-4 pb-24 z-20 cursor-grab active:cursor-grabbing touch-none"
-                  initial={false}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{
-                    x: exitDirection === 'left' ? -1000 : exitDirection === 'right' ? 1000 : 0,
-                    y: exitDirection === 'up' ? -1000 : 0,
-                    opacity: 0,
-                    rotate: exitDirection === 'left' ? -45 : exitDirection === 'right' ? 45 : 0,
-                    transition: { duration: 0.3 }
-                  }}
-                >
-                  <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative select-none">
-
-                    {/* Photo Stories Progress Bar */}
-                    {currentProfile.photos && currentProfile.photos.length > 1 && (
-                      <div className="absolute top-3 left-3 right-3 z-40 flex gap-1.5 h-1">
-                        {currentProfile.photos.map((_, idx) => (
-                          <div
-                            key={idx}
-                            className={`flex-1 rounded-full h-full shadow-sm transition-colors duration-300 ${idx === currentPhotoIndex ? 'bg-white' : 'bg-white/30'
-                              }`}
-                          />
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Destaque Badge */}
-                    {currentProfile.is_boosted && (
-                      <div className="absolute top-10 left-3 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
-                        <Zap className="w-3 h-3 fill-black animate-pulse" />
-                        <span>Perfil em Destaque</span>
-                      </div>
-                    )}
-
-                    {/* Navigation Zones (Left/Right) - Only Active if not swiping (handled by onClick vs Drag) */}
-                    <div className="absolute inset-0 z-30 flex">
-                      <div className="w-1/2 h-[80%]" onClick={handlePrevPhoto} />
-                      <div className="w-1/2 h-[80%]" onClick={handleNextPhoto} />
-                    </div>
-
-                    {/* Photo */}
-                    <img
-                      src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url}
-                      className="w-full h-full object-cover pointer-events-none"
-                      alt="Profile"
-                      draggable={false}
-                      loading="eager"
-                      fetchPriority="high"
-                    />
-
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
-
-                    {/* Text Info */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
-                      {/* Online Badge */}
-                      {formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active) === 'Online' && (
-                        <div className="mb-2.5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                          ONLINE
+                      {/* Destaque Badge */}
+                      {activeCard.is_boosted && (
+                        <div className="absolute top-10 left-3 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
+                          <Zap className="w-3 h-3 fill-black animate-pulse" />
+                          <span>Perfil em Destaque</span>
                         </div>
                       )}
 
-                      {/* Name and Age Group */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-md">
-                          {currentProfile.display_name}
-                        </h1>
-                        {currentProfile.birth_date && (
-                          <span className="text-3xl font-extralight text-white/90 drop-shadow-md">
-                            {calculateAge(currentProfile.birth_date)}
-                          </span>
-                        )}
-                        {currentProfile.is_verified && (
-                          <div className="bg-blue-500 rounded-full p-0.5 shadow-lg border border-white/20">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-white fill-blue-500" />
+                      {/* Navigation Zones (Left/Right tap for photo browsing) — only real profiles */}
+                      {!currentSeedCard && (
+                        <div className="absolute inset-0 z-30 flex">
+                          <div className="w-1/2 h-[80%]" onClick={handlePrevPhoto} />
+                          <div className="w-1/2 h-[80%]" onClick={handleNextPhoto} />
+                        </div>
+                      )}
+
+                      {/* Photo */}
+                      <img
+                        src={
+                          currentSeedCard
+                            ? (currentSeedCard.photos[0] || currentSeedCard.avatar_url || '/placeholder.svg')
+                            : (currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url)
+                        }
+                        className="w-full h-full object-cover pointer-events-none"
+                        alt="Profile"
+                        draggable={false}
+                        loading="eager"
+                        fetchPriority="high"
+                      />
+
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
+
+                      {/* Text Info */}
+                      <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
+                        {/* Online Badge — only real profiles */}
+                        {!currentSeedCard && formatLastActive(activeCard.last_active_at, activeCard.show_online_status, activeCard.show_last_active) === 'Online' && (
+                          <div className="mb-2.5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                            ONLINE
                           </div>
                         )}
-                      </div>
 
-                      <div className="space-y-1 mb-5">
-                        {currentProfile.city && (
-                          <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
-                            <Home className="w-4 h-4 opacity-80" />
-                            <span>Mora em/no {currentProfile.city}</span>
-                          </div>
-                        )}
-
-                        {/* Distância */}
-                        {(() => {
-                          const distance = userCoords
-                            ? calculateDistance(
-                              userCoords.latitude,
-                              userCoords.longitude,
-                              currentProfile.latitude,
-                              currentProfile.longitude
-                            )
-                            : null;
-
-                          if (!distance) return null;
-
-                          return (
-                            <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
-                              <MapPin className="w-4 h-4 opacity-80" />
-                              <span>{distance}</span>
+                        {/* Name and Age */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-md">
+                            {activeCard.display_name}
+                          </h1>
+                          {/* Age: seed uses .age directly, real profile uses birth_date */}
+                          {currentSeedCard ? (
+                            <span className="text-3xl font-extralight text-white/90 drop-shadow-md">
+                              {currentSeedCard.age}
+                            </span>
+                          ) : activeCard.birth_date ? (
+                            <span className="text-3xl font-extralight text-white/90 drop-shadow-md">
+                              {calculateAge(activeCard.birth_date)}
+                            </span>
+                          ) : null}
+                          {activeCard.is_verified && (
+                            <div className="bg-blue-500 rounded-full p-0.5 shadow-lg border border-white/20">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-white fill-blue-500" />
                             </div>
-                          );
-                        })()}
+                          )}
+                        </div>
+
+                        <div className="space-y-1 mb-5">
+                          {activeCard.city && (
+                            <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
+                              <Home className="w-4 h-4 opacity-80" />
+                              <span>Mora em/no {activeCard.city}</span>
+                            </div>
+                          )}
+
+                          {/* Distância — only real profiles with coords */}
+                          {!currentSeedCard && (() => {
+                            const distance = userCoords
+                              ? calculateDistance(
+                                userCoords.latitude,
+                                userCoords.longitude,
+                                activeCard.latitude ?? undefined,
+                                activeCard.longitude ?? undefined
+                              )
+                              : null;
+                            if (!distance) return null;
+                            return (
+                              <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
+                                <MapPin className="w-4 h-4 opacity-80" />
+                                <span>{distance}</span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                        {/* Relationship Goal */}
+                        {activeCard.looking_for && (
+                          <div className="flex items-center gap-2.5 bg-black/30 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/10 w-fit shadow-xl group transition-all">
+                            <div className="w-5 h-5 flex items-center justify-center">
+                              {activeCard.looking_for.toLowerCase().includes('relacionamento') || activeCard.looking_for.toLowerCase().includes('família') ? (
+                                <Heart className="w-4 h-4 text-white fill-white/20" />
+                              ) : (
+                                <Search className="w-4 h-4 text-white" />
+                              )}
+                            </div>
+                            <span className="text-[14px] font-bold text-white tracking-tight drop-shadow-sm">
+                              {activeCard.looking_for}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Relationship Goal */}
-                      {currentProfile.looking_for && (
-                        <div className="flex items-center gap-2.5 bg-black/30 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/10 w-fit shadow-xl group transition-all">
-                          <div className="w-5 h-5 flex items-center justify-center">
-                            {currentProfile.looking_for.toLowerCase().includes('relacionamento') || currentProfile.looking_for.toLowerCase().includes('família') ? (
-                              <Heart className="w-4 h-4 text-white fill-white/20" />
-                            ) : (
-                              <Search className="w-4 h-4 text-white" />
-                            )}
-                          </div>
-                          <span className="text-[14px] font-bold text-white tracking-tight drop-shadow-sm">
-                            {currentProfile.looking_for}
-                          </span>
-                        </div>
+                      {/* Swipe Stamps */}
+                      <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-6 z-30 border-4 border-emerald-500 text-emerald-500 px-4 py-1 rounded-lg font-bold text-3xl -rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
+                        LIKE
+                      </motion.div>
+                      <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-6 z-30 border-4 border-red-500 text-red-500 px-4 py-1 rounded-lg font-bold text-3xl rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
+                        NOPE
+                      </motion.div>
+                      <motion.div style={{ opacity: superLikeOpacity }} className="absolute bottom-40 left-1/2 -translate-x-1/2 z-30 border-4 border-blue-500 text-blue-500 px-4 py-1 rounded-lg font-bold text-3xl tracking-widest uppercase bg-black/20 backdrop-blur-sm">
+                        SUPER
+                      </motion.div>
+
+                      {/* Info Detail Button → Expand (only for real profiles) */}
+                      {!currentSeedCard && (
+                        <button
+                          onClick={() => setShowInfo(true)}
+                          className="absolute bottom-8 right-8 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-all active:scale-95"
+                        >
+                          <i className="ri-arrow-up-s-line text-2xl" />
+                        </button>
                       )}
                     </div>
+                  </motion.div>
+                );
+              })()}
 
-                    {/* Stamps */}
-                    <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-6 z-30 border-4 border-emerald-500 text-emerald-500 px-4 py-1 rounded-lg font-bold text-3xl -rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
-                      LIKE
-                    </motion.div>
-                    <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-6 z-30 border-4 border-red-500 text-red-500 px-4 py-1 rounded-lg font-bold text-3xl rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
-                      NOPE
-                    </motion.div>
-                    <motion.div style={{ opacity: superLikeOpacity }} className="absolute bottom-40 left-1/2 -translate-x-1/2 z-30 border-4 border-blue-500 text-blue-500 px-4 py-1 rounded-lg font-bold text-3xl tracking-widest uppercase bg-black/20 backdrop-blur-sm">
-                      SUPER
-                    </motion.div>
-
-                    {/* Info Detail Button -> Expand */}
-                    <button
-                      onClick={() => setShowInfo(true)}
-                      className="absolute bottom-8 right-8 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-all active:scale-95"
-                    >
-                      <i className="ri-arrow-up-s-line text-2xl" />
-                    </button>
-                  </div>
-                </motion.div>
-              )}
 
               {/* Floating Action Controls (Main View) */}
               {!showInfo && (
