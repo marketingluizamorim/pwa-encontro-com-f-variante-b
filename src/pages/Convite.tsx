@@ -113,11 +113,11 @@ export default function Convite() {
     }
 
     return (
-        <div className="min-h-[100dvh] bg-[#0a0f1e] flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden">
-            {/* Decorative blobs */}
-            <div className="absolute top-[-15%] right-[-15%] w-[60%] h-[60%] bg-amber-400/8 blur-[140px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-[-15%] left-[-15%] w-[60%] h-[60%] bg-rose-500/6 blur-[140px] rounded-full pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[40%] bg-amber-300/3 blur-[100px] rounded-full pointer-events-none" />
+        <div className="min-h-[100dvh] bg-[#0a0f1e] flex flex-col items-center justify-center px-4 py-8 relative overflow-y-auto">
+            {/* Decorative blobs — fixed so they never clip scrollable content */}
+            <div className="fixed top-[-15%] right-[-15%] w-[60%] h-[60%] bg-amber-400/8 blur-[140px] rounded-full pointer-events-none z-0" />
+            <div className="fixed bottom-[-15%] left-[-15%] w-[60%] h-[60%] bg-rose-500/6 blur-[140px] rounded-full pointer-events-none z-0" />
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[40%] bg-amber-300/3 blur-[100px] rounded-full pointer-events-none z-0" />
 
             <div className="w-full max-w-sm relative z-10">
                 <AnimatePresence mode="wait">

@@ -9,7 +9,10 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
     useEffect(() => {
-        if (!user) return;
+        if (!user) {
+            setIsAdmin(false);
+            return;
+        }
         supabase
             .from('user_roles')
             .select('role')
