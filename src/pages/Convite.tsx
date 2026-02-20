@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useBodyScroll } from '@/hooks/useBodyScroll';
 import { toast } from 'sonner';
 import {
     Heart, Star, CheckCircle2, Loader2, Lock, Mail, User,
@@ -31,7 +32,8 @@ export default function Convite() {
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-
+    // Allow body to scroll on this page (global CSS has overflow:hidden)
+    useBodyScroll();
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useBodyScroll } from '@/hooks/useBodyScroll';
 import { Loader2, Lock, Mail, Shield } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,8 @@ export default function AdminLogin() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    useBodyScroll();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
