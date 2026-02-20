@@ -683,29 +683,51 @@ export default function Discover() {
                 </div>
               )}
 
-              {/* ── UNIFIED CARD: seed or real profile, same template ── */}
+              {/* ── UNIFIED CARD: single template for seed and real profiles ── */}
               {(() => {
-                // Normalize seed or real profile to a common shape
+                // Map SeedDiscoverCard → same shape as real profile
+                // SeedDiscoverCard already has: display_name, photos, avatar_url, city, state,
+                // looking_for, age, birth_date, gender, bio, religion, christian_interests, etc.
                 const activeCard = currentSeedCard ? {
                   id: `seed-${currentSeedCard.seedId}`,
                   display_name: currentSeedCard.display_name,
-                  birth_date: null as null,
-                  age: currentSeedCard.age,
+                  birth_date: currentSeedCard.birth_date ?? null,
                   photos: currentSeedCard.photos,
                   avatar_url: currentSeedCard.avatar_url,
                   city: currentSeedCard.city,
                   state: currentSeedCard.state,
                   looking_for: currentSeedCard.looking_for,
-                  is_verified: false,
-                  is_boosted: false,
-                  last_active_at: null as null,
-                  show_online_status: false,
-                  show_last_active: false,
-                  latitude: null as null,
-                  longitude: null as null,
+                  is_verified: false as boolean,
+                  is_boosted: false as boolean,
+                  last_active_at: null as string | null,
+                  show_online_status: false as boolean,
+                  show_last_active: false as boolean,
+                  latitude: null as number | null,
+                  longitude: null as number | null,
                 } : currentProfile;
 
-                const cardKey = currentSeedCard ? `seed-${currentSeedCard.seedId}` : currentProfile.id;
+                // Current photo index: seeds have one photo, real profiles can cycle
+                const photoIndex = currentSeedCard ? 0 : currentPhotoIndex;
+                const photoSrc = activeCard.photos?.[photoIndex]
+                  || activeCard.photos?.[0]
+                  || activeCard.avatar_url
+                  || '/placeholder.svg';
+
+                const cardKey = currentSeedCard
+                  ? `seed-${currentSeedCard.seedId}`
+                  : currentProfile.id;
+
+                const onlineStatus = !currentSeedCard
+                  && formatLastActive(activeCard.last_active_at, activeCard.show_online_status, activeCard.show_last_active) === 'Online';
+
+                const distance = !currentSeedCard && userCoords
+                  ? calculateDistance(
+                    userCoords.latitude,
+                    userCoords.longitude,
+                    activeCard.latitude ?? undefined,
+                    activeCard.longitude ?? undefined
+                  )
+                  : null;
 
                 return (
                   <motion.div
@@ -728,13 +750,13 @@ export default function Discover() {
                   >
                     <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative select-none">
 
-                      {/* Photo Stories Progress Bar — only for real profiles with multiple photos */}
-                      {!currentSeedCard && currentProfile.photos && currentProfile.photos.length > 1 && (
+                      {/* Photo Stories Progress Bar */}
+                      {activeCard.photos && activeCard.photos.length > 1 && (
                         <div className="absolute top-3 left-3 right-3 z-40 flex gap-1.5 h-1">
-                          {currentProfile.photos.map((_, idx) => (
+                          {activeCard.photos.map((_, idx) => (
                             <div
                               key={idx}
-                              className={`flex-1 rounded-full h-full shadow-sm transition-colors duration-300 ${idx === currentPhotoIndex ? 'bg-white' : 'bg-white/30'}`}
+                              className={`flex-1 rounded-full h-full shadow-sm transition-colors duration-300 ${idx === photoIndex ? 'bg-white' : 'bg-white/30'}`}
                             />
                           ))}
                         </div>
@@ -748,21 +770,15 @@ export default function Discover() {
                         </div>
                       )}
 
-                      {/* Navigation Zones (Left/Right tap for photo browsing) — only real profiles */}
-                      {!currentSeedCard && (
-                        <div className="absolute inset-0 z-30 flex">
-                          <div className="w-1/2 h-[80%]" onClick={handlePrevPhoto} />
-                          <div className="w-1/2 h-[80%]" onClick={handleNextPhoto} />
-                        </div>
-                      )}
+                      {/* Navigation Zones — tap left/right to browse photos */}
+                      <div className="absolute inset-0 z-30 flex">
+                        <div className="w-1/2 h-[80%]" onClick={currentSeedCard ? undefined : handlePrevPhoto} />
+                        <div className="w-1/2 h-[80%]" onClick={currentSeedCard ? undefined : handleNextPhoto} />
+                      </div>
 
                       {/* Photo */}
                       <img
-                        src={
-                          currentSeedCard
-                            ? (currentSeedCard.photos[0] || currentSeedCard.avatar_url || '/placeholder.svg')
-                            : (currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url)
-                        }
+                        src={photoSrc}
                         className="w-full h-full object-cover pointer-events-none"
                         alt="Profile"
                         draggable={false}
@@ -775,8 +791,8 @@ export default function Discover() {
 
                       {/* Text Info */}
                       <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
-                        {/* Online Badge — only real profiles */}
-                        {!currentSeedCard && formatLastActive(activeCard.last_active_at, activeCard.show_online_status, activeCard.show_last_active) === 'Online' && (
+                        {/* Online Badge */}
+                        {onlineStatus && (
                           <div className="mb-2.5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
                             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                             ONLINE
@@ -788,16 +804,11 @@ export default function Discover() {
                           <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-md">
                             {activeCard.display_name}
                           </h1>
-                          {/* Age: seed uses .age directly, real profile uses birth_date */}
-                          {currentSeedCard ? (
-                            <span className="text-3xl font-extralight text-white/90 drop-shadow-md">
-                              {currentSeedCard.age}
-                            </span>
-                          ) : activeCard.birth_date ? (
+                          {activeCard.birth_date && (
                             <span className="text-3xl font-extralight text-white/90 drop-shadow-md">
                               {calculateAge(activeCard.birth_date)}
                             </span>
-                          ) : null}
+                          )}
                           {activeCard.is_verified && (
                             <div className="bg-blue-500 rounded-full p-0.5 shadow-lg border border-white/20">
                               <CheckCircle2 className="w-3.5 h-3.5 text-white fill-blue-500" />
@@ -812,25 +823,12 @@ export default function Discover() {
                               <span>Mora em/no {activeCard.city}</span>
                             </div>
                           )}
-
-                          {/* Distância — only real profiles with coords */}
-                          {!currentSeedCard && (() => {
-                            const distance = userCoords
-                              ? calculateDistance(
-                                userCoords.latitude,
-                                userCoords.longitude,
-                                activeCard.latitude ?? undefined,
-                                activeCard.longitude ?? undefined
-                              )
-                              : null;
-                            if (!distance) return null;
-                            return (
-                              <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
-                                <MapPin className="w-4 h-4 opacity-80" />
-                                <span>{distance}</span>
-                              </div>
-                            );
-                          })()}
+                          {distance && (
+                            <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
+                              <MapPin className="w-4 h-4 opacity-80" />
+                              <span>{distance}</span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Relationship Goal */}
@@ -861,15 +859,13 @@ export default function Discover() {
                         SUPER
                       </motion.div>
 
-                      {/* Info Detail Button → Expand (only for real profiles) */}
-                      {!currentSeedCard && (
-                        <button
-                          onClick={() => setShowInfo(true)}
-                          className="absolute bottom-8 right-8 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-all active:scale-95"
-                        >
-                          <i className="ri-arrow-up-s-line text-2xl" />
-                        </button>
-                      )}
+                      {/* Info Detail Button → Expand */}
+                      <button
+                        onClick={() => { if (!currentSeedCard) setShowInfo(true); }}
+                        className={`absolute bottom-8 right-8 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-all active:scale-95 ${currentSeedCard ? 'opacity-0 pointer-events-none' : ''}`}
+                      >
+                        <i className="ri-arrow-up-s-line text-2xl" />
+                      </button>
                     </div>
                   </motion.div>
                 );
