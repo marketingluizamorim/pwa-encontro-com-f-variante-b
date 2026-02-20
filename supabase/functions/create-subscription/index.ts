@@ -82,58 +82,43 @@ Deno.serve(async (req) => {
             const wooviApiKey = Deno.env.get("WOOVI_API_KEY");
             if (!wooviApiKey) throw new Error("Woovi API key not configured");
 
-            // ── Create Pix Automático subscription on Woovi ────────────────────────
-            // Journey 3 (PAYMENT_ON_APPROVAL): first payment + recurring auth in one QR Code
-            const subscriptionPayload = {
+            // ── Create PIX charge via standard Woovi endpoint ──────────────────────
+            // NOTE: PIX Automático (PIX_RECURRING) requires special Woovi account activation.
+            // Using standard one-time charge until it is enabled.
+            const chargePayload = {
                 correlationID,
                 value: amountInCents,
                 comment: PLAN_NAMES[planId] || `Plano ${planId}`,
-                type: "PIX_RECURRING",
-                frequency: planConfig.frequency,
-                dayGenerateCharge: planConfig.dayGenerateCharge,
-                dayDue: planConfig.dayDue,
+                expiresIn: planConfig.daysAccess * 24 * 60 * 60, // seconds
                 customer: {
                     name: userName,
                     email: userEmail,
-                    taxID: userCpf?.replace(/\D/g, "") || "",
                     phone: userPhone?.replace(/\D/g, "") || "",
-                    address: userAddress ? {
-                        street: userAddress.street,
-                        number: userAddress.number,
-                        neighborhood: userAddress.neighborhood,
-                        city: userAddress.city,
-                        state: userAddress.state,
-                        zipCode: userAddress.zipCode.replace(/\D/g, ""),
-                        country: userAddress.country || "BR",
-                    } : undefined,
-                },
-                pixRecurringOptions: {
-                    journey: "PAYMENT_ON_APPROVAL",  // Jornada 3
-                    retryPolicy: "THREE_RETRIES_7_DAYS", // 2 retries over 7 days
+                    ...(userCpf ? { taxID: userCpf.replace(/\D/g, "") } : {}),
                 },
             };
 
-            const wooviResponse = await fetch("https://api.openpix.com.br/api/v1/subscriptions", {
+            console.log("Woovi charge payload:", JSON.stringify(chargePayload, null, 2));
+
+            const wooviResponse = await fetch("https://api.openpix.com.br/api/v1/charge", {
                 method: "POST",
                 headers: { "Authorization": wooviApiKey, "Content-Type": "application/json" },
-                body: JSON.stringify(subscriptionPayload),
+                body: JSON.stringify(chargePayload),
             });
 
             if (!wooviResponse.ok) {
                 const err = await wooviResponse.text();
-                console.error("Woovi subscription error:", err);
+                console.error("Woovi charge error:", wooviResponse.status, err);
                 throw new Error(`Woovi API error: ${wooviResponse.status} - ${err}`);
             }
 
             const wooviData = await wooviResponse.json();
-            const subscription = wooviData.subscription || wooviData;
+            const charge = wooviData.charge || wooviData;
 
-            wooviSubscriptionId = subscription.correlationID || subscription.globalID || correlationID;
-            // First installment charge QR code
-            const firstInstallment = subscription.installments?.[0] || subscription;
-            pixCode = firstInstallment.charge?.brCode || subscription.brCode || "";
-            qrCodeImage = firstInstallment.charge?.qrCodeImage || subscription.qrCodeImage || "";
-            paymentLinkUrl = firstInstallment.charge?.paymentLinkUrl || subscription.paymentLinkUrl || "";
+            wooviSubscriptionId = charge.correlationID || charge.globalID || correlationID;
+            pixCode = charge.brCode || "";
+            qrCodeImage = charge.qrCodeImage || "";
+            paymentLinkUrl = charge.paymentLinkUrl || "";
         }
 
         // ── Save purchase row ──────────────────────────────────────────────────────

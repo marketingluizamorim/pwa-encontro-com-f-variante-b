@@ -131,7 +131,7 @@ export default function Plans() {
   const createPayment = async (
     planId: string,
     planPrice: number,
-    data: { name: string; email: string; phone: string },
+    data: { name: string; email: string; phone: string; cpf?: string },
     isSpecialOffer: boolean = false,
     explicitBumps?: SelectedBumps
   ) => {
@@ -186,6 +186,7 @@ export default function Plans() {
           userName: data.name,
           userEmail: data.email,
           userPhone: data.phone,
+          userCpf: data.cpf,
           orderBumps: {
             allRegions: (currentOrderBumps as { allRegions?: boolean }).allRegions ?? false,
             grupoEvangelico: (currentOrderBumps as { grupoEvangelico?: boolean }).grupoEvangelico ?? false,
@@ -219,7 +220,7 @@ export default function Plans() {
     }
   };
 
-  const handleCheckoutSubmit = async (data: { name: string; email: string; phone: string }) => {
+  const handleCheckoutSubmit = async (data: { name: string; email: string; phone: string; cpf?: string }) => {
     const isSpecialOffer = selectedPlanId === SPECIAL_OFFER_PLAN_ID;
     const success = await createPayment(selectedPlanId, selectedPlanPrice, data, isSpecialOffer, currentBumpsRef.current);
     if (success) {
@@ -228,7 +229,7 @@ export default function Plans() {
     }
   };
 
-  const handleSpecialOfferSubmit = async (data: { name: string; email: string; phone: string }) => {
+  const handleSpecialOfferSubmit = async (data: { name: string; email: string; phone: string; cpf?: string }) => {
     const success = await createPayment(SPECIAL_OFFER_PLAN_ID, SPECIAL_OFFER_PRICE, data, true);
     if (success) {
       setShowSpecialOfferCheckout(false);
