@@ -26,7 +26,6 @@ export interface SubscriptionRequest {
     userName: string;
     userEmail: string;
     userPhone?: string;
-    userCpf?: string;
     orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean };
     quizData?: QuizAnswers;
     purchaseSource?: string;
@@ -75,7 +74,6 @@ export const funnelService = {
                 userName: request.userName,
                 userEmail: request.userEmail,
                 userPhone: request.userPhone,
-                userCpf: request.userCpf,
                 orderBumps: request.orderBumps,
                 quizData: request.quizData,
                 purchaseSource: request.purchaseSource ?? 'funnel',

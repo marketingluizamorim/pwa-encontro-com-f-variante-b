@@ -8,9 +8,9 @@ const corsHeaders = {
 
 // ── Plan config ───────────────────────────────────────────────────────────────
 const PLAN_NAMES: Record<string, string> = {
-    bronze: "Plano Bronze (Semanal)",
-    silver: "Plano Prata (Mensal)",
-    gold: "Plano Ouro (Mensal)",
+    bronze: "Plano Bronze Semanal",
+    silver: "Plano Prata Mensal",
+    gold: "Plano Ouro Mensal",
 };
 
 const PLAN_PRICES: Record<string, number> = {
@@ -19,25 +19,53 @@ const PLAN_PRICES: Record<string, number> = {
     gold: 49.90,
 };
 
-// Frequency and billing cycle per plan
-const PLAN_FREQUENCY: Record<string, { frequency: string; dayGenerateCharge: number; dayDue: number; daysAccess: number }> = {
-    bronze: { frequency: "WEEKLY", dayGenerateCharge: 1, dayDue: 3, daysAccess: 7 },
-    silver: { frequency: "MONTHLY", dayGenerateCharge: 1, dayDue: 5, daysAccess: 30 },
-    gold: { frequency: "MONTHLY", dayGenerateCharge: 1, dayDue: 5, daysAccess: 30 },
+// Woovi PIX_RECURRING config
+// dayGenerateCharge = today (required for PAYMENT_ON_APPROVAL journey)
+const PLAN_FREQUENCY: Record<string, { frequency: string; daysAccess: number }> = {
+    bronze: { frequency: "WEEKLY", daysAccess: 7 },
+    silver: { frequency: "MONTHLY", daysAccess: 30 },
+    gold: { frequency: "MONTHLY", daysAccess: 30 },
 };
 
 const BUMP_PRICE = 5;
+
+// ── CPF Generator (valid check digits — never a real person's CPF) ─────────────
+function generateFakeCPF(): string {
+    function calcDigit(digits: number[], factor: number): number {
+        const sum = digits.reduce((acc, d) => { acc += d * factor--; return acc; }, 0);
+        const rem = sum % 11;
+        return rem < 2 ? 0 : 11 - rem;
+    }
+
+    let base: number[];
+    do {
+        base = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10));
+    } while (new Set(base).size === 1); // reject all-same (111.111.111-xx)
+
+    const d1 = calcDigit(base, 10);
+    const d2 = calcDigit([...base, d1], 11);
+    return [...base, d1, d2].join("");
+}
+
+// ── Fake BR address (required by Woovi PIX_RECURRING) ─────────────────────────
+function generateFakeAddress() {
+    // Generic Brasília address — avoids revealing real user location
+    return {
+        zipcode: "70040020",
+        street: "Esplanada Ministerios",
+        number: "1",
+        neighborhood: "Centro",
+        city: "Brasilia",
+        state: "DF",
+        complement: "",
+    };
+}
 
 interface CreateSubscriptionRequest {
     planId: string;
     userName: string;
     userEmail: string;
     userPhone?: string;
-    userCpf?: string;
-    userAddress?: {
-        street: string; number: string; neighborhood: string;
-        city: string; state: string; zipCode: string; country?: string;
-    };
     orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; };
     quizData?: Record<string, unknown>;
     purchaseSource?: string;
@@ -52,7 +80,7 @@ Deno.serve(async (req) => {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         const body: CreateSubscriptionRequest = await req.json();
-        const { planId, userName, userEmail, userPhone, userCpf, userAddress, orderBumps, quizData, purchaseSource } = body;
+        const { planId, userName, userEmail, userPhone, orderBumps, quizData, purchaseSource } = body;
 
         // ── Validate plan ──────────────────────────────────────────────────────────
         const planConfig = PLAN_FREQUENCY[planId];
@@ -69,6 +97,14 @@ Deno.serve(async (req) => {
         const amountInCents = Math.round(totalPrice * 100);
         const correlationID = crypto.randomUUID();
 
+        // ── Generate CPF + address for Woovi (never collected from user) ──────────
+        const generatedCpf = generateFakeCPF();
+        const generatedAddress = generateFakeAddress();
+
+        // dayGenerateCharge must be today for PAYMENT_ON_APPROVAL journey
+        const today = new Date();
+        const dayGenerateCharge = today.getDate();
+
         // ── Test user bypass ───────────────────────────────────────────────────────
         const isTestUser = userEmail.includes("@test.com") || userEmail.includes("@temporario.com") ||
             userName.toLowerCase().includes("dev");
@@ -82,43 +118,72 @@ Deno.serve(async (req) => {
             const wooviApiKey = Deno.env.get("WOOVI_API_KEY");
             if (!wooviApiKey) throw new Error("Woovi API key not configured");
 
-            // ── Create PIX charge via standard Woovi endpoint ──────────────────────
-            // NOTE: PIX Automático (PIX_RECURRING) requires special Woovi account activation.
-            // Using standard one-time charge until it is enabled.
-            const chargePayload = {
+            // ── Woovi PIX Automático — Jornada 3 (PAYMENT_ON_APPROVAL) ────────────
+            // Docs: https://developers.woovi.com/en/docs/pix-automatic/pix-automatic-how-to-create
+            // IMPORTANT: customer.address is REQUIRED for PIX_RECURRING
+            // name/comment must be ≤ 30 chars (Woovi validation)
+            const shortName = (PLAN_NAMES[planId] || `Plano ${planId}`).slice(0, 30);
+            const subscriptionPayload = {
+                name: shortName,
                 correlationID,
                 value: amountInCents,
-                comment: PLAN_NAMES[planId] || `Plano ${planId}`,
-                expiresIn: planConfig.daysAccess * 24 * 60 * 60, // seconds
+                comment: shortName,
+                type: "PIX_RECURRING",
+                frequency: planConfig.frequency,
+                dayGenerateCharge,    // today — required for journey 3
+                dayDue: 3,            // 3 days to expire the charge
                 customer: {
-                    name: userName,
+                    name: userName.slice(0, 30),
                     email: userEmail,
-                    phone: userPhone?.replace(/\D/g, "") || "",
-                    ...(userCpf ? { taxID: userCpf.replace(/\D/g, "") } : {}),
+                    taxID: generatedCpf,
+                    phone: (userPhone || "").replace(/\D/g, "") || "00000000000",
+                    address: generatedAddress,  // REQUIRED by Woovi for PIX_RECURRING
+                },
+                pixRecurringOptions: {
+                    journey: "PAYMENT_ON_APPROVAL",
+                    retryPolicy: "NON_PERMITED",
                 },
             };
 
-            console.log("Woovi charge payload:", JSON.stringify(chargePayload, null, 2));
+            // Log payload with masked CPF for debugging
+            console.log("Woovi PIX Automático payload:", JSON.stringify({
+                ...subscriptionPayload,
+                customer: { ...subscriptionPayload.customer, taxID: "***" },
+            }, null, 2));
 
-            const wooviResponse = await fetch("https://api.openpix.com.br/api/v1/charge", {
+            const wooviResponse = await fetch("https://api.openpix.com.br/api/v1/subscriptions", {
                 method: "POST",
-                headers: { "Authorization": wooviApiKey, "Content-Type": "application/json" },
-                body: JSON.stringify(chargePayload),
+                headers: {
+                    "Authorization": wooviApiKey,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(subscriptionPayload),
             });
 
+            const wooviRaw = await wooviResponse.text();
+
             if (!wooviResponse.ok) {
-                const err = await wooviResponse.text();
-                console.error("Woovi charge error:", wooviResponse.status, err);
-                throw new Error(`Woovi API error: ${wooviResponse.status} - ${err}`);
+                console.error("Woovi error body:", wooviRaw);
+                throw new Error(`Woovi API error: ${wooviResponse.status} - ${wooviRaw}`);
             }
 
-            const wooviData = await wooviResponse.json();
-            const charge = wooviData.charge || wooviData;
+            const wooviData = JSON.parse(wooviRaw);
+            console.log("Woovi response:", JSON.stringify(wooviData));
 
-            wooviSubscriptionId = charge.correlationID || charge.globalID || correlationID;
-            pixCode = charge.brCode || "";
-            qrCodeImage = charge.qrCodeImage || "";
-            paymentLinkUrl = charge.paymentLinkUrl || "";
+            // Response shape per docs:
+            // { subscription: { pixRecurring: { emv, recurrencyId, journey, status }, paymentLinkUrl, correlationID, globalID, ... } }
+            const sub = wooviData.subscription || wooviData;
+
+            wooviSubscriptionId = sub.correlationID || sub.globalID || correlationID;
+            paymentLinkUrl = sub.paymentLinkUrl || "";
+
+            // PIX code is in pixRecurring.emv for journey 3
+            const pixRecurring = sub.pixRecurring;
+            if (pixRecurring?.emv) {
+                pixCode = pixRecurring.emv;
+                // qrCodeImage is typically generated from the EMV — return paymentLinkUrl as fallback
+                qrCodeImage = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(pixRecurring.emv)}`;
+            }
         }
 
         // ── Save purchase row ──────────────────────────────────────────────────────
@@ -132,7 +197,7 @@ Deno.serve(async (req) => {
                 user_name: userName,
                 user_email: userEmail,
                 user_phone: userPhone,
-                user_cpf: userCpf,
+                user_cpf: generatedCpf,   // internal only — NEVER sent to frontend
                 payment_id: wooviSubscriptionId,
                 payment_status: "PENDING",
                 payment_method: "PIX_AUTOMATIC",

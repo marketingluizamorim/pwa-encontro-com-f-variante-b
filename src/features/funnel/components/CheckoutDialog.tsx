@@ -10,7 +10,7 @@ interface CheckoutDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     planPrice: number;
-    onSubmit: (data: { name: string; email: string; phone: string; cpf?: string }) => void;
+    onSubmit: (data: { name: string; email: string; phone: string }) => void;
     isLoading?: boolean;
     planName?: string;
     orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean };
@@ -42,13 +42,7 @@ function formatPhone(value: string): string {
     return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7, 11)}`;
 }
 
-function formatCpf(value: string): string {
-    const n = value.replace(/\D/g, '').slice(0, 11);
-    if (n.length <= 3) return n;
-    if (n.length <= 6) return `${n.slice(0, 3)}.${n.slice(3)}`;
-    if (n.length <= 9) return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6)}`;
-    return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6, 9)}-${n.slice(9)}`;
-}
+
 
 function toTitleCase(str: string): string {
     return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
@@ -155,7 +149,6 @@ export function CheckoutDialog({
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
-    const [cpf, setCpf] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [extrasExpanded, setExtrasExpanded] = useState(false);
 
@@ -232,7 +225,6 @@ export function CheckoutDialog({
     const isNameValid = name.trim().length >= 3;
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const isPhoneValid = phone.replace(/\D/g, '').length >= 10;
-    const isCpfValid = cpf.replace(/\D/g, '').length === 11;
 
     const validate = () => {
         const e: Record<string, string> = {};
@@ -247,7 +239,7 @@ export function CheckoutDialog({
 
     const handleSubmit = (ev?: React.FormEvent) => {
         ev?.preventDefault();
-        if (validate()) onSubmit({ name, email, phone: '+55 ' + phone, cpf: cpf.replace(/\D/g, '') });
+        if (validate()) onSubmit({ name, email, phone: '+55 ' + phone });
     };
 
 
