@@ -23,7 +23,7 @@ const helpItems = [
     {
         icon: 'ri-heart-3-line',
         title: 'Curtidas',
-        description: 'Veja quem curtiu seu perfil. Se você curtir de volta, vocês fazem um match e podem conversar.',
+        description: 'Veja quem curtiu seu perfil. Se você curtir de volta, vocês criar uma conexão e podem conversar.',
         color: 'text-rose-400',
         bgColor: 'bg-rose-500/15',
         border: 'border-rose-500/20',
@@ -31,7 +31,7 @@ const helpItems = [
     {
         icon: 'ri-chat-3-line',
         title: 'Chat',
-        description: 'Converse com seus matches em um ambiente seguro e respeitoso, e cultive conexões reais.',
+        description: 'Converse com suas conexões em um ambiente seguro e respeitoso, e cultive conexões reais.',
         color: 'text-sky-400',
         bgColor: 'bg-sky-500/15',
         border: 'border-sky-500/20',

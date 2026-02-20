@@ -83,7 +83,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
           <div className="bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 text-[#064e3b] px-6 py-1.5 rounded-full text-[10px] font-black tracking-[0.1em] uppercase shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center gap-2 border border-emerald-300/30">
             <Sparkles className="w-3.5 h-3.5 fill-current" />
-            {plan.savings} DESCONTO
+            {plan.savings}
           </div>
         </div>
       )}
