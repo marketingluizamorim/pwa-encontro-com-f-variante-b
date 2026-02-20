@@ -121,6 +121,23 @@ Deno.serve(async (req) => {
           const hasLifetime = orderBumpsArray.includes("lifetime") || ["lifetime", "special", "special-offer-lifetime"].includes(purchase.plan_id);
 
           if (purchase.user_id) {
+            // ── Detectar renovação ─────────────────────────────────────────────
+            const { data: prevSub } = await supabase
+              .from("user_subscriptions")
+              .select("plan_id, expires_at, is_active")
+              .eq("user_id", purchase.user_id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            const isRenewal = !!prevSub; // qualquer compra após a 1ª = renovação
+            const prevPlanId = prevSub?.plan_id ?? null;
+
+            const PLAN_TIER_ORDER: Record<string, number> = { bronze: 1, weekly: 1, silver: 2, monthly: 2, gold: 3, annual: 3, plus: 4, lifetime: 5 };
+            const prevTier = PLAN_TIER_ORDER[prevPlanId ?? ""] ?? 0;
+            const newTier = PLAN_TIER_ORDER[purchase.plan_id] ?? 0;
+            // ──────────────────────────────────────────────────────────────────
+
             await supabase.from("user_subscriptions").upsert({
               user_id: purchase.user_id,
               purchase_id: purchase.id,
@@ -137,10 +154,66 @@ Deno.serve(async (req) => {
               can_see_who_liked: purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly',
               is_profile_boosted: ["gold", "annual", "plus"].includes(purchase.plan_id) || hasLifetime,
               can_video_call: purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly',
-              // silver base plan already has advanced filters; bump also grants them
               can_use_advanced_filters: hasFiltrosAvancados || (purchase.plan_id !== 'bronze' && purchase.plan_id !== 'weekly'),
             }, { onConflict: "user_id" });
+
+            // ── Marcar purchase como renovação ─────────────────────────────────
+            if (isRenewal) {
+              await supabase
+                .from("purchases")
+                .update({ is_renewal: true, previous_plan_id: prevPlanId })
+                .eq("id", purchase.id);
+
+              // ── Registrar renovação para métricas ──────────────────────────
+              await supabase.from("subscription_renewals").insert({
+                user_id: purchase.user_id,
+                purchase_id: purchase.id,
+                previous_plan_id: prevPlanId,
+                new_plan_id: purchase.plan_id,
+                previous_expires_at: prevSub?.expires_at ?? null,
+                new_expires_at: hasLifetime ? null : expiresAt?.toISOString(),
+                revenue: Number(purchase.total_price),
+                is_upgrade: newTier > prevTier,
+                is_downgrade: newTier < prevTier,
+              });
+              // ──────────────────────────────────────────────────────────────
+            }
+
+
+            // ── Seed Funnel Likes (MED reduction) ──────────────────────────────
+            // Only seed on first purchase for this user
+            const { count: existingSeeds } = await supabase
+              .from("seed_likes")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", purchase.user_id);
+
+            if ((existingSeeds ?? 0) === 0) {
+              const { data: userProfile } = await supabase
+                .from("profiles")
+                .select("gender")
+                .eq("user_id", purchase.user_id)
+                .maybeSingle();
+
+              const quiz = (purchase.quiz_data ?? {}) as Record<string, string>;
+              const userGender = userProfile?.gender || "male";
+
+              const seedRows = [0, 1, 2].map((idx) => ({
+                user_id: purchase.user_id,
+                profile_index: idx,
+                age_range: quiz.age || "26-35",
+                user_gender: userGender,
+                city: quiz.city || "São Paulo",
+                state_name: quiz.state || "São Paulo",
+                looking_for: quiz.lookingFor || "Relacionamento sério",
+                religion: quiz.religion || "Cristã",
+                status: "pending",
+              }));
+
+              await supabase.from("seed_likes").insert(seedRows);
+            }
+            // ───────────────────────────────────────────────────────────────────
           }
+
 
           if (!isActuallyTest && !DISABLE_WEBHOOKS) {
             try {

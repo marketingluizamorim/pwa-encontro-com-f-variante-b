@@ -6,8 +6,13 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
     Shield, AlertTriangle, CheckCircle, XCircle, Clock,
-    User, ChevronDown, ChevronUp, RefreshCw, Ban, Eye
+    User, ChevronDown, ChevronUp, RefreshCw, Ban, Eye,
+    DollarSign, ArrowLeft, HelpCircle
 } from 'lucide-react';
+import FinancialPanel, { PlanLegendDialog } from './FinancialPanel';
+
+// ── Types ────────────────────────────────────────────────────────────────────
+type Section = 'menu' | 'reports' | 'financial';
 
 const REASON_LABELS: Record<string, string> = {
     fake_profile: 'Perfil falso',
@@ -40,12 +45,10 @@ interface Report {
     suspended_until?: string | null;
 }
 
-function StatCard({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: string }) {
+function NumCard({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: string }) {
     return (
         <div className="bg-slate-800/60 border border-white/10 rounded-2xl p-5 flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
-                {icon}
-            </div>
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>{icon}</div>
             <div>
                 <p className="text-2xl font-bold text-white">{value}</p>
                 <p className="text-xs text-white/50 mt-0.5">{label}</p>
@@ -54,12 +57,57 @@ function StatCard({ label, value, icon, color }: { label: string; value: number;
     );
 }
 
-export default function AdminPanel() {
+// ── Main Menu ────────────────────────────────────────────────────────────────
+function MainMenu({ onSelect }: { onSelect: (s: Section) => void }) {
+    return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">
+            <div className="text-center mb-2">
+                <div className="w-16 h-16 rounded-2xl bg-red-500/20 border border-red-500/30 flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-8 h-8 text-red-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Painel Admin</h2>
+                <p className="text-sm text-white/40 mt-1">Selecione uma seção</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
+                {/* Reports card */}
+                <button
+                    onClick={() => onSelect('reports')}
+                    className="group bg-slate-800/60 border border-white/10 hover:border-red-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                    <div className="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center mb-4 group-hover:bg-red-500/30 transition-colors">
+                        <AlertTriangle className="w-6 h-6 text-red-400" />
+                    </div>
+                    <h3 className="text-base font-bold text-white mb-1">Denúncias</h3>
+                    <p className="text-xs text-white/40 leading-relaxed">
+                        Revise, resolva e suspenda perfis denunciados
+                    </p>
+                </button>
+
+                {/* Financial card */}
+                <button
+                    onClick={() => onSelect('financial')}
+                    className="group bg-slate-800/60 border border-white/10 hover:border-amber-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                    <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mb-4 group-hover:bg-amber-500/30 transition-colors">
+                        <DollarSign className="w-6 h-6 text-amber-400" />
+                    </div>
+                    <h3 className="text-base font-bold text-white mb-1">Faturamento</h3>
+                    <p className="text-xs text-white/40 leading-relaxed">
+                        Receita, planos, renovações e origens de venda
+                    </p>
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// ── Reports Panel ────────────────────────────────────────────────────────────
+function ReportsPanel() {
     const queryClient = useQueryClient();
     const [filter, setFilter] = useState<'all' | 'pending' | 'resolved' | 'dismissed'>('pending');
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    // Fetch reports joined with profile data
     const { data: reports = [], isLoading, refetch } = useQuery({
         queryKey: ['admin-reports', filter],
         queryFn: async () => {
@@ -68,14 +116,11 @@ export default function AdminPanel() {
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (filter !== 'all') {
-                query = query.eq('status', filter);
-            }
+            if (filter !== 'all') query = query.eq('status', filter);
 
             const { data: rawReports, error } = await query;
             if (error) throw error;
 
-            // Enrich with profile data
             const enriched = await Promise.all(
                 (rawReports || []).map(async (r) => {
                     const [reporterRes, reportedRes, countRes] = await Promise.all([
@@ -93,12 +138,10 @@ export default function AdminPanel() {
                     } as Report;
                 })
             );
-
             return enriched;
         },
     });
 
-    // Mutation: update report status
     const updateStatus = useMutation({
         mutationFn: async ({ id, status }: { id: string; status: string }) => {
             const { error } = await supabase
@@ -107,12 +150,9 @@ export default function AdminPanel() {
                 .eq('id', id);
             if (error) throw error;
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
-        },
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reports'] }),
     });
 
-    // Mutation: suspend user for 7 days
     const suspendUser = useMutation({
         mutationFn: async ({ reportId, userId }: { reportId: string; userId: string }) => {
             const suspendedUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -125,7 +165,7 @@ export default function AdminPanel() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
-            toast.success('Usuário suspenso por 7 dias', { description: 'A conta foi suspensa e será reativada automaticamente.' });
+            toast.success('Usuário suspenso por 7 dias');
         },
         onError: () => toast.error('Erro ao suspender usuário'),
     });
@@ -141,233 +181,251 @@ export default function AdminPanel() {
         r.suspended_until && new Date(r.suspended_until) > new Date();
 
     return (
-        <div className="min-h-screen bg-[#0f172a] text-white">
-            {/* Header */}
-            <div className="bg-slate-900/80 border-b border-white/10 sticky top-0 z-50 backdrop-blur-md">
-                <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-                            <Shield className="w-5 h-5 text-red-400" />
-                        </div>
-                        <div>
-                            <h1 className="font-bold text-lg leading-tight">Painel Admin</h1>
-                            <p className="text-xs text-white/40">Encontro com Fé — Moderação</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => refetch()}
-                        className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
-                    >
-                        <RefreshCw className="w-4 h-4 text-white/60" />
-                    </button>
-                </div>
+        <div className="space-y-6">
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <NumCard label="Total (filtro)" value={stats.total} icon={<Eye className="w-5 h-5" />} color="bg-blue-500/20 text-blue-400" />
+                <NumCard label="Pendentes" value={stats.pending} icon={<Clock className="w-5 h-5" />} color="bg-yellow-500/20 text-yellow-400" />
+                <NumCard label="Resolvidos" value={stats.resolved} icon={<CheckCircle className="w-5 h-5" />} color="bg-green-500/20 text-green-400" />
+                <NumCard label="Ignorados" value={stats.dismissed} icon={<XCircle className="w-5 h-5" />} color="bg-slate-500/20 text-slate-400" />
             </div>
 
-            <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-                {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <StatCard label="Total (filtro)" value={stats.total} icon={<Eye className="w-5 h-5" />} color="bg-blue-500/20 text-blue-400" />
-                    <StatCard label="Pendentes" value={stats.pending} icon={<Clock className="w-5 h-5" />} color="bg-yellow-500/20 text-yellow-400" />
-                    <StatCard label="Resolvidos" value={stats.resolved} icon={<CheckCircle className="w-5 h-5" />} color="bg-green-500/20 text-green-400" />
-                    <StatCard label="Ignorados" value={stats.dismissed} icon={<XCircle className="w-5 h-5" />} color="bg-slate-500/20 text-slate-400" />
-                </div>
-
-                {/* Filter tabs */}
+            {/* Filter tabs */}
+            <div className="flex gap-2 flex-wrap items-center justify-between">
                 <div className="flex gap-2 flex-wrap">
                     {(['all', 'pending', 'resolved', 'dismissed'] as const).map(tab => (
                         <button
                             key={tab}
                             onClick={() => setFilter(tab)}
                             className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${filter === tab
-                                    ? 'bg-primary border-primary text-white'
-                                    : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'
+                                ? 'bg-primary border-primary text-white'
+                                : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             {tab === 'all' ? 'Todas' : STATUS_CONFIG[tab]?.label ?? tab}
                         </button>
                     ))}
                 </div>
+                <button
+                    onClick={() => refetch()}
+                    className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
+                >
+                    <RefreshCw className="w-4 h-4 text-white/60" />
+                </button>
+            </div>
 
-                {/* Reports list */}
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <RefreshCw className="w-6 h-6 animate-spin text-white/30" />
-                    </div>
-                ) : reports.length === 0 ? (
-                    <div className="text-center py-20 text-white/30">
-                        <Shield className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                        <p>Nenhuma denúncia encontrada</p>
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                        {reports.map(report => {
-                            const isExpanded = expandedId === report.id;
-                            const suspended = isSuspended(report);
+            {/* Reports list */}
+            {isLoading ? (
+                <div className="flex items-center justify-center py-20">
+                    <RefreshCw className="w-6 h-6 animate-spin text-white/30" />
+                </div>
+            ) : reports.length === 0 ? (
+                <div className="text-center py-20 text-white/30">
+                    <Shield className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p>Nenhuma denúncia encontrada</p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {reports.map(report => {
+                        const isExpanded = expandedId === report.id;
+                        const suspended = isSuspended(report);
 
-                            return (
+                        return (
+                            <div key={report.id} className="bg-slate-800/50 border border-white/10 rounded-2xl overflow-hidden">
                                 <div
-                                    key={report.id}
-                                    className="bg-slate-800/50 border border-white/10 rounded-2xl overflow-hidden transition-all"
+                                    className="p-4 flex items-start gap-3 cursor-pointer hover:bg-white/5 transition-colors"
+                                    onClick={() => setExpandedId(isExpanded ? null : report.id)}
                                 >
-                                    {/* Card header */}
-                                    <div
-                                        className="p-4 flex items-start gap-3 cursor-pointer hover:bg-white/5 transition-colors"
-                                        onClick={() => setExpandedId(isExpanded ? null : report.id)}
-                                    >
-                                        {/* Avatar / initials */}
-                                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shrink-0 overflow-hidden border border-white/10">
-                                            {report.reported_avatar ? (
-                                                <img src={report.reported_avatar} alt="" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <User className="w-5 h-5 text-white/40" />
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <span className="font-semibold text-sm truncate">{report.reported_name}</span>
-
-                                                {/* Report count badge */}
-                                                {(report.report_count ?? 0) > 1 && (
-                                                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-400/30">
-                                                        {report.report_count} denúncias
-                                                    </span>
-                                                )}
-
-                                                {/* Suspended badge */}
-                                                {suspended && (
-                                                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-600/20 text-red-300 border border-red-500/30">
-                                                        🔴 Suspenso até {format(new Date(report.suspended_until!), 'dd/MM', { locale: ptBR })}
-                                                    </span>
-                                                )}
-
-                                                {/* Status badge */}
-                                                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${STATUS_CONFIG[report.status]?.color ?? ''}`}>
-                                                    {STATUS_CONFIG[report.status]?.label ?? report.status}
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center gap-3 mt-1 text-xs text-white/40">
-                                                <span className="flex items-center gap-1">
-                                                    <AlertTriangle className="w-3 h-3" />
-                                                    {REASON_LABELS[report.reason] ?? report.reason}
-                                                </span>
-                                                <span>·</span>
-                                                <span>{formatDistanceToNow(new Date(report.created_at), { addSuffix: true, locale: ptBR })}</span>
-                                            </div>
-                                        </div>
-
-                                        <button className="shrink-0 text-white/30 mt-1">
-                                            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                        </button>
+                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shrink-0 overflow-hidden border border-white/10">
+                                        {report.reported_avatar
+                                            ? <img src={report.reported_avatar} alt="" className="w-full h-full object-cover" />
+                                            : <User className="w-5 h-5 text-white/40" />
+                                        }
                                     </div>
 
-                                    {/* Expanded details */}
-                                    {isExpanded && (
-                                        <div className="border-t border-white/10 p-4 space-y-4 bg-slate-900/40">
-                                            {/* Info grid */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                <div className="bg-white/5 rounded-xl p-3">
-                                                    <p className="text-xs text-white/40 mb-1">Denunciante</p>
-                                                    <p className="text-sm font-medium">{report.reporter_name}</p>
-                                                    <p className="text-xs text-white/30 mt-0.5 font-mono">{report.reporter_id?.slice(0, 8)}...</p>
-                                                </div>
-                                                <div className="bg-white/5 rounded-xl p-3">
-                                                    <p className="text-xs text-white/40 mb-1">Denunciado</p>
-                                                    <p className="text-sm font-medium">{report.reported_name}</p>
-                                                    <p className="text-xs text-white/30 mt-0.5 font-mono">{report.reported_id?.slice(0, 8)}...</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Total reports for this user */}
-                                            <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-3">
-                                                <p className="text-xs text-red-300/70 mb-0.5">Total de denúncias recebidas por este perfil</p>
-                                                <p className="text-2xl font-bold text-red-400">{report.report_count}</p>
-                                            </div>
-
-                                            {/* Description */}
-                                            {report.description && (
-                                                <div className="bg-white/5 rounded-xl p-3">
-                                                    <p className="text-xs text-white/40 mb-1">Descrição adicional</p>
-                                                    <p className="text-sm text-white/70 leading-relaxed">{report.description}</p>
-                                                </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="font-semibold text-sm truncate">{report.reported_name}</span>
+                                            {(report.report_count ?? 0) > 1 && (
+                                                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-400/30">
+                                                    {report.report_count} denúncias
+                                                </span>
                                             )}
-
-                                            {/* Dates */}
-                                            <div className="text-xs text-white/30 flex gap-4 flex-wrap">
-                                                <span>Criada em: {format(new Date(report.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
-                                                {report.reviewed_at && (
-                                                    <span>Revisada em: {format(new Date(report.reviewed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
-                                                )}
-                                            </div>
-
-                                            {/* Suspension info */}
                                             {suspended && (
-                                                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3">
-                                                    <p className="text-xs text-red-300 font-semibold">
-                                                        🔴 Conta suspensa até {format(new Date(report.suspended_until!), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                                    </p>
-                                                </div>
+                                                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-600/20 text-red-300 border border-red-500/30">
+                                                    🔴 Suspenso até {format(new Date(report.suspended_until!), 'dd/MM', { locale: ptBR })}
+                                                </span>
                                             )}
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${STATUS_CONFIG[report.status as keyof typeof STATUS_CONFIG]?.color ?? ''}`}>
+                                                {STATUS_CONFIG[report.status as keyof typeof STATUS_CONFIG]?.label ?? report.status}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-3 mt-1 text-xs text-white/40">
+                                            <span className="flex items-center gap-1">
+                                                <AlertTriangle className="w-3 h-3" />
+                                                {REASON_LABELS[report.reason] ?? report.reason}
+                                            </span>
+                                            <span>·</span>
+                                            <span>{formatDistanceToNow(new Date(report.created_at), { addSuffix: true, locale: ptBR })}</span>
+                                        </div>
+                                    </div>
 
-                                            {/* Actions */}
-                                            <div className="flex gap-2 flex-wrap pt-1">
-                                                {report.status === 'pending' && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => updateStatus.mutate({ id: report.id, status: 'resolved' })}
-                                                            disabled={updateStatus.isPending}
-                                                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-green-500/20 text-green-400 border border-green-400/30 hover:bg-green-500/30 transition-colors disabled:opacity-50"
-                                                        >
-                                                            <CheckCircle className="w-4 h-4" />
-                                                            Resolver
-                                                        </button>
+                                    <button className="shrink-0 text-white/30 mt-1">
+                                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                    </button>
+                                </div>
 
-                                                        <button
-                                                            onClick={() => updateStatus.mutate({ id: report.id, status: 'dismissed' })}
-                                                            disabled={updateStatus.isPending}
-                                                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-slate-500/20 text-slate-300 border border-slate-400/30 hover:bg-slate-500/30 transition-colors disabled:opacity-50"
-                                                        >
-                                                            <XCircle className="w-4 h-4" />
-                                                            Ignorar
-                                                        </button>
-
-                                                        {!suspended && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (confirm(`Suspender ${report.reported_name} por 7 dias? Esta ação irá desativar a conta temporariamente.`)) {
-                                                                        suspendUser.mutate({ reportId: report.id, userId: report.reported_id });
-                                                                    }
-                                                                }}
-                                                                disabled={suspendUser.isPending}
-                                                                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-400/30 hover:bg-red-500/30 transition-colors disabled:opacity-50"
-                                                            >
-                                                                <Ban className="w-4 h-4" />
-                                                                Suspender 7 dias
-                                                            </button>
-                                                        )}
-                                                    </>
-                                                )}
-
-                                                {report.status !== 'pending' && (
-                                                    <button
-                                                        onClick={() => updateStatus.mutate({ id: report.id, status: 'pending' })}
-                                                        disabled={updateStatus.isPending}
-                                                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-400/30 hover:bg-yellow-500/30 transition-colors disabled:opacity-50"
-                                                    >
-                                                        <Clock className="w-4 h-4" />
-                                                        Reabrir
-                                                    </button>
-                                                )}
+                                {isExpanded && (
+                                    <div className="border-t border-white/10 p-4 space-y-4 bg-slate-900/40">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="bg-white/5 rounded-xl p-3">
+                                                <p className="text-xs text-white/40 mb-1">Denunciante</p>
+                                                <p className="text-sm font-medium">{report.reporter_name}</p>
+                                                <p className="text-xs text-white/30 mt-0.5 font-mono">{report.reporter_id?.slice(0, 8)}...</p>
+                                            </div>
+                                            <div className="bg-white/5 rounded-xl p-3">
+                                                <p className="text-xs text-white/40 mb-1">Denunciado</p>
+                                                <p className="text-sm font-medium">{report.reported_name}</p>
+                                                <p className="text-xs text-white/30 mt-0.5 font-mono">{report.reported_id?.slice(0, 8)}...</p>
                                             </div>
                                         </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+
+                                        <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-3">
+                                            <p className="text-xs text-red-300/70 mb-0.5">Total de denúncias recebidas por este perfil</p>
+                                            <p className="text-2xl font-bold text-red-400">{report.report_count}</p>
+                                        </div>
+
+                                        {report.description && (
+                                            <div className="bg-white/5 rounded-xl p-3">
+                                                <p className="text-xs text-white/40 mb-1">Descrição adicional</p>
+                                                <p className="text-sm text-white/70 leading-relaxed">{report.description}</p>
+                                            </div>
+                                        )}
+
+                                        <div className="text-xs text-white/30 flex gap-4 flex-wrap">
+                                            <span>Criada em: {format(new Date(report.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                                            {report.reviewed_at && <span>Revisada em: {format(new Date(report.reviewed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>}
+                                        </div>
+
+                                        {suspended && (
+                                            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3">
+                                                <p className="text-xs text-red-300 font-semibold">
+                                                    🔴 Conta suspensa até {format(new Date(report.suspended_until!), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        <div className="flex gap-2 flex-wrap pt-1">
+                                            {report.status === 'pending' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => updateStatus.mutate({ id: report.id, status: 'resolved' })}
+                                                        disabled={updateStatus.isPending}
+                                                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-green-500/20 text-green-400 border border-green-400/30 hover:bg-green-500/30 transition-colors disabled:opacity-50"
+                                                    >
+                                                        <CheckCircle className="w-4 h-4" /> Resolver
+                                                    </button>
+                                                    <button
+                                                        onClick={() => updateStatus.mutate({ id: report.id, status: 'dismissed' })}
+                                                        disabled={updateStatus.isPending}
+                                                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-slate-500/20 text-slate-300 border border-slate-400/30 hover:bg-slate-500/30 transition-colors disabled:opacity-50"
+                                                    >
+                                                        <XCircle className="w-4 h-4" /> Ignorar
+                                                    </button>
+                                                    {!suspended && (
+                                                        <button
+                                                            onClick={() => {
+                                                                if (confirm(`Suspender ${report.reported_name} por 7 dias?`)) {
+                                                                    suspendUser.mutate({ reportId: report.id, userId: report.reported_id });
+                                                                }
+                                                            }}
+                                                            disabled={suspendUser.isPending}
+                                                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-400/30 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                                        >
+                                                            <Ban className="w-4 h-4" /> Suspender 7 dias
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
+                                            {report.status !== 'pending' && (
+                                                <button
+                                                    onClick={() => updateStatus.mutate({ id: report.id, status: 'pending' })}
+                                                    disabled={updateStatus.isPending}
+                                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-400/30 hover:bg-yellow-500/30 transition-colors disabled:opacity-50"
+                                                >
+                                                    <Clock className="w-4 h-4" /> Reabrir
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ── Root ─────────────────────────────────────────────────────────────────────
+const SECTION_META: Record<Exclude<Section, 'menu'>, { label: string; icon: React.ReactNode; accent: string }> = {
+    reports: { label: 'Denúncias', icon: <AlertTriangle className="w-5 h-5 text-red-400" />, accent: 'bg-red-500/20 border-red-500/30' },
+    financial: { label: 'Faturamento', icon: <DollarSign className="w-5 h-5 text-amber-400" />, accent: 'bg-amber-500/20 border-amber-500/30' },
+};
+
+export default function AdminPanel() {
+    const [section, setSection] = useState<Section>('menu');
+    const [showLegend, setShowLegend] = useState(false);
+
+    return (
+        <div className="h-screen overflow-y-auto bg-[#0f172a] text-white">
+            {/* Header */}
+            <div className="bg-slate-900/80 border-b border-white/10 sticky top-0 z-50 backdrop-blur-md">
+                <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
+                    {section !== 'menu' && (
+                        <button
+                            onClick={() => setSection('menu')}
+                            className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shrink-0"
+                        >
+                            <ArrowLeft className="w-4 h-4 text-white/60" />
+                        </button>
+                    )}
+
+                    <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${section === 'menu' ? 'bg-red-500/20 border-red-500/30' : SECTION_META[section]?.accent}`}>
+                        {section === 'menu'
+                            ? <Shield className="w-5 h-5 text-red-400" />
+                            : SECTION_META[section]?.icon
+                        }
                     </div>
-                )}
+
+                    <div>
+                        <h1 className="font-bold text-lg leading-tight">
+                            {section === 'menu' ? 'Painel Admin' : SECTION_META[section]?.label}
+                        </h1>
+                        <p className="text-xs text-white/40">Encontro com Fé</p>
+                    </div>
+                    <div className="ml-auto flex items-center gap-2">
+                        {section === 'financial' && (
+                            <button
+                                onClick={() => setShowLegend(true)}
+                                className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center hover:bg-amber-500/30 transition-colors"
+                                title="Legenda dos planos"
+                            >
+                                <HelpCircle className="w-4 h-4 text-amber-400" />
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
+
+            <div className="max-w-5xl mx-auto px-4 py-6">
+                {section === 'menu' && <MainMenu onSelect={setSection} />}
+                {section === 'reports' && <ReportsPanel />}
+                {section === 'financial' && <FinancialPanel onOpenLegend={() => setShowLegend(true)} />}
+            </div>
+
+            <PlanLegendDialog open={showLegend} onClose={() => setShowLegend(false)} />
         </div>
     );
 }

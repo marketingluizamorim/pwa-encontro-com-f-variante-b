@@ -51,7 +51,6 @@ export function useSubscription() {
                 .from('user_subscriptions')
                 .select('*')
                 .eq('user_id', user.id)
-                .eq('is_active', true)
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .maybeSingle();
@@ -76,25 +75,66 @@ export function useSubscription() {
 
             if (!data) return { ...defaultSubscription, swipesToday: swipesToday || 0 };
 
+            // ── Client-side expiry / inactive check ────────────────────────────
+            // Covers two cases:
+            //   (a) DB already has is_active=false (self-heal already ran)
+            //   (b) DB still has is_active=true but expires_at is in the past
+            const isExpiredByDate =
+                !data.is_lifetime &&
+                data.expires_at !== null &&
+                new Date(data.expires_at) < new Date();
+
+            const isExpired = !data.is_active || isExpiredByDate;
+
+            if (isExpired) {
+                if (isExpiredByDate && data.is_active) {
+                    // Self-heal only when the DB hasn't been updated yet
+                    supabase
+                        .from('user_subscriptions')
+                        .update({ is_active: false, updated_at: new Date().toISOString() })
+                        .eq('id', data.id)
+                        // fire-and-forget — no need to invalidate again, we already handle it
+                        .then(() => { });
+                }
+                // Return tier so ProtectedRoute shows renewal modal (not a redirect)
+                return {
+                    ...defaultSubscription,
+                    tier: data.plan_id as SubscriptionTier,
+                    isActive: false,
+                    expiresAt: data.expires_at,
+                    swipesToday: swipesToday || 0,
+                };
+            }
+            // ──────────────────────────────────────────────────────────────────
+
             const tier = data.plan_id as SubscriptionTier;
+
+            // ── Use real DB flags (respects order bumps & custom limits) ───────
+            // Fall back to tier-based logic only for legacy rows where column is null
+            const canSeeWhoLiked = data.can_see_who_liked ?? (tier === 'silver' || tier === 'gold');
+            const canUseAdvancedFilters = data.can_use_advanced_filters ?? (tier === 'gold');
+            const canVideoCall = data.can_video_call ?? (tier === 'silver' || tier === 'gold');
+            const isProfileBoosted = data.is_profile_boosted ?? (tier === 'gold');
+            const dailySwipesLimit = data.daily_swipes_limit ?? ((tier === 'bronze' || tier === 'none') ? 20 : 999999);
+            // ──────────────────────────────────────────────────────────────────
 
             return {
                 tier,
                 isActive: data.is_active,
                 expiresAt: data.expires_at,
-                canSeeWhoLiked: tier === 'silver' || tier === 'gold',
-                canUseAdvancedFilters: tier === 'gold',
-                canVideoCall: tier === 'silver' || tier === 'gold',
-                canSendMedia: tier === 'silver' || tier === 'gold',
+                canSeeWhoLiked,
+                canUseAdvancedFilters,
+                canVideoCall,
+                canSendMedia: canVideoCall,         // same gate as video call
                 canDirectMessage: tier === 'gold',
-                isProfileBoosted: tier === 'gold',
-                dailySwipesLimit: (tier === 'bronze' || tier === 'none') ? 20 : 999999,
+                isProfileBoosted,
+                dailySwipesLimit,
                 swipesToday: swipesToday || 0,
             };
         },
     });
 
-    // Real-time listener — usando import estático, sem async IIFE
+    // Real-time listener — invalidates cache on any subscription or swipe change
     useEffect(() => {
         if (!user) return;
 

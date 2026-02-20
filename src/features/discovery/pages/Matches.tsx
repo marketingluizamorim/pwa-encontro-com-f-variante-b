@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSubscription } from '@/hooks/useSubscription';
 import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
+import { getProfilesData } from '@/features/funnel/utils/profiles';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Relacionamento sério': '💍',
@@ -46,6 +47,9 @@ interface LikeProfile {
   liked_at: string;
   message?: string;
   is_super_like?: boolean;
+  /** Seed funnel profiles — visible for all plan tiers */
+  _isSeed?: boolean;
+  _seedId?: string;
   profile: {
     display_name: string;
     birth_date?: string;
@@ -388,6 +392,73 @@ export default function Matches() {
     }
   });
 
+  // ── Seed Likes Query ──────────────────────────────────────────────────────
+  const { data: rawSeedLikes = [] } = useQuery({
+    queryKey: ['seed-likes', user?.id],
+    enabled: !!user,
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      if (!user) return [];
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data } = await supabase
+        .from('seed_likes')
+        .select('id, profile_index, age_range, user_gender, city, state_name, looking_for, religion, created_at')
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true });
+      return (data ?? []);
+    },
+  });
+
+  // Map raw seed rows to LikeProfile format
+  const seedLikes: LikeProfile[] = rawSeedLikes.map((row) => {
+    const quizAnswers = {
+      age: row.age_range,
+      city: row.city ?? undefined,
+      state: row.state_name ?? undefined,
+      religion: row.religion ?? undefined,
+      lookingFor: row.looking_for ?? undefined,
+    };
+    const profiles = getProfilesData(row.user_gender as 'male' | 'female', quizAnswers);
+    const p = profiles[row.profile_index] ?? profiles[0];
+    const birthYear = new Date().getFullYear() - p.age;
+    return {
+      id: `seed-${row.id}`,
+      user_id: `seed-${row.id}`,
+      liked_at: row.created_at,
+      _isSeed: true,
+      _seedId: row.id,
+      profile: {
+        display_name: p.name,
+        birth_date: `${birthYear}-06-15`,
+        photos: [p.photo],
+        avatar_url: p.photo,
+        city: p.city,
+        state: p.state,          // abbreviation from getProfilesData
+        religion: p.religion,
+        looking_for: row.looking_for ?? 'Relacionamento sério',
+        christian_interests: p.christian_interests,
+        show_distance: false,
+        // Rich fields from profiles.ts data
+        bio: p.bio,
+        occupation: p.occupation,
+        church_frequency: p.church_frequency,
+        about_children: p.about_children,
+        education: p.education,
+        drink: p.drink,
+        smoke: p.smoke,
+        physical_activity: p.physical_activity,
+        languages: p.languages,
+      },
+    };
+  });
+
+  // Seed likes appear FIRST, then real likes
+  const allLikes = [...seedLikes, ...likes];
+  // ─────────────────────────────────────────────────────────────────────────
+
+
   // Real-time: Listen for new likes to update the list automatically
   useEffect(() => {
     if (!user) return;
@@ -429,20 +500,44 @@ export default function Matches() {
     toast.success('Lista atualizada', { style: { marginTop: '50px' } });
   };
 
-  const handleSwipe = async (targetUserId: string, direction: 'like' | 'dislike' | 'super_like') => {
+  const handleSwipe = async (targetUserId: string, direction: 'like' | 'dislike' | 'super_like', isSeed?: boolean, seedId?: string) => {
     if (!user) return;
 
-    // Haptic Feedback
     const hapticType = direction === 'dislike' ? 'light' : direction === 'like' ? 'medium' : 'success';
     triggerHaptic(hapticType);
 
-    // Optimistic UI Update: Remove from list and close modal
-    // Find name/photo BEFORE removing
-    const matchedProfile = likes.find(l => l.user_id === targetUserId)?.profile;
+    const matchedProfile = allLikes.find(l => l.user_id === targetUserId)?.profile;
 
     setSelectedLike(null);
     setCurrentPhotoIndex(0);
 
+    // ── Seed like: update status in DB, optionally show match celebration
+    if (isSeed && seedId) {
+      const newStatus = (direction === 'dislike') ? 'dismissed' : 'liked';
+
+      // Optimistic remove from seed query cache
+      queryClient.setQueryData(['seed-likes', user?.id], (old: typeof rawSeedLikes | undefined) => {
+        return old ? old.filter(r => r.id !== seedId) : [];
+      });
+
+      const { supabase } = await import('@/integrations/supabase/client');
+      await supabase.from('seed_likes').update({ status: newStatus }).eq('id', seedId);
+
+      if (direction === 'like' || direction === 'super_like') {
+        setMatchData({
+          name: matchedProfile?.display_name || 'Alguém',
+          photo: matchedProfile?.photos?.[0] || matchedProfile?.avatar_url || '',
+          matchId: `seed-${seedId}`,
+        });
+        setShowMatchCelebration(true);
+        playNotification('match');
+        triggerHaptic('success');
+      }
+      return;
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+    // Real like: remove from list cache
     queryClient.setQueryData(['likes', user?.id], (old: LikeProfile[] | undefined) => {
       return old ? old.filter(l => l.user_id !== targetUserId) : [];
     });
@@ -480,12 +575,13 @@ export default function Matches() {
     );
   };
 
-  // Wrapper for swipes from the Expanded View (which passes no ID arg because it knows selectedLike)
+  // Wrapper for swipes from the Expanded View
   const handleExpandedSwipe = (direction: 'like' | 'dislike' | 'super_like') => {
     if (selectedLike) {
-      handleSwipe(selectedLike.user_id, direction);
+      handleSwipe(selectedLike.user_id, direction, selectedLike._isSeed, selectedLike._seedId);
     }
   };
+
 
   if (loading && likes.length === 0) {
     return <MatchesListSkeleton />;
@@ -510,8 +606,8 @@ export default function Matches() {
               Curtidas
             </h2>
             <p className="text-[0.950rem] text-muted-foreground mt-1 max-w-sm">
-              {likes.length > 0 ? (
-                subscription?.canSeeWhoLiked
+              {allLikes.length > 0 ? (
+                subscription?.canSeeWhoLiked || seedLikes.length > 0
                   ? "Veja todos que gostaram de você e não perca nenhuma conexão."
                   : "Faça um upgrade de plano para ver as pessoas que já curtiram você."
               ) : subscription?.tier === 'gold' ? null : subscription?.tier === 'bronze' ? (
@@ -538,7 +634,7 @@ export default function Matches() {
           </div>
 
           {/* Grid Content */}
-          {likes.length === 0 ? (
+          {allLikes.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center opacity-60 mt-10 px-4">
               <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
                 <i className="ri-search-eye-line text-4xl"></i>
@@ -548,7 +644,7 @@ export default function Matches() {
           ) : (
             <div className="grid grid-cols-2 gap-3 px-4 pb-24">
               <AnimatePresence>
-                {likes.map((like) => (
+                {allLikes.map((like) => (
                   <SwipeableMatchCard
                     key={like.id}
                     like={like}
@@ -571,7 +667,8 @@ export default function Matches() {
                         });
                         setShowUpgradeDialog(true);
                       } else {
-                        handleSwipe(id, dir);
+                        // Seed profiles route through seed logic; real profiles through mutation
+                        handleSwipe(id, dir, like._isSeed, like._seedId);
                       }
                     }}
                     onExpand={() => {
@@ -991,7 +1088,15 @@ export default function Matches() {
         matchPhoto={matchData?.photo}
         onComplete={() => {
           setShowMatchCelebration(false);
-          if (matchData?.matchId) navigate(`/app/chat/${matchData.matchId}`);
+          if (matchData?.matchId) {
+            // Seed matches navigate to the seed chat room
+            if (matchData.matchId.startsWith('seed-')) {
+              const seedId = matchData.matchId.replace('seed-', '');
+              navigate(`/app/chat/seed/${seedId}`);
+            } else {
+              navigate(`/app/chat/${matchData.matchId}`);
+            }
+          }
           setMatchData(null);
         }}
       />

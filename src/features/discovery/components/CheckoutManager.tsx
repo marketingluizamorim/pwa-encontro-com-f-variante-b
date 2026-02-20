@@ -18,9 +18,11 @@ interface CheckoutManagerProps {
     planId: string;
     planPrice: number;
     planName: string;
+    /** Where this purchase originated. Default: 'in_app_upgrade' */
+    purchaseSource?: 'funnel' | 'in_app_upgrade' | 'in_app_renewal';
 }
 
-export function CheckoutManager({ open, onOpenChange, planId, planPrice, planName }: CheckoutManagerProps) {
+export function CheckoutManager({ open, onOpenChange, planId, planPrice, planName, purchaseSource = 'in_app_upgrade' }: CheckoutManagerProps) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { user } = useAuth();
@@ -56,6 +58,7 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
         allRegions: true,
         grupoEvangelico: true,
         grupoCatolico: true,
+        filtrosAvancados: true,
         lifetime: true,
     });
 
@@ -81,7 +84,8 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
                 userPhone: data.phone,
                 orderBumps: currentBumps.current,
                 quizData: quizAnswers,
-                planName: planName
+                planName: planName,
+                purchaseSource,
             });
 
             setPixCode(paymentData.pixCode || '');

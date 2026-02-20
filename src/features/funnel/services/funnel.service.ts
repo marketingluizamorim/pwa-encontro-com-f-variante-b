@@ -11,6 +11,7 @@ export interface PaymentRequest {
     quizData: QuizAnswers;
     isSpecialOffer?: boolean;
     planName?: string;
+    purchaseSource?: 'funnel' | 'in_app_upgrade' | 'in_app_renewal';
 }
 
 export const funnelService = {
@@ -26,6 +27,7 @@ export const funnelService = {
                 quizData: request.quizData,
                 isSpecialOffer: request.isSpecialOffer,
                 planName: request.planName,
+                purchaseSource: request.purchaseSource ?? 'funnel',
             },
         });
 

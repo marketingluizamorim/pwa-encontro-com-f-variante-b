@@ -15,6 +15,8 @@ interface CreatePaymentRequest {
   quizData?: Record<string, unknown>;
   isSpecialOffer?: boolean;
   planName?: string;
+  /** Origin: 'funnel' | 'in_app_upgrade' | 'in_app_renewal' */
+  purchaseSource?: string;
 }
 
 const PLAN_NAMES: Record<string, string> = {
@@ -80,6 +82,7 @@ Deno.serve(async (req) => {
       quizData,
       isSpecialOffer,
       planName,
+      purchaseSource,
     } = body;
 
     const isTestUser = userEmail.includes("@test.com") ||
@@ -179,6 +182,7 @@ Deno.serve(async (req) => {
         payment_method: "PIX",
         order_bumps: orderBumpsList,
         quiz_data: quizData || {},
+        source_platform: purchaseSource ?? 'funnel',
       })
       .select()
       .single();

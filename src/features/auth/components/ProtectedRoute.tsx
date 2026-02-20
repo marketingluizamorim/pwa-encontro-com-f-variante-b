@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
+import { PlanExpiredModal } from '@/features/discovery/components/PlanExpiredModal';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -33,9 +34,20 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <>{children}</>;
   }
 
-  // 4. Subscription resolvida sem plano ativo — redireciona para planos
+  // 4. Nunca teve plano — redireciona para o funil de vendas
   if (!subscription || subscription.tier === 'none') {
     return <Navigate to="/v1/planos" replace />;
+  }
+
+  // 5. Plano expirado (tier resolvido mas isActive = false) 
+  // → Mostra modal de renovação sobre o conteúdo atual
+  if (!subscription.isActive) {
+    return (
+      <>
+        {children}
+        <PlanExpiredModal open previousTier={subscription.tier} />
+      </>
+    );
   }
 
   return <>{children}</>;

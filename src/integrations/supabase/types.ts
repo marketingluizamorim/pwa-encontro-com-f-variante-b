@@ -287,7 +287,50 @@ export type Database = {
         }
         Relationships: []
       }
+      seed_likes: {
+        Row: {
+          age_range: string
+          city: string | null
+          created_at: string
+          id: string
+          looking_for: string | null
+          profile_index: number
+          religion: string | null
+          state_name: string | null
+          status: string
+          user_gender: string
+          user_id: string
+        }
+        Insert: {
+          age_range?: string
+          city?: string | null
+          created_at?: string
+          id?: string
+          looking_for?: string | null
+          profile_index: number
+          religion?: string | null
+          state_name?: string | null
+          status?: string
+          user_gender?: string
+          user_id: string
+        }
+        Update: {
+          age_range?: string
+          city?: string | null
+          created_at?: string
+          id?: string
+          looking_for?: string | null
+          profile_index?: number
+          religion?: string | null
+          state_name?: string | null
+          status?: string
+          user_gender?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       spatial_ref_sys: {
+
         Row: {
           auth_name: string | null
           auth_srid: number | null

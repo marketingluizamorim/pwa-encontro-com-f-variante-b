@@ -79,6 +79,8 @@ const Matches = lazy(() => import("@/features/discovery/pages/Matches"));
 const Chat = lazy(() => import("@/features/discovery/pages/Chat"));
 const ChatRoom = lazy(() => import("@/features/discovery/pages/ChatRoom"));
 const WelcomeChat = lazy(() => import("@/features/discovery/pages/WelcomeChat"));
+const SeedChatRoom = lazy(() => import("@/features/discovery/pages/SeedChatRoom"));
+
 const Profile = lazy(() => import("@/features/discovery/pages/Profile"));
 const ProfileSetup = lazy(() => import("@/features/discovery/pages/ProfileSetup"));
 const ProfileEdit = lazy(() => import("@/features/discovery/pages/ProfileEdit"));
@@ -157,6 +159,16 @@ const AppContent = () => {
                   element={
                     <ProtectedRoute>
                       <WelcomeChat />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Seed Chat Room — fake match chat for funnel profiles */}
+                <Route
+                  path="/app/chat/seed/:seedId"
+                  element={
+                    <ProtectedRoute>
+                      <SeedChatRoom />
                     </ProtectedRoute>
                   }
                 />
