@@ -55,6 +55,7 @@ const OLD_PRICES: Record<string, number> = {
     gold: 99.90,
     ouro: 99.90,
     annual: 99.90,
+    'special-offer': 49.90,
 };
 
 // ─────────────────────────────────────────────

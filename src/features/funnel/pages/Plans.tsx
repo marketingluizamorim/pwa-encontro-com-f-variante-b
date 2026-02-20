@@ -16,7 +16,7 @@ import { getStoredUTMParams } from '@/hooks/useUTMTracking';
 import type { SelectedBumps } from '@/features/funnel/components/OrderBumpDialog';
 
 
-const SPECIAL_OFFER_PRICE = 15.90;
+const SPECIAL_OFFER_PRICE = 14.90;
 const SPECIAL_OFFER_PLAN_ID = 'special-offer';
 const GOLD_PLAN_PRICE = 49.90;
 const GOLD_PLAN_ID = 'gold';
@@ -26,6 +26,7 @@ const PLAN_NAMES: Record<string, string> = {
   bronze: "Plano Bronze",
   silver: "Plano Prata",
   gold: "Plano Ouro",
+  [SPECIAL_OFFER_PLAN_ID]: "Plano Ouro · 3 Meses",
 };
 
 export default function Plans() {
@@ -113,8 +114,13 @@ export default function Plans() {
 
   const handleAcceptSpecialOffer = () => {
     setShowExitIntent(false);
-    setShowSpecialOfferCheckout(true);
-    setOrderBumps({ allRegions: true, grupoEvangelico: true, grupoCatolico: true, specialOffer: true });
+    // Use the standard CheckoutDialog for consistent UX, pre-configured for special offer
+    setSelectedPlanId(SPECIAL_OFFER_PLAN_ID);
+    setSelectedPlanPrice(SPECIAL_OFFER_PRICE);
+    const specialBumps = { allRegions: true, grupoEvangelico: true, grupoCatolico: true, filtrosAvancados: false, specialOffer: true };
+    currentBumpsRef.current = specialBumps;
+    setOrderBumps(specialBumps);
+    setShowCheckout(true);
   };
 
   const handleDeclineSpecialOffer = () => {
@@ -214,7 +220,8 @@ export default function Plans() {
   };
 
   const handleCheckoutSubmit = async (data: { name: string; email: string; phone: string }) => {
-    const success = await createPayment(selectedPlanId, selectedPlanPrice, data, false, currentBumpsRef.current);
+    const isSpecialOffer = selectedPlanId === SPECIAL_OFFER_PLAN_ID;
+    const success = await createPayment(selectedPlanId, selectedPlanPrice, data, isSpecialOffer, currentBumpsRef.current);
     if (success) {
       setShowCheckout(false);
       setShowPixPayment(true);
