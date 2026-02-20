@@ -13,7 +13,7 @@ import {
 
 const BENEFITS = [
     { icon: Star, text: '2 meses do Plano Prata grátis', color: 'text-amber-400' },
-    { icon: MapPin, text: 'Encontre pessoas cristãs perto de você — sua pessoa ideal pode estar na mesma cidade', color: 'text-rose-400' },
+    { icon: MapPin, text: 'Encontre pessoas cristãs perto de você', color: 'text-rose-400' },
     { icon: Heart, text: 'Veja quem curtiu você', color: 'text-pink-400' },
     { icon: Shield, text: 'Curtidas ilimitadas', color: 'text-emerald-400' },
     { icon: MessageCircle, text: 'Filtros avançados de busca', color: 'text-blue-400' },
