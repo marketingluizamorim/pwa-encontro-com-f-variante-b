@@ -112,13 +112,24 @@ async function fetchProfiles({ userId, filters, pageParam, userCity, userState }
     throw error;
   }
 
-  // Handle range locally since rpc returns the whole set (or we can add range to rpc)
-  // For better performance, we should ideally add range to RPC, but let's do it here for now or update RPC.
-  // Actually, let's update RPC to include limit/offset.
+  let profiles = (profilesData as Profile[]) || [];
+
+  // Client-side filters not supported by RPC
+  if (filters.onlineRecently) {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    profiles = profiles.filter(p =>
+      p.show_online_status !== false &&
+      p.last_active_at !== undefined &&
+      p.last_active_at !== null &&
+      p.last_active_at >= cutoff
+    );
+  }
+  if (filters.hasPhotos) {
+    profiles = profiles.filter(p => p.photos && p.photos.length > 0);
+  }
 
   const from = pageParam * PAGE_SIZE;
   const to = from + PAGE_SIZE;
-  const profiles = (profilesData as Profile[]) || [];
   const paginatedProfiles = profiles.slice(from, to);
   const hasMore = profiles.length > to;
 

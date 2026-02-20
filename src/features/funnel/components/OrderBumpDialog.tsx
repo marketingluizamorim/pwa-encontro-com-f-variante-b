@@ -64,7 +64,7 @@ export interface SelectedBumps {
   grupoEvangelico: boolean;
   grupoCatolico: boolean;
   filtrosAvancados: boolean;
-  lifetime: boolean;
+  specialOffer: boolean;
 }
 
 interface OrderBumpDialogProps {
@@ -103,7 +103,7 @@ export function OrderBumpDialog({
       grupoEvangelico: selectedBumps.includes('evangelico'),
       grupoCatolico: selectedBumps.includes('catolico'),
       filtrosAvancados: selectedBumps.includes('filtros'),
-      lifetime: false,
+      specialOffer: false,
     };
     // Save to store for UI purposes
     setOrderBumps(bumps);
@@ -119,7 +119,7 @@ export function OrderBumpDialog({
       grupoEvangelico: false,
       grupoCatolico: false,
       filtrosAvancados: false,
-      lifetime: false,
+      specialOffer: false,
     };
     // Reset order bumps in store
     setOrderBumps(emptyBumps);
@@ -152,10 +152,12 @@ export function OrderBumpDialog({
         {/* Order Bump Cards */}
         <div className="space-y-3 pb-0">
           {ORDER_BUMPS.filter(bump => {
-            // 'regions' hidden for silver (they already have all regions)
-            if (selectedPlan?.id === 'silver' && bump.id === 'regions') return false;
-            // 'filtros' shown ONLY for silver
+            // 'regions' only for Bronze — Silver has region built-in; Gold has everything
+            if (bump.id === 'regions' && selectedPlan?.id !== 'bronze') return false;
+            // 'filtros' only for Silver — Bronze can't use it; Gold has it built-in
             if (bump.id === 'filtros' && selectedPlan?.id !== 'silver') return false;
+            // 'evangelico' and 'catolico': Bronze AND Silver can buy as bumps
+            // Gold skips this dialog entirely (handled in PlansSection)
             return true;
           }).map(bump => {
             const isSelected = selectedBumps.includes(bump.id);

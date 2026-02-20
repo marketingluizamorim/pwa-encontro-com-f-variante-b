@@ -1,5 +1,6 @@
 // @ts-nocheck
 // Edge Function - runs on Deno (Supabase), not Node.js
+/// <reference path="../deno.d.ts" />
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {

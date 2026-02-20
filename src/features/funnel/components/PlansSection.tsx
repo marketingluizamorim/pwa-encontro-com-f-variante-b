@@ -31,7 +31,8 @@ export function PlansSection({ onSelectPlan, onBack, isDialogOpen = false }: Pla
           allRegions: true,
           grupoEvangelico: true,
           grupoCatolico: true,
-          lifetime: true
+          filtrosAvancados: true,
+          specialOffer: false,
         });
       } else {
         setSelectedPlan(plan);

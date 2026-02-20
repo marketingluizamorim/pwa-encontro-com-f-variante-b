@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Copy, Check, Loader2, X } from 'lucide-react';
+import { Copy, Check, Loader2, RefreshCw } from 'lucide-react';
 
 interface PixPaymentDialogProps {
   open: boolean;
@@ -15,9 +15,13 @@ interface PixPaymentDialogProps {
   pixCode: string;
   pixQrCode: string;
   paymentId: string;
-  totalAmount: number; // Value in BRL (e.g., 97.00)
+  totalAmount: number;
   onPaymentConfirmed: () => void;
   checkPaymentStatus: () => Promise<'PENDING' | 'PAID' | 'FAILED'>;
+  /** When true, shows Pix Automático UI with recurring info */
+  isPixAutomatic?: boolean;
+  /** 'WEEKLY' | 'MONTHLY' */
+  planCycle?: string;
 }
 
 const CHECK_INTERVALS = [15, 30, 45, 60, 90, 120, 120, 120, 120, 120];
@@ -31,7 +35,10 @@ export function PixPaymentDialog({
   totalAmount,
   onPaymentConfirmed,
   checkPaymentStatus,
+  isPixAutomatic = false,
+  planCycle = 'MONTHLY',
 }: PixPaymentDialogProps) {
+  const cycleLabel = planCycle === 'WEEKLY' ? 'semana' : 'mês';
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
   const [isChecking, setIsChecking] = useState(false);
   const [checkCount, setCheckCount] = useState(0);
@@ -145,7 +152,7 @@ export function PixPaymentDialog({
         <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-7 sm:py-5 scrollbar-hide">
           <DialogHeader className="mb-3">
             <DialogTitle className="font-serif text-center text-xl font-bold text-white tracking-tight drop-shadow-sm">
-              PIX Gerado
+              {isPixAutomatic ? 'Pix Automático' : 'PIX Gerado'}
             </DialogTitle>
           </DialogHeader>
 
@@ -157,6 +164,16 @@ export function PixPaymentDialog({
                 {formatCurrency(totalAmount)}
               </p>
             </div>
+
+            {/* Pix Automático badge */}
+            {isPixAutomatic && (
+              <div className="flex items-center gap-2 justify-center bg-amber-500/10 border border-amber-400/20 rounded-xl px-4 py-2">
+                <RefreshCw className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                <p className="text-[11px] text-amber-300 font-semibold">
+                  Cobrança automática a cada {cycleLabel} — cancele quando quiser
+                </p>
+              </div>
+            )}
 
             {/* Instructions Card */}
             <div className="rounded-xl bg-white/[0.03] p-4 border border-white/5 backdrop-blur-sm mx-1">
@@ -172,9 +189,13 @@ export function PixPaymentDialog({
                   <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20">2</span>
                   <span>Selecione PIX <span className="text-white font-semibold">Copia e Cola</span> ou <span className="text-white font-semibold">QR Code</span></span>
                 </li>
-                <li className="flex gap-3 items-center whitespace-nowrap">
-                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20">3</span>
-                  <span>Confirme o pagamento e aguarde</span>
+                <li className="flex gap-3 items-start">
+                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20 mt-0.5">3</span>
+                  {isPixAutomatic ? (
+                    <span>Seu banco mostrará <span className="text-white font-semibold">"Pagar agora + autorizar débito automático"</span> — confirme para ativar</span>
+                  ) : (
+                    <span>Confirme o pagamento e aguarde</span>
+                  )}
                 </li>
               </ol>
             </div>

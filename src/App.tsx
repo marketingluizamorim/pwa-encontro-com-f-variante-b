@@ -14,12 +14,16 @@ import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocationModalProvider } from "@/contexts/LocationModalContext";
 import { useQuizSync } from "@/features/funnel/hooks/useQuizSync";
+import { useUTMTracking } from "@/hooks/useUTMTracking";
+
 
 // Rotas onde o splash NUNCA deve aparecer
 const NO_SPLASH_ROUTES = [
   '/v1',
   '/login',
   '/register',
+  '/forgot-password',
+  '/reset-password',
   '/install',
   '/termos-de-uso',
   '/politica-de-reembolso',
@@ -48,6 +52,12 @@ function QuizSyncGate() {
   return null;
 }
 
+/** Zero-render component: captures UTM params from URL → localStorage on first visit */
+function UTMGate() {
+  useUTMTracking();
+  return null;
+}
+
 
 // Static imports for critical path (Performance)
 import Landing from "@/features/funnel/pages/Landing";
@@ -60,6 +70,8 @@ import PlansV1 from "@/features/funnel/pages/Plans";
 // Auth pages — static so login appears instantly after HTML splash (no double loader)
 import Login from "@/features/auth/pages/Login";
 import Register from "@/features/auth/pages/Register";
+import ForgotPassword from "@/features/auth/pages/ForgotPassword";
+import ResetPassword from "@/features/auth/pages/ResetPassword";
 
 // Lazy load secondary public pages
 const Install = lazy(() => import("./pages/public/Install"));
@@ -115,6 +127,7 @@ const AppContent = () => {
         <AuthProvider>
           <LocationModalProvider>
             <QuizSyncGate />
+            <UTMGate />
             <SplashGate />
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
@@ -132,6 +145,8 @@ const AppContent = () => {
                 {/* Public routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/install" element={<Install />} />
                 <Route path="/termos-de-uso" element={<TermosDeUso />} />
                 <Route path="/politica-de-reembolso" element={<PoliticaDeReembolso />} />

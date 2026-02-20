@@ -17,6 +17,11 @@ export interface Subscription {
     isProfileBoosted: boolean;
     dailySwipesLimit: number;
     swipesToday: number;
+    // Order-bump / plan flags
+    hasAllRegions: boolean;        // unlocks city/state filter
+    hasGrupoEvangelico: boolean;   // access to evangelical group
+    hasGrupoCatolico: boolean;     // access to catholic group
+    canSeeRecentlyOnline: boolean; // "online recently" filter
 }
 
 const defaultSubscription: Subscription = {
@@ -31,6 +36,10 @@ const defaultSubscription: Subscription = {
     isProfileBoosted: false,
     dailySwipesLimit: 20,
     swipesToday: 0,
+    hasAllRegions: false,
+    hasGrupoEvangelico: false,
+    hasGrupoCatolico: false,
+    canSeeRecentlyOnline: false,
 };
 
 export function useSubscription() {
@@ -116,6 +125,10 @@ export function useSubscription() {
             const canVideoCall = data.can_video_call ?? (tier === 'silver' || tier === 'gold');
             const isProfileBoosted = data.is_profile_boosted ?? (tier === 'gold');
             const dailySwipesLimit = data.daily_swipes_limit ?? ((tier === 'bronze' || tier === 'none') ? 20 : 999999);
+            const hasAllRegions = data.has_all_regions ?? (tier === 'silver' || tier === 'gold');
+            const hasGrupoEvangelico = data.has_grupo_evangelico ?? (tier === 'gold');
+            const hasGrupoCatolico = data.has_grupo_catolico ?? (tier === 'gold');
+            const canSeeRecentlyOnline = (data as unknown as { can_see_recently_online?: boolean | null }).can_see_recently_online ?? (tier === 'gold');
             // ──────────────────────────────────────────────────────────────────
 
             return {
@@ -130,6 +143,10 @@ export function useSubscription() {
                 isProfileBoosted,
                 dailySwipesLimit,
                 swipesToday: swipesToday || 0,
+                hasAllRegions,
+                hasGrupoEvangelico,
+                hasGrupoCatolico,
+                canSeeRecentlyOnline,
             };
         },
     });

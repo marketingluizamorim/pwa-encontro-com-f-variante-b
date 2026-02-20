@@ -268,6 +268,11 @@ export default function DiscoverFilters({
   const isSilver = subscription?.tier === 'silver';
   const isGold = subscription?.tier === 'gold';
 
+  // Derived permission flags (read from DB, not just tier)
+  const hasAllRegions = subscription?.hasAllRegions ?? false;
+  const canAdvancedFilters = subscription?.canUseAdvancedFilters ?? false;
+  const canSeeRecentlyOnline = subscription?.canSeeRecentlyOnline ?? false;
+
   // Sync local state when sheet opens
   const handleOpen = () => {
     setLocalFilters(filters);
@@ -277,16 +282,6 @@ export default function DiscoverFilters({
   const handleClose = () => setOpen(false);
 
   const handleApply = () => {
-    if (isBronze) {
-      setUpgradeData({
-        title: 'Plano Prata',
-        description: 'Migre para o Plano Prata para filtrar perfis por cidade, idade, religião e muito mais!',
-        features: ['Ver quem curtiu você', 'Curtidas ilimitadas', 'Filtro por cidade / região', 'Fazer chamadas de voz e vídeo'],
-        planNeeded: 'silver', icon: <Sliders className="w-8 h-8" />, price: 29.90, planId: 'silver',
-      });
-      setShowUpgradeDialog(true);
-      return;
-    }
     onFiltersChange(localFilters);
     onApply(localFilters);
     handleClose();
@@ -395,15 +390,17 @@ export default function DiscoverFilters({
               <SectionHeader
                 title="Faixa de idade"
                 icon="ri-user-line"
-                showUpgrade={!isGold}
+                showUpgrade={!canAdvancedFilters}
                 onUpgradeClick={() => showUpgradeFor({
-                  title: 'Plano Ouro',
-                  description: 'O filtro de idade é exclusivo para membros do Plano Ouro.',
+                  title: isBronze ? 'Plano Prata ou Ouro' : 'Plano Ouro',
+                  description: isBronze
+                    ? 'Adquira o Plano Prata com Filtros Avançados ou o Plano Ouro para filtrar por idade.'
+                    : 'O filtro de idade é exclusivo para o Plano Ouro ou Plano Prata com add-on de Filtros Avançados.',
                   features: ['Filtros avançados completos', 'Perfil em destaque', 'Enviar mensagem direta'],
                   planNeeded: 'gold', icon: <Filter className="w-8 h-8" />, price: 49.90, planId: 'gold',
                 })}
               />
-              <div className={cn('transition-opacity', !isGold && 'opacity-40 grayscale pointer-events-none')}>
+              <div className={cn('transition-opacity', !canAdvancedFilters && 'opacity-40 grayscale pointer-events-none')}>
                 <RangeSlider
                   values={[localFilters.minAge, localFilters.maxAge]}
                   onChange={(v) => setLocalFilters(p => ({ ...p, minAge: v[0], maxAge: v[1] }))}
@@ -422,15 +419,17 @@ export default function DiscoverFilters({
               <SectionHeader
                 title="Distância máxima"
                 icon="ri-road-map-line"
-                showUpgrade={!isGold}
+                showUpgrade={!canAdvancedFilters}
                 onUpgradeClick={() => showUpgradeFor({
-                  title: 'Plano Ouro',
-                  description: 'O ajuste de distância é recurso exclusivo para membros do Plano Ouro.',
+                  title: isBronze ? 'Plano Prata ou Ouro' : 'Plano Ouro',
+                  description: isBronze
+                    ? 'Adquira o Plano Prata com Filtros Avançados ou o Plano Ouro para ajustar a distância.'
+                    : 'O ajuste de distância é recurso exclusivo para membros do Plano Ouro.',
                   features: ['Filtro por distância física', 'Prioridade na fila (Boost)', 'Enviar Direct sem Match'],
                   planNeeded: 'gold', icon: <MapPin className="w-8 h-8" />, price: 49.90, planId: 'gold',
                 })}
               />
-              <div className={cn('transition-opacity', !isGold && 'opacity-40 grayscale pointer-events-none')}>
+              <div className={cn('transition-opacity', !canAdvancedFilters && 'opacity-40 grayscale pointer-events-none')}>
                 <SingleSlider
                   value={localFilters.maxDistance}
                   onChange={(v) => setLocalFilters(p => ({ ...p, maxDistance: v }))}
@@ -449,7 +448,7 @@ export default function DiscoverFilters({
               <SectionHeader
                 title="Localização"
                 icon="ri-map-pin-line"
-                showUpgrade={isBronze}
+                showUpgrade={!hasAllRegions}
                 onUpgradeClick={() => showUpgradeFor({
                   title: 'Plano Prata',
                   description: 'Migre para o Plano Prata para filtrar por Cidade e Estado!',
@@ -457,7 +456,7 @@ export default function DiscoverFilters({
                   planNeeded: 'silver', icon: <MapPin className="w-8 h-8" />, price: 29.90, planId: 'silver',
                 })}
               />
-              <div className={cn('grid grid-cols-2 gap-3 w-full overflow-x-hidden', isBronze && 'opacity-40 grayscale pointer-events-none')}>
+              <div className={cn('grid grid-cols-2 gap-3 w-full overflow-x-hidden', !hasAllRegions && 'opacity-40 grayscale pointer-events-none')}>
                 <div>
                   <Label className="text-xs text-muted-foreground mb-1.5 block">Estado</Label>
                   <Select
@@ -615,7 +614,7 @@ export default function DiscoverFilters({
                   label="Online recentemente"
                   description="Ativos nas últimas 24 horas"
                   checked={localFilters.onlineRecently}
-                  onCheckedChange={(v) => setLocalFilters(p => ({ ...p, onlineRecently: v }))}
+                  onCheckedChange={(v) => { if (canSeeRecentlyOnline) setLocalFilters(p => ({ ...p, onlineRecently: v })); }}
                 />
                 <ToggleRow
                   icon="ri-image-line"

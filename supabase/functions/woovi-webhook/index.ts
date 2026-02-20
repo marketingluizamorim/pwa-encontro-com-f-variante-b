@@ -1,5 +1,7 @@
 /// <reference path="../deno.d.ts" />
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { notifyUtmify, fmtDate, calcCommission } from "../_shared/utmify.ts";
+import type { UtmifyProduct } from "../_shared/utmify.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -28,7 +30,7 @@ function formatDateForWebhook(date: Date): string {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
-const DISABLE_WEBHOOKS = true;
+
 
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -64,65 +66,119 @@ Deno.serve(async (req: Request) => {
 
         if (purchase.user_id) {
             const now = new Date();
-            let expiresAt: Date | null = null;
+            let expiresAt: Date;
             switch (purchase.plan_id) {
-                case "bronze": case "weekly": expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); break;
-                case "silver": case "monthly": case "gold": expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); break;
-                case "annual": expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); break;
+                case "bronze": expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); break;
+                case "silver":
+                case "gold": expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); break;
+                case "special-offer": expiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); break; // 3 months
                 default: expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
             }
 
-            const orderBumps = Array.isArray(purchase.order_bumps) ? purchase.order_bumps : [];
-            const hasLifetime = orderBumps.includes("lifetime") || ["lifetime", "special"].includes(purchase.plan_id);
+            const orderBumps = Array.isArray(purchase.order_bumps) ? purchase.order_bumps as string[] : [];
+            const isGold = purchase.plan_id === "gold";
+            const isSilver = purchase.plan_id === "silver";
+            const isBronze = purchase.plan_id === "bronze";
+            const hasSpecialOffer = orderBumps.includes("specialOffer") || purchase.plan_id === "special-offer";
 
             await supabase.from("user_subscriptions").upsert({
                 user_id: purchase.user_id,
                 purchase_id: purchase.id,
-                plan_id: purchase.plan_id,
+                // special-offer is treated as Gold tier in DB so frontend flags work correctly
+                plan_id: hasSpecialOffer ? "gold" : purchase.plan_id,
                 plan_name: purchase.plan_name,
                 starts_at: now.toISOString(),
-                expires_at: hasLifetime ? null : expiresAt?.toISOString(),
+                expires_at: expiresAt.toISOString(),
                 is_active: true,
-                is_lifetime: hasLifetime,
-                has_all_regions: orderBumps.includes("allRegions"),
-                daily_swipes_limit: ["bronze", "weekly"].includes(purchase.plan_id) ? 20 : 9999,
-                can_see_who_liked: !["bronze", "weekly"].includes(purchase.plan_id),
-                is_profile_boosted: ["gold", "annual"].includes(purchase.plan_id) || hasLifetime,
-                can_video_call: !["bronze", "weekly"].includes(purchase.plan_id),
-                can_use_advanced_filters: !["bronze", "weekly"].includes(purchase.plan_id),
+                is_lifetime: false,
+                // special-offer = all Gold features
+                has_all_regions: isGold || isSilver || hasSpecialOffer || orderBumps.includes("allRegions"),
+                has_grupo_evangelico: isGold || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
+                has_grupo_catolico: isGold || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
+                can_use_advanced_filters: isGold || hasSpecialOffer || orderBumps.includes("filtrosAvancados"),
+                daily_swipes_limit: isBronze ? 20 : 9999,
+                can_see_who_liked: !isBronze || hasSpecialOffer,
+                can_video_call: !isBronze || hasSpecialOffer,
+                is_profile_boosted: isGold || hasSpecialOffer,
+                can_see_recently_online: isGold || hasSpecialOffer,
             }, { onConflict: "user_id" });
         }
 
         const isTestUser = purchase.user_email?.includes("@test.com") || purchase.user_email?.includes("@temporario.com") ||
             purchase.user_name?.toLowerCase().includes("dev") || purchase.plan_name?.toLowerCase().includes("dev");
 
-        if (!isTestPayment && !isTestUser && !DISABLE_WEBHOOKS) {
-            try {
-                const now = new Date();
-                const approvedDate = formatDateForWebhook(now);
-                const createdAtFormatted = formatDateForWebhook(new Date(purchase.created_at));
-                const orderBumps = Array.isArray(purchase.order_bumps) ? purchase.order_bumps : [];
-
-                const products = [{ id: purchase.plan_id, name: purchase.plan_name, price: Number(purchase.plan_price), quantity: 1 }];
-                for (const bumpId of orderBumps) {
-                    products.push({ id: bumpId, name: BUMP_NAMES[bumpId] || bumpId, price: BUMP_PRICE, quantity: 1 });
+        // ── Notify UTMify: paid ───────────────────────────────────────
+        if (!isTestPayment && !isTestUser) {
+            const utmifyToken = Deno.env.get("UTMIFY_API_TOKEN");
+            if (utmifyToken) {
+                const nowPaid = new Date();
+                const orderBumpsArr = Array.isArray(purchase.order_bumps) ? purchase.order_bumps as string[] : [];
+                const products: UtmifyProduct[] = [{
+                    id: purchase.plan_id,
+                    name: purchase.plan_name,
+                    planId: purchase.plan_id,
+                    planName: purchase.plan_name,
+                    quantity: 1,
+                    priceInCents: Math.round(Number(purchase.plan_price) * 100),
+                }];
+                for (const bumpId of orderBumpsArr) {
+                    if (bumpId === 'specialOffer') continue;
+                    products.push({
+                        id: bumpId,
+                        name: BUMP_NAMES[bumpId] || bumpId,
+                        planId: null,
+                        planName: null,
+                        quantity: 1,
+                        priceInCents: Math.round(BUMP_PRICE * 100),
+                    });
                 }
-
-                const webhookPayload = {
-                    orderId: purchase.id, platform: "encontrocomfe", status: "paid",
-                    createdAt: createdAtFormatted, approvedDate,
-                    customer: { name: purchase.user_name, email: purchase.user_email, phone: purchase.user_phone || null },
-                    products, totalPrice: Number(purchase.total_price), paymentMethod: "PIX"
-                };
-
-                await fetch("https://n8n.srv1093629.hstgr.cloud/webhook/woovi", {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(webhookPayload)
+                const totalInCents = Math.round(Number(purchase.total_price) * 100);
+                const p = purchase as Record<string, unknown>;
+                await notifyUtmify(utmifyToken, {
+                    orderId: purchase.id,
+                    platform: "EncontroComFe",
+                    paymentMethod: "pix",
+                    status: "paid",
+                    createdAt: fmtDate(new Date(purchase.created_at as string)),
+                    approvedDate: fmtDate(nowPaid),
+                    refundedAt: null,
+                    customer: {
+                        name: purchase.user_name as string,
+                        email: purchase.user_email as string,
+                        phone: (purchase.user_phone as string | null)?.replace(/\D/g, "") || null,
+                        document: null,
+                        country: "BR",
+                    },
+                    products,
+                    trackingParameters: {
+                        src: (p.src as string | null) ?? null,
+                        sck: (p.sck as string | null) ?? null,
+                        utm_source: (p.utm_source as string | null) ?? null,
+                        utm_campaign: (p.utm_campaign as string | null) ?? null,
+                        utm_medium: (p.utm_medium as string | null) ?? null,
+                        utm_content: (p.utm_content as string | null) ?? null,
+                        utm_term: (p.utm_term as string | null) ?? null,
+                    },
+                    commission: calcCommission(totalInCents),
                 });
-            } catch (e) {
-                console.error("Webhook error:", e);
             }
         }
+        // ───────────────────────────────────────────────────────────────
+
+        // ── Send welcome email (fire-and-forget) ─────────────────────
+        fetch(`${supabaseUrl}/functions/v1/send-welcome-email`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${supabaseServiceKey}`,
+            },
+            body: JSON.stringify({
+                userName: purchase.user_name,
+                userEmail: purchase.user_email,
+                planName: purchase.plan_name,
+            }),
+        }).catch((e) => console.error("Welcome email error:", e));
+        // ─────────────────────────────────────────────────────────────
 
         return new Response(JSON.stringify({ success: true }), {
             status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" }

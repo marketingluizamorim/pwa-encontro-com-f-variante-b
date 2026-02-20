@@ -1,3 +1,4 @@
+/// <reference path="../deno.d.ts" />
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
@@ -11,7 +12,7 @@ const PLAN_NAMES: Record<string, string> = {
   annual: "Plano Anual",
   lifetime: "Plano Vitalício",
   special: "Oferta Especial",
-  "special-offer-lifetime": "Oferta Especial Vitalícia",
+  "special-offer": "Oferta Especial Vitalícia",
 };
 
 const BUMP_PRICE = 5;
@@ -84,7 +85,7 @@ Deno.serve(async (req) => {
           }
 
           const orderBumpsArray: string[] = Array.isArray(purchase.order_bumps) ? purchase.order_bumps : [];
-          const hasLifetime = orderBumpsArray.includes("lifetime") || ["lifetime", "special", "special-offer-lifetime"].includes(purchase.plan_id);
+          const hasLifetime = orderBumpsArray.includes("lifetime") || ["lifetime", "special", "special-offer"].includes(purchase.plan_id);
 
           if (purchase.user_id) {
             await supabase.from("user_subscriptions").upsert({
@@ -140,7 +141,7 @@ Deno.serve(async (req) => {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   } catch (error) {
-    return new Response(JSON.stringify({ success: false, error: error.message }), {
+    return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   }

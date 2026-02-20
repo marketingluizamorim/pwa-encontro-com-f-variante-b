@@ -15,6 +15,8 @@ interface CheckoutDialogProps {
     planName?: string;
     orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean };
     initialData?: { name: string; email: string; phone: string };
+    /** Called when user tries to close without completing (X or click-outside). */
+    onExitIntent?: () => void;
 }
 
 interface FloatingInputProps {
@@ -139,6 +141,7 @@ export function CheckoutDialog({
     planName,
     orderBumps,
     initialData,
+    onExitIntent,
 }: CheckoutDialogProps) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -240,7 +243,8 @@ export function CheckoutDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="
+            <DialogContent
+                className="
         w-[calc(100%-2rem)] max-w-[390px] mx-auto
         rounded-[22px] bg-[#0f172a] border border-white/[0.06]
         text-white shadow-[0_24px_60px_rgba(0,0,0,0.5)]
@@ -248,7 +252,14 @@ export function CheckoutDialog({
         data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95
         data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95
         [&>button]:hidden
-      ">
+      "
+                onPointerDownOutside={(e) => {
+                    if (onExitIntent) { e.preventDefault(); onExitIntent(); }
+                }}
+                onEscapeKeyDown={(e) => {
+                    if (onExitIntent) { e.preventDefault(); onExitIntent(); }
+                }}
+            >
 
                 {/* ── Header ── */}
                 <div className="flex items-center justify-between px-4 pt-4 pb-0">
@@ -256,7 +267,7 @@ export function CheckoutDialog({
                         Finalizar Assinatura
                     </h2>
                     <button
-                        onClick={() => onOpenChange(false)}
+                        onClick={() => onExitIntent ? onExitIntent() : onOpenChange(false)}
                         className="w-[22px] h-[22px] rounded-full bg-white/[0.07] flex items-center justify-center text-white/50 hover:bg-white/[0.13] transition-colors flex-shrink-0"
                     >
                         <X className="w-3 h-3" />

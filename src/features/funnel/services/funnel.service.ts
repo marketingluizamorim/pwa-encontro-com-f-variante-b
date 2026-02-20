@@ -11,10 +11,36 @@ export interface PaymentRequest {
     quizData: QuizAnswers;
     isSpecialOffer?: boolean;
     planName?: string;
-    purchaseSource?: 'funnel' | 'in_app_upgrade' | 'in_app_renewal';
+    purchaseSource?: 'funnel' | 'backredirect' | 'in_app_upgrade' | 'in_app_renewal';
+    utmSource?: string | null;
+    utmMedium?: string | null;
+    utmCampaign?: string | null;
+    utmContent?: string | null;
+    utmTerm?: string | null;
+    src?: string | null;
+    sck?: string | null;
+}
+
+export interface SubscriptionRequest {
+    planId: string;
+    userName: string;
+    userEmail: string;
+    userPhone?: string;
+    userCpf?: string;
+    orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean };
+    quizData?: QuizAnswers;
+    purchaseSource?: string;
+    utmSource?: string | null;
+    utmMedium?: string | null;
+    utmCampaign?: string | null;
+    utmContent?: string | null;
+    utmTerm?: string | null;
+    src?: string | null;
+    sck?: string | null;
 }
 
 export const funnelService = {
+    /** One-time PIX — used for special offers / legacy */
     async createPayment(request: PaymentRequest) {
         const { data, error } = await supabase.functions.invoke('create-payment', {
             body: {
@@ -28,19 +54,59 @@ export const funnelService = {
                 isSpecialOffer: request.isSpecialOffer,
                 planName: request.planName,
                 purchaseSource: request.purchaseSource ?? 'funnel',
+                utmSource: request.utmSource ?? null,
+                utmMedium: request.utmMedium ?? null,
+                utmCampaign: request.utmCampaign ?? null,
+                utmContent: request.utmContent ?? null,
+                utmTerm: request.utmTerm ?? null,
+                src: request.src ?? null,
+                sck: request.sck ?? null,
             },
         });
-
         if (error) throw error;
         return data;
+    },
+
+    /** Pix Automático — recurring subscription, Journey 3 */
+    async createSubscription(request: SubscriptionRequest) {
+        const { data, error } = await supabase.functions.invoke('create-subscription', {
+            body: {
+                planId: request.planId,
+                userName: request.userName,
+                userEmail: request.userEmail,
+                userPhone: request.userPhone,
+                userCpf: request.userCpf,
+                orderBumps: request.orderBumps,
+                quizData: request.quizData,
+                purchaseSource: request.purchaseSource ?? 'funnel',
+                utmSource: request.utmSource ?? null,
+                utmMedium: request.utmMedium ?? null,
+                utmCampaign: request.utmCampaign ?? null,
+                utmContent: request.utmContent ?? null,
+                utmTerm: request.utmTerm ?? null,
+                src: request.src ?? null,
+                sck: request.sck ?? null,
+            },
+        });
+        if (error) throw error;
+        return data as {
+            success: boolean;
+            subscriptionId: string;
+            pixCode: string;
+            qrCodeImage: string;
+            totalAmount: number;
+            purchaseId: string;
+            checkoutUrl: string;
+            isPixAutomatic: boolean;
+            planCycle: string;
+        };
     },
 
     async checkPaymentStatus(paymentId: string) {
         const { data, error } = await supabase.functions.invoke('check-payment-status', {
             body: { paymentId },
         });
-
         if (error) throw error;
-        return data.status || 'PENDING';
-    }
+        return (data.status || 'PENDING') as 'PENDING' | 'PAID' | 'FAILED';
+    },
 };

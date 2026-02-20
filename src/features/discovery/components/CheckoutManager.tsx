@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { CheckoutDialog } from '@/features/funnel/components/CheckoutDialog';
@@ -36,6 +36,8 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
     const [paymentId, setPaymentId] = useState('');
     const [pixTotalAmount, setPixTotalAmount] = useState(0);
     const [initialData, setInitialData] = useState({ name: '', email: '', phone: '' });
+    const [isPixAutomatic, setIsPixAutomatic] = useState(false);
+    const [planCycle, setPlanCycle] = useState('MONTHLY');
 
     // Puxar dados do perfil automaticamente
     useEffect(() => {
@@ -54,13 +56,18 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
         }
     }, [open, user]);
 
-    const currentBumps = useRef<SelectedBumps>({
-        allRegions: true,
-        grupoEvangelico: true,
-        grupoCatolico: true,
-        filtrosAvancados: true,
-        lifetime: true,
-    });
+    // Bumps reflect what each plan includes natively — in-app upgrades don't
+    // show the OrderBump dialog, so only built-in features are activated.
+    // Special rule: Silver/Gold both unlock grupos automatically in-app (free).
+    const bumpsForPlan = useMemo<SelectedBumps>(() => ({
+        allRegions: planId === 'gold' || planId === 'silver',
+        grupoEvangelico: planId === 'gold' || planId === 'silver',
+        grupoCatolico: planId === 'gold' || planId === 'silver',
+        filtrosAvancados: planId === 'gold',
+        specialOffer: false,
+    }), [planId]);
+    const currentBumps = useRef<SelectedBumps>(bumpsForPlan);
+    currentBumps.current = bumpsForPlan; // keep in sync when planId changes
 
     const createPayment = async (data: { name: string; email: string; phone: string }) => {
         setIsProcessing(true);
@@ -73,28 +80,35 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
                 setPixQrCode('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Example');
                 setPaymentId('mock-payment-id-' + Date.now());
                 setPixTotalAmount(planPrice);
+                setIsPixAutomatic(false);
                 return true;
             }
 
-            const paymentData = await funnelService.createPayment({
-                planId: planId,
-                planPrice: planPrice,
+            // In-app upgrades use Pix Automático (Journey 3)
+            const subData = await funnelService.createSubscription({
+                planId,
                 userName: data.name,
                 userEmail: data.email,
                 userPhone: data.phone,
-                orderBumps: currentBumps.current,
+                orderBumps: {
+                    allRegions: currentBumps.current.allRegions,
+                    grupoEvangelico: currentBumps.current.grupoEvangelico,
+                    grupoCatolico: currentBumps.current.grupoCatolico,
+                    filtrosAvancados: currentBumps.current.filtrosAvancados,
+                },
                 quizData: quizAnswers,
-                planName: planName,
                 purchaseSource,
             });
 
-            setPixCode(paymentData.pixCode || '');
-            setPixQrCode(paymentData.qrCode || '');
-            setPaymentId(paymentData.paymentId || '');
-            setPixTotalAmount(paymentData.totalAmount || planPrice);
+            setPixCode(subData.pixCode || '');
+            setPixQrCode(subData.qrCodeImage || '');
+            setPaymentId(subData.subscriptionId || '');
+            setPixTotalAmount(subData.totalAmount || planPrice);
+            setIsPixAutomatic(true);
+            setPlanCycle(subData.planCycle || 'MONTHLY');
             return true;
         } catch (error) {
-            console.error('Error creating payment:', error);
+            console.error('Error creating subscription:', error);
             return false;
         } finally {
             setIsProcessing(false);
@@ -141,6 +155,8 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
                 totalAmount={pixTotalAmount}
                 onPaymentConfirmed={handlePaymentConfirmed}
                 checkPaymentStatus={checkPaymentStatus}
+                isPixAutomatic={isPixAutomatic}
+                planCycle={planCycle}
             />
 
             <ThankYouDialog

@@ -7,7 +7,8 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { AccountCreatedDialog } from '@/features/auth/components/AccountCreatedDialog';
-import { applyQuizDataToStore } from '@/features/funnel/utils/syncQuizData';
+
+
 
 export default function Register() {
   const [searchParams] = useSearchParams();
@@ -94,43 +95,14 @@ export default function Register() {
           console.error('Error creating profile row:', err);
         }
 
-        // 2. Check for existing PAID purchases and link them
+        // 2. Link any PAID purchases (PIX one-time OR Pix Automático) to this new user
         try {
           const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-          const { data: { user } } = await supabaseRuntime.auth.getUser();
-
-          if (user) {
-            // Find PAID purchases for this email that don't have a user_id yet
-            const { data: purchases } = await supabaseRuntime
-              .from('purchases')
-              .select('*')
-              .eq('user_email', email)
-              .eq('payment_status', 'PAID')
-              .is('user_id', null);
-
-            if (purchases && purchases.length > 0) {
-              console.log('Found paid purchases to link:', purchases.length);
-
-              for (const purchase of purchases) {
-                // Link purchase to user
-                await supabaseRuntime
-                  .from('purchases')
-                  .update({ user_id: user.id })
-                  .eq('id', purchase.id);
-
-                // Sync quiz_data from purchase into funnelStore (works cross-device)
-                if (purchase.quiz_data && typeof purchase.quiz_data === 'object') {
-                  applyQuizDataToStore(purchase.quiz_data as Record<string, unknown>);
-                }
-
-                // Force subscription activation via Edge Function
-                await supabaseRuntime.functions.invoke('check-payment-status', {
-                  body: { paymentId: purchase.payment_id }
-                });
-              }
-            }
-          }
+          await supabaseRuntime.functions.invoke('link-purchase', {
+            body: { email },
+          });
         } catch (err) {
+          // Non-critical — subscription can still be activated via webhook
           console.error('Error linking purchase after registration:', err);
         }
 

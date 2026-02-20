@@ -1,4 +1,7 @@
+/// <reference path="../deno.d.ts" />
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { notifyUtmify, fmtDate, calcCommission } from "../_shared/utmify.ts";
+import type { UtmifyProduct } from "../_shared/utmify.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,46 +14,46 @@ interface CreatePaymentRequest {
   userName: string;
   userEmail: string;
   userPhone?: string;
-  orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; lifetime: boolean };
+  orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean; specialOffer: boolean };
   quizData?: Record<string, unknown>;
   isSpecialOffer?: boolean;
   planName?: string;
-  /** Origin: 'funnel' | 'in_app_upgrade' | 'in_app_renewal' */
   purchaseSource?: string;
+  // UTM fields
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmContent?: string | null;
+  utmTerm?: string | null;
+  src?: string | null;
+  sck?: string | null;
 }
 
 const PLAN_NAMES: Record<string, string> = {
-  plus: "Plano Plus (Combo Ilimitado)",
   bronze: "Plano Bronze (Semanal)",
   silver: "Plano Prata (Mensal)",
   gold: "Plano Ouro (Mensal)",
-  weekly: "Plano Semanal",
-  monthly: "Plano Mensal",
-  annual: "Plano Anual",
-  lifetime: "Plano Vitalício",
-  special: "Oferta Especial",
+  "special-offer": "Oferta Especial (3 Meses)",
 };
 
-// Fixed prices as source of truth (in BRL)
 const PLAN_PRICES: Record<string, number> = {
-  plus: 24.90,
   bronze: 12.90,
   silver: 29.90,
   gold: 49.90,
-  weekly: 12.90,
-  monthly: 29.90,
-  annual: 49.90,
-  special: 9.90,
+  "special-offer": 15.90,
+  special: 15.90,
+};
+
+const BUMP_NAMES: Record<string, string> = {
+  allRegions: "Desbloquear Região",
+  grupoEvangelico: "Grupo Evangélico",
+  grupoCatolico: "Grupo Católico",
+  filtrosAvancados: "Filtros Avançados",
+  specialOffer: "Oferta Especial",
 };
 
 const BUMP_PRICE = 5;
 
-const BUMP_NAMES: Record<string, string> = {
-  allRegions: "Desbloquear Regiões",
-  grupoEvangelico: "Grupo Evangélico",
-  grupoCatolico: "Grupo Católico",
-  lifetime: "Acesso Vitalício",
-};
 
 // Format date as "YYYY-MM-DD HH:mm:ss"
 function formatDateForWebhook(date: Date): string {
@@ -83,6 +86,13 @@ Deno.serve(async (req) => {
       isSpecialOffer,
       planName,
       purchaseSource,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      utmTerm,
+      src,
+      sck,
     } = body;
 
     const isTestUser = userEmail.includes("@test.com") ||
@@ -98,27 +108,15 @@ Deno.serve(async (req) => {
     const orderBumpsList: string[] = [];
 
     if (!isSpecialOffer) {
-      if (orderBumps?.allRegions) {
-        totalPrice += 5;
-        orderBumpsList.push("allRegions");
-      }
-      if (orderBumps?.grupoEvangelico) {
-        totalPrice += 5;
-        orderBumpsList.push("grupoEvangelico");
-      }
-      if (orderBumps?.grupoCatolico) {
-        totalPrice += 5;
-        orderBumpsList.push("grupoCatolico");
-      }
-      if (orderBumps?.lifetime) {
-        totalPrice += 5;
-        orderBumpsList.push("lifetime");
-      }
+      if (orderBumps?.allRegions) { totalPrice += 5; orderBumpsList.push("allRegions"); }
+      if (orderBumps?.grupoEvangelico) { totalPrice += 5; orderBumpsList.push("grupoEvangelico"); }
+      if (orderBumps?.grupoCatolico) { totalPrice += 5; orderBumpsList.push("grupoCatolico"); }
+      if (orderBumps?.filtrosAvancados) { totalPrice += 5; orderBumpsList.push("filtrosAvancados"); }
     } else {
       if (orderBumps?.allRegions) orderBumpsList.push("allRegions");
       if (orderBumps?.grupoEvangelico) orderBumpsList.push("grupoEvangelico");
       if (orderBumps?.grupoCatolico) orderBumpsList.push("grupoCatolico");
-      if (orderBumps?.lifetime) orderBumpsList.push("lifetime");
+      orderBumpsList.push("specialOffer");
     }
 
     const amountInCents = Math.round(totalPrice * 100);
@@ -183,6 +181,14 @@ Deno.serve(async (req) => {
         order_bumps: orderBumpsList,
         quiz_data: quizData || {},
         source_platform: purchaseSource ?? 'funnel',
+        // UTM tracking
+        utm_source: utmSource ?? null,
+        utm_medium: utmMedium ?? null,
+        utm_campaign: utmCampaign ?? null,
+        utm_content: utmContent ?? null,
+        utm_term: utmTerm ?? null,
+        src: src ?? null,
+        sck: sck ?? null,
       })
       .select()
       .single();
@@ -191,71 +197,61 @@ Deno.serve(async (req) => {
       console.error("Error saving purchase:", purchaseError);
     }
 
-    if (!isTestUser && !DISABLE_WEBHOOKS) {
-      try {
-        const createdAt = formatDateForWebhook(new Date());
-        let products: { id: string; name: string; price: number; quantity: number }[];
-
-        if (isSpecialOffer) {
-          products = [
-            {
-              id: "special-offer-lifetime",
-              name: "Oferta Especial Vitalícia",
-              price: 9.90,
-              quantity: 1,
-            },
-          ];
-        } else {
-          products = [
-            {
-              id: planId,
-              name: PLAN_NAMES[planId] || planId,
-              price: basePlanPrice,
-              quantity: 1,
-            },
-          ];
-          for (const bumpId of orderBumpsList) {
-            products.push({
-              id: bumpId,
-              name: BUMP_NAMES[bumpId] || bumpId,
-              price: BUMP_PRICE,
-              quantity: 1,
-            });
-          }
+    // ── Notify UTMify: waiting_payment ───────────────────────────────────
+    if (!isTestUser && purchase) {
+      const utmifyToken = Deno.env.get("UTMIFY_API_TOKEN");
+      if (utmifyToken) {
+        const products: UtmifyProduct[] = [{
+          id: planId,
+          name: PLAN_NAMES[planId] || planId,
+          planId: planId,
+          planName: PLAN_NAMES[planId] || null,
+          quantity: 1,
+          priceInCents: Math.round(basePlanPrice * 100),
+        }];
+        for (const bumpId of orderBumpsList) {
+          if (bumpId === 'specialOffer') continue;
+          products.push({
+            id: bumpId,
+            name: BUMP_NAMES[bumpId] || bumpId,
+            planId: null,
+            planName: null,
+            quantity: 1,
+            priceInCents: Math.round(BUMP_PRICE * 100),
+          });
         }
-
-        const webhookPayload = {
-          orderId: purchase?.id || null,
-          platform: "encontrocomfe",
+        const now = new Date();
+        const totalInCents = Math.round(totalPrice * 100);
+        await notifyUtmify(utmifyToken, {
+          orderId: purchase.id,
+          platform: "EncontroComFe",
+          paymentMethod: "pix",
           status: "waiting_payment",
-          createdAt: createdAt,
+          createdAt: fmtDate(now),
           approvedDate: null,
+          refundedAt: null,
           customer: {
             name: userName,
             email: userEmail,
-            phone: userPhone || null,
+            phone: userPhone?.replace(/\D/g, "") || null,
+            document: null,
+            country: "BR",
           },
-          products: products,
-          totalPrice: totalPrice,
-          paymentMethod: "PIX",
-          tracking: {
-            planId: isSpecialOffer ? "special-offer-lifetime" : planId,
-            planPrice: isSpecialOffer ? 9.90 : basePlanPrice,
-            orderBumps: isSpecialOffer ? [] : orderBumpsList,
-            isSpecialOffer: isSpecialOffer || false,
-            purchaseSource: isSpecialOffer ? "backredirect" : "checkout",
+          products,
+          trackingParameters: {
+            src: src ?? null,
+            sck: sck ?? null,
+            utm_source: utmSource ?? null,
+            utm_campaign: utmCampaign ?? null,
+            utm_medium: utmMedium ?? null,
+            utm_content: utmContent ?? null,
+            utm_term: utmTerm ?? null,
           },
-        };
-
-        await fetch("https://n8n.srv1093629.hstgr.cloud/webhook/woovi", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(webhookPayload),
+          commission: calcCommission(totalInCents),
         });
-      } catch (webhookError) {
-        console.error("Error sending webhook:", webhookError);
       }
     }
+    // ────────────────────────────────────────────────────────────────────
 
     return new Response(
       JSON.stringify({

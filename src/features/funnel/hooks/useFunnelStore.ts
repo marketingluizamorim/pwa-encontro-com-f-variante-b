@@ -35,7 +35,7 @@ const initialState = {
     grupoEvangelico: false,
     grupoCatolico: false,
     filtrosAvancados: false,
-    lifetime: false,
+    specialOffer: false,
   },
   checkoutInfo: {
     name: '',
