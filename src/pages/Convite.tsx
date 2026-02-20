@@ -115,15 +115,20 @@ export default function Convite() {
             setStep('activating');
             try {
                 if (sessionToken) {
-                    await supabaseRuntime.functions.invoke('activate-group-invite', {
+                    const { data: fnData, error: fnError } = await supabaseRuntime.functions.invoke('activate-group-invite', {
                         headers: { Authorization: `Bearer ${sessionToken}` },
                         body: {},
                     });
+                    if (fnError) {
+                        console.error('[Convite] Edge function error:', fnError);
+                    } else {
+                        console.log('[Convite] Plan activation result:', fnData);
+                    }
                 } else {
                     console.warn('[Convite] No session token — skipping edge function');
                 }
             } catch (fnErr) {
-                console.warn('[Convite] Edge function failed (non-blocking):', fnErr);
+                console.error('[Convite] Edge function threw:', fnErr);
             }
 
             // Always show success if signIn worked
@@ -378,8 +383,7 @@ export default function Convite() {
                             </motion.div>
 
                             <div className="inline-flex items-center gap-1.5 bg-amber-400/10 border border-amber-400/30 rounded-full px-4 py-1.5 mb-4">
-                                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                                <span className="text-amber-300 text-xs font-semibold">Plano Prata Ativado — 2 meses grátis</span>
+                                <span className="text-amber-300 text-xs font-semibold">Plano Prata Ativado</span>
                             </div>
 
                             <h2 className="text-2xl font-serif font-bold text-white mb-2">
