@@ -51,16 +51,16 @@ export default function Convite() {
         setIsSubmitting(true);
 
         try {
-            // 1. Create account (if already exists, fall through to sign-in)
+            // 1. Create account — if already exists, fall through to sign-in
             const { error: signUpError } = await signUp(email, password, name);
-            const alreadyExists = !!signUpError && (
-                signUpError.message.includes('already registered') ||
-                signUpError.message.includes('User already registered')
-            );
+            const errMsg = signUpError?.message?.toLowerCase() ?? '';
+            const alreadyExists = errMsg.includes('already registered')
+                || errMsg.includes('already in use')
+                || errMsg.includes('user already');
 
             if (signUpError && !alreadyExists) {
                 let msg = signUpError.message;
-                if (msg.includes('rate limit')) msg = 'Muitas tentativas. Aguarde alguns minutos.';
+                if (errMsg.includes('rate limit')) msg = 'Muitas tentativas. Aguarde alguns minutos.';
                 toast.error(msg);
                 setIsSubmitting(false);
                 return;
@@ -78,36 +78,55 @@ export default function Convite() {
                 return;
             }
 
-            // 3. Load supabaseRuntime (same instance useAuth uses — holds the active session)
+            // --- signIn succeeded: all steps below are best-effort ---
             const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
 
-            // Wait for auth state to settle after signIn
+            // Give auth state time to settle
             await new Promise((r) => setTimeout(r, 400));
 
-            const { data: { session } } = await supabaseRuntime.auth.getSession();
-            const { data: { user: newUser } } = await supabaseRuntime.auth.getUser();
+            // 3. Read session and user safely
+            let sessionToken: string | null = null;
+            let userId: string | null = null;
 
-            // 4. Create/update profile row
-            if (newUser) {
-                await supabaseRuntime.from('profiles').upsert({
-                    user_id: newUser.id,
-                    display_name: name,
-                    is_profile_complete: false,
-                    acquisition_source: 'whatsapp_group',
-                }, { onConflict: 'user_id' });
+            try {
+                const sessionRes = await supabaseRuntime.auth.getSession();
+                sessionToken = sessionRes.data?.session?.access_token ?? null;
+                const userRes = await supabaseRuntime.auth.getUser();
+                userId = userRes.data?.user?.id ?? null;
+            } catch (sessionErr) {
+                console.warn('[Convite] getSession/getUser failed:', sessionErr);
             }
 
-            // 5. Activate WhatsApp group Silver plan
+            // 4. Upsert profile row (best-effort)
+            if (userId) {
+                try {
+                    await supabaseRuntime.from('profiles').upsert({
+                        user_id: userId,
+                        display_name: name,
+                        is_profile_complete: false,
+                        acquisition_source: 'whatsapp_group',
+                    }, { onConflict: 'user_id' });
+                } catch (profileErr) {
+                    console.warn('[Convite] Profile upsert failed:', profileErr);
+                }
+            }
+
+            // 5. Activate Silver plan via edge function (best-effort)
             setStep('activating');
-            if (session?.access_token) {
-                await supabaseRuntime.functions.invoke('activate-group-invite', {
-                    headers: { Authorization: `Bearer ${session.access_token}` },
-                    body: {},
-                });
-            } else {
-                console.warn('[Convite] No session after signIn — skipping edge function');
+            try {
+                if (sessionToken) {
+                    await supabaseRuntime.functions.invoke('activate-group-invite', {
+                        headers: { Authorization: `Bearer ${sessionToken}` },
+                        body: {},
+                    });
+                } else {
+                    console.warn('[Convite] No session token — skipping edge function');
+                }
+            } catch (fnErr) {
+                console.warn('[Convite] Edge function failed (non-blocking):', fnErr);
             }
 
+            // Always show success if signIn worked
             setStep('done');
         } catch (err) {
             console.error('Invite registration error:', err);
@@ -120,10 +139,7 @@ export default function Convite() {
         navigate('/app/onboarding', { replace: true });
     };
 
-
-
     return (
-
         <div className="min-h-[100dvh] bg-[#0a0f1e] flex flex-col items-center justify-center px-4 py-8 relative overflow-y-auto">
             {/* Decorative blobs — fixed so they never clip scrollable content */}
             <div className="fixed top-[-15%] right-[-15%] w-[60%] h-[60%] bg-amber-400/8 blur-[140px] rounded-full pointer-events-none z-0" />
@@ -338,7 +354,7 @@ export default function Convite() {
                                 </div>
                             </div>
                             <h2 className="text-xl font-bold text-white mb-2">Ativando seu plano…</h2>
-                            <p className="text-white/50 text-sm">Aguentei um segundo, quase pronto!</p>
+                            <p className="text-white/50 text-sm">Aguenta um segundo, quase pronto!</p>
                         </motion.div>
                     )}
 
