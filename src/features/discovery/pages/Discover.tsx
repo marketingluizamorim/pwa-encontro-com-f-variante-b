@@ -748,21 +748,7 @@ export default function Discover() {
                       )}
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-5 z-30 px-4">
-                      <button
-                        onClick={() => handleSeedSwipe('dislike')}
-                        className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg"
-                      >
-                        <i className="ri-close-line text-red-400 text-2xl" />
-                      </button>
-                      <button
-                        onClick={() => handleSeedSwipe('like')}
-                        className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg"
-                      >
-                        <Heart className="w-6 h-6 text-amber-400 fill-amber-400" />
-                      </button>
-                    </div>
+
                   </div>
                 </motion.div>
               ) : (
