@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Copy, Check, Loader2, RefreshCw } from 'lucide-react';
+import { Copy, Check, Loader2 } from 'lucide-react';
 
 interface PixPaymentDialogProps {
   open: boolean;
@@ -38,7 +38,6 @@ export function PixPaymentDialog({
   isPixAutomatic = false,
   planCycle = 'MONTHLY',
 }: PixPaymentDialogProps) {
-  const cycleLabel = planCycle === 'WEEKLY' ? 'semana' : 'mês';
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
   const [isChecking, setIsChecking] = useState(false);
   const [checkCount, setCheckCount] = useState(0);
@@ -165,15 +164,6 @@ export function PixPaymentDialog({
               </p>
             </div>
 
-            {/* Pix Automático badge */}
-            {isPixAutomatic && (
-              <div className="flex items-center gap-2 justify-center bg-amber-500/10 border border-amber-400/20 rounded-xl px-4 py-2">
-                <RefreshCw className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                <p className="text-[11px] text-amber-300 font-semibold">
-                  Cobrança automática a cada {cycleLabel} — cancele quando quiser
-                </p>
-              </div>
-            )}
 
             {/* Instructions Card */}
             <div className="rounded-xl bg-white/[0.03] p-4 border border-white/5 backdrop-blur-sm mx-1">
@@ -191,11 +181,7 @@ export function PixPaymentDialog({
                 </li>
                 <li className="flex gap-3 items-start">
                   <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#fcd34d]/10 flex items-center justify-center text-[#fcd34d] text-[9px] font-black border border-[#fcd34d]/20 mt-0.5">3</span>
-                  {isPixAutomatic ? (
-                    <span>Seu banco mostrará <span className="text-white font-semibold">"Pagar agora + autorizar débito automático"</span> — confirme para ativar</span>
-                  ) : (
-                    <span>Confirme o pagamento e aguarde</span>
-                  )}
+                  <span>Confirme os dados e autorize a cobrança</span>
                 </li>
               </ol>
             </div>
