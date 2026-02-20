@@ -1437,7 +1437,7 @@ export default function Discover() {
                       Complete seu Perfil!
                     </DialogTitle>
                     <DialogDescription className="text-center text-sm text-muted-foreground leading-relaxed">
-                      Perfis completos têm 3x mais chances de match. Adicione informações e até 6 fotos para se destacar.
+                      Perfis completos têm 3x mais chances de novas conexões. Adicione interesses e até 6 fotos para se destacar.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex flex-col gap-3 mt-6">

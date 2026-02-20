@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Heart, Users, MessageCircle, Shield, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -25,14 +25,14 @@ const slides: Slide[] = [
     id: 2,
     icon: <Users className="w-16 h-16" />,
     title: "Descubra Perfis",
-    description: "Deslize para a direita se gostar, para a esquerda para passar. Quando há interesse mútuo, é um match!",
+    description: "Deslize para a direita para curtir, para a esquerda para passar ou para cima para enviar um Super Like com mensagem direta. Quando o interesse é mútuo, uma conexão é criada!",
     gradient: "from-rose-500/20 to-rose-500/5"
   },
   {
     id: 3,
     icon: <MessageCircle className="w-16 h-16" />,
     title: "Converse com Matches",
-    description: "Após um match, vocês podem trocar mensagens e conhecer melhor um ao outro em um ambiente respeitoso.",
+    description: "Após um conexão, vocês podem trocar mensagens e conhecer melhor um ao outro em um ambiente respeitoso.",
     gradient: "from-sky-500/20 to-sky-500/5"
   },
   {
@@ -87,8 +87,12 @@ const textVariants = {
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isCompleted, isLoading, completeOnboarding } = useOnboarding();
   const [[currentSlide, direction], setCurrentSlide] = useState([0, 0]);
+
+  // Forward fromConvite state so ProfileSetup can skip the PWA modal
+  const fromConvite = (location.state as { fromConvite?: boolean } | null)?.fromConvite === true;
 
   // Redirect if already completed onboarding
   useEffect(() => {
@@ -106,12 +110,12 @@ export default function Onboarding() {
 
   const handleComplete = () => {
     completeOnboarding();
-    navigate('/app/profile/setup');
+    navigate('/app/profile/setup', { state: { fromConvite } });
   };
 
   const handleSkip = () => {
     completeOnboarding();
-    navigate('/app/profile/setup');
+    navigate('/app/profile/setup', { state: { fromConvite } });
   };
 
   if (isLoading) {
