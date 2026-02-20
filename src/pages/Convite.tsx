@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { useBodyScroll } from '@/hooks/useBodyScroll';
 import { toast } from 'sonner';
 import {
@@ -62,19 +63,21 @@ export default function Convite() {
                 return;
             }
 
-            // 2. Auto sign-in
+            // 2. Auto sign-in (uses the same supabase client)
             const { error: signInError } = await signIn(email, password);
             if (signInError) {
                 toast.error('Conta criada! Faça o login para continuar.');
-                navigate('/login');
+                navigate('/login', { replace: true, state: {} });
                 return;
             }
 
-            // 3. Create profile row
-            const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-            const { data: { user: newUser } } = await supabaseRuntime.auth.getUser();
+            // 3. Get current session from the main client (has the active token)
+            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { user: newUser } } = await supabase.auth.getUser();
+
+            // 4. Create/update profile row
             if (newUser) {
-                await supabaseRuntime.from('profiles').upsert({
+                await supabase.from('profiles').upsert({
                     user_id: newUser.id,
                     display_name: name,
                     is_profile_complete: false,
@@ -82,13 +85,14 @@ export default function Convite() {
                 }, { onConflict: 'user_id' });
             }
 
-            // 4. Activate WhatsApp group Silver plan (no quiz yet — done after profile setup)
+            // 5. Activate WhatsApp group Silver plan
             setStep('activating');
-            const { data: { session } } = await supabaseRuntime.auth.getSession();
-            await supabaseRuntime.functions.invoke('activate-group-invite', {
-                headers: { Authorization: `Bearer ${session?.access_token}` },
-                body: {},
-            });
+            if (session?.access_token) {
+                await supabase.functions.invoke('activate-group-invite', {
+                    headers: { Authorization: `Bearer ${session.access_token}` },
+                    body: {},
+                });
+            }
 
             setStep('done');
         } catch (err) {
@@ -182,7 +186,7 @@ export default function Convite() {
 
                             <p className="text-white/30 text-xs mt-4">
                                 Já tem conta?{' '}
-                                <button onClick={() => navigate('/login')} className="text-amber-400 hover:underline">
+                                <button onClick={() => navigate('/login', { replace: true, state: {} })} className="text-amber-400 hover:underline">
                                     Fazer login
                                 </button>
                             </p>
