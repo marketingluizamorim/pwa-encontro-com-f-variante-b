@@ -50,7 +50,7 @@ Ao solicitar, informe seu e-mail de cadastro e o motivo (opcional, apenas para m
   ];
 
   return (
-    <div className="min-h-screen bg-[#0f172a] relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#0f172a] relative font-sans">
       {/* Background Ambience - Clean & Premium */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Main ambient light - Top Center (Teal/Blue mix) */}
