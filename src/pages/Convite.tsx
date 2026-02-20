@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ type Step = 'landing' | 'register' | 'activating' | 'done';
 
 export default function Convite() {
     const navigate = useNavigate();
-    const { signUp, signIn, user, loading } = useAuth();
+    const { signUp, signIn } = useAuth();
 
     const [step, setStep] = useState<Step>('landing');
     const [name, setName] = useState('');
@@ -31,12 +31,7 @@ export default function Convite() {
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Already logged in → redirect
-    useEffect(() => {
-        if (!loading && user) {
-            navigate('/app/discover', { replace: true });
-        }
-    }, [user, loading, navigate]);
+
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -104,13 +99,7 @@ export default function Convite() {
         navigate('/app/onboarding', { replace: true });
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-[100dvh] bg-[#0a0f1e] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
-            </div>
-        );
-    }
+
 
     return (
         <div className="min-h-[100dvh] bg-[#0a0f1e] flex flex-col items-center justify-center px-4 py-8 relative overflow-y-auto">

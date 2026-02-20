@@ -30,8 +30,9 @@ export function AdminRoute({ children }: { children: ReactNode }) {
         );
     }
 
+    // Not logged in or not admin → go to admin login page
     if (!user || !isAdmin) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/admin/login" replace />;
     }
 
     return <>{children}</>;

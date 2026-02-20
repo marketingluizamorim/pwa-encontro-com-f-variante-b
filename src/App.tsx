@@ -28,6 +28,7 @@ const NO_SPLASH_ROUTES = [
   '/termos-de-uso',
   '/politica-de-reembolso',
   '/convite',
+  '/admin/login',
 ];
 
 function SplashGate() {
@@ -101,6 +102,7 @@ const Onboarding = lazy(() => import("@/features/discovery/pages/Onboarding"));
 const Settings = lazy(() => import("@/features/discovery/pages/Settings"));
 const Explore = lazy(() => import("@/features/discovery/pages/Explore"));
 const AdminPanel = lazy(() => import("./pages/admin/AdminPanel"));
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const WhatsAppGroupPanel = lazy(() => import("./pages/admin/WhatsAppGroupPanel"));
 const Convite = lazy(() => import("./pages/Convite"));
 
@@ -240,6 +242,9 @@ const AppContent = () => {
                     </ProtectedRoute>
                   }
                 />
+
+                {/* Admin login — public, no guard */}
+                <Route path="/admin/login" element={<AdminLogin />} />
 
                 {/* Admin panel (admin role only) */}
                 <Route

@@ -1551,9 +1551,9 @@ export default function Discover() {
                 }}
               />
 
-            </div>{/* end card stack container */}
-          </>{/* end isEmpty else branch */}
-        )}{/* end isEmpty ternary */}
+            </div>
+          </>
+        )}
       </PageTransition>
     </>
   );
