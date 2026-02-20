@@ -82,52 +82,75 @@ export default function Convite() {
             const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
 
             // Give auth state time to settle
-            await new Promise((r) => setTimeout(r, 400));
+            await new Promise((r) => setTimeout(r, 500));
 
-            // 3. Read session and user safely
-            let sessionToken: string | null = null;
-            let userId: string | null = null;
+            // 3. Get the current user
+            const { data: { user: currentUser } } = await supabaseRuntime.auth.getUser();
+            const userId = currentUser?.id ?? null;
 
-            try {
-                const sessionRes = await supabaseRuntime.auth.getSession();
-                sessionToken = sessionRes.data?.session?.access_token ?? null;
-                const userRes = await supabaseRuntime.auth.getUser();
-                userId = userRes.data?.user?.id ?? null;
-            } catch (sessionErr) {
-                console.warn('[Convite] getSession/getUser failed:', sessionErr);
+            if (!userId) {
+                console.warn('[Convite] No user after signIn — cannot activate plan');
+                setStep('done');
+                return;
             }
 
-            // 4. Upsert profile row (best-effort)
-            if (userId) {
-                try {
-                    await supabaseRuntime.from('profiles').upsert({
-                        user_id: userId,
-                        display_name: name,
-                        is_profile_complete: false,
-                        acquisition_source: 'whatsapp_group',
-                    }, { onConflict: 'user_id' });
-                } catch (profileErr) {
-                    console.warn('[Convite] Profile upsert failed:', profileErr);
-                }
-            }
+            // 4. Upsert profile row
+            await supabaseRuntime.from('profiles').upsert({
+                user_id: userId,
+                display_name: name,
+                is_profile_complete: false,
+                acquisition_source: 'whatsapp_group',
+            }, { onConflict: 'user_id' });
 
-            // 5. Activate Silver plan via edge function (best-effort)
+            // 5. Activate Silver plan — direct INSERT (RLS allows whatsapp_group inserts)
             setStep('activating');
-            try {
-                // Pass the token in the body as fallback — edge fn accepts both header and body token
-                const { data: fnData, error: fnError } = await supabaseRuntime.functions.invoke('activate-group-invite', {
-                    body: { access_token: sessionToken ?? '' },
-                });
-                if (fnError) {
-                    console.error('[Convite] Edge function error:', fnError);
+
+            // Check if already has an active plan (idempotent)
+            const { data: existing } = await supabaseRuntime
+                .from('user_subscriptions')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('is_active', true)
+                .maybeSingle();
+
+            if (!existing) {
+                const now = new Date();
+                const expiresAt = new Date(now);
+                expiresAt.setMonth(expiresAt.getMonth() + 2);
+
+                const { error: subError } = await supabaseRuntime
+                    .from('user_subscriptions')
+                    .insert({
+                        user_id: userId,
+                        plan_id: 'silver',
+                        plan_name: 'Plano Prata (Grupo WhatsApp)',
+                        subscription_type: 'whatsapp_group',
+                        can_see_who_liked: true,
+                        can_use_advanced_filters: true,
+                        can_video_call: false,
+                        daily_swipes_limit: null,
+                        has_all_regions: false,
+                        has_grupo_evangelico: false,
+                        has_grupo_catolico: false,
+                        is_profile_boosted: false,
+                        is_lifetime: false,
+                        auto_renew: false,
+                        failed_charges_count: 0,
+                        is_active: true,
+                        acquisition_source: 'whatsapp_group',
+                        starts_at: now.toISOString(),
+                        expires_at: expiresAt.toISOString(),
+                    });
+
+                if (subError) {
+                    console.error('[Convite] Plan insert error:', subError.message);
                 } else {
-                    console.log('[Convite] Plan activation result:', fnData);
+                    console.log('[Convite] Silver plan activated ✅');
                 }
-            } catch (fnErr) {
-                console.error('[Convite] Edge function threw:', fnErr);
+            } else {
+                console.log('[Convite] User already has active plan — skipping insert');
             }
 
-            // Always show success if signIn worked
             setStep('done');
         } catch (err) {
             console.error('Invite registration error:', err);
