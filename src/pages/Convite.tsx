@@ -138,9 +138,8 @@ export default function Convite() {
                             </motion.div>
 
                             {/* Invite badge */}
-                            <div className="inline-flex items-center gap-2 bg-amber-400/10 border border-amber-400/30 rounded-full px-4 py-1.5 mb-5">
-                                <MessageCircle className="w-3.5 h-3.5 text-amber-400" />
-                                <span className="text-amber-300 text-xs font-semibold tracking-wide">Convite Especial — Grupo WhatsApp</span>
+                            <div className="inline-flex items-center bg-amber-400/10 border border-amber-400/30 rounded-full px-4 py-1.5 mb-5">
+                                <span className="text-amber-300 text-xs font-semibold tracking-wide">Convite Aplicativo — Grupo Tinder</span>
                             </div>
 
                             <h1 className="text-3xl font-serif font-bold text-white mb-3 leading-tight">
