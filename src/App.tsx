@@ -27,6 +27,7 @@ const NO_SPLASH_ROUTES = [
   '/install',
   '/termos-de-uso',
   '/politica-de-reembolso',
+  '/convite',
 ];
 
 function SplashGate() {
@@ -100,6 +101,8 @@ const Onboarding = lazy(() => import("@/features/discovery/pages/Onboarding"));
 const Settings = lazy(() => import("@/features/discovery/pages/Settings"));
 const Explore = lazy(() => import("@/features/discovery/pages/Explore"));
 const AdminPanel = lazy(() => import("./pages/admin/AdminPanel"));
+const WhatsAppGroupPanel = lazy(() => import("./pages/admin/WhatsAppGroupPanel"));
+const Convite = lazy(() => import("./pages/Convite"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -247,6 +250,19 @@ const AppContent = () => {
                     </AdminRoute>
                   }
                 />
+
+                {/* WhatsApp Group Panel (admin) */}
+                <Route
+                  path="/admin/grupo-whatsapp"
+                  element={
+                    <AdminRoute>
+                      <WhatsAppGroupPanel />
+                    </AdminRoute>
+                  }
+                />
+
+                {/* Invite page — public, no auth required */}
+                <Route path="/convite" element={<Convite />} />
 
                 {/* Catch-all */}
                 <Route path="*" element={<NotFound />} />

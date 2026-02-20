@@ -4,10 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import {
     Shield, AlertTriangle, CheckCircle, XCircle, Clock,
     User, ChevronDown, ChevronUp, RefreshCw, Ban, Eye,
-    DollarSign, ArrowLeft, HelpCircle
+    DollarSign, ArrowLeft, HelpCircle, MessageCircle
 } from 'lucide-react';
 import FinancialPanel, { PlanLegendDialog } from './FinancialPanel';
 
@@ -59,6 +60,7 @@ function NumCard({ label, value, icon, color }: { label: string; value: number; 
 
 // ── Main Menu ────────────────────────────────────────────────────────────────
 function MainMenu({ onSelect }: { onSelect: (s: Section) => void }) {
+    const navigate = useNavigate();
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">
             <div className="text-center mb-2">
@@ -96,6 +98,24 @@ function MainMenu({ onSelect }: { onSelect: (s: Section) => void }) {
                     <p className="text-xs text-white/40 leading-relaxed">
                         Receita, planos, renovações e origens de venda
                     </p>
+                </button>
+
+                {/* WhatsApp Group card */}
+                <button
+                    onClick={() => navigate('/admin/grupo-whatsapp')}
+                    className="group bg-slate-800/60 border border-white/10 hover:border-emerald-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98] sm:col-span-2"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/30 transition-colors">
+                            <MessageCircle className="w-6 h-6 text-emerald-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-white mb-1">Grupo WhatsApp</h3>
+                            <p className="text-xs text-white/40 leading-relaxed">
+                                Membros do grupo, conversão, churn e renovações
+                            </p>
+                        </div>
+                    </div>
                 </button>
             </div>
         </div>
