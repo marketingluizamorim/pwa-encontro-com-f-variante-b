@@ -116,7 +116,7 @@ export function ExitIntentDialog({ open, onOpenChange, onAccept, onDecline }: Ex
             className="w-full h-12 rounded-xl gradient-button text-white transition-all uppercase tracking-wide text-sm font-bold border-0 hover:opacity-90 flex items-center justify-center gap-2"
           >
             <Gift className="w-4 h-4 animate-bounce" />
-            Sim! Quero desbloquear agora
+            Sim! Desbloquear agora
           </Button>
 
           <div className="flex items-center justify-center gap-1.5">

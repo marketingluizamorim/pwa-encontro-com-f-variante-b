@@ -111,7 +111,7 @@ function WelcomeCard() {
         >
             <div className="relative flex-shrink-0">
                 <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/40 shadow-md">
-                    <img src="/pwa-512x512.png" alt="Bem-vindo" className="w-full h-full object-cover" />
+                    <img src="/logo-branca1080x1080.png " alt="Bem-vindo" className="w-full h-full object-cover" />
                 </div>
                 {!read && (
                     <div className="absolute right-0 top-0 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background animate-pulse" />
