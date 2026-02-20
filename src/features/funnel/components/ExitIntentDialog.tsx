@@ -100,7 +100,7 @@ export function ExitIntentDialog({ open, onOpenChange, onAccept, onDecline }: Ex
             </div>
             <div className="flex items-center gap-2">
               <span className="text-3xl font-sans font-bold text-[#fcd34d] drop-shadow-[0_2px_8px_rgba(252,211,77,0.3)]">
-                R$ 15,90
+                R$ 14,90
               </span>
               <span className="text-[9px] font-black text-[#0f172a] bg-[#fcd34d] px-1.5 py-0.5 rounded-full shadow-md">
                 3 MESES

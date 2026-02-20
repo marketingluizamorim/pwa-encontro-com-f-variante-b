@@ -81,7 +81,7 @@ export function SpecialOfferCheckoutDialog({
             <div className="flex items-center justify-between mb-3">
               <span className="font-semibold text-white/90">Ouro · 3 Meses</span>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-sans font-semibold text-[#fcd34d] drop-shadow-md">R$ 15,90</span>
+                <span className="text-xl font-sans font-semibold text-[#fcd34d] drop-shadow-md">R$ 14,90</span>
                 <span className="text-xs text-white/40 line-through">R$ 49,90/mês</span>
               </div>
             </div>
@@ -148,7 +148,7 @@ export function SpecialOfferCheckoutDialog({
         <div className="p-3 bg-[#0f172a] border-t border-white/10 absolute bottom-0 left-0 right-0 z-20">
           <div className="flex items-center justify-between mb-4">
             <span className="text-white/80 font-medium text-sm">Total:</span>
-            <span className="text-xl font-sans font-semibold text-[#fcd34d] drop-shadow-md">R$ 15,90</span>
+            <span className="text-xl font-sans font-semibold text-[#fcd34d] drop-shadow-md">R$ 14,90</span>
           </div>
           <Button
             onClick={() => handleSubmit()}
