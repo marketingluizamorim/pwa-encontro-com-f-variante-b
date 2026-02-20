@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { useBodyScroll } from '@/hooks/useBodyScroll';
 import { toast } from 'sonner';
 import {
@@ -52,32 +51,45 @@ export default function Convite() {
         setIsSubmitting(true);
 
         try {
-            // 1. Create account
+            // 1. Create account (if already exists, fall through to sign-in)
             const { error: signUpError } = await signUp(email, password, name);
-            if (signUpError) {
+            const alreadyExists = !!signUpError && (
+                signUpError.message.includes('already registered') ||
+                signUpError.message.includes('User already registered')
+            );
+
+            if (signUpError && !alreadyExists) {
                 let msg = signUpError.message;
-                if (msg.includes('already registered')) msg = 'Este e-mail já está cadastrado. Tente fazer login.';
                 if (msg.includes('rate limit')) msg = 'Muitas tentativas. Aguarde alguns minutos.';
                 toast.error(msg);
                 setIsSubmitting(false);
                 return;
             }
 
-            // 2. Auto sign-in (uses the same supabase client)
+            // 2. Sign in (works for new and existing users)
             const { error: signInError } = await signIn(email, password);
             if (signInError) {
-                toast.error('Conta criada! Faça o login para continuar.');
-                navigate('/login', { replace: true, state: {} });
+                const msg = alreadyExists
+                    ? 'Senha incorreta para este e-mail. Tente novamente.'
+                    : 'Conta criada! Faça o login para continuar.';
+                toast.error(msg);
+                if (!alreadyExists) navigate('/login', { replace: true, state: {} });
+                setIsSubmitting(false);
                 return;
             }
 
-            // 3. Get current session from the main client (has the active token)
-            const { data: { session } } = await supabase.auth.getSession();
-            const { data: { user: newUser } } = await supabase.auth.getUser();
+            // 3. Load supabaseRuntime (same instance useAuth uses — holds the active session)
+            const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+
+            // Wait for auth state to settle after signIn
+            await new Promise((r) => setTimeout(r, 400));
+
+            const { data: { session } } = await supabaseRuntime.auth.getSession();
+            const { data: { user: newUser } } = await supabaseRuntime.auth.getUser();
 
             // 4. Create/update profile row
             if (newUser) {
-                await supabase.from('profiles').upsert({
+                await supabaseRuntime.from('profiles').upsert({
                     user_id: newUser.id,
                     display_name: name,
                     is_profile_complete: false,
@@ -88,10 +100,12 @@ export default function Convite() {
             // 5. Activate WhatsApp group Silver plan
             setStep('activating');
             if (session?.access_token) {
-                await supabase.functions.invoke('activate-group-invite', {
+                await supabaseRuntime.functions.invoke('activate-group-invite', {
                     headers: { Authorization: `Bearer ${session.access_token}` },
                     body: {},
                 });
+            } else {
+                console.warn('[Convite] No session after signIn — skipping edge function');
             }
 
             setStep('done');
@@ -109,6 +123,7 @@ export default function Convite() {
 
 
     return (
+
         <div className="min-h-[100dvh] bg-[#0a0f1e] flex flex-col items-center justify-center px-4 py-8 relative overflow-y-auto">
             {/* Decorative blobs — fixed so they never clip scrollable content */}
             <div className="fixed top-[-15%] right-[-15%] w-[60%] h-[60%] bg-amber-400/8 blur-[140px] rounded-full pointer-events-none z-0" />
