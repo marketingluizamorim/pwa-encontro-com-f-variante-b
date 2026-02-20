@@ -114,9 +114,9 @@ export default function Convite() {
             // 5. Activate Silver plan via edge function (best-effort)
             setStep('activating');
             try {
-                // SDK automatically attaches the active session JWT — no manual header needed
+                // Pass the token in the body as fallback — edge fn accepts both header and body token
                 const { data: fnData, error: fnError } = await supabaseRuntime.functions.invoke('activate-group-invite', {
-                    body: {},
+                    body: { access_token: sessionToken ?? '' },
                 });
                 if (fnError) {
                     console.error('[Convite] Edge function error:', fnError);
