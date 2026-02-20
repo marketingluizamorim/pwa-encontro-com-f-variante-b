@@ -51,12 +51,12 @@ function generateFakeCPF(): string {
 function generateFakeAddress() {
     // Generic Brasília address — avoids revealing real user location
     return {
-        zipcode: "70040020",
-        street: "Esplanada Ministerios",
+        zipcode: "74840360",
+        street: "R. Cananeia",
         number: "1",
-        neighborhood: "Centro",
-        city: "Brasilia",
-        state: "DF",
+        neighborhood: "Jardim Goias",
+        city: "Goiania",
+        state: "GO",
         complement: "",
     };
 }
