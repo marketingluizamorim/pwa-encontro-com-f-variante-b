@@ -89,7 +89,7 @@ export default function Convite() {
             const userId = currentUser?.id ?? null;
 
             if (!userId) {
-                console.warn('[Convite] No user after signIn — cannot activate plan');
+                console.warn('[Convite] No user after signIn');
                 setStep('done');
                 return;
             }
@@ -102,53 +102,15 @@ export default function Convite() {
                 acquisition_source: 'whatsapp_group',
             }, { onConflict: 'user_id' });
 
-            // 5. Activate Silver plan — direct INSERT (RLS allows whatsapp_group inserts)
+            // 5. Activate Silver plan via SECURITY DEFINER RPC (bypasses RLS)
             setStep('activating');
+            const { data: rpcData, error: rpcError } = await (supabaseRuntime as unknown as { rpc: (fn: string) => Promise<{ data: unknown; error: { message: string } | null }> })
+                .rpc('activate_whatsapp_invite');
 
-            // Check if already has an active plan (idempotent)
-            const { data: existing } = await supabaseRuntime
-                .from('user_subscriptions')
-                .select('id')
-                .eq('user_id', userId)
-                .eq('is_active', true)
-                .maybeSingle();
-
-            if (!existing) {
-                const now = new Date();
-                const expiresAt = new Date(now);
-                expiresAt.setMonth(expiresAt.getMonth() + 2);
-
-                const { error: subError } = await supabaseRuntime
-                    .from('user_subscriptions')
-                    .insert({
-                        user_id: userId,
-                        plan_id: 'silver',
-                        plan_name: 'Plano Prata (Grupo WhatsApp)',
-                        subscription_type: 'whatsapp_group',
-                        can_see_who_liked: true,
-                        can_use_advanced_filters: true,
-                        can_video_call: false,
-                        daily_swipes_limit: null,
-                        has_all_regions: false,
-                        has_grupo_evangelico: false,
-                        has_grupo_catolico: false,
-                        is_profile_boosted: false,
-                        is_lifetime: false,
-                        auto_renew: false,
-                        failed_charges_count: 0,
-                        is_active: true,
-                        acquisition_source: 'whatsapp_group',
-                        starts_at: now.toISOString(),
-                        expires_at: expiresAt.toISOString(),
-                    });
-
-                if (subError) {
-                    console.error('[Convite] Plan insert error:', subError.message);
-                } else {
-                    console.log('[Convite] Silver plan activated ✅');
-                }
+            if (rpcError) {
+                console.error('[Convite] RPC error:', rpcError.message);
             } else {
-                console.log('[Convite] User already has active plan — skipping insert');
+                console.log('[Convite] Plan activation:', rpcData);
             }
 
             setStep('done');
