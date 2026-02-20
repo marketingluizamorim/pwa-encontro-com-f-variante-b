@@ -207,7 +207,7 @@ export default function Convite() {
                                 />
                                 <div className="inline-flex items-center gap-1.5 bg-emerald-400/10 border border-emerald-400/20 rounded-full px-3 py-1 mb-3">
                                     <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                                    <span className="text-emerald-300 text-xs font-medium">2 meses Prata inclusos</span>
+                                    <span className="text-emerald-300 text-xs font-medium">2 meses grátis</span>
                                 </div>
                                 <h2 className="text-2xl font-serif font-bold text-white">Crie sua conta</h2>
                                 <p className="text-white/50 text-sm mt-1">Rápido e gratuito</p>
@@ -223,7 +223,7 @@ export default function Convite() {
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             placeholder="Seu nome"
-                                            className="pl-10 bg-white/8 border-white/15 text-white placeholder:text-white/30 rounded-xl h-12 focus:border-amber-400/50 focus:ring-amber-400/20"
+                                            className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
                                             required
                                             autoComplete="name"
                                         />
@@ -237,7 +237,7 @@ export default function Convite() {
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             placeholder="seu@email.com"
-                                            className="pl-10 bg-white/8 border-white/15 text-white placeholder:text-white/30 rounded-xl h-12 focus:border-amber-400/50 focus:ring-amber-400/20"
+                                            className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
                                             required
                                             autoComplete="username"
                                         />
@@ -251,7 +251,7 @@ export default function Convite() {
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             placeholder="Senha (mín. 6 caracteres)"
-                                            className="pl-10 pr-10 bg-white/8 border-white/15 text-white placeholder:text-white/30 rounded-xl h-12 focus:border-amber-400/50 focus:ring-amber-400/20"
+                                            className="pl-10 pr-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
                                             required
                                             autoComplete="new-password"
                                         />
@@ -272,7 +272,7 @@ export default function Convite() {
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                             placeholder="Confirmar senha"
-                                            className="pl-10 bg-white/8 border-white/15 text-white placeholder:text-white/30 rounded-xl h-12 focus:border-amber-400/50 focus:ring-amber-400/20"
+                                            className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
                                             required
                                             autoComplete="new-password"
                                         />
