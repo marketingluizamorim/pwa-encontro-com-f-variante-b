@@ -114,18 +114,14 @@ export default function Convite() {
             // 5. Activate Silver plan via edge function (best-effort)
             setStep('activating');
             try {
-                if (sessionToken) {
-                    const { data: fnData, error: fnError } = await supabaseRuntime.functions.invoke('activate-group-invite', {
-                        headers: { Authorization: `Bearer ${sessionToken}` },
-                        body: {},
-                    });
-                    if (fnError) {
-                        console.error('[Convite] Edge function error:', fnError);
-                    } else {
-                        console.log('[Convite] Plan activation result:', fnData);
-                    }
+                // SDK automatically attaches the active session JWT — no manual header needed
+                const { data: fnData, error: fnError } = await supabaseRuntime.functions.invoke('activate-group-invite', {
+                    body: {},
+                });
+                if (fnError) {
+                    console.error('[Convite] Edge function error:', fnError);
                 } else {
-                    console.warn('[Convite] No session token — skipping edge function');
+                    console.log('[Convite] Plan activation result:', fnData);
                 }
             } catch (fnErr) {
                 console.error('[Convite] Edge function threw:', fnErr);
