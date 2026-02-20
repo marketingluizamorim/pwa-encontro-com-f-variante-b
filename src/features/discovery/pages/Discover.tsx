@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import DiscoverFilters, { DiscoverFiltersState } from '@/features/discovery/components/DiscoverFilters';
 import { useDiscoverProfiles, useSwipeMutation } from '@/features/discovery/hooks/useDiscoverProfiles';
+import { useSeedDiscoverProfiles } from '@/features/discovery/hooks/useSeedDiscoverProfiles';
+import type { SeedDiscoverCard } from '@/features/discovery/hooks/useSeedDiscoverProfiles';
 import { triggerHaptic } from '@/lib/haptics';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { DiscoverSkeleton } from '@/features/discovery/components/SkeletonLoaders';
@@ -108,6 +110,11 @@ export default function Discover() {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
+
+  // ── Seed Discover profiles (injected at top of swipe stack for new subscribers)
+  const { seedCards, loading: seedLoading, dismissSeedCard } = useSeedDiscoverProfiles(user?.id);
+  // currentSeedCard is the first pending seed card (shown before real profiles)
+  const currentSeedCard: SeedDiscoverCard | null = seedCards[0] ?? null;
 
   const [upgradeData, setUpgradeData] = useState({
     title: '',
@@ -365,6 +372,41 @@ export default function Discover() {
     };
   }, [user]);
 
+  // ── Seed swipe handler (runs before real handleSwipe when a seed card is on top) ─────
+  const handleSeedSwipe = async (swipeDirection: 'like' | 'dislike' | 'super_like') => {
+    if (!currentSeedCard || !user || swiping) return;
+
+    setSwiping(true);
+    setExitDirection(swipeDirection === 'dislike' ? 'left' : swipeDirection === 'like' ? 'right' : 'up');
+    triggerHaptic(swipeDirection === 'dislike' ? 'light' : 'medium');
+    setSwipeFeedback(swipeDirection);
+    setTimeout(() => setSwipeFeedback(null), 600);
+
+    const action = swipeDirection === 'dislike' ? 'disliked'
+      : swipeDirection === 'super_like' ? 'super_liked'
+        : 'liked';
+
+    setTimeout(async () => {
+      setExitDirection(null);
+      setSwiping(false);
+      x.set(0);
+      y.set(0);
+      setShowInfo(false);
+
+      const { isMatch } = await dismissSeedCard(currentSeedCard.seedId, action);
+      if (isMatch) {
+        setMatchData({
+          name: currentSeedCard.display_name,
+          photo: currentSeedCard.photos[0] || currentSeedCard.avatar_url || '',
+          matchId: `seed-match-${currentSeedCard.seedId}`,
+        });
+        setShowMatchCelebration(true);
+        triggerHaptic('success');
+        playNotification('match');
+      }
+    }, 200);
+  };
+
   const handleSwipe = async (swipeDirection: 'like' | 'dislike' | 'super_like') => {
     if (!currentProfile || !user || swiping) return;
 
@@ -503,11 +545,11 @@ export default function Discover() {
     const { offset, velocity } = info;
 
     if (offset.x > SWIPE_THRESHOLD || velocity.x > SWIPE_VELOCITY_THRESHOLD) {
-      handleSwipe('like');
+      if (currentSeedCard) { handleSeedSwipe('like'); } else { handleSwipe('like'); }
     } else if (offset.x < -SWIPE_THRESHOLD || velocity.x < -SWIPE_VELOCITY_THRESHOLD) {
-      handleSwipe('dislike');
+      if (currentSeedCard) { handleSeedSwipe('dislike'); } else { handleSwipe('dislike'); }
     } else if (offset.y < -SWIPE_THRESHOLD || velocity.y < -SWIPE_VELOCITY_THRESHOLD) {
-      handleSwipe('super_like');
+      if (currentSeedCard) { handleSeedSwipe('super_like'); } else { handleSwipe('super_like'); }
     } else {
       x.set(0);
       y.set(0);
@@ -521,9 +563,10 @@ export default function Discover() {
   };
 
   // ── Swipe Feedback Portal ───────────────────────────────────────────────────
-  if (isLoading && profiles.length === 0) return <DiscoverSkeleton />;
+  // Wait for seed profiles to load before showing skeleton (avoid flash)
+  if ((isLoading && profiles.length === 0) || seedLoading) return <DiscoverSkeleton />;
 
-  const isEmpty = profiles.length === 0 || currentIndex >= profiles.length;
+  const isEmpty = !currentSeedCard && (profiles.length === 0 || currentIndex >= profiles.length);
 
   return (
     <>
@@ -626,12 +669,13 @@ export default function Discover() {
             {/* Card Stack Container */}
             <div className="flex-1 w-full max-w-xl relative flex items-center justify-center pb-24 px-4 transition-all duration-500">
 
-              {/* NEXT CARD (Background) */}
-              {nextProfile && (
+              {/* NEXT CARD (Background) — show next seed or next real profile */}
+              {(seedCards[1] || nextProfile) && (
                 <div className="absolute inset-x-4 top-4 bottom-28 z-0">
                   <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border opacity-60 scale-95 translate-y-2 shadow-xl">
                     <img
-                      src={nextProfile.photos?.[0] || nextProfile.avatar_url || '/placeholder.svg'}
+                      src={seedCards[1]?.photos[0] || seedCards[1]?.avatar_url
+                        || nextProfile?.photos?.[0] || nextProfile?.avatar_url || '/placeholder.svg'}
                       className="w-full h-full object-cover opacity-50 grayscale"
                       alt="Next"
                     />
@@ -639,380 +683,186 @@ export default function Discover() {
                 </div>
               )}
 
-              {/* CURRENT CARD (Foreground) */}
-              <motion.div
-                key={currentProfile.id}
-                style={{ x, y, rotate }}
-                drag
-                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
-                onDragEnd={handleDragEnd}
-                className="w-full h-full absolute inset-0 px-4 pt-4 pb-24 z-20 cursor-grab active:cursor-grabbing touch-none"
-                initial={false}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{
-                  x: exitDirection === 'left' ? -1000 : exitDirection === 'right' ? 1000 : 0,
-                  y: exitDirection === 'up' ? -1000 : 0,
-                  opacity: 0,
-                  rotate: exitDirection === 'left' ? -45 : exitDirection === 'right' ? 45 : 0,
-                  transition: { duration: 0.3 }
-                }}
-              >
-                <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative select-none">
+              {/* ── SEED CARD (shown on top, blocks real stack) ── */}
+              {currentSeedCard ? (
+                <motion.div
+                  key={`seed-${currentSeedCard.seedId}`}
+                  style={{ x, y, rotate }}
+                  drag
+                  dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                  dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
+                  onDragEnd={handleDragEnd}
+                  className="w-full h-full absolute inset-0 px-4 pt-4 pb-24 z-20 cursor-grab active:cursor-grabbing touch-none"
+                  initial={false}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{
+                    x: exitDirection === 'left' ? -1000 : exitDirection === 'right' ? 1000 : 0,
+                    y: exitDirection === 'up' ? -1000 : 0,
+                    opacity: 0,
+                    rotate: exitDirection === 'left' ? -45 : exitDirection === 'right' ? 45 : 0,
+                    transition: { duration: 0.3 }
+                  }}
+                >
+                  <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative select-none">
+                    {/* Like / Nope indicators */}
+                    <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 right-6 z-50 rotate-[-20deg]">
+                      <span className="text-green-400 text-4xl font-black border-4 border-green-400 rounded-xl px-3 py-1 uppercase tracking-widest">Like</span>
+                    </motion.div>
+                    <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 left-6 z-50 rotate-[20deg]">
+                      <span className="text-red-400 text-4xl font-black border-4 border-red-400 rounded-xl px-3 py-1 uppercase tracking-widest">Nope</span>
+                    </motion.div>
+                    <motion.div style={{ opacity: superLikeOpacity }} className="absolute top-8 left-1/2 -translate-x-1/2 z-50">
+                      <span className="text-blue-400 text-4xl font-black border-4 border-blue-400 rounded-xl px-3 py-1 uppercase tracking-widest">Super</span>
+                    </motion.div>
 
-                  {/* Photo Stories Progress Bar */}
-                  {currentProfile.photos && currentProfile.photos.length > 1 && (
-                    <div className="absolute top-3 left-3 right-3 z-40 flex gap-1.5 h-1">
-                      {currentProfile.photos.map((_, idx) => (
-                        <div
-                          key={idx}
-                          className={`flex-1 rounded-full h-full shadow-sm transition-colors duration-300 ${idx === currentPhotoIndex ? 'bg-white' : 'bg-white/30'
-                            }`}
-                        />
-                      ))}
-                    </div>
-                  )}
+                    {/* Photo */}
+                    <img
+                      src={currentSeedCard.photos[0] || currentSeedCard.avatar_url || '/placeholder.svg'}
+                      className="w-full h-full object-cover"
+                      alt={currentSeedCard.display_name}
+                      draggable={false}
+                    />
 
-                  {/* Destaque Badge */}
-                  {currentProfile.is_boosted && (
-                    <div className="absolute top-10 left-3 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
-                      <Zap className="w-3 h-3 fill-black animate-pulse" />
-                      <span>Perfil em Destaque</span>
-                    </div>
-                  )}
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
-                  {/* Navigation Zones (Left/Right) - Only Active if not swiping (handled by onClick vs Drag) */}
-                  <div className="absolute inset-0 z-30 flex">
-                    <div className="w-1/2 h-[80%]" onClick={handlePrevPhoto} />
-                    <div className="w-1/2 h-[80%]" onClick={handleNextPhoto} />
-                  </div>
-
-                  {/* Photo */}
-                  <img
-                    src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url}
-                    className="w-full h-full object-cover pointer-events-none"
-                    alt="Profile"
-                    draggable={false}
-                    loading="eager"
-                    fetchPriority="high"
-                  />
-
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
-
-                  {/* Text Info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
-                    {/* Online Badge */}
-                    {formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active) === 'Online' && (
-                      <div className="mb-2.5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
-                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                        ONLINE
+                    {/* Info */}
+                    <div className="absolute bottom-0 left-0 right-0 p-5 pb-6">
+                      <div className="flex items-end gap-3 mb-2">
+                        <h2 className="text-white font-serif font-bold text-2xl leading-tight">
+                          {currentSeedCard.display_name}, {currentSeedCard.age}
+                        </h2>
                       </div>
-                    )}
-
-                    {/* Name and Age Group */}
-                    <div className="flex items-center gap-2 mb-2">
-                      <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-md">
-                        {currentProfile.display_name}
-                      </h1>
-                      {currentProfile.birth_date && (
-                        <span className="text-3xl font-extralight text-white/90 drop-shadow-md">
-                          {calculateAge(currentProfile.birth_date)}
-                        </span>
-                      )}
-                      {currentProfile.is_verified && (
-                        <div className="bg-blue-500 rounded-full p-0.5 shadow-lg border border-white/20">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-white fill-blue-500" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-1 mb-5">
-                      {currentProfile.city && (
-                        <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
-                          <Home className="w-4 h-4 opacity-80" />
-                          <span>Mora em/no {currentProfile.city}</span>
-                        </div>
-                      )}
-
-                      {/* Distância */}
-                      {(() => {
-                        const distance = userCoords
-                          ? calculateDistance(
-                            userCoords.latitude,
-                            userCoords.longitude,
-                            currentProfile.latitude,
-                            currentProfile.longitude
-                          )
-                          : null;
-
-                        if (!distance) return null;
-
-                        return (
-                          <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
-                            <MapPin className="w-4 h-4 opacity-80" />
-                            <span>{distance}</span>
-                          </div>
-                        );
-                      })()}
-                    </div>
-
-                    {/* Relationship Goal */}
-                    {currentProfile.looking_for && (
-                      <div className="flex items-center gap-2.5 bg-black/30 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/10 w-fit shadow-xl group transition-all">
-                        <div className="w-5 h-5 flex items-center justify-center">
-                          {currentProfile.looking_for.toLowerCase().includes('relacionamento') || currentProfile.looking_for.toLowerCase().includes('família') ? (
-                            <Heart className="w-4 h-4 text-white fill-white/20" />
-                          ) : (
-                            <Search className="w-4 h-4 text-white" />
-                          )}
-                        </div>
-                        <span className="text-[14px] font-bold text-white tracking-tight drop-shadow-sm">
-                          {currentProfile.looking_for}
-                        </span>
+                      <div className="flex items-center gap-1.5 text-white/70 text-xs mb-3">
+                        <MapPin className="w-3 h-3" />
+                        <span>{currentSeedCard.city}, {currentSeedCard.state}</span>
                       </div>
-                    )}
+                      {currentSeedCard.christian_interests.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {currentSeedCard.christian_interests.map((tag) => (
+                            <span key={tag} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/80 border border-white/10">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-5 z-30 px-4">
+                      <button
+                        onClick={() => handleSeedSwipe('dislike')}
+                        className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg"
+                      >
+                        <i className="ri-close-line text-red-400 text-2xl" />
+                      </button>
+                      <button
+                        onClick={() => handleSeedSwipe('like')}
+                        className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg"
+                      >
+                        <Heart className="w-6 h-6 text-amber-400 fill-amber-400" />
+                      </button>
+                    </div>
                   </div>
-
-                  {/* Stamps */}
-                  <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-6 z-30 border-4 border-emerald-500 text-emerald-500 px-4 py-1 rounded-lg font-bold text-3xl -rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
-                    LIKE
-                  </motion.div>
-                  <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-6 z-30 border-4 border-red-500 text-red-500 px-4 py-1 rounded-lg font-bold text-3xl rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
-                    NOPE
-                  </motion.div>
-                  <motion.div style={{ opacity: superLikeOpacity }} className="absolute bottom-40 left-1/2 -translate-x-1/2 z-30 border-4 border-blue-500 text-blue-500 px-4 py-1 rounded-lg font-bold text-3xl tracking-widest uppercase bg-black/20 backdrop-blur-sm">
-                    SUPER
-                  </motion.div>
-
-                  {/* Info Detail Button -> Expand */}
-                  <button
-                    onClick={() => setShowInfo(true)}
-                    className="absolute bottom-8 right-8 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-all active:scale-95"
-                  >
-                    <i className="ri-arrow-up-s-line text-2xl" />
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Floating Action Controls (Main View) */}
-            {!showInfo && (
-              <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-8 pointer-events-none transition-all">
-                {/* Nope */}
-                <button
-                  onClick={() => handleSwipe('dislike')}
-                  className="w-14 h-14 rounded-full bg-card/80 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+                </motion.div>
+              ) : (
+                /* CURRENT CARD (Foreground) */
+                <motion.div
+                  key={currentProfile.id}
+                  style={{ x, y, rotate }}
+                  drag
+                  dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                  dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
+                  onDragEnd={handleDragEnd}
+                  className="w-full h-full absolute inset-0 px-4 pt-4 pb-24 z-20 cursor-grab active:cursor-grabbing touch-none"
+                  initial={false}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{
+                    x: exitDirection === 'left' ? -1000 : exitDirection === 'right' ? 1000 : 0,
+                    y: exitDirection === 'up' ? -1000 : 0,
+                    opacity: 0,
+                    rotate: exitDirection === 'left' ? -45 : exitDirection === 'right' ? 45 : 0,
+                    transition: { duration: 0.3 }
+                  }}
                 >
-                  <i className="ri-close-line text-3xl font-semibold" />
-                </button>
+                  <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border shadow-[0_8px_30px_rgb(0,0,0,0.12)] relative select-none">
 
-                {/* Super Like */}
-                <button
-                  onClick={() => handleSwipe('super_like')}
-                  className="w-11 h-11 mb-2 rounded-full bg-card/80 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
-                >
-                  <i className="ri-star-fill text-xl" />
-                </button>
-
-                {/* Like */}
-                <button
-                  onClick={() => handleSwipe('like')}
-                  className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all pointer-events-auto"
-                >
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center border border-white/20 shadow-inner group-hover:from-[#fcd34d] group-hover:to-[#d4af37] transition-colors">
-                    <i className="ri-heart-fill text-3xl text-white drop-shadow-md" />
-                  </div>
-                </button>
-
-                {/* Filter Button (Discreet - Absolute Right) */}
-                <div className="absolute right-6 pointer-events-auto">
-                  <DiscoverFilters
-                    filters={filters}
-                    onFiltersChange={setFilters}
-                    onApply={handleApplyFilters}
-                    triggerClassName="w-10 h-10 rounded-full bg-black/20 backdrop-blur-md border-white/10 text-white/50 hover:bg-black/40 hover:text-white transition-all shadow-none ring-0 focus:ring-0 active:scale-95"
-                  />
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Expanded Profile Details Overlay - PORTAL for Full Immersion */}
-        {typeof document !== 'undefined' && createPortal(
-          <AnimatePresence>
-            {showInfo && currentProfile && (
-              <motion.div
-                key="expanded-profile-view"
-                initial={false}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                drag="y"
-                dragControls={dragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
-                dragElastic={{ top: 0, bottom: 0.7, left: 0.1, right: 0.8 }}
-                onDragEnd={(e, info) => {
-                  if (info.offset.y > 100 || info.velocity.y > 500 || info.offset.x > 100 || info.velocity.x > 500) {
-                    handleManualBack();
-                  }
-                }}
-                className="fixed inset-0 z-[9999] bg-background flex flex-col overflow-hidden"
-              >
-                {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide relative">
-
-                  {/* Close Button - Top Right - Size matched to Expand Button */}
-                  <button
-                    onClick={handleManualBack}
-                    className="fixed top-[calc(1.25rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/60 backdrop-blur-xl text-white flex items-center justify-center border border-white/20 shadow-2xl hover:bg-black/80 active:scale-90 transition-all"
-                  >
-                    <i className="ri-arrow-down-s-line text-2xl" />
-                  </button>
-
-                  {/* Hero Image Section */}
-                  <motion.div
-                    className="relative w-full h-[60vh] touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
-                    onPointerDown={(e) => dragControls.start(e)}
-                  >
-                    {/* Photo Stories Progress Bar - Expanded View */}
+                    {/* Photo Stories Progress Bar */}
                     {currentProfile.photos && currentProfile.photos.length > 1 && (
-                      <div className="absolute top-[calc(1.25rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
+                      <div className="absolute top-3 left-3 right-3 z-40 flex gap-1.5 h-1">
                         {currentProfile.photos.map((_, idx) => (
                           <div
                             key={idx}
-                            className={`flex-1 rounded-full h-full shadow-sm transition-all duration-300 ${idx === currentPhotoIndex ? 'bg-white scale-y-110 shadow-lg' : 'bg-white/30'
+                            className={`flex-1 rounded-full h-full shadow-sm transition-colors duration-300 ${idx === currentPhotoIndex ? 'bg-white' : 'bg-white/30'
                               }`}
                           />
                         ))}
                       </div>
                     )}
 
-                    {/* Navigation Zones (Left/Right) - Expanded View */}
-                    <div className="absolute inset-0 z-30 flex">
-                      <div className="w-1/2 h-full cursor-pointer" onClick={handlePrevPhoto} />
-                      <div className="w-1/2 h-full cursor-pointer" onClick={handleNextPhoto} />
-                    </div>
-
-                    <img
-                      src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
-                      className="w-full h-full object-cover pointer-events-none"
-                      alt={currentProfile.display_name}
-                    />
-                    <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
-
-                    {/* Destaque Badge - Expanded View */}
+                    {/* Destaque Badge */}
                     {currentProfile.is_boosted && (
-                      <div className="absolute bottom-24 left-5 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
+                      <div className="absolute top-10 left-3 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
                         <Zap className="w-3 h-3 fill-black animate-pulse" />
                         <span>Perfil em Destaque</span>
                       </div>
                     )}
-                  </motion.div>
 
-                  {/* Line Cover - hides the photo container bottom border */}
-                  <div className="relative z-[5] h-3 -mt-3 bg-background" />
-
-                  {/* Profile Info Content */}
-                  <div className="px-4 -mt-16 relative z-10 space-y-4 pb-12">
-
-                    {/* Name, Age & Verified */}
-                    <div className="px-1 mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="text-4xl text-foreground tracking-tight">
-                          <span className="font-bold">{currentProfile.display_name}</span>
-                          <span className="font-extralight text-muted-foreground ml-2">
-                            {currentProfile.birth_date ? calculateAge(currentProfile.birth_date) : ''}
-                          </span>
-                        </div>
-                        {/* {currentProfile.is_verified && (
-                        <div className="bg-blue-500 rounded-full p-1 shadow-lg">
-                          <CheckCircle2 className="w-5 h-5 text-white fill-blue-500" />
-                        </div>
-                      )} */}
-                      </div>
-
-                      {/* Atividade Recente */}
-                      {(() => {
-                        const status = formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active);
-                        if (!status) return null;
-
-                        return (
-                          <div className="flex items-center gap-1.5 mt-2.5 text-emerald-500 font-medium text-[15px]">
-                            <div className={cn("w-2 h-2 rounded-full", status === 'Online' ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-emerald-500/50")} />
-                            <span>{status === 'Online' ? 'Online agora' : status}</span>
-                          </div>
-                        );
-                      })()}
+                    {/* Navigation Zones (Left/Right) - Only Active if not swiping (handled by onClick vs Drag) */}
+                    <div className="absolute inset-0 z-30 flex">
+                      <div className="w-1/2 h-[80%]" onClick={handlePrevPhoto} />
+                      <div className="w-1/2 h-[80%]" onClick={handleNextPhoto} />
                     </div>
 
-                    {/* Section: About Me */}
-                    {currentProfile.bio && (
-                      <div className="px-1 space-y-3 pt-2 pb-4">
-                        <h3 className="text-lg font-bold text-foreground">Sobre mim</h3>
-                        <p className="text-[17px] text-muted-foreground leading-relaxed">
-                          {currentProfile.bio}
-                        </p>
-                      </div>
-                    )}
+                    {/* Photo */}
+                    <img
+                      src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url}
+                      className="w-full h-full object-cover pointer-events-none"
+                      alt="Profile"
+                      draggable={false}
+                      loading="eager"
+                      fetchPriority="high"
+                    />
 
-                    {/* Section: Looking For */}
-                    {currentProfile.looking_for && (
-                      <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm space-y-4">
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2 text-muted-foreground/80">
-                            <Search className="w-4 h-4" />
-                            <span className="text-sm font-semibold uppercase tracking-wider">Tô procurando</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-3xl">
-                              {LOOKING_FOR_EMOJIS[currentProfile.looking_for] || '💍'}
-                            </span>
-                            <span className="text-xl font-bold text-foreground">
-                              {currentProfile.looking_for}
-                            </span>
-                          </div>
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
+
+                    {/* Text Info */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
+                      {/* Online Badge */}
+                      {formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active) === 'Online' && (
+                        <div className="mb-2.5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                          ONLINE
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Section: Basic Info */}
-                    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
-                      <div className="p-5 flex items-center justify-between">
-                        <div className="flex items-center gap-2.5 text-foreground">
-                          <User2 className="w-5 h-5" />
-                          <h3 className="font-bold text-lg">Informações básicas</h3>
-                        </div>
-
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="w-10 h-10 rounded-xl bg-secondary/40 flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
-                              <MoreHorizontal className="w-5 h-5" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 bg-slate-900/95 backdrop-blur-xl border-white/10 rounded-2xl p-1 z-[10000]">
-                            <DropdownMenuItem
-                              onClick={() => setShowReportDialog(true)}
-                              className="flex items-center gap-2 p-3 text-amber-500 focus:bg-amber-500/10 focus:text-amber-500 rounded-xl cursor-pointer"
-                            >
-                              <AlertTriangle className="w-4 h-4" />
-                              Denunciar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setShowBlockDialog(true)}
-                              className="flex items-center gap-2 p-3 text-rose-500 focus:bg-rose-500/10 focus:text-rose-500 rounded-xl cursor-pointer"
-                            >
-                              <Ban className="w-4 h-4" />
-                              Bloquear
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                      {/* Name and Age Group */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-md">
+                          {currentProfile.display_name}
+                        </h1>
+                        {currentProfile.birth_date && (
+                          <span className="text-3xl font-extralight text-white/90 drop-shadow-md">
+                            {calculateAge(currentProfile.birth_date)}
+                          </span>
+                        )}
+                        {currentProfile.is_verified && (
+                          <div className="bg-blue-500 rounded-full p-0.5 shadow-lg border border-white/20">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white fill-blue-500" />
+                          </div>
+                        )}
                       </div>
 
-                      <div className="px-5 pb-2">
-                        {/* Distance Row */}
+                      <div className="space-y-1 mb-5">
+                        {currentProfile.city && (
+                          <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
+                            <Home className="w-4 h-4 opacity-80" />
+                            <span>Mora em/no {currentProfile.city}</span>
+                          </div>
+                        )}
+
+                        {/* Distância */}
                         {(() => {
                           const distance = userCoords
                             ? calculateDistance(
@@ -1022,409 +872,688 @@ export default function Discover() {
                               currentProfile.longitude
                             )
                             : null;
+
                           if (!distance) return null;
+
                           return (
-                            <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
-                              <MapPin className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
-                              <span className="text-[15px] font-medium text-foreground/90">{distance}</span>
+                            <div className="flex items-center gap-2 text-[15px] font-medium text-white/90 drop-shadow-sm">
+                              <MapPin className="w-4 h-4 opacity-80" />
+                              <span>{distance}</span>
                             </div>
                           );
                         })()}
-
-                        {/* City & State */}
-                        {(currentProfile.city || currentProfile.state) && (
-                          <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
-                            <Home className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
-                            <span className="text-[15px] font-medium text-foreground/90 leading-tight">
-                              Mora em/no {currentProfile.city}
-                              {currentProfile.state ? `, ${currentProfile.state}` : ''}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Occupation */}
-                        {currentProfile.occupation && (
-                          <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
-                            <Briefcase className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
-                            <span className="text-[15px] font-medium text-foreground/90 leading-tight">Trabalha como {currentProfile.occupation}</span>
-                          </div>
-                        )}
-
-                        {/* Religion */}
-                        {currentProfile.religion && (
-                          <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
-                            <BookOpen className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
-                            <span className="text-[15px] font-medium text-foreground/90 leading-tight">{currentProfile.religion}</span>
-                          </div>
-                        )}
-
-
-
-                        {/* Education */}
-                        {currentProfile.education && (
-                          <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
-                            <GraduationCap className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
-                            <span className="text-[15px] font-medium text-foreground/90 leading-tight">{currentProfile.education}</span>
-                          </div>
-                        )}
-
-                        {/* Gender */}
-                        {currentProfile.gender && (
-                          <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
-                            <UserCircle className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
-                            <span className="text-[15px] font-medium text-foreground/90 leading-tight">
-                              {currentProfile.gender.toLowerCase() === 'male' ? 'Homem' :
-                                currentProfile.gender.toLowerCase() === 'female' ? 'Mulher' :
-                                  currentProfile.gender}
-                            </span>
-                          </div>
-                        )}
                       </div>
+
+                      {/* Relationship Goal */}
+                      {currentProfile.looking_for && (
+                        <div className="flex items-center gap-2.5 bg-black/30 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/10 w-fit shadow-xl group transition-all">
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            {currentProfile.looking_for.toLowerCase().includes('relacionamento') || currentProfile.looking_for.toLowerCase().includes('família') ? (
+                              <Heart className="w-4 h-4 text-white fill-white/20" />
+                            ) : (
+                              <Search className="w-4 h-4 text-white" />
+                            )}
+                          </div>
+                          <span className="text-[14px] font-bold text-white tracking-tight drop-shadow-sm">
+                            {currentProfile.looking_for}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Section: Lifestyle */}
-                    {((currentProfile.pets || currentProfile.drink || currentProfile.smoke || currentProfile.physical_activity || currentProfile.social_media || (currentProfile.languages && currentProfile.languages.length > 0))) && (
-                      <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
-                        <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
-                          <LayoutList className="w-5 h-5" />
-                          <h3 className="font-bold text-lg">Estilo de vida</h3>
-                        </div>
+                    {/* Stamps */}
+                    <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-6 z-30 border-4 border-emerald-500 text-emerald-500 px-4 py-1 rounded-lg font-bold text-3xl -rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
+                      LIKE
+                    </motion.div>
+                    <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-6 z-30 border-4 border-red-500 text-red-500 px-4 py-1 rounded-lg font-bold text-3xl rotate-12 tracking-widest uppercase bg-black/20 backdrop-blur-sm">
+                      NOPE
+                    </motion.div>
+                    <motion.div style={{ opacity: superLikeOpacity }} className="absolute bottom-40 left-1/2 -translate-x-1/2 z-30 border-4 border-blue-500 text-blue-500 px-4 py-1 rounded-lg font-bold text-3xl tracking-widest uppercase bg-black/20 backdrop-blur-sm">
+                      SUPER
+                    </motion.div>
 
-                        <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
-                          {currentProfile.pets && (
-                            <div className="pt-4 first:pt-2">
-                              <p className="text-xs font-bold text-muted-foreground mb-2">Pets</p>
-                              <div className="flex items-center gap-3 text-foreground/90">
-                                <PawPrint className="w-5 h-5 text-muted-foreground/60" />
-                                <span className="text-[15px] font-medium">{currentProfile.pets}</span>
-                              </div>
+                    {/* Info Detail Button -> Expand */}
+                    <button
+                      onClick={() => setShowInfo(true)}
+                      className="absolute bottom-8 right-8 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-all active:scale-95"
+                    >
+                      <i className="ri-arrow-up-s-line text-2xl" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Floating Action Controls (Main View) */}
+              {!showInfo && (
+                <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-8 pointer-events-none transition-all">
+                  {/* Nope */}
+                  <button
+                    onClick={() => currentSeedCard ? handleSeedSwipe('dislike') : handleSwipe('dislike')}
+                    className="w-14 h-14 rounded-full bg-card/80 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+                  >
+                    <i className="ri-close-line text-3xl font-semibold" />
+                  </button>
+
+                  {/* Super Like */}
+                  <button
+                    onClick={() => currentSeedCard ? handleSeedSwipe('super_like') : handleSwipe('super_like')}
+                    className="w-11 h-11 mb-2 rounded-full bg-card/80 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+                  >
+                    <i className="ri-star-fill text-xl" />
+                  </button>
+
+                  {/* Like */}
+                  <button
+                    onClick={() => currentSeedCard ? handleSeedSwipe('like') : handleSwipe('like')}
+                    className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all pointer-events-auto"
+                  >
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center border border-white/20 shadow-inner group-hover:from-[#fcd34d] group-hover:to-[#d4af37] transition-colors">
+                      <i className="ri-heart-fill text-3xl text-white drop-shadow-md" />
+                    </div>
+                  </button>
+
+                  {/* Filter Button (Discreet - Absolute Right) */}
+                  <div className="absolute right-6 pointer-events-auto">
+                    <DiscoverFilters
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      onApply={handleApplyFilters}
+                      triggerClassName="w-10 h-10 rounded-full bg-black/20 backdrop-blur-md border-white/10 text-white/50 hover:bg-black/40 hover:text-white transition-all shadow-none ring-0 focus:ring-0 active:scale-95"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Expanded Profile Details Overlay - PORTAL for Full Immersion */}
+              {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                  {showInfo && currentProfile && (
+                    <motion.div
+                      key="expanded-profile-view"
+                      initial={false}
+                      animate={{ y: 0 }}
+                      exit={{ y: '100%' }}
+                      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                      drag="y"
+                      dragControls={dragControls}
+                      dragListener={false}
+                      dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                      dragElastic={{ top: 0, bottom: 0.7, left: 0.1, right: 0.8 }}
+                      onDragEnd={(e, info) => {
+                        if (info.offset.y > 100 || info.velocity.y > 500 || info.offset.x > 100 || info.velocity.x > 500) {
+                          handleManualBack();
+                        }
+                      }}
+                      className="fixed inset-0 z-[9999] bg-background flex flex-col overflow-hidden"
+                    >
+                      {/* Scrollable Content */}
+                      <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide relative">
+
+                        {/* Close Button - Top Right - Size matched to Expand Button */}
+                        <button
+                          onClick={handleManualBack}
+                          className="fixed top-[calc(1.25rem+env(safe-area-inset-top))] right-4 z-[100] w-10 h-10 rounded-full bg-black/60 backdrop-blur-xl text-white flex items-center justify-center border border-white/20 shadow-2xl hover:bg-black/80 active:scale-90 transition-all"
+                        >
+                          <i className="ri-arrow-down-s-line text-2xl" />
+                        </button>
+
+                        {/* Hero Image Section */}
+                        <motion.div
+                          className="relative w-full h-[60vh] touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
+                          onPointerDown={(e) => dragControls.start(e)}
+                        >
+                          {/* Photo Stories Progress Bar - Expanded View */}
+                          {currentProfile.photos && currentProfile.photos.length > 1 && (
+                            <div className="absolute top-[calc(1.25rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
+                              {currentProfile.photos.map((_, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`flex-1 rounded-full h-full shadow-sm transition-all duration-300 ${idx === currentPhotoIndex ? 'bg-white scale-y-110 shadow-lg' : 'bg-white/30'
+                                    }`}
+                                />
+                              ))}
                             </div>
                           )}
 
-                          {currentProfile.drink && (
-                            <div className="pt-4">
-                              <p className="text-xs font-bold text-muted-foreground mb-2">Bebida</p>
-                              <div className="flex items-center gap-3 text-foreground/90">
-                                <Wine className="w-5 h-5 text-muted-foreground/60" />
-                                <span className="text-[15px] font-medium">{currentProfile.drink}</span>
-                              </div>
+                          {/* Navigation Zones (Left/Right) - Expanded View */}
+                          <div className="absolute inset-0 z-30 flex">
+                            <div className="w-1/2 h-full cursor-pointer" onClick={handlePrevPhoto} />
+                            <div className="w-1/2 h-full cursor-pointer" onClick={handleNextPhoto} />
+                          </div>
+
+                          <img
+                            src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
+                            className="w-full h-full object-cover pointer-events-none"
+                            alt={currentProfile.display_name}
+                          />
+                          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+
+                          {/* Destaque Badge - Expanded View */}
+                          {currentProfile.is_boosted && (
+                            <div className="absolute bottom-24 left-5 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
+                              <Zap className="w-3 h-3 fill-black animate-pulse" />
+                              <span>Perfil em Destaque</span>
                             </div>
                           )}
+                        </motion.div>
 
-                          {currentProfile.smoke && (
-                            <div className="pt-4">
-                              <p className="text-xs font-bold text-muted-foreground mb-2">Você fuma?</p>
-                              <div className="flex items-center gap-3 text-foreground/90">
-                                <Cigarette className="w-5 h-5 text-muted-foreground/60" />
-                                <span className="text-[15px] font-medium">{currentProfile.smoke}</span>
-                              </div>
-                            </div>
-                          )}
+                        {/* Line Cover - hides the photo container bottom border */}
+                        <div className="relative z-[5] h-3 -mt-3 bg-background" />
 
-                          {currentProfile.physical_activity && (
-                            <div className="pt-4">
-                              <p className="text-xs font-bold text-muted-foreground mb-2">Atividade física</p>
-                              <div className="flex items-center gap-3 text-foreground/90">
-                                <Dumbbell className="w-5 h-5 text-muted-foreground/60" />
-                                <span className="text-[15px] font-medium">{currentProfile.physical_activity}</span>
-                              </div>
-                            </div>
-                          )}
+                        {/* Profile Info Content */}
+                        <div className="px-4 -mt-16 relative z-10 space-y-4 pb-12">
 
-                          {currentProfile.social_media && (
-                            <div className="pt-4">
-                              <p className="text-xs font-bold text-muted-foreground mb-2">Redes sociais</p>
-                              <div className="flex items-center gap-3 text-foreground/90">
-                                <Share2 className="w-5 h-5 text-muted-foreground/60" />
-                                <span className="text-[15px] font-medium">{currentProfile.social_media}</span>
-                              </div>
-                            </div>
-                          )}
-
-                          {currentProfile.languages && currentProfile.languages.length > 0 && (
-                            <div className="pt-4 pb-2">
-                              <p className="text-xs font-bold text-muted-foreground mb-2">Idiomas</p>
-                              <div className="flex items-center gap-3 text-foreground/90">
-                                <Languages className="w-5 h-5 text-muted-foreground/60" />
-                                <span className="text-[15px] font-medium">
-                                  {Array.isArray(currentProfile.languages) ? currentProfile.languages.join(', ') : currentProfile.languages}
+                          {/* Name, Age & Verified */}
+                          <div className="px-1 mb-6">
+                            <div className="flex items-center gap-3">
+                              <div className="text-4xl text-foreground tracking-tight">
+                                <span className="font-bold">{currentProfile.display_name}</span>
+                                <span className="font-extralight text-muted-foreground ml-2">
+                                  {currentProfile.birth_date ? calculateAge(currentProfile.birth_date) : ''}
                                 </span>
                               </div>
+                              {/* {currentProfile.is_verified && (
+                        <div className="bg-blue-500 rounded-full p-1 shadow-lg">
+                          <CheckCircle2 className="w-5 h-5 text-white fill-blue-500" />
+                        </div>
+                      )} */}
+                            </div>
+
+                            {/* Atividade Recente */}
+                            {(() => {
+                              const status = formatLastActive(currentProfile.last_active_at, currentProfile.show_online_status, currentProfile.show_last_active);
+                              if (!status) return null;
+
+                              return (
+                                <div className="flex items-center gap-1.5 mt-2.5 text-emerald-500 font-medium text-[15px]">
+                                  <div className={cn("w-2 h-2 rounded-full", status === 'Online' ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-emerald-500/50")} />
+                                  <span>{status === 'Online' ? 'Online agora' : status}</span>
+                                </div>
+                              );
+                            })()}
+                          </div>
+
+                          {/* Section: About Me */}
+                          {currentProfile.bio && (
+                            <div className="px-1 space-y-3 pt-2 pb-4">
+                              <h3 className="text-lg font-bold text-foreground">Sobre mim</h3>
+                              <p className="text-[17px] text-muted-foreground leading-relaxed">
+                                {currentProfile.bio}
+                              </p>
                             </div>
                           )}
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Section: More Info */}
-                    {(currentProfile.about_children || currentProfile.church_frequency) && (
-                      <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
-                        <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
-                          <LayoutList className="w-5 h-5" />
-                          <h3 className="font-bold text-lg">Mais informações</h3>
-                        </div>
-
-                        <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
-                          {currentProfile.church_frequency && (
-                            <div className="pt-4 first:pt-2">
-                              <p className="text-xs font-bold text-muted-foreground mb-2">Frequência na Igreja</p>
-                              <div className="flex items-center gap-3 text-foreground/90">
-                                <Sparkles className="w-5 h-5 text-muted-foreground/60" />
-                                <span className="text-[15px] font-medium">{currentProfile.church_frequency}</span>
+                          {/* Section: Looking For */}
+                          {currentProfile.looking_for && (
+                            <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm space-y-4">
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 text-muted-foreground/80">
+                                  <Search className="w-4 h-4" />
+                                  <span className="text-sm font-semibold uppercase tracking-wider">Tô procurando</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-3xl">
+                                    {LOOKING_FOR_EMOJIS[currentProfile.looking_for] || '💍'}
+                                  </span>
+                                  <span className="text-xl font-bold text-foreground">
+                                    {currentProfile.looking_for}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           )}
 
-                          {currentProfile.about_children && (
-                            <div className="pt-4 pb-2">
-                              <p className="text-xs font-bold text-muted-foreground mb-2">Família</p>
-                              <div className="flex items-center gap-3 text-foreground/90">
-                                <Baby className="w-5 h-5 text-muted-foreground/60" />
-                                <span className="text-[15px] font-medium">{currentProfile.about_children}</span>
+                          {/* Section: Basic Info */}
+                          <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                            <div className="p-5 flex items-center justify-between">
+                              <div className="flex items-center gap-2.5 text-foreground">
+                                <User2 className="w-5 h-5" />
+                                <h3 className="font-bold text-lg">Informações básicas</h3>
+                              </div>
+
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="w-10 h-10 rounded-xl bg-secondary/40 flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors">
+                                    <MoreHorizontal className="w-5 h-5" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48 bg-slate-900/95 backdrop-blur-xl border-white/10 rounded-2xl p-1 z-[10000]">
+                                  <DropdownMenuItem
+                                    onClick={() => setShowReportDialog(true)}
+                                    className="flex items-center gap-2 p-3 text-amber-500 focus:bg-amber-500/10 focus:text-amber-500 rounded-xl cursor-pointer"
+                                  >
+                                    <AlertTriangle className="w-4 h-4" />
+                                    Denunciar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setShowBlockDialog(true)}
+                                    className="flex items-center gap-2 p-3 text-rose-500 focus:bg-rose-500/10 focus:text-rose-500 rounded-xl cursor-pointer"
+                                  >
+                                    <Ban className="w-4 h-4" />
+                                    Bloquear
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+
+                            <div className="px-5 pb-2">
+                              {/* Distance Row */}
+                              {(() => {
+                                const distance = userCoords
+                                  ? calculateDistance(
+                                    userCoords.latitude,
+                                    userCoords.longitude,
+                                    currentProfile.latitude,
+                                    currentProfile.longitude
+                                  )
+                                  : null;
+                                if (!distance) return null;
+                                return (
+                                  <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                    <MapPin className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                    <span className="text-[15px] font-medium text-foreground/90">{distance}</span>
+                                  </div>
+                                );
+                              })()}
+
+                              {/* City & State */}
+                              {(currentProfile.city || currentProfile.state) && (
+                                <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                  <Home className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                  <span className="text-[15px] font-medium text-foreground/90 leading-tight">
+                                    Mora em/no {currentProfile.city}
+                                    {currentProfile.state ? `, ${currentProfile.state}` : ''}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Occupation */}
+                              {currentProfile.occupation && (
+                                <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                  <Briefcase className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                  <span className="text-[15px] font-medium text-foreground/90 leading-tight">Trabalha como {currentProfile.occupation}</span>
+                                </div>
+                              )}
+
+                              {/* Religion */}
+                              {currentProfile.religion && (
+                                <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                  <BookOpen className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                  <span className="text-[15px] font-medium text-foreground/90 leading-tight">{currentProfile.religion}</span>
+                                </div>
+                              )}
+
+
+
+                              {/* Education */}
+                              {currentProfile.education && (
+                                <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                  <GraduationCap className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                  <span className="text-[15px] font-medium text-foreground/90 leading-tight">{currentProfile.education}</span>
+                                </div>
+                              )}
+
+                              {/* Gender */}
+                              {currentProfile.gender && (
+                                <div className="py-3.5 border-t border-border/40 flex items-center gap-3.5 group">
+                                  <UserCircle className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                                  <span className="text-[15px] font-medium text-foreground/90 leading-tight">
+                                    {currentProfile.gender.toLowerCase() === 'male' ? 'Homem' :
+                                      currentProfile.gender.toLowerCase() === 'female' ? 'Mulher' :
+                                        currentProfile.gender}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Section: Lifestyle */}
+                          {((currentProfile.pets || currentProfile.drink || currentProfile.smoke || currentProfile.physical_activity || currentProfile.social_media || (currentProfile.languages && currentProfile.languages.length > 0))) && (
+                            <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                              <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
+                                <LayoutList className="w-5 h-5" />
+                                <h3 className="font-bold text-lg">Estilo de vida</h3>
+                              </div>
+
+                              <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
+                                {currentProfile.pets && (
+                                  <div className="pt-4 first:pt-2">
+                                    <p className="text-xs font-bold text-muted-foreground mb-2">Pets</p>
+                                    <div className="flex items-center gap-3 text-foreground/90">
+                                      <PawPrint className="w-5 h-5 text-muted-foreground/60" />
+                                      <span className="text-[15px] font-medium">{currentProfile.pets}</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {currentProfile.drink && (
+                                  <div className="pt-4">
+                                    <p className="text-xs font-bold text-muted-foreground mb-2">Bebida</p>
+                                    <div className="flex items-center gap-3 text-foreground/90">
+                                      <Wine className="w-5 h-5 text-muted-foreground/60" />
+                                      <span className="text-[15px] font-medium">{currentProfile.drink}</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {currentProfile.smoke && (
+                                  <div className="pt-4">
+                                    <p className="text-xs font-bold text-muted-foreground mb-2">Você fuma?</p>
+                                    <div className="flex items-center gap-3 text-foreground/90">
+                                      <Cigarette className="w-5 h-5 text-muted-foreground/60" />
+                                      <span className="text-[15px] font-medium">{currentProfile.smoke}</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {currentProfile.physical_activity && (
+                                  <div className="pt-4">
+                                    <p className="text-xs font-bold text-muted-foreground mb-2">Atividade física</p>
+                                    <div className="flex items-center gap-3 text-foreground/90">
+                                      <Dumbbell className="w-5 h-5 text-muted-foreground/60" />
+                                      <span className="text-[15px] font-medium">{currentProfile.physical_activity}</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {currentProfile.social_media && (
+                                  <div className="pt-4">
+                                    <p className="text-xs font-bold text-muted-foreground mb-2">Redes sociais</p>
+                                    <div className="flex items-center gap-3 text-foreground/90">
+                                      <Share2 className="w-5 h-5 text-muted-foreground/60" />
+                                      <span className="text-[15px] font-medium">{currentProfile.social_media}</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {currentProfile.languages && currentProfile.languages.length > 0 && (
+                                  <div className="pt-4 pb-2">
+                                    <p className="text-xs font-bold text-muted-foreground mb-2">Idiomas</p>
+                                    <div className="flex items-center gap-3 text-foreground/90">
+                                      <Languages className="w-5 h-5 text-muted-foreground/60" />
+                                      <span className="text-[15px] font-medium">
+                                        {Array.isArray(currentProfile.languages) ? currentProfile.languages.join(', ') : currentProfile.languages}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
+
+                          {/* Section: More Info */}
+                          {(currentProfile.about_children || currentProfile.church_frequency) && (
+                            <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl overflow-hidden shadow-sm">
+                              <div className="p-5 flex items-center gap-2.5 text-foreground border-b border-border/40">
+                                <LayoutList className="w-5 h-5" />
+                                <h3 className="font-bold text-lg">Mais informações</h3>
+                              </div>
+
+                              <div className="px-5 py-2 space-y-4 divide-y divide-border/40">
+                                {currentProfile.church_frequency && (
+                                  <div className="pt-4 first:pt-2">
+                                    <p className="text-xs font-bold text-muted-foreground mb-2">Frequência na Igreja</p>
+                                    <div className="flex items-center gap-3 text-foreground/90">
+                                      <Sparkles className="w-5 h-5 text-muted-foreground/60" />
+                                      <span className="text-[15px] font-medium">{currentProfile.church_frequency}</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {currentProfile.about_children && (
+                                  <div className="pt-4 pb-2">
+                                    <p className="text-xs font-bold text-muted-foreground mb-2">Família</p>
+                                    <div className="flex items-center gap-3 text-foreground/90">
+                                      <Baby className="w-5 h-5 text-muted-foreground/60" />
+                                      <span className="text-[15px] font-medium">{currentProfile.about_children}</span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Interests */}
+                          <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm space-y-4">
+                            <div className="flex items-center gap-2.5 text-foreground">
+                              <Sparkles className="w-5 h-5 text-primary" />
+                              <h3 className="font-bold text-lg">Interesses</h3>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {(currentProfile.christian_interests || []).map((tag: string) => (
+                                <span key={tag} className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Section: Direct Message (Direct Connect) */}
+                          <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
+                              <Zap className="w-12 h-12 text-blue-500" />
+                            </div>
+
+                            <h3 className="text-xl font-semibold text-blue-500 mb-2 flex items-center gap-2">
+                              Mensagem Direta <Zap className="w-5 h-5 fill-blue-500" />
+                            </h3>
+                            <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                              Não espere pela conexão! Envie uma mensagem direta agora mesmo para {currentProfile.display_name} e saia na frente.
+                            </p>
+
+                            <Button
+                              onClick={() => {
+                                const tier = subscription?.tier || 'none';
+                                if (tier !== 'gold') {
+                                  setShowSuperLikeExplainer(true);
+                                } else {
+                                  setShowSuperLikeMessageDialog(true);
+                                }
+                              }}
+                              className="w-full h-12 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                            >
+                              <MessageCircle className="w-5 h-5" />
+                              Enviar Mensagem
+                            </Button>
+                          </div>
+
+                          {/* Bottom Spacer */}
+                          <div className="h-24" />
+                        </div>
+
+                        {/* Interaction Dialogs (Report/Block) */}
+                        <ReportDialog
+                          open={showReportDialog}
+                          onOpenChange={setShowReportDialog}
+                          userId={currentProfile.id}
+                          userName={currentProfile.display_name}
+                          onReported={() => {
+                            handleSwipe('dislike');
+                            setShowInfo(false);
+                          }}
+                        />
+                        <BlockDialog
+                          open={showBlockDialog}
+                          onOpenChange={setShowBlockDialog}
+                          userId={currentProfile.id}
+                          userName={currentProfile.display_name}
+                          onBlocked={() => {
+                            handleSwipe('dislike');
+                            setShowInfo(false);
+                          }}
+                        />
+                      </div>
+
+                      {/* Floating Action Controls (Expanded View) */}
+                      <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom)*0.4)] pointer-events-none">
+                        <div className="pointer-events-auto bg-[#1e293b]/95 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-center gap-8 ring-1 ring-white/10">
+                          <button onClick={() => handleSwipe('dislike')} className="w-14 h-14 rounded-full bg-card/40 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                            <i className="ri-close-line text-3xl font-semibold" />
+                          </button>
+                          <button onClick={() => handleSwipe('super_like')} className="w-11 h-11 rounded-full bg-card/40 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                            <i className="ri-star-fill text-xl" />
+                          </button>
+                          <button onClick={() => handleSwipe('like')} className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all">
+                            <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center border border-white/20 shadow-inner group-hover:from-[#fcd34d] group-hover:to-[#d4af37] transition-colors">
+                              <i className="ri-heart-fill text-3xl text-white drop-shadow-md" />
+                            </div>
+                          </button>
                         </div>
                       </div>
-                    )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>,
+                document.body
+              )}
 
-                    {/* Interests */}
-                    <div className="bg-card/40 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm space-y-4">
-                      <div className="flex items-center gap-2.5 text-foreground">
-                        <Sparkles className="w-5 h-5 text-primary" />
-                        <h3 className="font-bold text-lg">Interesses</h3>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {(currentProfile.christian_interests || []).map((tag: string) => (
-                          <span key={tag} className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Section: Direct Message (Direct Connect) */}
-                    <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-2xl p-6 backdrop-blur-sm relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
-                        <Zap className="w-12 h-12 text-blue-500" />
-                      </div>
-
-                      <h3 className="text-xl font-semibold text-blue-500 mb-2 flex items-center gap-2">
-                        Mensagem Direta <Zap className="w-5 h-5 fill-blue-500" />
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                        Não espere pela conexão! Envie uma mensagem direta agora mesmo para {currentProfile.display_name} e saia na frente.
-                      </p>
-
-                      <Button
-                        onClick={() => {
-                          const tier = subscription?.tier || 'none';
-                          if (tier !== 'gold') {
-                            setShowSuperLikeExplainer(true);
-                          } else {
-                            setShowSuperLikeMessageDialog(true);
-                          }
-                        }}
-                        className="w-full h-12 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        Enviar Mensagem
-                      </Button>
-                    </div>
-
-                    {/* Bottom Spacer */}
-                    <div className="h-24" />
-                  </div>
-
-                  {/* Interaction Dialogs (Report/Block) */}
-                  <ReportDialog
-                    open={showReportDialog}
-                    onOpenChange={setShowReportDialog}
-                    userId={currentProfile.id}
-                    userName={currentProfile.display_name}
-                    onReported={() => {
-                      handleSwipe('dislike');
-                      setShowInfo(false);
-                    }}
-                  />
-                  <BlockDialog
-                    open={showBlockDialog}
-                    onOpenChange={setShowBlockDialog}
-                    userId={currentProfile.id}
-                    userName={currentProfile.display_name}
-                    onBlocked={() => {
-                      handleSwipe('dislike');
-                      setShowInfo(false);
-                    }}
-                  />
-                </div>
-
-                {/* Floating Action Controls (Expanded View) */}
-                <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom)*0.4)] pointer-events-none">
-                  <div className="pointer-events-auto bg-[#1e293b]/95 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-center gap-8 ring-1 ring-white/10">
-                    <button onClick={() => handleSwipe('dislike')} className="w-14 h-14 rounded-full bg-card/40 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
-                      <i className="ri-close-line text-3xl font-semibold" />
-                    </button>
-                    <button onClick={() => handleSwipe('super_like')} className="w-11 h-11 rounded-full bg-card/40 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
-                      <i className="ri-star-fill text-xl" />
-                    </button>
-                    <button onClick={() => handleSwipe('like')} className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all">
-                      <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center border border-white/20 shadow-inner group-hover:from-[#fcd34d] group-hover:to-[#d4af37] transition-colors">
-                        <i className="ri-heart-fill text-3xl text-white drop-shadow-md" />
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
-
-        <MatchCelebration
-          show={showMatchCelebration}
-          matchName={matchData?.name}
-          matchPhoto={matchData?.photo}
-          onComplete={() => {
-            setShowMatchCelebration(false);
-            if (matchData?.matchId) navigate(`/app/chat/${matchData.matchId}`);
-            setMatchData(null);
-          }}
-        />
-
-        <Dialog
-          open={showCompleteProfileDialog}
-          onOpenChange={(open) => {
-            if (!open) {
-              if (user?.id) {
-                localStorage.setItem(`profile-completion-dismissed-${user.id}`, 'true');
-              }
-              setShowCompleteProfileDialog(false);
-            }
-          }}
-        >
-          <DialogContent hideClose className="w-[85vw] max-w-[320px] rounded-[2rem] p-6 border-border dark:border-white/20 bg-card/95 backdrop-blur-xl dark:backdrop-blur-2xl shadow-xl dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6),0_0_20px_rgba(255,255,255,0.02)] ring-1 ring-black/5 dark:ring-white/10 outline-none">
-            <DialogHeader className="space-y-3">
-              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <i className="ri-user-star-line text-2xl text-primary animate-pulse" />
-              </div>
-              <DialogTitle className="text-center text-xl font-display font-semibold">
-                Complete seu Perfil!
-              </DialogTitle>
-              <DialogDescription className="text-center text-sm text-muted-foreground leading-relaxed">
-                Perfis completos têm 3x mais chances de match. Adicione informações e até 6 fotos para se destacar.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col gap-3 mt-6">
-              <Button
-                onClick={() => navigate('/app/profile/edit')}
-                className="w-full h-11 rounded-xl gradient-button text-white font-semibold shadow-lg"
-              >
-                Completar Agora
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  localStorage.setItem(`profile-completion-dismissed-${user?.id}`, 'true');
-                  setShowCompleteProfileDialog(false);
+              <MatchCelebration
+                show={showMatchCelebration}
+                matchName={matchData?.name}
+                matchPhoto={matchData?.photo}
+                onComplete={() => {
+                  setShowMatchCelebration(false);
+                  if (matchData?.matchId) navigate(`/app/chat/${matchData.matchId}`);
+                  setMatchData(null);
                 }}
-                className="w-full h-11 rounded-xl hover:bg-white/5 text-muted-foreground"
+              />
+
+              <Dialog
+                open={showCompleteProfileDialog}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    if (user?.id) {
+                      localStorage.setItem(`profile-completion-dismissed-${user.id}`, 'true');
+                    }
+                    setShowCompleteProfileDialog(false);
+                  }
+                }}
               >
-                Depois
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+                <DialogContent hideClose className="w-[85vw] max-w-[320px] rounded-[2rem] p-6 border-border dark:border-white/20 bg-card/95 backdrop-blur-xl dark:backdrop-blur-2xl shadow-xl dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6),0_0_20px_rgba(255,255,255,0.02)] ring-1 ring-black/5 dark:ring-white/10 outline-none">
+                  <DialogHeader className="space-y-3">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                      <i className="ri-user-star-line text-2xl text-primary animate-pulse" />
+                    </div>
+                    <DialogTitle className="text-center text-xl font-display font-semibold">
+                      Complete seu Perfil!
+                    </DialogTitle>
+                    <DialogDescription className="text-center text-sm text-muted-foreground leading-relaxed">
+                      Perfis completos têm 3x mais chances de match. Adicione informações e até 6 fotos para se destacar.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-3 mt-6">
+                    <Button
+                      onClick={() => navigate('/app/profile/edit')}
+                      className="w-full h-11 rounded-xl gradient-button text-white font-semibold shadow-lg"
+                    >
+                      Completar Agora
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        localStorage.setItem(`profile-completion-dismissed-${user?.id}`, 'true');
+                        setShowCompleteProfileDialog(false);
+                      }}
+                      className="w-full h-11 rounded-xl hover:bg-white/5 text-muted-foreground"
+                    >
+                      Depois
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
-        <SuperLikeExplainerDialog
-          open={showSuperLikeExplainer}
-          onOpenChange={setShowSuperLikeExplainer}
-          profileName={currentProfile?.display_name}
-          onViewPlans={() => {
-            setShowSuperLikeExplainer(false);
-            setUpgradeData({
-              title: "Super Like - Exclusivo Plano Ouro",
-              description: "Destaque-se e envie uma mensagem direta! O Super Like é exclusivo do Plano Ouro e mostra que você está realmente interessado.",
-              features: PLANS.find(p => p.id === 'gold')?.features || [],
-              planNeeded: 'gold',
-              icon: <i className="ri-star-fill text-4xl text-blue-500" />,
-              price: PLANS.find(p => p.id === 'gold')?.price || 49.90,
-              planId: 'gold'
-            });
-            setShowUpgradeDialog(true);
-          }}
-        />
-
-        <FeatureGateDialog
-          open={showUpgradeDialog}
-          onOpenChange={setShowUpgradeDialog}
-          title={upgradeData.title}
-          description={upgradeData.description}
-          features={upgradeData.features}
-          icon={upgradeData.icon}
-          price={upgradeData.price}
-          onUpgrade={(planData) => {
-            setSelectedCheckoutPlan({ id: planData.id, name: planData.name, price: planData.price });
-            setShowUpgradeDialog(false);
-            setShowCheckoutManager(true);
-          }}
-        />
-
-        {showCheckoutManager && selectedCheckoutPlan && (
-          <CheckoutManager
-            key={`discover-checkout-v1-${selectedCheckoutPlan.id}`}
-            open={showCheckoutManager}
-            onOpenChange={(open) => {
-              setShowCheckoutManager(open);
-              if (!open) {
-                setTimeout(() => {
-                  setSelectedCheckoutPlan(null);
+              <SuperLikeExplainerDialog
+                open={showSuperLikeExplainer}
+                onOpenChange={setShowSuperLikeExplainer}
+                profileName={currentProfile?.display_name}
+                onViewPlans={() => {
+                  setShowSuperLikeExplainer(false);
+                  setUpgradeData({
+                    title: "Super Like - Exclusivo Plano Ouro",
+                    description: "Destaque-se e envie uma mensagem direta! O Super Like é exclusivo do Plano Ouro e mostra que você está realmente interessado.",
+                    features: PLANS.find(p => p.id === 'gold')?.features || [],
+                    planNeeded: 'gold',
+                    icon: <i className="ri-star-fill text-4xl text-blue-500" />,
+                    price: PLANS.find(p => p.id === 'gold')?.price || 49.90,
+                    planId: 'gold'
+                  });
                   setShowUpgradeDialog(true);
-                }, 50);
-              }
-            }}
-            planId={selectedCheckoutPlan.id}
-            planPrice={selectedCheckoutPlan.price}
-            planName={selectedCheckoutPlan.name}
-          />
-        )}
+                }}
+              />
 
-        <LikeLimitDialog
-          open={showLikeLimitDialog}
-          onOpenChange={setShowLikeLimitDialog}
-          onSeePlans={() => {
-            setUpgradeData({
-              title: "Plano Prata",
-              description: "Não pare sua busca! Assine o Plano Prata para ter curtidas ilimitadas e falar com quem você gosta!",
-              features: ["Ver quem curtiu você", "Curtidas ilimitadas", "Enviar ou receber fotos e áudios", "Filtro por cidade / região", "Fazer chamadas de voz e vídeo", "Comunidade cristã no WhatsApp"],
-              planNeeded: 'silver',
-              icon: <i className="ri-heart-line text-4xl" />,
-              price: 29.90,
-              planId: 'silver'
-            });
-            setShowUpgradeDialog(true);
-          }}
-        />
+              <FeatureGateDialog
+                open={showUpgradeDialog}
+                onOpenChange={setShowUpgradeDialog}
+                title={upgradeData.title}
+                description={upgradeData.description}
+                features={upgradeData.features}
+                icon={upgradeData.icon}
+                price={upgradeData.price}
+                onUpgrade={(planData) => {
+                  setSelectedCheckoutPlan({ id: planData.id, name: planData.name, price: planData.price });
+                  setShowUpgradeDialog(false);
+                  setShowCheckoutManager(true);
+                }}
+              />
 
-        {/* Location Permission Modal — blocks interaction until dismissed */}
-        <LocationPermissionModal
-          onActivate={() => {
-            setShowLocationModal(false);
-            // In browser: go to install page so user can install the PWA
-            // In PWA (standalone): request location permission directly
-            const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
-              (window.navigator as { standalone?: boolean }).standalone === true;
-            if (isPWA) {
-              requestLocation();
-            } else {
-              navigate('/install');
-            }
-          }}
-          onDismiss={() => {
-            // Close modal — will reappear next time location is needed
-            setShowLocationModal(false);
-          }}
-        />
+              {showCheckoutManager && selectedCheckoutPlan && (
+                <CheckoutManager
+                  key={`discover-checkout-v1-${selectedCheckoutPlan.id}`}
+                  open={showCheckoutManager}
+                  onOpenChange={(open) => {
+                    setShowCheckoutManager(open);
+                    if (!open) {
+                      setTimeout(() => {
+                        setSelectedCheckoutPlan(null);
+                        setShowUpgradeDialog(true);
+                      }, 50);
+                    }
+                  }}
+                  planId={selectedCheckoutPlan.id}
+                  planPrice={selectedCheckoutPlan.price}
+                  planName={selectedCheckoutPlan.name}
+                />
+              )}
+
+              <LikeLimitDialog
+                open={showLikeLimitDialog}
+                onOpenChange={setShowLikeLimitDialog}
+                onSeePlans={() => {
+                  setUpgradeData({
+                    title: "Plano Prata",
+                    description: "Não pare sua busca! Assine o Plano Prata para ter curtidas ilimitadas e falar com quem você gosta!",
+                    features: ["Ver quem curtiu você", "Curtidas ilimitadas", "Enviar ou receber fotos e áudios", "Filtro por cidade / região", "Fazer chamadas de voz e vídeo", "Comunidade cristã no WhatsApp"],
+                    planNeeded: 'silver',
+                    icon: <i className="ri-heart-line text-4xl" />,
+                    price: 29.90,
+                    planId: 'silver'
+                  });
+                  setShowUpgradeDialog(true);
+                }}
+              />
+
+              {/* Location Permission Modal — blocks interaction until dismissed */}
+              <LocationPermissionModal
+                onActivate={() => {
+                  setShowLocationModal(false);
+                  // In browser: go to install page so user can install the PWA
+                  // In PWA (standalone): request location permission directly
+                  const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                    (window.navigator as { standalone?: boolean }).standalone === true;
+                  if (isPWA) {
+                    requestLocation();
+                  } else {
+                    navigate('/install');
+                  }
+                }}
+                onDismiss={() => {
+                  // Close modal — will reappear next time location is needed
+                  setShowLocationModal(false);
+                }}
+              />
+
+            </div>{/* end card stack container */}
+          </>{/* end isEmpty else branch */}
+        )}{/* end isEmpty ternary */}
       </PageTransition>
     </>
   );

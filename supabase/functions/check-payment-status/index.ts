@@ -217,6 +217,24 @@ Deno.serve(async (req) => {
               }));
 
               await supabase.from("seed_likes").insert(seedRows);
+
+              // ── Seed Discover profiles (indices 3-5 → top of swipe stack) ──────
+              // like_sequence_position: 1=no match, 2=match, 3=no match
+              const discoverSeedRows = [3, 4, 5].map((idx, i) => ({
+                user_id: purchase.user_id,
+                profile_index: idx,
+                like_sequence_position: i + 1, // 1, 2, 3
+                age_range: quiz.age || "26-35",
+                user_gender: userGender,
+                city: quiz.city || "São Paulo",
+                state_name: quiz.state || "São Paulo",
+                looking_for: quiz.lookingFor || "Relacionamento sério",
+                religion: quiz.religion || "Cristã",
+                status: "pending",
+              }));
+
+              await supabase.from("seed_discover_profiles").insert(discoverSeedRows);
+              // ────────────────────────────────────────────────────────────────────
             }
             // ───────────────────────────────────────────────────────────────────
           }
