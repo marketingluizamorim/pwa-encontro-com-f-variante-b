@@ -259,45 +259,49 @@ export function PixPaymentDialog({
 
             {/* Payment Not Found Bubble */}
             {showPaymentNotFound && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] max-w-[280px] z-50 animate-in fade-in zoom-in-95 duration-200">
-                <div className="bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] text-center ring-1 ring-white/5">
-                  <h3 className="text-white font-serif font-bold text-lg mb-2">
-                    Pagamento não encontrado
-                  </h3>
-                  <p className="text-white/70 text-xs leading-relaxed mb-4">
-                    O banco ainda não confirmou a transação. Aguarde alguns instantes.
-                  </p>
-                  <Button
-                    onClick={() => setShowPaymentNotFound(false)}
-                    className="w-full h-10 rounded-xl gradient-button text-[#0f172a] font-bold text-xs uppercase tracking-wide shadow-lg active:scale-95 transition-all"
-                  >
-                    Entendi
-                  </Button>
+              <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm rounded-2xl animate-in fade-in duration-200">
+                <div className="w-[85%] max-w-[280px] animate-in zoom-in-95 duration-200">
+                  <div className="bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] text-center ring-1 ring-white/5">
+                    <h3 className="text-white font-serif font-bold text-lg mb-2">
+                      Pagamento não encontrado
+                    </h3>
+                    <p className="text-white/70 text-xs leading-relaxed mb-4">
+                      O banco ainda não confirmou a transação. Aguarde alguns instantes.
+                    </p>
+                    <Button
+                      onClick={() => setShowPaymentNotFound(false)}
+                      className="w-full h-10 rounded-xl gradient-button text-[#0f172a] font-bold text-xs uppercase tracking-wide shadow-lg active:scale-95 transition-all"
+                    >
+                      Entendi
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Copy Instructions Bubble */}
             {showCopyInstructions && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] max-w-[280px] z-50 animate-in fade-in zoom-in-95 duration-200">
-                <div className="bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] text-center ring-1 ring-white/5">
-                  <div className="flex justify-center mb-3">
-                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                      <Check className="w-5 h-5 text-green-500" />
+              <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm rounded-2xl animate-in fade-in duration-200">
+                <div className="w-[85%] max-w-[280px] animate-in zoom-in-95 duration-200">
+                  <div className="bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] text-center ring-1 ring-white/5">
+                    <div className="flex justify-center mb-3">
+                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-green-500" />
+                      </div>
                     </div>
+                    <h3 className="text-white font-serif font-bold text-lg mb-2">
+                      Código Copiado!
+                    </h3>
+                    <p className="text-white/70 text-xs leading-relaxed mb-4">
+                      Agora abra o app do seu banco, escolha <strong>Pix Copia e Cola</strong> e cole o código para finalizar.
+                    </p>
+                    <Button
+                      onClick={() => setShowCopyInstructions(false)}
+                      className="w-full h-10 rounded-xl gradient-button text-[#0f172a] font-bold text-xs uppercase tracking-wide shadow-lg active:scale-95 transition-all"
+                    >
+                      Entendi
+                    </Button>
                   </div>
-                  <h3 className="text-white font-serif font-bold text-lg mb-2">
-                    Código Copiado!
-                  </h3>
-                  <p className="text-white/70 text-xs leading-relaxed mb-4">
-                    Agora abra o app do seu banco, escolha <strong>Pix Copia e Cola</strong> e cole o código para finalizar.
-                  </p>
-                  <Button
-                    onClick={() => setShowCopyInstructions(false)}
-                    className="w-full h-10 rounded-xl gradient-button text-[#0f172a] font-bold text-xs uppercase tracking-wide shadow-lg active:scale-95 transition-all"
-                  >
-                    Entendi
-                  </Button>
                 </div>
               </div>
             )}
