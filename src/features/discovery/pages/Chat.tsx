@@ -452,45 +452,17 @@ export default function Chat() {
         // 3. Filtrar: Contar apenas curtidas de pessoas que eu ainda não deslizei
         const pendingLikes = incomingLikes.filter(like => !mySwipedIds.has(like.swiper_id));
 
-        // 3.1. Add Quiz Likes to count if they are not matched yet
-        const { data: profileData } = await supabase.from('profiles').select('gender, birth_date, state, city, religion, looking_for').eq('user_id', user.id).single();
-        let qLikesCount = 0;
-        let qLikesPhoto: string | null = null;
-        if (profileData) {
-            const quizAnswers: QuizAnswers = {
-                age: profileData.birth_date ? calculateAge(profileData.birth_date).toString() : '26-35',
-                state: profileData.state || 'São Paulo',
-                city: profileData.city || 'São Paulo',
-                religion: profileData.religion || 'Cristã',
-                lookingFor: profileData.looking_for || 'Relacionamento sério',
-            };
-            const targetGender = profileData.gender === 'male' ? 'female' : 'male';
-            const staticProfiles = getProfilesData(targetGender as any, quizAnswers);
+        setLikesCount(pendingLikes.length);
 
-            const swipedQuizIds = new Set(JSON.parse(localStorage.getItem('quiz-swipes') || '[]'));
-            const pendingQuizLikes = staticProfiles.filter((_, idx) => !swipedQuizIds.has(`quiz-user-${idx}`));
-            qLikesCount = pendingQuizLikes.length;
-            if (pendingQuizLikes.length > 0) {
-                qLikesPhoto = pendingQuizLikes[0].photo;
-            }
-        }
-
-        setLikesCount(pendingLikes.length + qLikesCount);
-
-        // 4. Pegar uma foto de um desses usuários para mostrar borrada
         if (pendingLikes.length > 0) {
-            const firstPendingId = pendingLikes[0].swiper_id;
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('photos, avatar_url')
-                .eq('user_id', firstPendingId)
+                .select('avatar_url, photos')
+                .eq('user_id', pendingLikes[0].swiper_id)
                 .single();
-
             if (profile) {
                 setLikesPhoto(profile.photos?.[0] || profile.avatar_url || null);
             }
-        } else if (qLikesPhoto) {
-            setLikesPhoto(qLikesPhoto);
         } else {
             setLikesPhoto(null);
         }

@@ -95,7 +95,7 @@ const CHRISTIAN_INTERESTS = [
 
 const DEFAULT_FILTERS: DiscoverFiltersState = {
   minAge: 18,
-  maxAge: 60,
+  maxAge: 80,
   state: '',
   city: '',
   religion: '',
@@ -318,7 +318,7 @@ export default function DiscoverFilters({
 
   const countActive = (): number => {
     let n = 0;
-    if (filters.minAge !== 18 || filters.maxAge !== 60) n++;
+    if (filters.minAge !== 18 || filters.maxAge !== 80) n++;
     if (filters.state) n++;
     if (filters.city) n++;
     if (filters.maxDistance !== 100) n++;

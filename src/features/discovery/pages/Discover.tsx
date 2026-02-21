@@ -54,7 +54,7 @@ import {
 
 const DEFAULT_FILTERS: DiscoverFiltersState = {
   minAge: 18,
-  maxAge: 60,
+  maxAge: 80,
   state: '',
   city: '',
   religion: '',
@@ -84,7 +84,7 @@ export default function Discover() {
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<DiscoverFiltersState>(() => {
-    const FILTERS_VERSION = 'v3'; // bump when defaults change
+    const FILTERS_VERSION = 'v5'; // bump when defaults change
     const savedVersion = localStorage.getItem('discover-filters-version');
     const saved = localStorage.getItem('discover-filters');
     if (saved && savedVersion === FILTERS_VERSION) {

@@ -83,28 +83,7 @@ export function useNotifications() {
                 }
 
                 const { count } = await queryCount;
-
-                // 4.1. Add Quiz Likes to count
-                const { data: profileData } = await supabase.from('profiles').select('gender, birth_date, state, city, religion, looking_for').eq('user_id', user.id).maybeSingle();
-                let qLikesCount = 0;
-                if (profileData) {
-                    const quizAnswers: QuizAnswers = {
-                        age: profileData.birth_date ? calculateAge(profileData.birth_date).toString() : '26-35',
-                        state: profileData.state || 'São Paulo',
-                        city: profileData.city || 'São Paulo',
-                        religion: profileData.religion || 'Cristã',
-                        lookingFor: profileData.looking_for || 'Relacionamento sério',
-                    };
-                    const targetGender = profileData.gender === 'male' ? 'female' : 'male';
-                    const staticProfiles = getProfilesData(targetGender as any, quizAnswers);
-
-                    const swipedQuizIds = new Set(JSON.parse(localStorage.getItem('quiz-swipes') || '[]'));
-                    const pendingQuizLikes = staticProfiles.filter((_, idx) => !swipedQuizIds.has(`quiz-user-${idx}`));
-                    qLikesCount = pendingQuizLikes.length;
-                }
-
-                const totalLikes = (count || 0) + qLikesCount;
-                setNotifications(prev => ({ ...prev, likesCount: totalLikes }));
+                setNotifications(prev => ({ ...prev, likesCount: count || 0 }));
 
             } catch (error) {
                 console.error('Error checking matches:', error);

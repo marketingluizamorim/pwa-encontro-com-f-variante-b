@@ -73,10 +73,18 @@ async function fetchProfiles({ userId, filters, pageParam, userCity, userState }
     .select('blocker_id')
     .eq('blocked_id', userId);
 
+  // Get IDs of profiles that have liked the current user
+  const { data: whoLikedMe } = await supabase
+    .from('swipes')
+    .select('swiper_id')
+    .eq('swiped_id', userId)
+    .in('direction', ['like', 'super_like']);
+
   const swipedIds = existingSwipes?.map((s) => s.swiped_id) || [];
   const blockedIds = blockedUsers?.map((b) => b.blocked_id) || [];
   const blockedByIds = blockedByUsers?.map((b) => b.blocker_id) || [];
-  const excludedIds = [userId, ...swipedIds, ...blockedIds, ...blockedByIds];
+  const whoLikedMeIds = whoLikedMe?.map((s) => s.swiper_id) || [];
+  const excludedIds = [userId, ...swipedIds, ...blockedIds, ...blockedByIds, ...whoLikedMeIds];
 
   // Get current user's location for distance calculation
   const { data: currentUserProfile } = await supabase
