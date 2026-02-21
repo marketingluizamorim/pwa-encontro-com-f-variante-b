@@ -45,9 +45,14 @@ export function useGeolocation() {
                 let msg = 'Erro ao obter localização.';
                 if (err.code === err.PERMISSION_DENIED) {
                     msg = 'Localização negada.';
-                    // Show blocking modal — do NOT save dismissed flag here.
-                    // The modal will keep appearing until user explicitly dismisses ("Mais tarde")
-                    // or grants permission ("Ativar Agora").
+
+                    // Check if dismissed recently (2 hour window)
+                    const lastDismissed = localStorage.getItem(`location-modal-dismissed-at-${user?.id}`);
+                    if (lastDismissed) {
+                        const hoursPassed = (Date.now() - parseInt(lastDismissed)) / (1000 * 60 * 60);
+                        if (hoursPassed < 2) return;
+                    }
+
                     setShowLocationModal(true);
                 } else {
                     toast.error(msg, {

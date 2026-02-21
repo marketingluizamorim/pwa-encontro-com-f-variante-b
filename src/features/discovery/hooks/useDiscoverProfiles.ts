@@ -83,26 +83,31 @@ async function fetchProfiles({ userId, filters, pageParam, userCity, userState }
   const swipedIds = existingSwipes?.map((s) => s.swiped_id) || [];
   const blockedIds = blockedUsers?.map((b) => b.blocked_id) || [];
   const blockedByIds = blockedByUsers?.map((b) => b.blocker_id) || [];
-  const whoLikedMeIds = whoLikedMe?.map((s) => s.swiper_id) || [];
-  const excludedIds = [userId, ...swipedIds, ...blockedIds, ...blockedByIds, ...whoLikedMeIds];
 
-  // Get current user's location for distance calculation
+  // NOTE: We NO LONGER exclude whoLikedMeIds here so that users who liked you 
+  // can still be "discovered" in the main stack, which is standard for dating apps.
+  const excludedIds = [userId, ...swipedIds, ...blockedIds, ...blockedByIds];
+
+  // Get current user's location and gender
   const { data: currentUserProfile } = await supabase
     .from('profiles')
-    .select('latitude, longitude')
+    .select('latitude, longitude, gender')
     .eq('user_id', userId)
     .single();
 
   const userLat = currentUserProfile?.latitude ? parseFloat(String(currentUserProfile.latitude)) : null;
   const userLon = currentUserProfile?.longitude ? parseFloat(String(currentUserProfile.longitude)) : null;
+  const userGender = currentUserProfile?.gender;
+  const targetGender = userGender === 'male' ? 'female' : 'male';
 
   // Use RPC for advanced discovery (supports PostGIS distance and complex filters)
-  const { data: profilesData, error } = await (supabase as unknown as { rpc: (name: string, params: unknown) => Promise<{ data: unknown, error: unknown }> }).rpc('get_profiles_discovery', {
+  const { data: profilesData, error } = await (supabase as any).rpc('get_profiles_discovery', {
     user_lat: userLat,
     user_lon: userLon,
     min_age: filters.minAge,
     max_age: filters.maxAge,
     max_dist_km: filters.maxDistance,
+    target_gender: targetGender,
     target_state: filters.state && filters.state !== 'all' ? filters.state : null,
     target_city: filters.city && filters.city !== '' ? filters.city : null,
     target_religion: filters.religion && filters.religion !== '' ? filters.religion : null,

@@ -310,12 +310,14 @@ export default function Discover() {
   useEffect(() => {
     if (!user) return;
 
-    // Check if dismissed
-    if (localStorage.getItem(`profile-completion-dismissed-${user.id}`) === 'true') {
-      return;
-    }
-
     const checkProfile = async () => {
+      // Re-show profile completion after 2 hours if dismissed
+      const lastDismissed = localStorage.getItem(`profile-completion-dismissed-at-${user.id}`);
+      if (lastDismissed) {
+        const hoursPassed = (Date.now() - parseInt(lastDismissed)) / (1000 * 60 * 60);
+        if (hoursPassed < 2) return; // Wait 2 hours
+      }
+
 
       const { supabase } = await import('@/integrations/supabase/client');
       const { data, error } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
@@ -1210,6 +1212,16 @@ export default function Discover() {
                                     </div>
                                   </div>
                                 )}
+
+                                {(currentProfile as any).values_importance && (
+                                  <div className="pt-4">
+                                    <p className="text-xs font-bold text-muted-foreground mb-2">Valores fundamentais</p>
+                                    <div className="flex items-center gap-3 text-foreground/90">
+                                      <Heart className="w-5 h-5 text-rose-500/60" />
+                                      <span className="text-[15px] font-medium">{(currentProfile as any).values_importance}</span>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
@@ -1340,7 +1352,7 @@ export default function Discover() {
                       Complete seu Perfil!
                     </DialogTitle>
                     <DialogDescription className="text-center text-sm text-muted-foreground leading-relaxed">
-                      Perfis completos têm 3x mais chances de novas conexões. Adicione mais interesses e até 6 fotos para se destacar.
+                      Adicione até 6 fotos e seus interesses para se destacar e conectar com pessoas na sua região.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex flex-col gap-3 mt-6">
@@ -1353,7 +1365,7 @@ export default function Discover() {
                     <Button
                       variant="ghost"
                       onClick={() => {
-                        localStorage.setItem(`profile-completion-dismissed-${user?.id}`, 'true');
+                        localStorage.setItem(`profile-completion-dismissed-at-${user?.id}`, Date.now().toString());
                         setShowCompleteProfileDialog(false);
                       }}
                       className="w-full h-11 rounded-xl hover:bg-white/5 text-muted-foreground"
@@ -1434,25 +1446,26 @@ export default function Discover() {
                 }}
               />
 
-              {/* Location Permission Modal — blocks interaction until dismissed */}
-              <LocationPermissionModal
-                onActivate={() => {
-                  setShowLocationModal(false);
-                  // In browser: go to install page so user can install the PWA
-                  // In PWA (standalone): request location permission directly
-                  const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
-                    (window.navigator as { standalone?: boolean }).standalone === true;
-                  if (isPWA) {
-                    requestLocation();
-                  } else {
-                    navigate('/install');
-                  }
-                }}
-                onDismiss={() => {
-                  // Close modal — will reappear next time location is needed
-                  setShowLocationModal(false);
-                }}
-              />
+              {/* Location Permission Modal — only show if profile completion is NOT showing to avoid overlap */}
+              {!showCompleteProfileDialog && (
+                <LocationPermissionModal
+                  onActivate={() => {
+                    setShowLocationModal(false);
+                    const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                      (window.navigator as { standalone?: boolean }).standalone === true;
+                    if (isPWA) {
+                      requestLocation();
+                    } else {
+                      navigate('/install');
+                    }
+                  }}
+                  onDismiss={() => {
+                    // Save timestamp — will reappear after 2 hours
+                    localStorage.setItem(`location-modal-dismissed-at-${user?.id}`, Date.now().toString());
+                    setShowLocationModal(false);
+                  }}
+                />
+              )}
 
             </div>
           </>

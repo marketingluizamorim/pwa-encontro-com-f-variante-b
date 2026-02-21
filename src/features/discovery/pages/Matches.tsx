@@ -25,7 +25,7 @@ import {
   Search, MapPin, Home, UserCircle, User2, MoreHorizontal,
   AlertTriangle, Ban, LayoutList, PawPrint, Wine, Cigarette,
   Dumbbell, Share2, Baby, Sparkles, CheckCircle2, Briefcase, BookOpen,
-  GraduationCap, Languages
+  GraduationCap, Languages, Heart
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -970,11 +970,33 @@ export default function Matches() {
                         )}
 
                         {selectedLike.profile.about_children && (
-                          <div className="pt-4 pb-2">
+                          <div className="pt-4">
                             <p className="text-xs font-bold text-muted-foreground mb-2">Família</p>
                             <div className="flex items-center gap-3 text-foreground/90">
                               <Baby className="w-5 h-5 text-muted-foreground/60" />
                               <span className="text-[15px] font-medium">{selectedLike.profile.about_children}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {(selectedLike.profile as any).values_importance && (
+                          <div className="pt-4">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Valores fundamentais</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Heart className="w-5 h-5 text-rose-500/60" />
+                              <span className="text-[15px] font-medium">{(selectedLike.profile as any).values_importance}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedLike.profile.languages && selectedLike.profile.languages.length > 0 && (
+                          <div className="pt-4 pb-2">
+                            <p className="text-xs font-bold text-muted-foreground mb-2">Idiomas</p>
+                            <div className="flex items-center gap-3 text-foreground/90">
+                              <Languages className="w-5 h-5 text-muted-foreground/60" />
+                              <span className="text-[15px] font-medium">
+                                {Array.isArray(selectedLike.profile.languages) ? selectedLike.profile.languages.join(', ') : selectedLike.profile.languages}
+                              </span>
                             </div>
                           </div>
                         )}

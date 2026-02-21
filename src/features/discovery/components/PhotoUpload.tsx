@@ -140,7 +140,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
           <motion.div
             key={photos[0]}
             layoutId="main-photo"
-            className="relative w-full max-w-[280px] aspect-[3/4] rounded-3xl overflow-hidden bg-white/5 border-2 border-[#d4af37] shadow-[0_0_30px_rgba(212,175,55,0.2)] group"
+            className="relative w-full max-w-[200px] aspect-[3/4] rounded-3xl overflow-hidden bg-white/5 border-2 border-[#d4af37] shadow-[0_0_20px_rgba(212,175,55,0.15)] group"
           >
             <img
               src={photos[0]}
@@ -162,14 +162,14 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full max-w-[280px] aspect-[3/4] rounded-3xl border-2 border-dashed border-[#d4af37]/30 bg-[#d4af37]/5 flex flex-col items-center justify-center gap-4 hover:bg-[#d4af37]/10 transition-colors group cursor-pointer"
+            className="w-full max-w-[200px] aspect-[3/4] rounded-3xl border-2 border-dashed border-[#d4af37]/30 bg-[#d4af37]/5 flex flex-col items-center justify-center gap-3 hover:bg-[#d4af37]/10 transition-colors group cursor-pointer"
           >
-            <div className="w-16 h-16 rounded-full bg-[#d4af37]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Camera className="w-8 h-8 text-[#d4af37]" />
+            <div className="w-12 h-12 rounded-full bg-[#d4af37]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Camera className="w-6 h-6 text-[#d4af37]" />
             </div>
-            <div className="text-center">
-              <span className="block text-[#d4af37] font-bold text-sm mb-1 uppercase tracking-wide">Adicionar Principal</span>
-              <span className="text-white/40 text-xs text-center px-4 block">A primeira foto é a mais importante do seu perfil</span>
+            <div className="text-center px-4">
+              <span className="block text-[#d4af37] font-bold text-xs mb-1 uppercase tracking-wide">Adicionar Principal</span>
+              <span className="text-white/40 text-[10px] leading-tight block">Foto mais importante do seu perfil</span>
             </div>
           </button>
         )}

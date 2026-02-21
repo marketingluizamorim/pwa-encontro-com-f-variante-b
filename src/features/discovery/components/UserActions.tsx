@@ -143,7 +143,7 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[90vw] max-w-md max-h-[85vh] overflow-y-auto z-[10060] rounded-3xl border-white/10 bg-slate-900 shadow-2xl scrollbar-hide">
+        <DialogContent className="w-[90vw] max-w-md max-h-[85vh] overflow-y-auto rounded-3xl border-white/10 bg-slate-900 shadow-2xl scrollbar-hide">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-destructive" />
@@ -211,7 +211,7 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
 
       {/* Success Confirmation Dialog */}
       <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <AlertDialogContent className="z-[10070] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+        <AlertDialogContent className="rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-green-500">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -322,7 +322,7 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-md z-[10060] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+      <DialogContent className="w-[90vw] max-w-md rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Ban className="w-5 h-5 text-destructive" />
@@ -451,7 +451,7 @@ export function DeleteConversationDialog({ open, onOpenChange, matchId, onDelete
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-md z-[10060] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+      <DialogContent className="w-[90vw] max-w-md rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
         <DialogHeader>
           <DialogTitle>Desfazer Conexão?</DialogTitle>
           <DialogDescription>
@@ -535,7 +535,7 @@ export function UnmatchDialog({ open, onOpenChange, matchId, otherUserId, userNa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-md z-[10060] rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+      <DialogContent className="w-[90vw] max-w-md rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HeartCrack className="w-5 h-5 text-destructive" />
