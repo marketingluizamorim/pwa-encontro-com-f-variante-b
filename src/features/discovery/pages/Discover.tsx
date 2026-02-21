@@ -9,8 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import DiscoverFilters, { DiscoverFiltersState } from '@/features/discovery/components/DiscoverFilters';
 import { useDiscoverProfiles, useSwipeMutation } from '@/features/discovery/hooks/useDiscoverProfiles';
-import { useSeedDiscoverProfiles } from '@/features/discovery/hooks/useSeedDiscoverProfiles';
-import type { SeedDiscoverCard } from '@/features/discovery/hooks/useSeedDiscoverProfiles';
+import { useSeedDiscoverProfiles, SeedDiscoverCard } from '@/features/discovery/hooks/useSeedDiscoverProfiles';
 import { triggerHaptic } from '@/lib/haptics';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { DiscoverSkeleton } from '@/features/discovery/components/SkeletonLoaders';
@@ -111,10 +110,12 @@ export default function Discover() {
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
 
-  // ── Seed Discover profiles (injected at top of swipe stack for new subscribers)
+
+
+  // ── Seed Discover Profiles ──────────────────────────────────────────────────
   const { seedCards, loading: seedLoading, dismissSeedCard } = useSeedDiscoverProfiles(user?.id);
-  // currentSeedCard is the first pending seed card (shown before real profiles)
-  const currentSeedCard: SeedDiscoverCard | null = seedCards[0] ?? null;
+  const currentSeedCard: SeedDiscoverCard | undefined = seedCards[0];
+  // ────────────────────────────────────────────────────────────────────────────
 
   const [upgradeData, setUpgradeData] = useState({
     title: '',
@@ -372,7 +373,8 @@ export default function Discover() {
     };
   }, [user]);
 
-  // ── Seed swipe handler (runs before real handleSwipe when a seed card is on top) ─────
+
+  // ── Seed Swipe Handler ────────────────────────────────────────────────────
   const handleSeedSwipe = async (swipeDirection: 'like' | 'dislike' | 'super_like') => {
     if (!currentSeedCard || !user || swiping) return;
 
@@ -386,26 +388,28 @@ export default function Discover() {
       : swipeDirection === 'super_like' ? 'super_liked'
         : 'liked';
 
-    setTimeout(async () => {
+    setTimeout(() => {
       setExitDirection(null);
       setSwiping(false);
       x.set(0);
       y.set(0);
       setShowInfo(false);
-
-      const { isMatch } = await dismissSeedCard(currentSeedCard.seedId, action);
-      if (isMatch) {
-        setMatchData({
-          name: currentSeedCard.display_name,
-          photo: currentSeedCard.photos[0] || currentSeedCard.avatar_url || '',
-          matchId: `seed-match-${currentSeedCard.seedId}`,
-        });
-        setShowMatchCelebration(true);
-        triggerHaptic('success');
-        playNotification('match');
-      }
     }, 200);
+
+    const { isMatch } = await dismissSeedCard(currentSeedCard.seedId, action);
+
+    if (isMatch) {
+      setMatchData({
+        name: currentSeedCard.display_name,
+        photo: currentSeedCard.photos?.[0] || currentSeedCard.avatar_url || '',
+        matchId: `seed-${currentSeedCard.seedId}`,
+      });
+      setShowMatchCelebration(true);
+      playNotification('match');
+      triggerHaptic('success');
+    }
   };
+  // ─────────────────────────────────────────────────────────────────────────
 
   const handleSwipe = async (swipeDirection: 'like' | 'dislike' | 'super_like') => {
     if (!currentProfile || !user || swiping) return;
@@ -543,13 +547,14 @@ export default function Discover() {
   const handleDragEnd = (_event: unknown, info: PanInfo) => {
     if (swiping) return;
     const { offset, velocity } = info;
+    const swipeHandler = currentSeedCard ? handleSeedSwipe : handleSwipe;
 
     if (offset.x > SWIPE_THRESHOLD || velocity.x > SWIPE_VELOCITY_THRESHOLD) {
-      if (currentSeedCard) { handleSeedSwipe('like'); } else { handleSwipe('like'); }
+      swipeHandler('like');
     } else if (offset.x < -SWIPE_THRESHOLD || velocity.x < -SWIPE_VELOCITY_THRESHOLD) {
-      if (currentSeedCard) { handleSeedSwipe('dislike'); } else { handleSwipe('dislike'); }
+      swipeHandler('dislike');
     } else if (offset.y < -SWIPE_THRESHOLD || velocity.y < -SWIPE_VELOCITY_THRESHOLD) {
-      if (currentSeedCard) { handleSeedSwipe('super_like'); } else { handleSwipe('super_like'); }
+      swipeHandler('super_like');
     } else {
       x.set(0);
       y.set(0);
@@ -563,7 +568,7 @@ export default function Discover() {
   };
 
   // ── Swipe Feedback Portal ───────────────────────────────────────────────────
-  // Wait for seed profiles to load before showing skeleton (avoid flash)
+  // Wait for seed profiles AND real profiles to load before showing skeleton
   if ((isLoading && profiles.length === 0) || seedLoading) return <DiscoverSkeleton />;
 
   const isEmpty = !currentSeedCard && (profiles.length === 0 || currentIndex >= profiles.length);
@@ -670,62 +675,40 @@ export default function Discover() {
             <div className="flex-1 w-full max-w-xl relative flex items-center justify-center pb-24 px-4 transition-all duration-500">
 
               {/* NEXT CARD (Background) — show next seed or next real profile */}
-              {(seedCards[1] || nextProfile) && (
-                <div className="absolute inset-x-4 top-4 bottom-28 z-0">
-                  <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border opacity-60 scale-95 translate-y-2 shadow-xl">
-                    <img
-                      src={seedCards[1]?.photos[0] || seedCards[1]?.avatar_url
-                        || nextProfile?.photos?.[0] || nextProfile?.avatar_url || '/placeholder.svg'}
-                      className="w-full h-full object-cover opacity-50 grayscale"
-                      alt="Next"
-                    />
+              {(currentSeedCard ? seedCards[1] : nextProfile) && (() => {
+                const nextCard = currentSeedCard ? seedCards[1] : nextProfile;
+                return (
+                  <div className="absolute inset-x-4 top-4 bottom-28 z-0">
+                    <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border opacity-60 scale-95 translate-y-2 shadow-xl">
+                      <img
+                        src={nextCard?.photos?.[0] || (nextCard as { avatar_url?: string })?.avatar_url || '/placeholder.svg'}
+                        className="w-full h-full object-cover opacity-50 grayscale"
+                        alt="Next"
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
-              {/* ── UNIFIED CARD: single template for seed and real profiles ── */}
-              {(() => {
-                // Map SeedDiscoverCard → same shape as real profile
-                // SeedDiscoverCard already has: display_name, photos, avatar_url, city, state,
-                // looking_for, age, birth_date, gender, bio, religion, christian_interests, etc.
-                const activeCard = currentSeedCard ? {
-                  id: `seed-${currentSeedCard.seedId}`,
-                  display_name: currentSeedCard.display_name,
-                  birth_date: currentSeedCard.birth_date ?? null,
-                  photos: currentSeedCard.photos,
-                  avatar_url: currentSeedCard.avatar_url,
-                  city: currentSeedCard.city,
-                  state: currentSeedCard.state,
-                  looking_for: currentSeedCard.looking_for,
-                  is_verified: false as boolean,
-                  is_boosted: false as boolean,
-                  last_active_at: null as string | null,
-                  show_online_status: false as boolean,
-                  show_last_active: false as boolean,
-                  latitude: null as number | null,
-                  longitude: null as number | null,
-                } : currentProfile;
-
-                // Current photo index: seeds have one photo, real profiles can cycle
-                const photoIndex = currentSeedCard ? 0 : currentPhotoIndex;
-                const photoSrc = activeCard.photos?.[photoIndex]
+              {(currentSeedCard || currentProfile) && (() => {
+                const isSeed = !!currentSeedCard;
+                const activeCard = isSeed ? currentSeedCard : currentProfile!;
+                const photoSrc = activeCard.photos?.[currentPhotoIndex]
                   || activeCard.photos?.[0]
                   || activeCard.avatar_url
                   || '/placeholder.svg';
 
-                const cardKey = currentSeedCard
-                  ? `seed-${currentSeedCard.seedId}`
-                  : currentProfile.id;
+                const cardKey = isSeed ? `seed-${currentSeedCard!.seedId}` : currentProfile!.id;
 
-                const onlineStatus = !currentSeedCard
-                  && formatLastActive(activeCard.last_active_at, activeCard.show_online_status, activeCard.show_last_active) === 'Online';
+                const onlineStatus = isSeed ? false
+                  : formatLastActive((activeCard as typeof currentProfile & object & { last_active_at?: string })?.last_active_at, (activeCard as typeof currentProfile & object & { show_online_status?: boolean })?.show_online_status, (activeCard as typeof currentProfile & object & { show_last_active?: boolean })?.show_last_active) === 'Online';
 
-                const distance = !currentSeedCard && userCoords
+                const distance = (!isSeed && userCoords)
                   ? calculateDistance(
                     userCoords.latitude,
                     userCoords.longitude,
-                    activeCard.latitude ?? undefined,
-                    activeCard.longitude ?? undefined
+                    (activeCard as typeof currentProfile & object & { latitude?: number })?.latitude ?? undefined,
+                    (activeCard as typeof currentProfile & object & { longitude?: number })?.longitude ?? undefined
                   )
                   : null;
 
@@ -756,14 +739,14 @@ export default function Discover() {
                           {activeCard.photos.map((_, idx) => (
                             <div
                               key={idx}
-                              className={`flex-1 rounded-full h-full shadow-sm transition-colors duration-300 ${idx === photoIndex ? 'bg-white' : 'bg-white/30'}`}
+                              className={`flex-1 rounded-full h-full shadow-sm transition-colors duration-300 ${idx === currentPhotoIndex ? 'bg-white' : 'bg-white/30'}`}
                             />
                           ))}
                         </div>
                       )}
 
                       {/* Destaque Badge */}
-                      {activeCard.is_boosted && (
+                      {!isSeed && (activeCard as { is_boosted?: boolean }).is_boosted && (
                         <div className="absolute top-10 left-3 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
                           <Zap className="w-3 h-3 fill-black animate-pulse" />
                           <span>Perfil em Destaque</span>
@@ -772,8 +755,8 @@ export default function Discover() {
 
                       {/* Navigation Zones — tap left/right to browse photos */}
                       <div className="absolute inset-0 z-30 flex">
-                        <div className="w-1/2 h-[80%]" onClick={currentSeedCard ? undefined : handlePrevPhoto} />
-                        <div className="w-1/2 h-[80%]" onClick={currentSeedCard ? undefined : handleNextPhoto} />
+                        <div className="w-1/2 h-[80%]" onClick={handlePrevPhoto} />
+                        <div className="w-1/2 h-[80%]" onClick={handleNextPhoto} />
                       </div>
 
                       {/* Photo */}
@@ -809,7 +792,7 @@ export default function Discover() {
                               {calculateAge(activeCard.birth_date)}
                             </span>
                           )}
-                          {activeCard.is_verified && (
+                          {!isSeed && (activeCard as { is_verified?: boolean }).is_verified && (
                             <div className="bg-blue-500 rounded-full p-0.5 shadow-lg border border-white/20">
                               <CheckCircle2 className="w-3.5 h-3.5 text-white fill-blue-500" />
                             </div>
@@ -861,8 +844,8 @@ export default function Discover() {
 
                       {/* Info Detail Button → Expand */}
                       <button
-                        onClick={() => { if (!currentSeedCard) setShowInfo(true); }}
-                        className={`absolute bottom-8 right-8 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-all active:scale-95 ${currentSeedCard ? 'opacity-0 pointer-events-none' : ''}`}
+                        onClick={() => setShowInfo(true)}
+                        className="absolute bottom-8 right-8 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/60 z-40 pointer-events-auto transition-all active:scale-95"
                       >
                         <i className="ri-arrow-up-s-line text-2xl" />
                       </button>
@@ -875,23 +858,18 @@ export default function Discover() {
               {/* Floating Action Controls (Main View) */}
               {!showInfo && (
                 <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-8 pointer-events-none transition-all">
-                  {/* Nope */}
                   <button
                     onClick={() => currentSeedCard ? handleSeedSwipe('dislike') : handleSwipe('dislike')}
                     className="w-14 h-14 rounded-full bg-card/80 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
                   >
                     <i className="ri-close-line text-3xl font-semibold" />
                   </button>
-
-                  {/* Super Like */}
                   <button
                     onClick={() => currentSeedCard ? handleSeedSwipe('super_like') : handleSwipe('super_like')}
                     className="w-11 h-11 mb-2 rounded-full bg-card/80 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
                   >
                     <i className="ri-star-fill text-xl" />
                   </button>
-
-                  {/* Like */}
                   <button
                     onClick={() => currentSeedCard ? handleSeedSwipe('like') : handleSwipe('like')}
                     className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all pointer-events-auto"
@@ -900,8 +878,6 @@ export default function Discover() {
                       <i className="ri-heart-fill text-3xl text-white drop-shadow-md" />
                     </div>
                   </button>
-
-                  {/* Filter Button (Discreet - Absolute Right) */}
                   <div className="absolute right-6 pointer-events-auto">
                     <DiscoverFilters
                       filters={filters}
@@ -1361,7 +1337,14 @@ export default function Discover() {
                 matchPhoto={matchData?.photo}
                 onComplete={() => {
                   setShowMatchCelebration(false);
-                  if (matchData?.matchId) navigate(`/app/chat/${matchData.matchId}`);
+                  if (matchData?.matchId) {
+                    if (matchData.matchId.startsWith('seed-')) {
+                      const seedId = matchData.matchId.replace('seed-', '');
+                      navigate(`/app/chat/seed/${seedId}`);
+                    } else {
+                      navigate(`/app/chat/${matchData.matchId}`);
+                    }
+                  }
                   setMatchData(null);
                 }}
               />

@@ -79,11 +79,17 @@ export function useNotifications() {
                     queryCount = queryCount.not('swiper_id', 'in', `(${excludedIds.join(',')})`);
                 }
 
-                const { count, error: countError } = await queryCount;
+                const [resCount, resSeedCount] = await Promise.all([
+                    queryCount,
+                    supabase
+                        .from('seed_likes')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', user.id)
+                        .eq('status', 'pending')
+                ]);
 
-                if (!countError && count !== null) {
-                    setNotifications(prev => ({ ...prev, likesCount: count }));
-                }
+                const totalLikes = (resCount.count || 0) + (resSeedCount.count || 0);
+                setNotifications(prev => ({ ...prev, likesCount: totalLikes }));
 
             } catch (error) {
                 console.error('Error checking matches:', error);
@@ -211,6 +217,19 @@ export function useNotifications() {
                     checkMatches();
                     // Invalida a query de curtidas globalmente
                     queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'seed_likes',
+                    filter: `user_id=eq.${user.id}`,
+                },
+                () => {
+                    checkMatches();
+                    queryClient.invalidateQueries({ queryKey: ['seed-likes', user.id] });
                 }
             )
             .subscribe();

@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
+import { getProfilesData, getStateAbbreviation } from '@/features/funnel/utils/profiles';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
     'Relacionamento sério': '💍',
@@ -166,17 +167,22 @@ export default function Chat() {
 
             if (matchesError) throw matchesError;
 
+            // 3. Buscar Seeds que deram match (liked)
+            const { data: seedMatches } = await supabase
+                .from('seed_likes')
+                .select('id, profile_index, age_range, user_gender, city, state_name, looking_for, religion, created_at')
+                .eq('user_id', user.id)
+                .eq('status', 'liked');
+
             const activeMatches = (matchesData as { id: string, user1_id: string, user2_id: string, created_at: string }[] || []).filter(m => {
                 const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
                 return !blockedUserIds.has(otherId);
             });
 
-            if (activeMatches.length === 0) return [];
-
             const matchIds = activeMatches.map(m => m.id);
             const otherUserIds = activeMatches.map(m => m.user1_id === user.id ? m.user2_id : m.user1_id);
 
-            // 3. Buscar Perfis, Super Likes e Últimas Mensagens em paralelo (3 queries, não N)
+            // 4. Buscar Perfis, Super Likes e Últimas Mensagens em paralelo
             const [profilesResult, superLikesResult, lastMessagesResult] = await Promise.all([
                 supabase
                     .from('profiles')
@@ -187,7 +193,6 @@ export default function Chat() {
                     .select('swiper_id, swiped_id')
                     .eq('direction', 'super_like')
                     .or(`swiper_id.eq.${user.id},swiped_id.eq.${user.id}`),
-                // Busca a última mensagem de TODOS os matches de uma vez só
                 supabase
                     .from('messages')
                     .select('match_id, content, created_at, sender_id, is_read')
@@ -201,7 +206,6 @@ export default function Chat() {
                 superLikesResult.data?.map(s => `${s.swiper_id}-${s.swiped_id}`)
             );
 
-            // Pegar apenas a última mensagem por match_id
             const lastMsgByMatch = new Map<string, typeof lastMessagesResult.data extends (infer T)[] | null ? T : never>();
             for (const msg of (lastMessagesResult.data || [])) {
                 if (!lastMsgByMatch.has(msg.match_id)) {
@@ -209,7 +213,7 @@ export default function Chat() {
                 }
             }
 
-            const result = activeMatches.map(m => {
+            const realConversations = activeMatches.map(m => {
                 const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
                 const profile = profilesMap.get(otherId);
                 if (!profile) return null;
@@ -255,9 +259,47 @@ export default function Chat() {
                         sender_id: lastMsg.sender_id
                     } : undefined
                 };
+            }).filter(Boolean) as Conversation[];
+
+            // 5. Mapear Seeds para o formato de Conversation
+            const seedConversations: Conversation[] = (seedMatches || []).map(sm => {
+                const quizAnswers = {
+                    age: sm.age_range,
+                    city: sm.city ?? undefined,
+                    state: sm.state_name ?? undefined,
+                    religion: sm.religion ?? undefined,
+                    lookingFor: sm.looking_for ?? undefined,
+                };
+
+                const profiles = getProfilesData(
+                    sm.user_gender as 'male' | 'female',
+                    quizAnswers,
+                );
+                const p = profiles[sm.profile_index] ?? profiles[0];
+                const stateAbbr = getStateAbbreviation(sm.state_name || '');
+
+                return {
+                    id: 'seed-conv-' + sm.id,
+                    match_id: 'seed-' + sm.id,
+                    created_at: sm.created_at || new Date().toISOString(),
+                    is_super_like: false,
+                    profile: {
+                        id: 'seed-' + sm.id,
+                        display_name: p.name,
+                        avatar_url: p.photo,
+                        photos: [p.photo],
+                        bio: p.bio,
+                        city: p.city || sm.city || 'São Paulo',
+                        state: stateAbbr,
+                        religion: sm.religion || 'Cristã',
+                        looking_for: sm.looking_for || 'Relacionamento sério',
+                        gender: sm.user_gender,
+                        birth_date: `${new Date().getFullYear() - (p.age || 28)}-06-15`,
+                    }
+                };
             });
 
-            return result.filter((c) => c !== null) as Conversation[];
+            return [...realConversations, ...seedConversations];
         }
     });
 
@@ -1057,7 +1099,12 @@ export default function Chat() {
                                         onClick={() => {
                                             const match = conversations.find(c => c.profile.id === selectedProfile.id);
                                             if (match) {
-                                                navigate(`/app/chat/${match.match_id}`);
+                                                if (match.match_id.startsWith('seed-')) {
+                                                    const seedId = match.match_id.replace('seed-', '');
+                                                    navigate(`/app/chat/seed/${seedId}`);
+                                                } else {
+                                                    navigate(`/app/chat/${match.match_id}`);
+                                                }
                                             } else {
                                                 toast.error('Erro ao encontrar conversa', { style: { marginTop: '50px' } });
                                             }
