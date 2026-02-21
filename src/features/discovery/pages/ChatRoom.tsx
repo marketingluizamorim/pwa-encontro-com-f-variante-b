@@ -444,7 +444,7 @@ export default function ChatRoom() {
   const startVideoCall = () => startCall('video');
   const startAudioCall = () => startCall('audio');
 
-  const handleAcceptCall = async () => {
+  const handleAcceptCall = useCallback(async () => {
     if (activeCall) {
       setActiveCall({ ...activeCall, status: 'ongoing' });
       // Se for áudio, garante que a câmera está desligada
@@ -452,11 +452,11 @@ export default function ChatRoom() {
       // Envia confirmação de aceite para o outro usuário saber que pode iniciar o vídeo/áudio
       await sendMediaMessage(`[${activeCall.type}-call-accepted:${activeCall.roomId}]`);
     }
-  };
+  }, [activeCall, sendMediaMessage]);
 
-  const handleEndCall = () => {
+  const handleEndCall = useCallback(() => {
     setActiveCall(null);
-  };
+  }, []);
 
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
@@ -643,7 +643,7 @@ export default function ChatRoom() {
     };
   }, []);
 
-  const sendMediaMessage = async (content: string) => {
+  const sendMediaMessage = useCallback(async (content: string) => {
     if (!matchId || !user) return;
 
     const tempId = `temp-${Date.now()}`;
@@ -674,7 +674,7 @@ export default function ChatRoom() {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       toast.error('Erro ao enviar mensagem', { style: { marginTop: '50px' } });
     }
-  };
+  }, [matchId, user, setMessages]);
 
   // Bot Response Logic
   useEffect(() => {
@@ -998,7 +998,7 @@ export default function ChatRoom() {
     }
   };
 
-  const renderMessageContent = (content: string, isOwn: boolean, m_time: string, m_status?: React.ReactNode) => {
+  const renderMessageContent = useCallback((content: string, isOwn: boolean, m_time: string, m_status?: React.ReactNode) => {
     if (content.startsWith('[image:')) {
       const url = content.replace('[image:', '').replace(']', '');
       return (
@@ -1009,7 +1009,6 @@ export default function ChatRoom() {
             className="rounded-xl max-w-full h-auto border border-border/10 transition-transform active:scale-[0.98]"
             onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
           />
-          {/* Overlay for time and status inside image - WhatsApp style */}
           <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 bg-black/30 backdrop-blur-md px-1.5 py-0.5 rounded-full z-10">
             <p className="text-[10px] text-white/90 font-medium">{m_time}</p>
             {isOwn && m_status}
@@ -1092,7 +1091,7 @@ export default function ChatRoom() {
       );
     }
     return <p className="text-sm break-words leading-relaxed">{content}</p>;
-  };
+  }, [myProfile, matchProfile, user?.user_metadata, handleAcceptCall]);
 
   const formatTime = (dateStr: string) => new Date(dateStr).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   const formatDate = (dateStr: string) => {
@@ -1102,12 +1101,14 @@ export default function ChatRoom() {
     return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
   };
 
-  const groupedMessages = messages.reduce((groups, message) => {
-    const date = formatDate(message.created_at);
-    if (!groups[date]) groups[date] = [];
-    groups[date].push(message);
-    return groups;
-  }, {} as Record<string, Message[]>);
+  const groupedMessages = useMemo(() => {
+    return messages.reduce((groups, message) => {
+      const date = formatDate(message.created_at);
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(message);
+      return groups;
+    }, {} as Record<string, Message[]>);
+  }, [messages]);
 
   if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   if (!matchProfile) return <div className="p-8 text-center">Match não encontrado. <Link to="/app/chat" className="text-primary underline">Voltar</Link></div>;
@@ -1211,7 +1212,7 @@ export default function ChatRoom() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-        {(Object.entries(groupedMessages) as [string, Message[]][]).map(([date, msgs]) => (
+        {useMemo(() => (Object.entries(groupedMessages) as [string, Message[]][]).map(([date, msgs]) => (
           <div key={date} className="space-y-4">
             <div className="flex justify-center"><span className="text-[10px] uppercase tracking-widest text-muted-foreground bg-muted px-3 py-1 rounded-full">{date}</span></div>
             {msgs.map((m, index) => {
@@ -1266,9 +1267,9 @@ export default function ChatRoom() {
               );
             })}
           </div>
-        ))}
+        )), [groupedMessages, user?.id, isSuperLikeMatch, renderMessageContent])}
         <div className="flex justify-start">
-          <TypingIndicator isVisible={isBotTyping || isOtherUserTyping} />
+          <TypingIndicator isTyping={isBotTyping || isOtherUserTyping} />
         </div>
         <div ref={messagesEndRef} className="h-4" />
       </div>
