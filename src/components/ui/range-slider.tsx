@@ -45,7 +45,10 @@ function moveLabel(wrap: HTMLElement | null, pct: number, text: string) {
     if (!wrap) return;
     wrap.style.left = `${pct}%`;
     const span = wrap.querySelector('span');
-    if (span) span.textContent = text;
+    if (span) {
+        span.textContent = text;
+        (span as HTMLElement).style.transform = `translateX(-${pct}%)`;
+    }
 }
 
 function moveFill(el: HTMLElement | null, leftPct: number, widthPct: number) {
@@ -164,25 +167,31 @@ export function RangeSlider({
 
     return (
         <div className={cn('w-full', className)} data-vaul-no-drag>
-            <div className="relative px-3.5" style={{ paddingTop: 44, paddingBottom: 6 }}>
+            <div className="relative px-4" style={{ paddingTop: 44, paddingBottom: 6 }}>
 
                 {/* Label LO */}
                 <div ref={loLblRef} className="absolute top-0 pointer-events-none" style={{ left: `${lp0}%` }}>
-                    <div className="flex flex-col items-center -translate-x-1/2">
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 whitespace-nowrap">
+                    <div className="flex flex-col items-center">
+                        <span
+                            className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 whitespace-nowrap"
+                            style={{ transform: `translateX(-${lp0}%)` }}
+                        >
                             {values[0]}{unit}
                         </span>
-                        <div className="w-px h-2.5 bg-primary/40 mt-0.5" />
+                        <div className="w-px h-2.5 bg-primary/40 mt-0.5 -translate-x-1/2" />
                     </div>
                 </div>
 
                 {/* Label HI */}
                 <div ref={hiLblRef} className="absolute top-0 pointer-events-none" style={{ left: `${hp0}%` }}>
-                    <div className="flex flex-col items-center -translate-x-1/2">
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 whitespace-nowrap">
+                    <div className="flex flex-col items-center">
+                        <span
+                            className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 whitespace-nowrap"
+                            style={{ transform: `translateX(-${hp0}%)` }}
+                        >
                             {values[1]}{unit}
                         </span>
-                        <div className="w-px h-2.5 bg-primary/40 mt-0.5" />
+                        <div className="w-px h-2.5 bg-primary/40 mt-0.5 -translate-x-1/2" />
                     </div>
                 </div>
 
@@ -301,11 +310,14 @@ export function SingleSlider({
             <div className="relative px-3.5" style={{ paddingTop: 44, paddingBottom: 6 }}>
 
                 <div ref={lblRef} className="absolute top-0 pointer-events-none" style={{ left: `${p0}%` }}>
-                    <div className="flex flex-col items-center -translate-x-1/2">
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 whitespace-nowrap">
+                    <div className="flex flex-col items-center">
+                        <span
+                            className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30 whitespace-nowrap"
+                            style={{ transform: `translateX(-${p0}%)` }}
+                        >
                             {value}{unit}
                         </span>
-                        <div className="w-px h-2.5 bg-primary/40 mt-0.5" />
+                        <div className="w-px h-2.5 bg-primary/40 mt-0.5 -translate-x-1/2" />
                     </div>
                 </div>
 
