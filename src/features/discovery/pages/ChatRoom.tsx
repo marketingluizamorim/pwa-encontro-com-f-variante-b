@@ -39,6 +39,8 @@ import {
 } from '@/components/ui/dialog';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
 import { supabase } from '@/integrations/supabase/client';
+import { getProfilesData } from '@/features/funnel/utils/profiles';
+import { QuizAnswers } from '@/types/funnel';
 
 interface Message {
   id: string;
@@ -78,6 +80,7 @@ interface MatchProfile {
   languages?: string[];
   latitude?: number;
   longitude?: number;
+  is_bot?: boolean;
 }
 
 interface SocialMediaLinks {
@@ -269,13 +272,13 @@ export default function ChatRoom() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('user_id, display_name, avatar_url, photos, bio, birth_date, city, state, religion, church_frequency, looking_for, occupation, show_distance, christian_interests, last_active_at, show_online_status, show_last_active, gender, pets, drink, smoke, physical_activity, about_children')
+        .select('user_id, display_name, avatar_url, photos, bio, birth_date, city, state, religion, church_frequency, looking_for, occupation, show_distance, christian_interests, last_active_at, show_online_status, show_last_active, gender, pets, drink, smoke, physical_activity, about_children, is_bot')
         .eq('user_id', matchedOtherUserId)
         .single();
 
       let mProfile: MatchProfile | null = null;
       if (profile) {
-        const p = profile as Record<string, unknown>;
+        const p = profile as Record<string, any>;
         mProfile = {
           id: String(p.user_id),
           display_name: String(p.display_name || 'Usuário'),
@@ -290,6 +293,7 @@ export default function ChatRoom() {
           looking_for: p.looking_for ? String(p.looking_for) : undefined,
           occupation: p.occupation ? String(p.occupation) : undefined,
           is_verified: !!p.is_verified,
+          is_bot: !!p.is_bot,
           show_distance: !!p.show_distance,
           christian_interests: Array.isArray(p.christian_interests) ? p.christian_interests.map(String) : [],
           last_active_at: p.last_active_at ? String(p.last_active_at) : undefined,
@@ -309,7 +313,8 @@ export default function ChatRoom() {
       return {
         matchProfile: mProfile,
         otherUserId: matchedOtherUserId,
-        isSuperLikeMatch: !!superLike
+        isSuperLikeMatch: !!superLike,
+        isQuizMatch: false
       };
     }
   });
@@ -325,7 +330,7 @@ export default function ChatRoom() {
         .select('*')
         .eq('match_id', matchId)
         .order('created_at', { ascending: true });
-      return messagesData || [];
+      return (messagesData as Message[]) || [];
     }
   });
 
@@ -464,6 +469,7 @@ export default function ChatRoom() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isBotTyping, setIsBotTyping] = useState(false);
 
   const { isOtherUserTyping, broadcastTyping, stopTyping } = useTypingIndicator({
     matchId: matchId || '',
@@ -669,6 +675,45 @@ export default function ChatRoom() {
       toast.error('Erro ao enviar mensagem', { style: { marginTop: '50px' } });
     }
   };
+
+  // Bot Response Logic
+  useEffect(() => {
+    if (!matchId || !matchDetails?.matchProfile?.is_bot || !user) return;
+
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || lastMessage.sender_id !== user.id) return;
+
+    // Simulate typing and respond after a delay
+    const respond = async () => {
+      const delay = 3000 + Math.random() * 2000;
+
+      // Local typing indicator for bot
+      setIsBotTyping(true);
+
+      setTimeout(async () => {
+        setIsBotTyping(false);
+        const responses = [
+          "Olá! Tudo bem com você? 😊",
+          "Que legal seu interesse! Como está seu dia?",
+          "Fico feliz em conversar com você. O que busca por aqui?",
+          "Paz do Senhor! Tudo bem?",
+          "Oi! Gostei muito do seu perfil também. 😊",
+        ];
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+        const { supabase } = await import('@/integrations/supabase/client');
+        await supabase.from('messages').insert({
+          match_id: matchId,
+          sender_id: matchDetails.matchProfile!.id,
+          content: randomResponse,
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['chat-messages', matchId] });
+      }, delay);
+    };
+
+    respond();
+  }, [messages.length, matchId, matchDetails?.matchProfile, user, queryClient]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1222,6 +1267,9 @@ export default function ChatRoom() {
             })}
           </div>
         ))}
+        <div className="flex justify-start">
+          <TypingIndicator isVisible={isBotTyping || isOtherUserTyping} />
+        </div>
         <div ref={messagesEndRef} className="h-4" />
       </div>
 

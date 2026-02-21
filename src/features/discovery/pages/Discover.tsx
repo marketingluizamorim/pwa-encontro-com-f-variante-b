@@ -35,7 +35,7 @@ import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
 import { SuperLikeExplainerDialog } from '@/features/discovery/components/SuperLikeExplainerDialog';
 import { SuperLikeMessageDialog } from '@/features/discovery/components/SuperLikeMessageDialog';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
-import { getProfilesData } from '@/features/funnel/utils/profiles';
+import { getProfilesData, getStateAbbreviation } from '@/features/funnel/utils/profiles';
 import { QuizAnswers } from '@/types/funnel';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
@@ -132,6 +132,7 @@ export default function Discover() {
 
   // Photo Navigation State
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [quizSwipedCount, setQuizSwipedCount] = useState(0);
 
   useEffect(() => {
     setCurrentPhotoIndex(0);
@@ -215,52 +216,11 @@ export default function Discover() {
     enabled: !!user,
   });
 
-  const quizProfiles = useMemo(() => {
-    if (!user || !profileData) return [];
-
-    // Map database profile fields back to QuizAnswers format
-    const quizAnswers: QuizAnswers = {
-      age: profileData.birth_date ? calculateAge(profileData.birth_date).toString() : '26-35',
-      state: profileData.state || 'São Paulo',
-      city: profileData.city || 'São Paulo',
-      religion: profileData.religion || 'Cristã',
-      lookingFor: profileData.looking_for || 'Relacionamento sério',
-    };
-
-    // We want to show the opposite gender
-    const targetGender = profileData.gender === 'male' ? 'female' : 'male';
-
-    const staticProfiles = getProfilesData(targetGender as any, quizAnswers);
-
-    return staticProfiles.map((p, idx) => ({
-      id: `quiz-${idx}`,
-      user_id: `quiz-user-${idx}`,
-      display_name: p.name,
-      photos: [p.photo],
-      birth_date: new Date(new Date().getFullYear() - (p.age || 25), 0, 1).toISOString(),
-      city: p.city,
-      state: p.state,
-      bio: (p as any).bio,
-      occupation: (p as any).occupation,
-      religion: (p as any).religion,
-      christian_interests: (p as any).christian_interests,
-      is_verified: true,
-      last_active_at: new Date().toISOString(),
-      is_quiz_profile: true, // Internal flag
-    }));
-  }, [user, profileData]);
-
+  // Simplificado para usar apenas perfis reais do banco de dados
   const profiles = useMemo(() => {
-    if (!data?.pages) return quizProfiles;
-    const realProfiles = data.pages.flatMap((page) => page.profiles);
-
-    // Interleave real profiles with quiz profiles if there are few real ones
-    if (realProfiles.length < 5) {
-      return [...realProfiles, ...quizProfiles];
-    }
-
-    return realProfiles;
-  }, [data, quizProfiles]);
+    if (!data?.pages) return [];
+    return data.pages.flatMap((page) => page.profiles);
+  }, [data]);
 
   const currentProfile = profiles[currentIndex];
   const nextProfile = profiles[currentIndex + 1];
@@ -476,23 +436,7 @@ export default function Discover() {
       setShowInfo(false);
     }, 200);
 
-    // Intercept Quiz Profiles for instant match
-    if ((currentProfile as any).is_quiz_profile) {
-      if (swipeDirection === 'like' || swipeDirection === 'super_like') {
-        setTimeout(() => {
-          setMatchData({
-            name: currentProfile.display_name || 'Alguém',
-            photo: currentProfile.photos?.[0] || '',
-            matchId: `match-quiz-${currentProfile.id}`,
-          });
-          setShowMatchCelebration(true);
-          triggerHaptic('success');
-          playNotification('match');
-        }, 300);
-      }
-      return;
-    }
-
+    // Intercept Quiz Profiles for instant match or removal
     // Fire and forget mutation (handling errors/matches async)
     swipeMutation.mutate(
       {
@@ -542,7 +486,6 @@ export default function Discover() {
       y.set(0);
       setShowInfo(false);
     }, 200);
-
     swipeMutation.mutate(
       {
         swiperId: user.id,
@@ -561,6 +504,7 @@ export default function Discover() {
               color: 'white',
               border: '1px solid rgba(255,255,255,0.2)',
               marginTop: '50px',
+              zIndex: 9999
             }
           });
 

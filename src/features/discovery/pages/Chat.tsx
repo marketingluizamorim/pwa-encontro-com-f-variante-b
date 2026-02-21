@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/hooks/useSubscription';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { ChatListSkeleton } from '@/features/discovery/components/SkeletonLoaders';
@@ -31,6 +32,7 @@ import {
 import { cn } from '@/lib/utils';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
 import { getProfilesData, getStateAbbreviation } from '@/features/funnel/utils/profiles';
+import { QuizAnswers } from '@/types/funnel';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
     'Relacionamento sério': '💍',
@@ -285,6 +287,63 @@ export default function Chat() {
         }
     }, [conversations]);
 
+    // Real-time listener for the chat list (New matches and New messages)
+    useEffect(() => {
+        if (!user) return;
+
+        const channel = supabase
+            .channel(`chat-list:${user.id}`)
+            // Listen for new matches where user is user1 or user2
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'matches', filter: `user1_id=eq.${user.id}` },
+                () => queryClient.invalidateQueries({ queryKey: ['conversations', user.id] })
+            )
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'matches', filter: `user2_id=eq.${user.id}` },
+                () => queryClient.invalidateQueries({ queryKey: ['conversations', user.id] })
+            )
+            // Listen for updates (active/inactive)
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'matches', filter: `user1_id=eq.${user.id}` },
+                () => queryClient.invalidateQueries({ queryKey: ['conversations', user.id] })
+            )
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'matches', filter: `user2_id=eq.${user.id}` },
+                () => queryClient.invalidateQueries({ queryKey: ['conversations', user.id] })
+            )
+            // Listen for any new messages (broad invalidation for the list)
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'messages' },
+                (payload) => {
+                    // Only invalidate if the message is for one of the user's matches
+                    const matchIds = conversations.map(c => c.match_id);
+                    if (matchIds.includes(payload.new.match_id)) {
+                        queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user, queryClient, conversations]);
+
+    // Listener para atualizações de quiz (Simulado)
+    useEffect(() => {
+        const handleQuizUpdate = () => {
+            queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
+        };
+
+        window.addEventListener('quiz-update', handleQuizUpdate);
+        return () => window.removeEventListener('quiz-update', handleQuizUpdate);
+    }, [user?.id, queryClient]);
+
 
     const [viewedMatches, setViewedMatches] = useState<Set<string>>(() => {
         const saved = localStorage.getItem('viewed-matches');
@@ -393,7 +452,30 @@ export default function Chat() {
         // 3. Filtrar: Contar apenas curtidas de pessoas que eu ainda não deslizei
         const pendingLikes = incomingLikes.filter(like => !mySwipedIds.has(like.swiper_id));
 
-        setLikesCount(pendingLikes.length);
+        // 3.1. Add Quiz Likes to count if they are not matched yet
+        const { data: profileData } = await supabase.from('profiles').select('gender, birth_date, state, city, religion, looking_for').eq('user_id', user.id).single();
+        let qLikesCount = 0;
+        let qLikesPhoto: string | null = null;
+        if (profileData) {
+            const quizAnswers: QuizAnswers = {
+                age: profileData.birth_date ? calculateAge(profileData.birth_date).toString() : '26-35',
+                state: profileData.state || 'São Paulo',
+                city: profileData.city || 'São Paulo',
+                religion: profileData.religion || 'Cristã',
+                lookingFor: profileData.looking_for || 'Relacionamento sério',
+            };
+            const targetGender = profileData.gender === 'male' ? 'female' : 'male';
+            const staticProfiles = getProfilesData(targetGender as any, quizAnswers);
+
+            const swipedQuizIds = new Set(JSON.parse(localStorage.getItem('quiz-swipes') || '[]'));
+            const pendingQuizLikes = staticProfiles.filter((_, idx) => !swipedQuizIds.has(`quiz-user-${idx}`));
+            qLikesCount = pendingQuizLikes.length;
+            if (pendingQuizLikes.length > 0) {
+                qLikesPhoto = pendingQuizLikes[0].photo;
+            }
+        }
+
+        setLikesCount(pendingLikes.length + qLikesCount);
 
         // 4. Pegar uma foto de um desses usuários para mostrar borrada
         if (pendingLikes.length > 0) {
@@ -407,6 +489,8 @@ export default function Chat() {
             if (profile) {
                 setLikesPhoto(profile.photos?.[0] || profile.avatar_url || null);
             }
+        } else if (qLikesPhoto) {
+            setLikesPhoto(qLikesPhoto);
         } else {
             setLikesPhoto(null);
         }

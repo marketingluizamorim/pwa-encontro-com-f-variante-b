@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { MatchesListSkeleton } from '@/features/discovery/components/SkeletonLoaders';
 import { PullToRefresh } from '@/features/discovery/components/PullToRefresh';
@@ -221,10 +222,11 @@ export default function Matches() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedLike, setSelectedLike] = useState<LikeProfile | null>(null);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   // Interaction State
   const dragControls = useDragControls();
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  // const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0); // This line was a duplicate and has been removed.
 
   const handleNextPhoto = (e: React.MouseEvent, photos: string[]) => {
     e.stopPropagation();
@@ -407,54 +409,36 @@ export default function Matches() {
     enabled: !!user,
   });
 
-  const quizLikes = useMemo(() => {
-    if (!user || !profileData) return [];
+  // Real-time listener for incoming likes
+  useEffect(() => {
+    if (!user) return;
 
-    const quizAnswers: QuizAnswers = {
-      age: profileData.birth_date ? calculateAge(profileData.birth_date).toString() : '26-35',
-      state: profileData.state || 'São Paulo',
-      city: profileData.city || 'São Paulo',
-      religion: profileData.religion || 'Cristã',
-      lookingFor: profileData.looking_for || 'Relacionamento sério',
+    const channel = supabase
+      .channel(`incoming-likes:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'swipes',
+          filter: `swiped_id=eq.${user.id}`
+        },
+        (payload) => {
+          if (payload.new.direction === 'like' || payload.new.direction === 'super_like') {
+            queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
-
-    const targetGender = profileData.gender === 'male' ? 'female' : 'male';
-    const staticProfiles = getProfilesData(targetGender as any, quizAnswers);
-
-    return staticProfiles.map((p, idx) => ({
-      id: `quiz-like-${idx}`,
-      user_id: `quiz-user-${idx}`,
-      liked_at: new Date().toISOString(),
-      profile: {
-        display_name: p.name,
-        birth_date: new Date(new Date().getFullYear() - (p.age || 25), 0, 1).toISOString(),
-        avatar_url: p.photo,
-        photos: [p.photo],
-        bio: (p as any).bio,
-        city: p.city,
-        state: p.state,
-        religion: (p as any).religion,
-        occupation: (p as any).occupation,
-        christian_interests: (p as any).christian_interests,
-        church_frequency: (p as any).church_frequency,
-        about_children: (p as any).about_children,
-        education: (p as any).education,
-        drink: (p as any).drink,
-        smoke: (p as any).smoke,
-        physical_activity: (p as any).physical_activity,
-        languages: (p as any).languages,
-        last_active_at: new Date().toISOString(),
-      }
-    })) as LikeProfile[];
-  }, [user, profileData]);
+  }, [user, queryClient]);
 
   const allLikes: LikeProfile[] = useMemo(() => {
-    const realLikes = likes || [];
-    if (realLikes.length < 5) {
-      return [...realLikes, ...quizLikes];
-    }
-    return realLikes;
-  }, [likes, quizLikes]);
+    return likes || [];
+  }, [likes]);
 
   // Real-time: Listen for new likes to update the list automatically
   useEffect(() => {
@@ -519,22 +503,6 @@ export default function Matches() {
     });
 
     // Execute Mutation
-    if (targetUserId.startsWith('quiz-user-')) {
-      if (direction === 'like' || direction === 'super_like') {
-        setTimeout(() => {
-          setMatchData({
-            name: matchedProfile?.display_name || 'Alguém',
-            photo: matchedProfile?.photos?.[0] || matchedProfile?.avatar_url || '',
-            matchId: `match-${targetUserId}`,
-          });
-          setShowMatchCelebration(true);
-          playNotification('match');
-          triggerHaptic('success');
-        }, 300);
-      }
-      return;
-    }
-
     swipeMutation.mutate(
       {
         swiperId: user.id,

@@ -268,10 +268,10 @@ export default function DiscoverFilters({
   const isSilver = subscription?.tier === 'silver';
   const isGold = subscription?.tier === 'gold';
 
-  // Derived permission flags (read from DB, not just tier)
-  const hasAllRegions = subscription?.hasAllRegions ?? false;
-  const canAdvancedFilters = subscription?.canUseAdvancedFilters ?? false;
-  const canSeeRecentlyOnline = subscription?.canSeeRecentlyOnline ?? false;
+  // Derived permission flags (read from DB, with tier-based fallbacks)
+  const hasAllRegions = subscription?.hasAllRegions || isSilver || isGold;
+  const canAdvancedFilters = subscription?.canUseAdvancedFilters || isGold;
+  const canSeeRecentlyOnline = subscription?.canSeeRecentlyOnline || isGold;
 
   // Sync local state when sheet opens
   const handleOpen = () => {
@@ -289,7 +289,6 @@ export default function DiscoverFilters({
 
   const handleReset = () => {
     setLocalFilters(DEFAULT_FILTERS);
-    onFiltersChange(DEFAULT_FILTERS);
   };
 
   const showUpgradeFor = (info: UpgradeInfo) => {
@@ -400,15 +399,30 @@ export default function DiscoverFilters({
                   planNeeded: 'gold', icon: <Filter className="w-8 h-8" />, price: 49.90, planId: 'gold',
                 })}
               />
-              <div className={cn('transition-opacity', !canAdvancedFilters && 'opacity-40 grayscale pointer-events-none')}>
-                <RangeSlider
-                  values={[localFilters.minAge, localFilters.maxAge]}
-                  onChange={(v) => setLocalFilters(p => ({ ...p, minAge: v[0], maxAge: v[1] }))}
-                  min={18}
-                  max={80}
-                  step={1}
-                  unit=" anos"
-                />
+              <div className="relative">
+                <div className={cn('transition-opacity', !canAdvancedFilters && 'opacity-40 grayscale')}>
+                  <RangeSlider
+                    values={[localFilters.minAge, localFilters.maxAge]}
+                    onChange={(v) => setLocalFilters(p => ({ ...p, minAge: v[0], maxAge: v[1] }))}
+                    min={18}
+                    max={80}
+                    step={1}
+                    unit=" anos"
+                  />
+                </div>
+                {!canAdvancedFilters && (
+                  <div
+                    className="absolute inset-0 z-10 cursor-pointer"
+                    onClick={() => showUpgradeFor({
+                      title: isBronze ? 'Plano Prata ou Ouro' : 'Plano Ouro',
+                      description: isBronze
+                        ? 'Adquira o Plano Prata com Filtros Avançados ou o Plano Ouro para filtrar por idade.'
+                        : 'O filtro de idade é exclusivo para o Plano Ouro ou Plano Prata com add-on de Filtros Avançados.',
+                      features: ['Filtros avançados completos', 'Perfil em destaque', 'Enviar mensagem direta'],
+                      planNeeded: 'gold', icon: <Filter className="w-8 h-8" />, price: 49.90, planId: 'gold',
+                    })}
+                  />
+                )}
               </div>
             </div>
 
@@ -429,15 +443,30 @@ export default function DiscoverFilters({
                   planNeeded: 'gold', icon: <MapPin className="w-8 h-8" />, price: 49.90, planId: 'gold',
                 })}
               />
-              <div className={cn('transition-opacity', !canAdvancedFilters && 'opacity-40 grayscale pointer-events-none')}>
-                <SingleSlider
-                  value={localFilters.maxDistance}
-                  onChange={(v) => setLocalFilters(p => ({ ...p, maxDistance: v }))}
-                  min={1}
-                  max={100}
-                  step={1}
-                  unit=" km"
-                />
+              <div className="relative">
+                <div className={cn('transition-opacity', !canAdvancedFilters && 'opacity-40 grayscale')}>
+                  <SingleSlider
+                    value={localFilters.maxDistance}
+                    onChange={(v) => setLocalFilters(p => ({ ...p, maxDistance: v }))}
+                    min={1}
+                    max={100}
+                    step={1}
+                    unit=" km"
+                  />
+                </div>
+                {!canAdvancedFilters && (
+                  <div
+                    className="absolute inset-0 z-10 cursor-pointer"
+                    onClick={() => showUpgradeFor({
+                      title: isBronze ? 'Plano Prata ou Ouro' : 'Plano Ouro',
+                      description: isBronze
+                        ? 'Adquira o Plano Prata com Filtros Avançados ou o Plano Ouro para ajustar a distância.'
+                        : 'O ajuste de distância é recurso exclusivo para membros do Plano Ouro.',
+                      features: ['Filtro por distância física', 'Prioridade na fila (Boost)', 'Enviar Direct sem Match'],
+                      planNeeded: 'gold', icon: <MapPin className="w-8 h-8" />, price: 49.90, planId: 'gold',
+                    })}
+                  />
+                )}
               </div>
             </div>
 
@@ -456,40 +485,53 @@ export default function DiscoverFilters({
                   planNeeded: 'silver', icon: <MapPin className="w-8 h-8" />, price: 29.90, planId: 'silver',
                 })}
               />
-              <div className={cn('grid grid-cols-2 gap-3 w-full overflow-x-hidden', !hasAllRegions && 'opacity-40 grayscale pointer-events-none')}>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Estado</Label>
-                  <Select
-                    value={localFilters.state || 'all'}
-                    onValueChange={(v) => setLocalFilters(p => ({ ...p, state: v === 'all' ? '' : v, city: '' }))}
-                  >
-                    <SelectTrigger className={cn('h-10 w-full min-w-0', localFilters.state && 'border-primary/40 font-medium')}>
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px] bg-background">
-                      <SelectItem value="all">Todos os estados</SelectItem>
-                      {BRAZIL_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+              <div className="relative">
+                <div className={cn('grid grid-cols-2 gap-3 w-full overflow-x-hidden', !hasAllRegions && 'opacity-40 grayscale')}>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Estado</Label>
+                    <Select
+                      value={localFilters.state || 'all'}
+                      onValueChange={(v) => setLocalFilters(p => ({ ...p, state: v === 'all' ? '' : v, city: '' }))}
+                    >
+                      <SelectTrigger className={cn('h-10 w-full min-w-0', localFilters.state && 'border-primary/40 font-medium')}>
+                        <SelectValue placeholder="Todos" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[250px] w-[var(--radix-select-trigger-width)]" side="bottom" sideOffset={4}>
+                        <SelectItem value="all">Todos os estados</SelectItem>
+                        {BRAZIL_STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Cidade</Label>
+                    <Select
+                      value={localFilters.city || 'all'}
+                      onValueChange={(v) => setLocalFilters(p => ({ ...p, city: v === 'all' ? '' : v }))}
+                      disabled={!localFilters.state}
+                    >
+                      <SelectTrigger className={cn('h-10 w-full min-w-0', localFilters.city && 'border-primary/40 font-medium')}>
+                        <SelectValue placeholder={!localFilters.state ? 'Selecione um estado' : 'Todas'} />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[250px] w-[var(--radix-select-trigger-width)]" side="bottom" sideOffset={4}>
+                        <SelectItem value="all">Todas</SelectItem>
+                        {localFilters.state && BRAZIL_CITIES[localFilters.state]?.map(c => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Cidade</Label>
-                  <Select
-                    value={localFilters.city || 'all'}
-                    onValueChange={(v) => setLocalFilters(p => ({ ...p, city: v === 'all' ? '' : v }))}
-                    disabled={!localFilters.state}
-                  >
-                    <SelectTrigger className={cn('h-10 w-full min-w-0', localFilters.city && 'border-primary/40 font-medium')}>
-                      <SelectValue placeholder={!localFilters.state ? 'Selecione um estado' : 'Todas'} />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px] bg-background">
-                      <SelectItem value="all">Todas</SelectItem>
-                      {localFilters.state && BRAZIL_CITIES[localFilters.state]?.map(c => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {!hasAllRegions && (
+                  <div
+                    className="absolute inset-0 z-10 cursor-pointer"
+                    onClick={() => showUpgradeFor({
+                      title: 'Plano Prata',
+                      description: 'Migre para o Plano Prata para filtrar por Cidade e Estado!',
+                      features: ['Filtro por cidade / região', 'Curtidas ilimitadas'],
+                      planNeeded: 'silver', icon: <MapPin className="w-8 h-8" />, price: 29.90, planId: 'silver',
+                    })}
+                  />
+                )}
               </div>
             </div>
 
@@ -503,73 +545,81 @@ export default function DiscoverFilters({
                 showUpgrade={!isGold}
                 onUpgradeClick={() => handleAdvancedClick('Fé e Religião', <Heart className="w-8 h-8" />)}
               />
-              <div className={cn('space-y-3', !isGold && 'opacity-40 grayscale pointer-events-none')}>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Religião</Label>
-                  <Select
-                    value={localFilters.religion || 'all'}
-                    onValueChange={(v) => setLocalFilters(p => ({ ...p, religion: v === 'all' ? '' : v }))}
-                  >
-                    <SelectTrigger className={cn('h-10', localFilters.religion && 'border-primary/40 font-medium')}>
-                      <SelectValue placeholder="Todas as religiões" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px] bg-background">
-                      {RELIGIONS.map(r => <SelectItem key={r.value || 'all'} value={r.value || 'all'}>{r.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Frequência na Igreja</Label>
-                  <Select
-                    value={localFilters.churchFrequency || 'all'}
-                    onValueChange={(v) => setLocalFilters(p => ({ ...p, churchFrequency: v === 'all' ? '' : v }))}
-                  >
-                    <SelectTrigger className={cn('h-10', localFilters.churchFrequency && 'border-primary/40 font-medium')}>
-                      <SelectValue placeholder="Qualquer frequência" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[200px] bg-background">
-                      {CHURCH_FREQUENCIES.map(f => <SelectItem key={f.value || 'all'} value={f.value || 'all'}>{f.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="relative">
+                <div className={cn('space-y-3', !isGold && 'opacity-40 grayscale')}>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Religião</Label>
+                    <Select
+                      value={localFilters.religion || 'all'}
+                      onValueChange={(v) => setLocalFilters(p => ({ ...p, religion: v === 'all' ? '' : v }))}
+                    >
+                      <SelectTrigger className={cn('h-10', localFilters.religion && 'border-primary/40 font-medium')}>
+                        <SelectValue placeholder="Todas as religiões" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[250px] w-[var(--radix-select-trigger-width)]" side="bottom" sideOffset={4}>
+                        {RELIGIONS.map(r => <SelectItem key={r.value || 'all'} value={r.value || 'all'}>{r.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Frequência na Igreja</Label>
+                    <Select
+                      value={localFilters.churchFrequency || 'all'}
+                      onValueChange={(v) => setLocalFilters(p => ({ ...p, churchFrequency: v === 'all' ? '' : v }))}
+                    >
+                      <SelectTrigger className={cn('h-10', localFilters.churchFrequency && 'border-primary/40 font-medium')}>
+                        <SelectValue placeholder="Qualquer frequência" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[250px] w-[var(--radix-select-trigger-width)]" side="bottom" sideOffset={4}>
+                        {CHURCH_FREQUENCIES.map(f => <SelectItem key={f.value || 'all'} value={f.value || 'all'}>{f.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Interesses cristãos */}
-                <div className="overflow-x-hidden w-full">
-                  <Label className="text-xs text-muted-foreground mb-2 block">Interesses cristãos</Label>
-                  <div className="flex flex-wrap gap-1.5 w-full">
-                    {(showAllInterests && isGold ? CHRISTIAN_INTERESTS : CHRISTIAN_INTERESTS.slice(0, 16)).map(interest => {
-                      const sel = localFilters.christianInterests?.includes(interest);
-                      return (
+                  {/* Interesses cristãos */}
+                  <div className="overflow-x-hidden w-full">
+                    <Label className="text-xs text-muted-foreground mb-2 block">Interesses cristãos</Label>
+                    <div className="flex flex-wrap gap-1.5 w-full">
+                      {(showAllInterests && isGold ? CHRISTIAN_INTERESTS : CHRISTIAN_INTERESTS.slice(0, 16)).map(interest => {
+                        const sel = localFilters.christianInterests?.includes(interest);
+                        return (
+                          <button
+                            key={interest}
+                            onClick={() => {
+                              const cur = localFilters.christianInterests || [];
+                              setLocalFilters(p => ({
+                                ...p,
+                                christianInterests: sel ? cur.filter(i => i !== interest) : [...cur, interest],
+                              }));
+                            }}
+                            className={cn(
+                              'px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all active:scale-95',
+                              sel
+                                ? 'bg-primary/20 border-primary text-primary'
+                                : 'bg-muted/50 border-input text-muted-foreground',
+                            )}
+                          >
+                            {interest}
+                          </button>
+                        );
+                      })}
+                      {!showAllInterests && isGold && (
                         <button
-                          key={interest}
-                          onClick={() => {
-                            const cur = localFilters.christianInterests || [];
-                            setLocalFilters(p => ({
-                              ...p,
-                              christianInterests: sel ? cur.filter(i => i !== interest) : [...cur, interest],
-                            }));
-                          }}
-                          className={cn(
-                            'px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all active:scale-95',
-                            sel
-                              ? 'bg-primary/20 border-primary text-primary'
-                              : 'bg-muted/50 border-input text-muted-foreground',
-                          )}
+                          onClick={() => setShowAllInterests(true)}
+                          className="px-2.5 py-1 rounded-full text-[11px] font-medium border bg-primary/10 border-primary/20 text-primary flex items-center gap-1"
                         >
-                          {interest}
+                          <i className="ri-add-line" /> Mais
                         </button>
-                      );
-                    })}
-                    {!showAllInterests && isGold && (
-                      <button
-                        onClick={() => setShowAllInterests(true)}
-                        className="px-2.5 py-1 rounded-full text-[11px] font-medium border bg-primary/10 border-primary/20 text-primary flex items-center gap-1"
-                      >
-                        <i className="ri-add-line" /> Mais
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
+                {!isGold && (
+                  <div
+                    className="absolute inset-0 z-10 cursor-pointer"
+                    onClick={() => handleAdvancedClick('Fé e Religião', <Heart className="w-8 h-8" />)}
+                  />
+                )}
               </div>
             </div>
 
@@ -583,18 +633,26 @@ export default function DiscoverFilters({
                 showUpgrade={!isGold}
                 onUpgradeClick={() => handleAdvancedClick('Relacionamento', <Target className="w-8 h-8" />)}
               />
-              <div className={cn('transition-opacity', !isGold && 'opacity-40 grayscale pointer-events-none')}>
-                <Select
-                  value={localFilters.lookingFor || 'all'}
-                  onValueChange={(v) => setLocalFilters(p => ({ ...p, lookingFor: v === 'all' ? '' : v }))}
-                >
-                  <SelectTrigger className={cn('h-10', localFilters.lookingFor && 'border-primary/40 font-medium')}>
-                    <SelectValue placeholder="Selecione o que busca" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background">
-                    {LOOKING_FOR_OPTIONS.map(o => <SelectItem key={o.value || 'all'} value={o.value || 'all'}>{o.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="relative">
+                <div className={cn('transition-opacity', !isGold && 'opacity-40 grayscale')}>
+                  <Select
+                    value={localFilters.lookingFor || 'all'}
+                    onValueChange={(v) => setLocalFilters(p => ({ ...p, lookingFor: v === 'all' ? '' : v }))}
+                  >
+                    <SelectTrigger className={cn('h-10', localFilters.lookingFor && 'border-primary/40 font-medium')}>
+                      <SelectValue placeholder="Selecione o que busca" />
+                    </SelectTrigger>
+                    <SelectContent side="bottom" sideOffset={4} className="max-h-[250px] w-[var(--radix-select-trigger-width)]">
+                      {LOOKING_FOR_OPTIONS.map(o => <SelectItem key={o.value || 'all'} value={o.value || 'all'}>{o.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {!isGold && (
+                  <div
+                    className="absolute inset-0 z-10 cursor-pointer"
+                    onClick={() => handleAdvancedClick('Relacionamento', <Target className="w-8 h-8" />)}
+                  />
+                )}
               </div>
             </div>
 
@@ -608,21 +666,29 @@ export default function DiscoverFilters({
                 showUpgrade={!isGold}
                 onUpgradeClick={() => handleAdvancedClick('Filtros Rápidos', <Filter className="w-8 h-8" />)}
               />
-              <div className={cn('rounded-xl bg-muted/50 px-3 divide-y divide-border/50', !isGold && 'opacity-40 grayscale pointer-events-none')}>
-                <ToggleRow
-                  icon="ri-time-line"
-                  label="Online recentemente"
-                  description="Ativos nas últimas 24 horas"
-                  checked={localFilters.onlineRecently}
-                  onCheckedChange={(v) => { if (canSeeRecentlyOnline) setLocalFilters(p => ({ ...p, onlineRecently: v })); }}
-                />
-                <ToggleRow
-                  icon="ri-image-line"
-                  label="Com fotos"
-                  description="Mostrar apenas perfis com fotos"
-                  checked={localFilters.hasPhotos}
-                  onCheckedChange={(v) => setLocalFilters(p => ({ ...p, hasPhotos: v }))}
-                />
+              <div className="relative">
+                <div className={cn('rounded-xl bg-muted/50 px-3 divide-y divide-border/50', !isGold && 'opacity-40 grayscale')}>
+                  <ToggleRow
+                    icon="ri-time-line"
+                    label="Online recentemente"
+                    description="Ativos nas últimas 24 horas"
+                    checked={localFilters.onlineRecently}
+                    onCheckedChange={(v) => { if (canSeeRecentlyOnline) setLocalFilters(p => ({ ...p, onlineRecently: v })); }}
+                  />
+                  <ToggleRow
+                    icon="ri-image-line"
+                    label="Com fotos"
+                    description="Mostrar apenas perfis com fotos"
+                    checked={localFilters.hasPhotos}
+                    onCheckedChange={(v) => setLocalFilters(p => ({ ...p, hasPhotos: v }))}
+                  />
+                </div>
+                {!isGold && (
+                  <div
+                    className="absolute inset-0 z-10 cursor-pointer"
+                    onClick={() => handleAdvancedClick('Filtros Rápidos', <Filter className="w-8 h-8" />)}
+                  />
+                )}
               </div>
             </div>
 

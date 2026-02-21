@@ -283,5 +283,6 @@ export const getProfilesData = (gender: 'male' | 'female' | null, quizAnswers: Q
         ...extraData[index],
         // Religion derived from quiz answers for consistency
         religion: quizAnswers.religion || 'Cristã',
+        looking_for: quizAnswers.lookingFor || 'Relacionamento sério',
     }));
 };

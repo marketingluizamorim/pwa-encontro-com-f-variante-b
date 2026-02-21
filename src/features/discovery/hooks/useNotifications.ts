@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { getProfilesData } from '@/features/funnel/utils/profiles';
+import { calculateAge } from '@/lib/date-utils';
+import { QuizAnswers } from '@/types/funnel';
 
 interface NotificationState {
     discover: boolean;  // Novos perfis disponíveis
@@ -81,7 +84,26 @@ export function useNotifications() {
 
                 const { count } = await queryCount;
 
-                const totalLikes = count || 0;
+                // 4.1. Add Quiz Likes to count
+                const { data: profileData } = await supabase.from('profiles').select('gender, birth_date, state, city, religion, looking_for').eq('user_id', user.id).maybeSingle();
+                let qLikesCount = 0;
+                if (profileData) {
+                    const quizAnswers: QuizAnswers = {
+                        age: profileData.birth_date ? calculateAge(profileData.birth_date).toString() : '26-35',
+                        state: profileData.state || 'São Paulo',
+                        city: profileData.city || 'São Paulo',
+                        religion: profileData.religion || 'Cristã',
+                        lookingFor: profileData.looking_for || 'Relacionamento sério',
+                    };
+                    const targetGender = profileData.gender === 'male' ? 'female' : 'male';
+                    const staticProfiles = getProfilesData(targetGender as any, quizAnswers);
+
+                    const swipedQuizIds = new Set(JSON.parse(localStorage.getItem('quiz-swipes') || '[]'));
+                    const pendingQuizLikes = staticProfiles.filter((_, idx) => !swipedQuizIds.has(`quiz-user-${idx}`));
+                    qLikesCount = pendingQuizLikes.length;
+                }
+
+                const totalLikes = (count || 0) + qLikesCount;
                 setNotifications(prev => ({ ...prev, likesCount: totalLikes }));
 
             } catch (error) {
@@ -114,6 +136,9 @@ export function useNotifications() {
 
                 if (!error && data && data.length > 0) {
                     setNotifications(prev => ({ ...prev, chat: true }));
+                } else {
+                    // Limpar notificação se não houver mais mensagens não lidas
+                    setNotifications(prev => ({ ...prev, chat: false }));
                 }
             } catch (error) {
                 console.error('Error checking messages:', error);
@@ -156,39 +181,57 @@ export function useNotifications() {
             }
         };
 
+        // Escutar atualizações de quiz via evento customizado
+        const handleQuizUpdate = () => {
+            checkMatches();
+        };
+
+        window.addEventListener('quiz-update', handleQuizUpdate);
+
         // Executar verificações iniciais
         checkMatches();
         checkMessages();
         checkDiscover();
         checkExplore();
 
-        // Configurar realtime para mensagens
+        // Configurar realtime para mensagens (INSERT e UPDATE para capturar lidas)
         const messagesChannel = supabase
-            .channel('new_messages')
+            .channel(`messages-notif:${user.id}`)
             .on(
                 'postgres_changes',
                 {
-                    event: 'INSERT',
+                    event: '*', // Listen to both INSERT (new msgs) and UPDATE (marking as read)
                     schema: 'public',
                     table: 'messages',
                 },
-                async (payload) => {
-                    // Verificar se a mensagem é para o usuário atual
-                    const { data: matchData } = await supabase
-                        .from('matches')
-                        .select('user1_id, user2_id')
-                        .eq('id', payload.new.match_id)
-                        .single();
+                async (payload: any) => {
+                    // Recalcular status de mensagens para garantir precisão
+                    checkMessages();
 
-                    if (matchData &&
-                        (matchData.user1_id === user.id || matchData.user2_id === user.id)) {
-
-                        if (payload.new.sender_id !== user.id) {
-                            setNotifications(prev => ({ ...prev, chat: true }));
-                        }
-
-                        // Invalida a query de conversas globalmente
+                    // Se for uma nova mensagem recebida, invalidar conversas
+                    if (payload.eventType === 'INSERT' && payload.new.sender_id !== user.id) {
                         queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+                    }
+                }
+            )
+            .subscribe();
+
+        // Configurar realtime para matches
+        const matchesChannel = supabase
+            .channel(`matches-notif:${user.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'matches',
+                },
+                (payload: any) => {
+                    if (payload.new.user1_id === user.id || payload.new.user2_id === user.id) {
+                        checkMessages();
+                        checkMatches();
+                        queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+                        queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
                     }
                 }
             )
@@ -196,28 +239,25 @@ export function useNotifications() {
 
         // Configurar realtime para swipes (likes)
         const swipesChannel = supabase
-            .channel('new_swipes')
+            .channel(`swipes-notif:${user.id}`)
             .on(
                 'postgres_changes',
                 {
-                    event: '*', // Listen to all changes to keep count accurate
+                    event: '*',
                     schema: 'public',
                     table: 'swipes',
                     filter: `swiped_id=eq.${user.id}`,
                 },
                 () => {
-                    // Recalculate everything to stay perfectly in sync
                     checkMatches();
-                    // Invalida a query de curtidas globalmente
                     queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
                 }
             )
-
             .subscribe();
 
         // Configurar realtime para novos perfis (afeta aba Descobrir)
         const profilesChannel = supabase
-            .channel('new_profiles_notif')
+            .channel(`profiles-notif:${user.id}`)
             .on(
                 'postgres_changes',
                 {
@@ -233,34 +273,14 @@ export function useNotifications() {
             )
             .subscribe();
 
-        // Configurar realtime para novos matches (afeta aba Chat)
-        const matchesChannel = supabase
-            .channel('new_matches_notif')
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'matches',
-                },
-                (payload) => {
-                    if (payload.new.user1_id === user.id || payload.new.user2_id === user.id) {
-                        setNotifications(prev => ({ ...prev, chat: true }));
-                        // Invalida as queries de conversas e curtidas globalmente
-                        queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
-                        queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
-                    }
-                }
-            )
-            .subscribe();
-
         return () => {
-            messagesChannel.unsubscribe();
-            swipesChannel.unsubscribe();
-            profilesChannel.unsubscribe();
-            matchesChannel.unsubscribe();
+            window.removeEventListener('quiz-update', handleQuizUpdate);
+            supabase.removeChannel(messagesChannel);
+            supabase.removeChannel(swipesChannel);
+            supabase.removeChannel(profilesChannel);
+            supabase.removeChannel(matchesChannel);
         };
-    }, [user]);
+    }, [user, queryClient]);
 
     // Função para limpar notificação quando usuário visita a seção
     const clearNotification = (section: keyof NotificationState) => {
