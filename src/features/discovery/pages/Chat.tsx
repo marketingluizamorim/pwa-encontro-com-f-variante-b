@@ -261,45 +261,7 @@ export default function Chat() {
                 };
             }).filter(Boolean) as Conversation[];
 
-            // 5. Mapear Seeds para o formato de Conversation
-            const seedConversations: Conversation[] = (seedMatches || []).map(sm => {
-                const quizAnswers = {
-                    age: sm.age_range,
-                    city: sm.city ?? undefined,
-                    state: sm.state_name ?? undefined,
-                    religion: sm.religion ?? undefined,
-                    lookingFor: sm.looking_for ?? undefined,
-                };
-
-                const profiles = getProfilesData(
-                    sm.user_gender as 'male' | 'female',
-                    quizAnswers,
-                );
-                const p = profiles[sm.profile_index] ?? profiles[0];
-                const stateAbbr = getStateAbbreviation(sm.state_name || '');
-
-                return {
-                    id: 'seed-conv-' + sm.id,
-                    match_id: 'seed-' + sm.id,
-                    created_at: sm.created_at || new Date().toISOString(),
-                    is_super_like: false,
-                    profile: {
-                        id: 'seed-' + sm.id,
-                        display_name: p.name,
-                        avatar_url: p.photo,
-                        photos: [p.photo],
-                        bio: p.bio,
-                        city: p.city || sm.city || 'São Paulo',
-                        state: stateAbbr,
-                        religion: sm.religion || 'Cristã',
-                        looking_for: sm.looking_for || 'Relacionamento sério',
-                        gender: sm.user_gender,
-                        birth_date: `${new Date().getFullYear() - (p.age || 28)}-06-15`,
-                    }
-                };
-            });
-
-            return [...realConversations, ...seedConversations];
+            return realConversations;
         }
     });
 
@@ -1099,12 +1061,7 @@ export default function Chat() {
                                         onClick={() => {
                                             const match = conversations.find(c => c.profile.id === selectedProfile.id);
                                             if (match) {
-                                                if (match.match_id.startsWith('seed-')) {
-                                                    const seedId = match.match_id.replace('seed-', '');
-                                                    navigate(`/app/chat/seed/${seedId}`);
-                                                } else {
-                                                    navigate(`/app/chat/${match.match_id}`);
-                                                }
+                                                navigate(`/app/chat/${match.match_id}`);
                                             } else {
                                                 toast.error('Erro ao encontrar conversa', { style: { marginTop: '50px' } });
                                             }

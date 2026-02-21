@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform, useDragControls } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import DiscoverFilters, { DiscoverFiltersState } from '@/features/discovery/components/DiscoverFilters';
 import { useDiscoverProfiles, useSwipeMutation } from '@/features/discovery/hooks/useDiscoverProfiles';
-import { useSeedDiscoverProfiles, SeedDiscoverCard } from '@/features/discovery/hooks/useSeedDiscoverProfiles';
 import { triggerHaptic } from '@/lib/haptics';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { DiscoverSkeleton } from '@/features/discovery/components/SkeletonLoaders';
@@ -36,6 +35,8 @@ import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
 import { SuperLikeExplainerDialog } from '@/features/discovery/components/SuperLikeExplainerDialog';
 import { SuperLikeMessageDialog } from '@/features/discovery/components/SuperLikeMessageDialog';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
+import { getProfilesData } from '@/features/funnel/utils/profiles';
+import { QuizAnswers } from '@/types/funnel';
 
 const LOOKING_FOR_EMOJIS: Record<string, string> = {
   'Relacionamento sério': '💍',
@@ -112,10 +113,7 @@ export default function Discover() {
 
 
 
-  // ── Seed Discover Profiles ──────────────────────────────────────────────────
-  const { seedCards, loading: seedLoading, dismissSeedCard } = useSeedDiscoverProfiles(user?.id);
-  const currentSeedCard: SeedDiscoverCard | undefined = seedCards[0];
-  // ────────────────────────────────────────────────────────────────────────────
+
 
   const [upgradeData, setUpgradeData] = useState({
     title: '',
@@ -201,11 +199,68 @@ export default function Discover() {
 
   const swipeMutation = useSwipeMutation();
 
+  const { data: profileData } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const quizProfiles = useMemo(() => {
+    if (!user || !profileData) return [];
+
+    // Map database profile fields back to QuizAnswers format
+    const quizAnswers: QuizAnswers = {
+      age: profileData.birth_date ? calculateAge(profileData.birth_date).toString() : '26-35',
+      state: profileData.state || 'São Paulo',
+      city: profileData.city || 'São Paulo',
+      religion: profileData.religion || 'Cristã',
+      lookingFor: profileData.looking_for || 'Relacionamento sério',
+    };
+
+    // We want to show the opposite gender
+    const targetGender = profileData.gender === 'male' ? 'female' : 'male';
+
+    const staticProfiles = getProfilesData(targetGender as any, quizAnswers);
+
+    return staticProfiles.map((p, idx) => ({
+      id: `quiz-${idx}`,
+      user_id: `quiz-user-${idx}`,
+      display_name: p.name,
+      photos: [p.photo],
+      birth_date: new Date(new Date().getFullYear() - (p.age || 25), 0, 1).toISOString(),
+      city: p.city,
+      state: p.state,
+      bio: (p as any).bio,
+      occupation: (p as any).occupation,
+      religion: (p as any).religion,
+      christian_interests: (p as any).christian_interests,
+      is_verified: true,
+      last_active_at: new Date().toISOString(),
+      is_quiz_profile: true, // Internal flag
+    }));
+  }, [user, profileData]);
+
   const profiles = useMemo(() => {
-    if (!data?.pages) return [];
-    const allProfiles = data.pages.flatMap((page) => page.profiles);
-    return allProfiles;
-  }, [data]);
+    if (!data?.pages) return quizProfiles;
+    const realProfiles = data.pages.flatMap((page) => page.profiles);
+
+    // Interleave real profiles with quiz profiles if there are few real ones
+    if (realProfiles.length < 5) {
+      return [...realProfiles, ...quizProfiles];
+    }
+
+    return realProfiles;
+  }, [data, quizProfiles]);
 
   const currentProfile = profiles[currentIndex];
   const nextProfile = profiles[currentIndex + 1];
@@ -374,42 +429,7 @@ export default function Discover() {
   }, [user]);
 
 
-  // ── Seed Swipe Handler ────────────────────────────────────────────────────
-  const handleSeedSwipe = async (swipeDirection: 'like' | 'dislike' | 'super_like') => {
-    if (!currentSeedCard || !user || swiping) return;
 
-    setSwiping(true);
-    setExitDirection(swipeDirection === 'dislike' ? 'left' : swipeDirection === 'like' ? 'right' : 'up');
-    triggerHaptic(swipeDirection === 'dislike' ? 'light' : 'medium');
-    setSwipeFeedback(swipeDirection);
-    setTimeout(() => setSwipeFeedback(null), 600);
-
-    const action = swipeDirection === 'dislike' ? 'disliked'
-      : swipeDirection === 'super_like' ? 'super_liked'
-        : 'liked';
-
-    setTimeout(() => {
-      setExitDirection(null);
-      setSwiping(false);
-      x.set(0);
-      y.set(0);
-      setShowInfo(false);
-    }, 200);
-
-    const { isMatch } = await dismissSeedCard(currentSeedCard.seedId, action);
-
-    if (isMatch) {
-      setMatchData({
-        name: currentSeedCard.display_name,
-        photo: currentSeedCard.photos?.[0] || currentSeedCard.avatar_url || '',
-        matchId: `seed-${currentSeedCard.seedId}`,
-      });
-      setShowMatchCelebration(true);
-      playNotification('match');
-      triggerHaptic('success');
-    }
-  };
-  // ─────────────────────────────────────────────────────────────────────────
 
   const handleSwipe = async (swipeDirection: 'like' | 'dislike' | 'super_like') => {
     if (!currentProfile || !user || swiping) return;
@@ -455,6 +475,23 @@ export default function Discover() {
       y.set(0);
       setShowInfo(false);
     }, 200);
+
+    // Intercept Quiz Profiles for instant match
+    if ((currentProfile as any).is_quiz_profile) {
+      if (swipeDirection === 'like' || swipeDirection === 'super_like') {
+        setTimeout(() => {
+          setMatchData({
+            name: currentProfile.display_name || 'Alguém',
+            photo: currentProfile.photos?.[0] || '',
+            matchId: `match-quiz-${currentProfile.id}`,
+          });
+          setShowMatchCelebration(true);
+          triggerHaptic('success');
+          playNotification('match');
+        }, 300);
+      }
+      return;
+    }
 
     // Fire and forget mutation (handling errors/matches async)
     swipeMutation.mutate(
@@ -547,7 +584,7 @@ export default function Discover() {
   const handleDragEnd = (_event: unknown, info: PanInfo) => {
     if (swiping) return;
     const { offset, velocity } = info;
-    const swipeHandler = currentSeedCard ? handleSeedSwipe : handleSwipe;
+    const swipeHandler = handleSwipe;
 
     if (offset.x > SWIPE_THRESHOLD || velocity.x > SWIPE_VELOCITY_THRESHOLD) {
       swipeHandler('like');
@@ -569,9 +606,9 @@ export default function Discover() {
 
   // ── Swipe Feedback Portal ───────────────────────────────────────────────────
   // Wait for seed profiles AND real profiles to load before showing skeleton
-  if ((isLoading && profiles.length === 0) || seedLoading) return <DiscoverSkeleton />;
+  if ((isLoading && profiles.length === 0)) return <DiscoverSkeleton />;
 
-  const isEmpty = !currentSeedCard && (profiles.length === 0 || currentIndex >= profiles.length);
+  const isEmpty = (profiles.length === 0 || currentIndex >= profiles.length);
 
   return (
     <>
@@ -674,41 +711,36 @@ export default function Discover() {
             {/* Card Stack Container */}
             <div className="flex-1 w-full max-w-xl relative flex items-center justify-center pb-24 px-4 transition-all duration-500">
 
-              {/* NEXT CARD (Background) — show next seed or next real profile */}
-              {(currentSeedCard ? seedCards[1] : nextProfile) && (() => {
-                const nextCard = currentSeedCard ? seedCards[1] : nextProfile;
-                return (
-                  <div className="absolute inset-x-4 top-4 bottom-28 z-0">
-                    <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border opacity-60 scale-95 translate-y-2 shadow-xl">
-                      <img
-                        src={nextCard?.photos?.[0] || (nextCard as { avatar_url?: string })?.avatar_url || '/placeholder.svg'}
-                        className="w-full h-full object-cover opacity-50 grayscale"
-                        alt="Next"
-                      />
-                    </div>
+              {/* NEXT CARD (Background) */}
+              {nextProfile && (
+                <div className="absolute inset-x-4 top-4 bottom-28 z-0">
+                  <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border opacity-60 scale-95 translate-y-2 shadow-xl">
+                    <img
+                      src={nextProfile.photos?.[0] || nextProfile.avatar_url || '/placeholder.svg'}
+                      className="w-full h-full object-cover opacity-50 grayscale"
+                      alt="Next"
+                    />
                   </div>
-                );
-              })()}
+                </div>
+              )}
 
-              {(currentSeedCard || currentProfile) && (() => {
-                const isSeed = !!currentSeedCard;
-                const activeCard = isSeed ? currentSeedCard : currentProfile!;
+              {currentProfile && (() => {
+                const activeCard = currentProfile;
                 const photoSrc = activeCard.photos?.[currentPhotoIndex]
                   || activeCard.photos?.[0]
                   || activeCard.avatar_url
                   || '/placeholder.svg';
 
-                const cardKey = isSeed ? `seed-${currentSeedCard!.seedId}` : currentProfile!.id;
+                const cardKey = activeCard.id;
 
-                const onlineStatus = isSeed ? false
-                  : formatLastActive((activeCard as typeof currentProfile & object & { last_active_at?: string })?.last_active_at, (activeCard as typeof currentProfile & object & { show_online_status?: boolean })?.show_online_status, (activeCard as typeof currentProfile & object & { show_last_active?: boolean })?.show_last_active) === 'Online';
+                const onlineStatus = formatLastActive((activeCard as any)?.last_active_at, (activeCard as any)?.show_online_status, (activeCard as any)?.show_last_active) === 'Online';
 
-                const distance = (!isSeed && userCoords)
+                const distance = userCoords
                   ? calculateDistance(
                     userCoords.latitude,
                     userCoords.longitude,
-                    (activeCard as typeof currentProfile & object & { latitude?: number })?.latitude ?? undefined,
-                    (activeCard as typeof currentProfile & object & { longitude?: number })?.longitude ?? undefined
+                    (activeCard as any)?.latitude ?? undefined,
+                    (activeCard as any)?.longitude ?? undefined
                   )
                   : null;
 
@@ -746,7 +778,7 @@ export default function Discover() {
                       )}
 
                       {/* Destaque Badge */}
-                      {!isSeed && (activeCard as { is_boosted?: boolean }).is_boosted && (
+                      {activeCard.is_boosted && (
                         <div className="absolute top-10 left-3 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
                           <Zap className="w-3 h-3 fill-black animate-pulse" />
                           <span>Perfil em Destaque</span>
@@ -792,7 +824,7 @@ export default function Discover() {
                               {calculateAge(activeCard.birth_date)}
                             </span>
                           )}
-                          {!isSeed && (activeCard as { is_verified?: boolean }).is_verified && (
+                          {(activeCard as any).is_verified && (
                             <div className="bg-blue-500 rounded-full p-0.5 shadow-lg border border-white/20">
                               <CheckCircle2 className="w-3.5 h-3.5 text-white fill-blue-500" />
                             </div>
@@ -859,19 +891,19 @@ export default function Discover() {
               {!showInfo && (
                 <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-center items-center gap-8 pointer-events-none transition-all">
                   <button
-                    onClick={() => currentSeedCard ? handleSeedSwipe('dislike') : handleSwipe('dislike')}
+                    onClick={() => handleSwipe('dislike')}
                     className="w-14 h-14 rounded-full bg-card/80 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
                   >
                     <i className="ri-close-line text-3xl font-semibold" />
                   </button>
                   <button
-                    onClick={() => currentSeedCard ? handleSeedSwipe('super_like') : handleSwipe('super_like')}
+                    onClick={() => handleSwipe('super_like')}
                     className="w-11 h-11 mb-2 rounded-full bg-card/80 backdrop-blur-lg border border-blue-500/30 text-blue-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all pointer-events-auto"
                   >
                     <i className="ri-star-fill text-xl" />
                   </button>
                   <button
-                    onClick={() => currentSeedCard ? handleSeedSwipe('like') : handleSwipe('like')}
+                    onClick={() => handleSwipe('like')}
                     className="group relative w-14 h-14 rounded-full p-[3px] bg-gradient-to-tr from-[#d4af37] via-[#fcd34d] to-[#b45309] shadow-2xl shadow-orange-500/20 hover:scale-110 active:scale-95 transition-all pointer-events-auto"
                   >
                     <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d4af37] to-[#b45309] flex items-center justify-center border border-white/20 shadow-inner group-hover:from-[#fcd34d] group-hover:to-[#d4af37] transition-colors">
@@ -1338,12 +1370,7 @@ export default function Discover() {
                 onComplete={() => {
                   setShowMatchCelebration(false);
                   if (matchData?.matchId) {
-                    if (matchData.matchId.startsWith('seed-')) {
-                      const seedId = matchData.matchId.replace('seed-', '');
-                      navigate(`/app/chat/seed/${seedId}`);
-                    } else {
-                      navigate(`/app/chat/${matchData.matchId}`);
-                    }
+                    navigate(`/app/chat/${matchData.matchId}`);
                   }
                   setMatchData(null);
                 }}

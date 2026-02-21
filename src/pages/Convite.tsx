@@ -10,6 +10,7 @@ import {
     Heart, Star, CheckCircle2, Loader2, Lock, Mail, User,
     MessageCircle, Shield, Eye, EyeOff, ChevronRight, MapPin,
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 const BENEFITS = [
     { icon: Star, text: '2 meses do Plano Prata grátis', color: 'text-amber-400' },
@@ -24,6 +25,7 @@ type Step = 'landing' | 'register' | 'activating' | 'done';
 export default function Convite() {
     const navigate = useNavigate();
     const { signUp, signIn } = useAuth();
+    const queryClient = useQueryClient();
 
     const [step, setStep] = useState<Step>('landing');
     const [name, setName] = useState('');
@@ -111,6 +113,10 @@ export default function Convite() {
                 console.error('[Convite] RPC error:', rpcError.message);
             } else {
                 console.log('[Convite] Plan activation:', rpcData);
+                // Force immediate refresh of subscription state
+                await queryClient.refetchQueries({ queryKey: ['subscription', userId] });
+                // Small delay to ensure DB propagation and state settlement
+                await new Promise(r => setTimeout(r, 800));
             }
 
             setStep('done');

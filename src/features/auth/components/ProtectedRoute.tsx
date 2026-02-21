@@ -34,14 +34,18 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <>{children}</>;
   }
 
-  // 4. Nunca teve plano — redireciona para o funil de vendas
-  if (!subscription || subscription.tier === 'none') {
+  // 4. Nunca teve plano — redireciona para o funil de vendas (EXCETO se estiver configurando perfil)
+  const isProfileSetupRoute =
+    location.pathname.startsWith('/app/onboarding') ||
+    location.pathname.startsWith('/app/profile/setup') ||
+    location.pathname.startsWith('/app/profile/edit');
+
+  if ((!subscription || subscription.tier === 'none') && !isProfileSetupRoute) {
     return <Navigate to="/v1/planos" replace />;
   }
 
-  // 5. Plano expirado (tier resolvido mas isActive = false) 
-  // → Mostra modal de renovação sobre o conteúdo atual
-  if (!subscription.isActive) {
+  // 5. Plano expirado — Mostra modal de renovação (EXCETO se estiver configurando perfil)
+  if (!subscription.isActive && !isProfileSetupRoute) {
     return (
       <>
         {children}

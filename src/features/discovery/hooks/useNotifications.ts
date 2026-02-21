@@ -79,16 +79,9 @@ export function useNotifications() {
                     queryCount = queryCount.not('swiper_id', 'in', `(${excludedIds.join(',')})`);
                 }
 
-                const [resCount, resSeedCount] = await Promise.all([
-                    queryCount,
-                    supabase
-                        .from('seed_likes')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('user_id', user.id)
-                        .eq('status', 'pending')
-                ]);
+                const { count } = await queryCount;
 
-                const totalLikes = (resCount.count || 0) + (resSeedCount.count || 0);
+                const totalLikes = count || 0;
                 setNotifications(prev => ({ ...prev, likesCount: totalLikes }));
 
             } catch (error) {
@@ -219,19 +212,7 @@ export function useNotifications() {
                     queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
                 }
             )
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'seed_likes',
-                    filter: `user_id=eq.${user.id}`,
-                },
-                () => {
-                    checkMatches();
-                    queryClient.invalidateQueries({ queryKey: ['seed-likes', user.id] });
-                }
-            )
+
             .subscribe();
 
         // Configurar realtime para novos perfis (afeta aba Descobrir)
