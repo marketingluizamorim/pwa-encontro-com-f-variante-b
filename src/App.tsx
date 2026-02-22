@@ -127,12 +127,15 @@ const LoadingFallback = () => (
   </div>
 );
 
+import { PushNotificationManager } from "@/components/PushNotificationManager";
+
 const AppContent = () => {
   return (
     <>
       <BrowserRouter>
         <AuthProvider>
           <LocationModalProvider>
+            <PushNotificationManager />
             <QuizSyncGate />
             <UTMGate />
             <SplashGate />
