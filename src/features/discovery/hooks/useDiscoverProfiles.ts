@@ -55,30 +55,20 @@ async function fetchProfiles({ userId, filters, pageParam, userCity, userState }
 }> {
   const { supabase } = await import('@/integrations/supabase/client');
 
-  // Get IDs of profiles the user has already swiped
-  const { data: existingSwipes } = await supabase
-    .from('swipes')
-    .select('swiped_id')
-    .eq('swiper_id', userId);
-
-  // Get IDs of blocked users
-  const { data: blockedUsers } = await supabase
-    .from('user_blocks')
-    .select('blocked_id')
-    .eq('blocker_id', userId);
-
-  // Get IDs of users who blocked this user
-  const { data: blockedByUsers } = await supabase
-    .from('user_blocks')
-    .select('blocker_id')
-    .eq('blocked_id', userId);
-
-  // Get IDs of profiles that have liked the current user
-  const { data: whoLikedMe } = await supabase
-    .from('swipes')
-    .select('swiper_id')
-    .eq('swiped_id', userId)
-    .in('direction', ['like', 'super_like']);
+  // Fetch all necessary data in parallel to avoid waterfalls
+  const [
+    { data: existingSwipes },
+    { data: blockedUsers },
+    { data: blockedByUsers },
+    { data: whoLikedMe },
+    { data: currentUserProfile }
+  ] = await Promise.all([
+    supabase.from('swipes').select('swiped_id').eq('swiper_id', userId),
+    supabase.from('user_blocks').select('blocked_id').eq('blocker_id', userId),
+    supabase.from('user_blocks').select('blocker_id').eq('blocked_id', userId),
+    supabase.from('swipes').select('swiper_id').eq('swiped_id', userId).in('direction', ['like', 'super_like']),
+    supabase.from('profiles').select('latitude, longitude, gender').eq('user_id', userId).single()
+  ]);
 
   const swipedIds = existingSwipes?.map((s) => s.swiped_id) || [];
   const blockedIds = blockedUsers?.map((b) => b.blocked_id) || [];
@@ -87,13 +77,6 @@ async function fetchProfiles({ userId, filters, pageParam, userCity, userState }
 
   // Excluímos quem já nos curtiu para não repetir identidades entre Discover e Curtidas
   const excludedIds = [userId, ...swipedIds, ...blockedIds, ...blockedByIds, ...whoLikedMeIds];
-
-  // Get current user's location and gender
-  const { data: currentUserProfile } = await supabase
-    .from('profiles')
-    .select('latitude, longitude, gender')
-    .eq('user_id', userId)
-    .single();
 
   const userLat = currentUserProfile?.latitude ? parseFloat(String(currentUserProfile.latitude)) : null;
   const userLon = currentUserProfile?.longitude ? parseFloat(String(currentUserProfile.longitude)) : null;

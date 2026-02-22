@@ -183,15 +183,15 @@ function SectionHeader({
   return (
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-2">
-        <i className={cn(icon, 'text-primary text-base')} />
-        <span className="text-sm font-semibold text-foreground">{title}</span>
+        <i className={cn(icon, 'text-primary text-lg')} />
+        <span className="text-base font-semibold text-foreground">{title}</span>
       </div>
       {showUpgrade && (
         <button
           onClick={onUpgradeClick}
-          className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-[10px] font-bold text-amber-500 active:scale-95 transition-all"
+          className="flex items-center gap-1 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-xs font-bold text-amber-500 active:scale-95 transition-all"
         >
-          <Lock className="w-2.5 h-2.5" />
+          <Lock className="w-3 h-3" />
           Upgrade
         </button>
       )}
@@ -217,8 +217,8 @@ function ToggleRow({
       <div className="flex items-center gap-3">
         <i className={cn(icon, 'text-muted-foreground')} />
         <div>
-          <p className="text-sm font-medium">{label}</p>
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-base font-medium">{label}</p>
+          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
       <Switch checked={checked} onCheckedChange={onCheckedChange} />

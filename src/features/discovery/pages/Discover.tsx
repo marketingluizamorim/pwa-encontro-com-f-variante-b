@@ -16,6 +16,7 @@ import { DiscoverSkeleton } from '@/features/discovery/components/SkeletonLoader
 import { ProfileDetails } from '@/features/discovery/components/ProfileDetails';
 import { ProfilePhotoGallery } from '@/features/discovery/components/ProfilePhotoGallery';
 import { SafetyActions } from '@/features/discovery/components/SafetyActions';
+import { getOptimizedImageUrl, IMAGE_SIZES } from '@/lib/image-utils';
 import { UpgradeFlow } from '@/features/discovery/components/UpgradeFlow';
 import { calculateDistance } from '@/lib/geo-utils';
 import { MatchCelebration } from '@/features/discovery/components/MatchCelebration';
@@ -762,7 +763,7 @@ export default function Discover() {
 
                       {/* Photo */}
                       <img
-                        src={photoSrc}
+                        src={getOptimizedImageUrl(photoSrc, IMAGE_SIZES.PROFILE_CARD)}
                         className="w-full h-full object-cover pointer-events-none"
                         alt="Profile"
                         draggable={false}

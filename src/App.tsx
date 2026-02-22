@@ -76,14 +76,14 @@ import ForgotPassword from "@/features/auth/pages/ForgotPassword";
 import ResetPassword from "@/features/auth/pages/ResetPassword";
 
 // Lazy load secondary public pages
-const Install = lazy(() => import("./pages/public/Install"));
-const Construction = lazy(() => import("./pages/public/Construction"));
-const NotFound = lazy(() => import("./pages/public/NotFound"));
+const Install = lazy(() => import("@/features/shared/pages/public/Install"));
+const Construction = lazy(() => import("@/features/shared/pages/public/Construction"));
+const NotFound = lazy(() => import("@/features/shared/pages/public/NotFound"));
 
 
 // Lazy load legal pages
-const TermosDeUso = lazy(() => import("./pages/legal/TermosDeUso"));
-const PoliticaDeReembolso = lazy(() => import("./pages/legal/PoliticaDeReembolso"));
+const TermosDeUso = lazy(() => import("@/features/legal/pages/TermosDeUso"));
+const PoliticaDeReembolso = lazy(() => import("@/features/legal/pages/PoliticaDeReembolso"));
 
 
 
@@ -101,16 +101,18 @@ const ProfileEdit = lazy(() => import("@/features/discovery/pages/ProfileEdit"))
 const Onboarding = lazy(() => import("@/features/discovery/pages/Onboarding"));
 const Settings = lazy(() => import("@/features/discovery/pages/Settings"));
 const Explore = lazy(() => import("@/features/discovery/pages/Explore"));
-const AdminPanel = lazy(() => import("./pages/admin/AdminPanel"));
-const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
-const WhatsAppGroupPanel = lazy(() => import("./pages/admin/WhatsAppGroupPanel"));
-const Convite = lazy(() => import("./pages/Convite"));
+const AdminPanel = lazy(() => import("@/features/admin/pages/AdminPanel"));
+const AdminLogin = lazy(() => import("@/features/admin/pages/AdminLogin"));
+const WhatsAppGroupPanel = lazy(() => import("@/features/admin/pages/WhatsAppGroupPanel"));
+const Convite = lazy(() => import("@/features/funnel/pages/Convite"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: false,
+      retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 1, // 1 minute
+      gcTime: 1000 * 60 * 5,    // 5 minutes
     },
   },
 });

@@ -19,6 +19,7 @@ import { playNotification } from '@/lib/notifications';
 import { ProfileDetails } from '@/features/discovery/components/ProfileDetails';
 import { ProfilePhotoGallery } from '@/features/discovery/components/ProfilePhotoGallery';
 import { SafetyActions } from '@/features/discovery/components/SafetyActions';
+import { getOptimizedImageUrl, IMAGE_SIZES } from '@/lib/image-utils';
 import { UpgradeFlow } from '@/features/discovery/components/UpgradeFlow';
 import { Header } from '@/features/discovery/components/Header';
 import { HelpDrawer } from '@/features/discovery/components/HelpDrawer';
@@ -142,7 +143,7 @@ const SwipeableMatchCard = ({
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
     >
       <img
-        src={like.profile.photos[0] || like.profile.avatar_url || '/placeholder.svg'}
+        src={getOptimizedImageUrl(like.profile.photos[0] || like.profile.avatar_url, IMAGE_SIZES.THUMBNAIL)}
         alt="Foto oculta"
         className={cn(
           "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none",

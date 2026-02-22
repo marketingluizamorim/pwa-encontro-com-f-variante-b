@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Profile } from '../types/profile';
+import { getOptimizedImageUrl, IMAGE_SIZES } from '@/lib/image-utils';
 
 interface ProfilePhotoGalleryProps {
     profile: Profile;
@@ -53,7 +54,7 @@ export const ProfilePhotoGallery: React.FC<ProfilePhotoGalleryProps> = ({
             </div>
 
             <img
-                src={photos[currentPhotoIndex]}
+                src={getOptimizedImageUrl(photos[currentPhotoIndex], IMAGE_SIZES.PROFILE_CARD)}
                 className="w-full h-full object-cover pointer-events-none"
                 alt={profile.display_name}
             />
