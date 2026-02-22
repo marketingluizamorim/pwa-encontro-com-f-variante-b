@@ -82,31 +82,14 @@ Deno.serve(async (req: Request) => {
         });
 
         // Try to find the user_id by email if it's missing in the purchase record
-        // RETRY LOGIC: If a purchase is orphan, it might be because the user is still creating the account.
         let targetId = purchase.user_id;
         if (!targetId && purchase.user_email) {
-            let attempts = 0;
-            const maxAttempts = 15;
-            const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
-            while (attempts < maxAttempts) {
-                attempts++;
-                console.log(`Webhook attempt ${attempts}/${maxAttempts}: Looking for user with email ${purchase.user_email}`);
-
-                const { data: { users } } = await supabase.auth.admin.listUsers();
-                const foundUser = users?.find(u => u.email === purchase.user_email);
-
-                if (foundUser) {
-                    targetId = foundUser.id;
-                    console.log(`User found on attempt ${attempts}: ${targetId}`);
-                    // Update purchase for future consistency
-                    await supabase.from("purchases").update({ user_id: targetId }).eq("id", purchase.id);
-                    break;
-                }
-
-                if (attempts < maxAttempts) {
-                    await delay(5000); // Wait 5 seconds
-                }
+            const { data: { users } } = await supabase.auth.admin.listUsers();
+            const foundUser = users?.find(u => u.email === purchase.user_email);
+            if (foundUser) {
+                targetId = foundUser.id;
+                // Update purchase for future consistency
+                await supabase.from("purchases").update({ user_id: targetId }).eq("id", purchase.id);
             }
         }
 
