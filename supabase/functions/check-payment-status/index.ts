@@ -179,14 +179,30 @@ Deno.serve(async (req) => {
 
           const PLAN_TIER_ORDER: Record<string, number> = { bronze: 1, silver: 2, gold: 3 };
 
-          // Try to link user if not already linked
+          // Try to link user if not already linked (with RETRY logic)
           let targetUserId = purchase.user_id;
           if (!targetUserId && purchase.user_email) {
-            const { data: { users } } = await supabase.auth.admin.listUsers();
-            const foundUser = users?.find(u => u.email === purchase.user_email);
-            if (foundUser) {
-              targetUserId = foundUser.id;
-              await supabase.from("purchases").update({ user_id: targetUserId }).eq("id", purchase.id);
+            let attempts = 0;
+            const maxAttempts = 3;
+            const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+            while (attempts < maxAttempts) {
+              attempts++;
+              console.log(`Check status attempt ${attempts}: Looking for user ${purchase.user_email}`);
+
+              const { data: { users } } = await supabase.auth.admin.listUsers();
+              const foundUser = users?.find(u => u.email === purchase.user_email);
+
+              if (foundUser) {
+                targetUserId = foundUser.id;
+                console.log(`User found for check status: ${targetUserId}`);
+                await supabase.from("purchases").update({ user_id: targetUserId }).eq("id", purchase.id);
+                break;
+              }
+
+              if (attempts < maxAttempts) {
+                await delay(2000); // 2s delay
+              }
             }
           }
 

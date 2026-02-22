@@ -24,6 +24,9 @@ const TIER: Record<string, number> = {
  *   - PIX_AUTOMATIC → activates directly from the purchase data
  *                     (webhook already set payment_status=PAID)
  */
+// ── Delay Utility ───────────────────────────────────────────────────
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -32,174 +35,143 @@ Deno.serve(async (req: Request) => {
         const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const wooviApiKey = Deno.env.get("WOOVI_API_KEY") ?? "";
 
-        // Authenticated client for JWT validation
-        const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+        // Service-role client for DB writes and admin lookups (bypasses RLS)
+        const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+        const { email: bodyEmail } = await req.json();
+
+        // 1. Authenticate / Identify User
+        // Try JWT first but don't fail if it's not there/invalid (service-role allows us to continue)
         const authHeader = req.headers.get("Authorization") ?? "";
+        const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
         const userClient = createClient(supabaseUrl, anonKey, {
             global: { headers: { Authorization: authHeader } },
         });
-        const { data: { user }, error: userErr } = await userClient.auth.getUser();
-        if (userErr || !user) {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), {
-                status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+
+        const { data: { user: jwtUser } } = await userClient.auth.getUser();
+        const lookupEmail = bodyEmail || jwtUser?.email;
+
+        if (!lookupEmail) {
+            return new Response(JSON.stringify({ error: "Missing email for identification" }), {
+                status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
         }
 
-        // Service-role client for DB writes (bypasses RLS)
-        const supabase = createClient(supabaseUrl, serviceRoleKey);
+        console.log(`Starting link-purchase for email: ${lookupEmail}`);
 
-        const { email } = await req.json();
-        const lookupEmail = email || user.email;
-
-        // ── Find all PAID orphan purchases for this email ───────────────────────
-        const { data: purchases, error: purchasesErr } = await supabase
-            .from("purchases")
-            .select("*")
-            .eq("user_email", lookupEmail)
-            .eq("payment_status", "PAID")
-            .is("user_id", null);
-
-        if (purchasesErr) throw purchasesErr;
-        if (!purchases || purchases.length === 0) {
-            return new Response(JSON.stringify({ linked: 0, message: "No pending purchases" }), {
-                status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-        }
-
+        let targetUser = jwtUser;
         let linked = 0;
+        let attempts = 0;
+        const maxAttempts = 3;
 
-        for (const purchase of purchases) {
-            // 1. Link purchase to user
-            await supabase.from("purchases").update({ user_id: user.id }).eq("id", purchase.id);
+        // ── Retry Loop: Find User and Link Purchases ─────────────────────────
+        while (attempts < maxAttempts) {
+            attempts++;
+            console.log(`Attempt ${attempts} of ${maxAttempts} to find user and link purchases...`);
 
-            const planId = purchase.plan_id as string;
-            const days = PLAN_DURATION_DAYS[planId] ?? 30;
-            const now = new Date();
-            const expiresAt = new Date(now.getTime() + days * 86_400_000);
-            const orderBumps: string[] = Array.isArray(purchase.order_bumps) ? purchase.order_bumps : [];
-
-            // 2. Get previous subscription for renewal tracking
-            const { data: prevSub } = await supabase
-                .from("user_subscriptions")
-                .select("plan_id, expires_at")
-                .eq("user_id", user.id)
-                .order("created_at", { ascending: false })
-                .limit(1)
-                .maybeSingle();
-
-            const isRenewal = !!prevSub;
-            const prevPlanId = prevSub?.plan_id ?? null;
-            const isGold = planId === "gold";
-            const isSilver = planId === "silver";
-            const isBronze = planId === "bronze";
-            const isLifetime = planId === "special-offer" || orderBumps.includes("specialOffer") || orderBumps.includes("lifetime");
-            const hasSpecialOffer = isLifetime || planId === "special-offer";
-            const isPixAutomatic = purchase.payment_method === "PIX_AUTOMATIC";
-
-            // 3a. PIX AUTOMÁTICO — activate directly (webhook already confirmed payment)
-            if (isPixAutomatic) {
-                await supabase.from("user_subscriptions").upsert({
-                    user_id: user.id,
-                    purchase_id: purchase.id,
-                    plan_id: hasSpecialOffer ? "gold" : planId,
-                    plan_name: purchase.plan_name,
-                    starts_at: now.toISOString(),
-                    expires_at: expiresAt.toISOString(),
-                    is_active: true,
-                    is_lifetime: isLifetime,
-                    subscription_type: "pix_automatic",
-                    woovi_subscription_id: purchase.payment_id ?? null,
-                    auto_renew: true,
-                    failed_charges_count: 0,
-                    next_charge_at: expiresAt.toISOString(),
-                    acquisition_source: purchase.source_platform ?? "funnel",
-                    has_all_regions: isGold || isSilver || hasSpecialOffer || orderBumps.includes("allRegions"),
-                    has_grupo_evangelico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
-                    has_grupo_catolico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
-                    can_use_advanced_filters: isGold || hasSpecialOffer || orderBumps.includes("filtrosAvancados"),
-                    daily_swipes_limit: isBronze ? 20 : 9999,
-                    can_see_who_liked: !isBronze || hasSpecialOffer,
-                    can_video_call: !isBronze || hasSpecialOffer,
-                    is_profile_boosted: isGold || hasSpecialOffer,
-                    can_see_recently_online: isGold || hasSpecialOffer,
-                    updated_at: now.toISOString(),
-                }, { onConflict: "user_id" });
-
-                linked++;
-
-                // 3b. ONE-TIME PIX — confirm via Woovi API then activate
-            } else {
-                const paymentId = purchase.payment_id;
-                let isConfirmed = false;
-
-                if (wooviApiKey && paymentId) {
-                    try {
-                        const wooviRes = await fetch(
-                            `https://api.openpix.com.br/api/openpix/v1/charge/${paymentId}`,
-                            { headers: { "Authorization": wooviApiKey, "Content-Type": "application/json" } },
-                        );
-                        if (wooviRes.ok) {
-                            const wooviData = await wooviRes.json();
-                            const status = wooviData?.charge?.status ?? wooviData?.status;
-                            isConfirmed = status === "COMPLETED" || status === "PAID";
-                        }
-                    } catch (e) {
-                        console.error("Woovi check failed:", e);
-                        // Fallback: trust the DB (purchase is already PAID)
-                        isConfirmed = true;
-                    }
-                } else {
-                    // No API key or no paymentId — trust the DB
-                    isConfirmed = true;
-                }
-
-                if (isConfirmed) {
-                    await supabase.from("user_subscriptions").upsert({
-                        user_id: user.id,
-                        purchase_id: purchase.id,
-                        plan_id: hasSpecialOffer ? "gold" : planId,
-                        plan_name: purchase.plan_name,
-                        starts_at: now.toISOString(),
-                        expires_at: expiresAt.toISOString(),
-                        is_active: true,
-                        is_lifetime: isLifetime,
-                        subscription_type: "one_time",
-                        auto_renew: false,
-                        acquisition_source: purchase.source_platform ?? "funnel",
-                        has_all_regions: isGold || isSilver || hasSpecialOffer || orderBumps.includes("allRegions"),
-                        has_grupo_evangelico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
-                        has_grupo_catolico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
-                        can_use_advanced_filters: isGold || hasSpecialOffer || orderBumps.includes("filtrosAvancados"),
-                        daily_swipes_limit: isBronze ? 20 : 9999,
-                        can_see_who_liked: !isBronze || hasSpecialOffer,
-                        can_video_call: !isBronze || hasSpecialOffer,
-                        is_profile_boosted: isGold || hasSpecialOffer,
-                        can_see_recently_online: isGold || hasSpecialOffer,
-                        updated_at: now.toISOString(),
-                    }, { onConflict: "user_id" });
-
-                    linked++;
-                }
+            // Find the user in auth.users by email if not already found via JWT
+            if (!targetUser) {
+                const { data: { users } } = await supabase.auth.admin.listUsers();
+                targetUser = (users?.find(u => u.email === lookupEmail) as any);
             }
 
-            // 4. Renewal tracking
-            if (isRenewal && linked > 0) {
-                await supabase.from("purchases").update({ is_renewal: true, previous_plan_id: prevPlanId }).eq("id", purchase.id);
-                await supabase.from("subscription_renewals").insert({
-                    user_id: user.id,
-                    purchase_id: purchase.id,
-                    previous_plan_id: prevPlanId,
-                    new_plan_id: planId,
-                    previous_expires_at: prevSub?.expires_at ?? null,
-                    new_expires_at: hasSpecialOffer ? null : expiresAt.toISOString(),
-                    revenue: Number(purchase.total_price),
-                    is_upgrade: (TIER[planId] ?? 0) > (TIER[prevPlanId ?? ""] ?? 0),
-                    is_downgrade: (TIER[planId] ?? 0) < (TIER[prevPlanId ?? ""] ?? 0),
-                });
+            if (targetUser) {
+                // Find all PAID orphan purchases for this email
+                const { data: purchases, error: purchasesErr } = await supabase
+                    .from("purchases")
+                    .select("*")
+                    .eq("user_email", lookupEmail)
+                    .eq("payment_status", "PAID")
+                    .is("user_id", null);
+
+                if (!purchasesErr && purchases && purchases.length > 0) {
+                    for (const purchase of purchases) {
+                        // 1. Link purchase to user
+                        await supabase.from("purchases").update({ user_id: targetUser.id }).eq("id", purchase.id);
+
+                        const planId = purchase.plan_id as string;
+                        const days = PLAN_DURATION_DAYS[planId] ?? 30;
+                        const now = new Date();
+                        const expiresAt = new Date(now.getTime() + days * 86_400_000);
+                        const orderBumps: string[] = Array.isArray(purchase.order_bumps) ? purchase.order_bumps : [];
+
+                        // 2. Get previous subscription for renewal tracking
+                        const { data: prevSub } = await supabase
+                            .from("user_subscriptions")
+                            .select("plan_id, expires_at")
+                            .eq("user_id", targetUser.id)
+                            .order("created_at", { ascending: false })
+                            .limit(1)
+                            .maybeSingle();
+
+                        const isRenewal = !!prevSub;
+                        const prevPlanId = prevSub?.plan_id ?? null;
+                        const isGold = planId === "gold";
+                        const isSilver = planId === "silver";
+                        const isBronze = planId === "bronze";
+                        const isLifetime = planId === "special-offer" || orderBumps.includes("specialOffer") || orderBumps.includes("lifetime");
+                        const hasSpecialOffer = isLifetime || planId === "special-offer";
+                        const isPixAutomatic = purchase.payment_method === "PIX_AUTOMATIC";
+
+                        // 3. Upsert subscription
+                        const subscriptionData = {
+                            user_id: targetUser.id,
+                            purchase_id: purchase.id,
+                            plan_id: hasSpecialOffer ? "gold" : planId,
+                            plan_name: purchase.plan_name,
+                            starts_at: now.toISOString(),
+                            expires_at: expiresAt.toISOString(),
+                            is_active: true,
+                            is_lifetime: isLifetime,
+                            subscription_type: isPixAutomatic ? "pix_automatic" : "one_time",
+                            woovi_subscription_id: purchase.payment_id ?? null,
+                            auto_renew: isPixAutomatic,
+                            failed_charges_count: 0,
+                            next_charge_at: isPixAutomatic ? expiresAt.toISOString() : null,
+                            acquisition_source: purchase.source_platform ?? "funnel",
+                            has_all_regions: isGold || isSilver || hasSpecialOffer || orderBumps.includes("allRegions"),
+                            has_grupo_evangelico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
+                            has_grupo_catolico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
+                            can_use_advanced_filters: isGold || hasSpecialOffer || orderBumps.includes("filtrosAvancados"),
+                            daily_swipes_limit: isBronze ? 20 : 9999,
+                            can_see_who_liked: !isBronze || hasSpecialOffer,
+                            can_video_call: !isBronze || hasSpecialOffer,
+                            is_profile_boosted: isGold || hasSpecialOffer,
+                            can_see_recently_online: isGold || hasSpecialOffer,
+                            updated_at: now.toISOString(),
+                        };
+
+                        await supabase.from("user_subscriptions").upsert(subscriptionData, { onConflict: "user_id" });
+                        linked++;
+
+                        // 4. Renewal tracking
+                        if (isRenewal) {
+                            await supabase.from("purchases").update({ is_renewal: true, previous_plan_id: prevPlanId }).eq("id", purchase.id);
+                            await supabase.from("subscription_renewals").insert({
+                                user_id: targetUser.id,
+                                purchase_id: purchase.id,
+                                previous_plan_id: prevPlanId,
+                                new_plan_id: planId,
+                                previous_expires_at: prevSub?.expires_at ?? null,
+                                new_expires_at: hasSpecialOffer ? null : expiresAt.toISOString(),
+                                revenue: Number(purchase.total_price),
+                                is_upgrade: (TIER[planId] ?? 0) > (TIER[prevPlanId ?? ""] ?? 0),
+                                is_downgrade: (TIER[planId] ?? 0) < (TIER[prevPlanId ?? ""] ?? 0),
+                            });
+                        }
+                    }
+                }
+
+                if (linked > 0) break; // Finished successfully
+            }
+
+            if (attempts < maxAttempts) {
+                console.log(`User or purchase not found yet. Waiting 2 seconds before retry...`);
+                await delay(2000); // Wait 2 seconds before next attempt
             }
         }
 
-        return new Response(JSON.stringify({ linked, total: purchases.length }), {
+        return new Response(JSON.stringify({ linked, attempts, success: linked > 0 }), {
             status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
 
