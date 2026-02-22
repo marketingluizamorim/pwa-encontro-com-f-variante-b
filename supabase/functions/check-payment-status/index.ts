@@ -60,20 +60,15 @@ Deno.serve(async (req) => {
     let status: "PENDING" | "PAID" | "FAILED" = "PENDING";
     let wooviStatus = "PENDING";
 
-    const isTestPayment = paymentId.startsWith("dev-test-") || paymentId.startsWith("mock-payment-id-");
-
     const { data: earlyPurchase } = await supabase
       .from("purchases")
       .select("user_email, user_name, plan_name")
       .eq("payment_id", paymentId)
       .maybeSingle();
 
-    const isTestUser = earlyPurchase?.user_email?.includes("@test.com") ||
-      earlyPurchase?.user_email?.includes("@temporario.com") ||
-      earlyPurchase?.user_name?.toLowerCase().includes("dev") ||
-      earlyPurchase?.plan_name?.toLowerCase().includes("dev");
-
-    const isActuallyTest = isTestPayment || isTestUser;
+    const isActuallyTest = paymentId.startsWith("dev-test-") ||
+      paymentId.startsWith("mock-payment-id-") ||
+      earlyPurchase?.user_email === "test@test.com";
 
     if (isActuallyTest) {
       status = "PAID";
