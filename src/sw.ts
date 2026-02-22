@@ -6,6 +6,23 @@ declare let self: ServiceWorkerGlobalScope;
 // Precache resources
 precacheAndRoute(self.__WB_MANIFEST);
 
+import { registerRoute } from 'workbox-routing';
+import { NetworkFirst } from 'workbox-strategies';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+
+// Cache Supabase API requests with NetworkFirst strategy
+registerRoute(
+    ({ url }) => url.hostname.includes('supabase.co') && url.pathname.startsWith('/rest/v1/'),
+    new NetworkFirst({
+        cacheName: 'supabase-api-cache',
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+        ],
+    })
+);
+
 // Handle Push Notifications
 self.addEventListener('push', (event) => {
     if (!event.data) return;
