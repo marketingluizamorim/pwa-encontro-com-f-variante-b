@@ -55,13 +55,12 @@ export function fmtDate(date: Date): string {
     );
 }
 
-/** Calculate commission: Woovi PIX ≈ 1% + R$0.15 per transaction. */
+/** Calculate commission: User wants to send FULL gross value to UTMify. Gateway fees will be configured in UTMify dashboard. */
 export function calcCommission(totalInCents: number) {
-    const fee = Math.max(Math.round(totalInCents * 0.01 + 15), 1);
     return {
         totalPriceInCents: totalInCents,
-        gatewayFeeInCents: fee,
-        userCommissionInCents: totalInCents - fee,
+        gatewayFeeInCents: 0,
+        userCommissionInCents: totalInCents,
         currency: "BRL" as const,
     };
 }
