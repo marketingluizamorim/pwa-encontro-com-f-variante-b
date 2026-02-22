@@ -1539,7 +1539,7 @@ export default function ChatRoom() {
                 <div className="relative z-10">
                   <div className="w-52 h-52 rounded-full overflow-hidden border-[6px] border-white/5 shadow-2xl">
                     <img
-                      src={(activeCall.isIncoming ? matchProfile?.photos?.[0] : (myProfile?.photos?.[0] || user?.user_metadata?.avatar_url)) || '/placeholder.svg'}
+                      src={(matchProfile?.photos?.[0] || matchProfile?.avatar_url) || '/placeholder.svg'}
                       alt="Avatar"
                       className="w-full h-full object-cover"
                     />
