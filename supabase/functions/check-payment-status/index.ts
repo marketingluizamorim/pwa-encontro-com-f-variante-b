@@ -84,18 +84,36 @@ Deno.serve(async (req) => {
         throw new Error("Woovi API key not configured for production payments");
       }
 
-      const wooviResponse = await fetch(`https://api.openpix.com.br/api/openpix/v1/charge/${paymentId}`, {
+      let wooviResponse = await fetch(`https://api.openpix.com.br/api/openpix/v1/charge/${paymentId}`, {
         method: "GET",
         headers: { "Authorization": wooviApiKey, "Content-Type": "application/json" },
       });
 
+      if (wooviResponse.status === 404) {
+        // Try as subscription
+        wooviResponse = await fetch(`https://api.openpix.com.br/api/v1/subscriptions/${paymentId}`, {
+          method: "GET",
+          headers: { "Authorization": wooviApiKey, "Content-Type": "application/json" },
+        });
+      }
+
       if (!wooviResponse.ok) throw new Error(`Woovi API error: ${wooviResponse.status}`);
 
       const wooviData = await wooviResponse.json();
-      const charge = wooviData.charge || wooviData;
-      wooviStatus = charge.status;
 
-      if (wooviStatus === "COMPLETED" || wooviStatus === "CONFIRMED") status = "PAID";
+      // Handle both formats
+      const charge = wooviData.charge || wooviData;
+      const sub = wooviData.subscription;
+
+      if (sub) {
+        // For subscriptions, status is usually 'ACTIVE' but we care about the recurring status
+        // Woovi Journey 3: check if any charge associated is COMPLETED
+        wooviStatus = sub.status === 'ACTIVE' ? 'COMPLETED' : sub.status;
+      } else {
+        wooviStatus = charge.status;
+      }
+
+      if (wooviStatus === "COMPLETED" || wooviStatus === "CONFIRMED" || wooviStatus === "ACTIVE") status = "PAID";
       else if (wooviStatus === "EXPIRED" || wooviStatus === "ERROR") status = "FAILED";
       else status = "PENDING";
     }
@@ -111,9 +129,9 @@ Deno.serve(async (req) => {
           let expiresAt: Date | null = null;
 
           switch (purchase.plan_id) {
-            case "bronze": expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); break;
-            case "silver":
-            case "gold": expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); break;
+            case "bronze": expiresAt = new Date(now.getTime() + 10 * 60 * 1000); break; // 10 mins testing
+            case "silver": expiresAt = new Date(now.getTime() + 20 * 60 * 1000); break; // 20 mins testing
+            case "gold": expiresAt = new Date(now.getTime() + 30 * 60 * 1000); break; // 30 mins testing
             case "special-offer": expiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); break; // 3 months
             default: expiresAt = null;
           }
