@@ -92,7 +92,8 @@ Deno.serve(async (req: Request) => {
             const isGold = planId === "gold";
             const isSilver = planId === "silver";
             const isBronze = planId === "bronze";
-            const hasSpecialOffer = orderBumps.includes("specialOffer") || planId === "special-offer";
+            const isLifetime = planId === "special-offer" || orderBumps.includes("specialOffer") || orderBumps.includes("lifetime");
+            const hasSpecialOffer = isLifetime || planId === "special-offer";
             const isPixAutomatic = purchase.payment_method === "PIX_AUTOMATIC";
 
             // 3a. PIX AUTOMÁTICO — activate directly (webhook already confirmed payment)
@@ -105,15 +106,16 @@ Deno.serve(async (req: Request) => {
                     starts_at: now.toISOString(),
                     expires_at: expiresAt.toISOString(),
                     is_active: true,
-                    is_lifetime: false,
+                    is_lifetime: isLifetime,
                     subscription_type: "pix_automatic",
                     woovi_subscription_id: purchase.payment_id ?? null,
                     auto_renew: true,
                     failed_charges_count: 0,
                     next_charge_at: expiresAt.toISOString(),
+                    acquisition_source: purchase.source_platform ?? "funnel",
                     has_all_regions: isGold || isSilver || hasSpecialOffer || orderBumps.includes("allRegions"),
-                    has_grupo_evangelico: isGold || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
-                    has_grupo_catolico: isGold || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
+                    has_grupo_evangelico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
+                    has_grupo_catolico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
                     can_use_advanced_filters: isGold || hasSpecialOffer || orderBumps.includes("filtrosAvancados"),
                     daily_swipes_limit: isBronze ? 20 : 9999,
                     can_see_who_liked: !isBronze || hasSpecialOffer,
@@ -160,12 +162,13 @@ Deno.serve(async (req: Request) => {
                         starts_at: now.toISOString(),
                         expires_at: expiresAt.toISOString(),
                         is_active: true,
-                        is_lifetime: false,
+                        is_lifetime: isLifetime,
                         subscription_type: "one_time",
                         auto_renew: false,
+                        acquisition_source: purchase.source_platform ?? "funnel",
                         has_all_regions: isGold || isSilver || hasSpecialOffer || orderBumps.includes("allRegions"),
-                        has_grupo_evangelico: isGold || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
-                        has_grupo_catolico: isGold || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
+                        has_grupo_evangelico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
+                        has_grupo_catolico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
                         can_use_advanced_filters: isGold || hasSpecialOffer || orderBumps.includes("filtrosAvancados"),
                         daily_swipes_limit: isBronze ? 20 : 9999,
                         can_see_who_liked: !isBronze || hasSpecialOffer,

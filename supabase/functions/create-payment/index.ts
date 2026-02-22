@@ -133,6 +133,12 @@ Deno.serve(async (req) => {
         throw new Error("Woovi API key not configured for production payments");
       }
 
+      const additionalInfo = [];
+      if (orderBumps?.allRegions) additionalInfo.push({ key: "Adicional", value: "Desbloquear Região" });
+      if (orderBumps?.grupoEvangelico) additionalInfo.push({ key: "Adicional", value: "Grupo Evangélico" });
+      if (orderBumps?.grupoCatolico) additionalInfo.push({ key: "Adicional", value: "Grupo Católico" });
+      if (orderBumps?.filtrosAvancados) additionalInfo.push({ key: "Adicional", value: "Filtros Avançados" });
+
       const wooviResponse = await fetch("https://api.openpix.com.br/api/openpix/v1/charge", {
         method: "POST",
         headers: {
@@ -148,6 +154,7 @@ Deno.serve(async (req) => {
             email: userEmail,
             phone: userPhone?.replace(/\D/g, ""),
           },
+          additionalInfo,
         }),
       });
 

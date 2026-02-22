@@ -126,8 +126,8 @@ export function useSubscription() {
             const isProfileBoosted = data.is_profile_boosted ?? (tier === 'gold');
             const dailySwipesLimit = data.daily_swipes_limit ?? ((tier === 'bronze' || tier === 'none') ? 20 : 999999);
             const hasAllRegions = data.has_all_regions ?? (tier === 'silver' || tier === 'gold');
-            const hasGrupoEvangelico = data.has_grupo_evangelico ?? (tier === 'gold');
-            const hasGrupoCatolico = data.has_grupo_catolico ?? (tier === 'gold');
+            const hasGrupoEvangelico = data.has_grupo_evangelico ?? (tier === 'silver' || tier === 'gold');
+            const hasGrupoCatolico = data.has_grupo_catolico ?? (tier === 'silver' || tier === 'gold');
             const canSeeRecentlyOnline = (data as unknown as { can_see_recently_online?: boolean | null }).can_see_recently_online ?? (tier === 'gold');
             // ──────────────────────────────────────────────────────────────────
 

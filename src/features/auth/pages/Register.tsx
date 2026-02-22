@@ -29,11 +29,12 @@ export default function Register() {
     if (nameParam) setName(decodeURIComponent(nameParam));
   }, [searchParams]);
 
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/app/discover', { replace: true });
-    }
-  }, [user, loading, navigate]);
+  // No longer auto-redirecting here to allow handleSubmit to finish linking purchases
+  // useEffect(() => {
+  //   if (!loading && user) {
+  //     navigate('/app/onboarding', { replace: true });
+  //   }
+  // }, [user, loading, navigate]);
 
   if (loading) {
     return (

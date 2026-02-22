@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
           const recurringStatus = sub.pixRecurring?.status;
 
           const isPaymentConfirmed = (subCharge && (subCharge.status === "COMPLETED" || subCharge.status === "CONFIRMED")) ||
-            (recurringStatus === "COMPLETED" || recurringStatus === "CONFIRMED");
+            (recurringStatus === "COMPLETED" || recurringStatus === "CONFIRMED" || recurringStatus === "APPROVED");
 
           if (wooviStatus === "ACTIVE" && isPaymentConfirmed) {
             status = "PAID";
@@ -179,11 +179,22 @@ Deno.serve(async (req) => {
 
           const PLAN_TIER_ORDER: Record<string, number> = { bronze: 1, silver: 2, gold: 3 };
 
-          if (purchase.user_id) {
+          // Try to link user if not already linked
+          let targetUserId = purchase.user_id;
+          if (!targetUserId && purchase.user_email) {
+            const { data: { users } } = await supabase.auth.admin.listUsers();
+            const foundUser = users?.find(u => u.email === purchase.user_email);
+            if (foundUser) {
+              targetUserId = foundUser.id;
+              await supabase.from("purchases").update({ user_id: targetUserId }).eq("id", purchase.id);
+            }
+          }
+
+          if (targetUserId) {
             const { data: prevSub } = await supabase
               .from("user_subscriptions")
               .select("plan_id, expires_at, is_active")
-              .eq("user_id", purchase.user_id)
+              .eq("user_id", targetUserId)
               .order("created_at", { ascending: false })
               .limit(1)
               .maybeSingle();
@@ -193,24 +204,32 @@ Deno.serve(async (req) => {
             const prevTier = PLAN_TIER_ORDER[prevPlanId ?? ""] ?? 0;
             const newTier = PLAN_TIER_ORDER[purchase.plan_id] ?? 0;
 
+            const isPixAutomatic = purchase.payment_method === "PIX_AUTOMATIC";
+
             await supabase.from("user_subscriptions").upsert({
-              user_id: purchase.user_id,
+              user_id: targetUserId,
               purchase_id: purchase.id,
               plan_id: hasSpecialOffer ? "gold" : purchase.plan_id,
               plan_name: purchase.plan_name,
               starts_at: now.toISOString(),
               expires_at: expiresAt?.toISOString() ?? null,
               is_active: true,
-              is_lifetime: false,
+              is_lifetime: hasSpecialOffer || purchase.plan_id === "special-offer",
+              subscription_type: isPixAutomatic ? "pix_automatic" : "one_time",
+              woovi_subscription_id: purchase.payment_id ?? null,
+              auto_renew: isPixAutomatic,
+              next_charge_at: isPixAutomatic ? (expiresAt?.toISOString() ?? null) : null,
+              acquisition_source: purchase.source_platform ?? "funnel",
               has_all_regions: isGold || isSilver || hasSpecialOffer || orderBumpsArray.includes("allRegions"),
-              has_grupo_evangelico: isGold || hasSpecialOffer || orderBumpsArray.includes("grupoEvangelico"),
-              has_grupo_catolico: isGold || hasSpecialOffer || orderBumpsArray.includes("grupoCatolico"),
+              has_grupo_evangelico: isGold || isSilver || hasSpecialOffer || orderBumpsArray.includes("grupoEvangelico"),
+              has_grupo_catolico: isGold || isSilver || hasSpecialOffer || orderBumpsArray.includes("grupoCatolico"),
               can_use_advanced_filters: isGold || hasSpecialOffer || orderBumpsArray.includes("filtrosAvancados"),
               daily_swipes_limit: isBronze ? 20 : 9999,
               can_see_who_liked: !isBronze || hasSpecialOffer,
               is_profile_boosted: isGold || hasSpecialOffer,
               can_video_call: !isBronze || hasSpecialOffer,
               can_see_recently_online: isGold || hasSpecialOffer,
+              updated_at: now.toISOString(),
             }, { onConflict: "user_id" });
 
             if (isRenewal) {

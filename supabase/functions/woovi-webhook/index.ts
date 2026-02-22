@@ -50,28 +50,58 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const paymentId = charge.correlationID;
+        let paymentId = charge.correlationID;
         if (!paymentId) throw new Error("No correlationID found in charge");
+
+        // RENEWAL HANDLING: If this is a subscription charge, Woovi might send the original correlationID 
+        // inside the subscription object, while the charge itself has a new one.
+        const subscriptionCorrelationID = charge.subscription?.correlationID;
 
         const isTestPayment = paymentId.startsWith("dev-test-") || paymentId.startsWith("mock-payment-id-");
 
-        const { data: purchase, error: purchaseError } = await supabase
+        // 1. Try to find the purchase by charge correlationID first
+        let { data: purchase, error: purchaseError } = await supabase
             .from("purchases").update({ payment_status: "PAID", updated_at: new Date().toISOString() })
             .eq("payment_id", paymentId).select().maybeSingle();
+
+        // 2. If not found and it's a subscription charge, try the original subscription correlationID
+        if (!purchase && subscriptionCorrelationID) {
+            console.log(`Charge ${paymentId} not found, trying subscription ID: ${subscriptionCorrelationID}`);
+            const { data: subPurchase, error: subError } = await supabase
+                .from("purchases").update({ payment_status: "PAID", updated_at: new Date().toISOString() })
+                .eq("payment_id", subscriptionCorrelationID).select().maybeSingle();
+
+            purchase = subPurchase;
+            purchaseError = subError;
+            if (purchase) paymentId = subscriptionCorrelationID; // Use the matched one for consistency
+        }
 
         if (purchaseError) throw purchaseError;
         if (!purchase) return new Response(JSON.stringify({ success: false, error: "Purchase not found" }), {
             status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
 
-        if (purchase.user_id) {
+        // Try to find the user_id by email if it's missing in the purchase record
+        let targetId = purchase.user_id;
+        if (!targetId && purchase.user_email) {
+            // List users can be filtered by email in some versions, but if not we filter manually
+            const { data: { users } } = await supabase.auth.admin.listUsers();
+            const foundUser = users?.find(u => u.email === purchase.user_email);
+            if (foundUser) {
+                targetId = foundUser.id;
+                // Update purchase for future consistency
+                await supabase.from("purchases").update({ user_id: targetId }).eq("id", purchase.id);
+            }
+        }
+
+        if (targetId) {
             const now = new Date();
             let expiresAt: Date;
             switch (purchase.plan_id) {
-                case "bronze": expiresAt = new Date(now.getTime() + 10 * 60 * 1000); break; // 10 mins testing
-                case "silver": expiresAt = new Date(now.getTime() + 20 * 60 * 1000); break; // 20 mins testing
-                case "gold": expiresAt = new Date(now.getTime() + 30 * 60 * 1000); break; // 30 mins testing
-                case "special-offer": expiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); break; // 3 months
+                case "bronze": expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); break; // 7 days
+                case "silver":
+                case "gold": expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); break; // 30 days
+                case "special-offer": expiresAt = new Date(now.getTime() + 99 * 365 * 24 * 60 * 60 * 1000); break; // Lifetime
                 default: expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
             }
 
@@ -80,27 +110,32 @@ Deno.serve(async (req: Request) => {
             const isSilver = purchase.plan_id === "silver";
             const isBronze = purchase.plan_id === "bronze";
             const hasSpecialOffer = orderBumps.includes("specialOffer") || purchase.plan_id === "special-offer";
+            const isPixAutomatic = purchase.payment_method === "PIX_AUTOMATIC";
 
             await supabase.from("user_subscriptions").upsert({
-                user_id: purchase.user_id,
+                user_id: targetId,
                 purchase_id: purchase.id,
-                // special-offer is treated as Gold tier in DB so frontend flags work correctly
                 plan_id: hasSpecialOffer ? "gold" : purchase.plan_id,
                 plan_name: purchase.plan_name,
                 starts_at: now.toISOString(),
                 expires_at: expiresAt.toISOString(),
                 is_active: true,
-                is_lifetime: false,
-                // special-offer = all Gold features
+                is_lifetime: hasSpecialOffer || purchase.plan_id === "special-offer",
+                subscription_type: isPixAutomatic ? "pix_automatic" : "one_time",
+                woovi_subscription_id: purchase.payment_id ?? null,
+                auto_renew: isPixAutomatic,
+                next_charge_at: isPixAutomatic ? expiresAt.toISOString() : null,
+                acquisition_source: purchase.source_platform ?? "funnel",
                 has_all_regions: isGold || isSilver || hasSpecialOffer || orderBumps.includes("allRegions"),
-                has_grupo_evangelico: isGold || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
-                has_grupo_catolico: isGold || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
+                has_grupo_evangelico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
+                has_grupo_catolico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
                 can_use_advanced_filters: isGold || hasSpecialOffer || orderBumps.includes("filtrosAvancados"),
                 daily_swipes_limit: isBronze ? 20 : 9999,
                 can_see_who_liked: !isBronze || hasSpecialOffer,
                 can_video_call: !isBronze || hasSpecialOffer,
                 is_profile_boosted: isGold || hasSpecialOffer,
                 can_see_recently_online: isGold || hasSpecialOffer,
+                updated_at: now.toISOString(),
             }, { onConflict: "user_id" });
         }
 

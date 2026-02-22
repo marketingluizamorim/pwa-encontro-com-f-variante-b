@@ -122,11 +122,17 @@ Deno.serve(async (req) => {
             // IMPORTANT: customer.address is REQUIRED for PIX_RECURRING
             // name/comment must be ≤ 30 chars (Woovi validation)
             const shortName = (PLAN_NAMES[planId] || `Plano ${planId}`).slice(0, 30);
+            const additionalInfo = [];
+            if (orderBumps?.allRegions) additionalInfo.push({ key: "Adicional", value: "Desbloquear Região" });
+            if (orderBumps?.grupoEvangelico) additionalInfo.push({ key: "Adicional", value: "Acesso Grupo Evangélico" });
+            if (orderBumps?.grupoCatolico) additionalInfo.push({ key: "Adicional", value: "Acesso Grupo Católico" });
+
             const subscriptionPayload = {
                 name: shortName,
                 correlationID,
                 value: amountInCents,
                 comment: shortName,
+                additionalInfo,
                 type: "PIX_RECURRING",
                 frequency: planConfig.frequency,
                 dayGenerateCharge,    // today — required for journey 3

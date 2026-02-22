@@ -263,10 +263,10 @@ export function PixPaymentDialog({
                 <div className="w-[85%] max-w-[280px] animate-in zoom-in-95 duration-200">
                   <div className="bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] text-center ring-1 ring-white/5">
                     <h3 className="text-white font-serif font-bold text-lg mb-2">
-                      Pagamento não encontrado
+                      Aguardando Confirmação
                     </h3>
                     <p className="text-white/70 text-xs leading-relaxed mb-4">
-                      O banco ainda não confirmou a transação. Aguarde alguns instantes.
+                      Detectamos seu pedido, mas o banco ainda não confirmou o recebimento do valor. Isso pode levar alguns minutos.
                     </p>
                     <Button
                       onClick={() => setShowPaymentNotFound(false)}
