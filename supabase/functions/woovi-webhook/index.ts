@@ -68,9 +68,9 @@ Deno.serve(async (req: Request) => {
             const now = new Date();
             let expiresAt: Date;
             switch (purchase.plan_id) {
-                case "bronze": expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); break;
-                case "silver":
-                case "gold": expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); break;
+                case "bronze": expiresAt = new Date(now.getTime() + 10 * 60 * 1000); break; // 10 mins testing
+                case "silver": expiresAt = new Date(now.getTime() + 20 * 60 * 1000); break; // 20 mins testing
+                case "gold": expiresAt = new Date(now.getTime() + 30 * 60 * 1000); break; // 30 mins testing
                 case "special-offer": expiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); break; // 3 months
                 default: expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
             }
