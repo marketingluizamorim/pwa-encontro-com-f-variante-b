@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAdminAuditLog } from '@/features/admin/hooks/useAdminAuditLog';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -86,6 +87,7 @@ const db = supabase as any;
 
 export default function WhatsAppGroupPanel() {
     const navigate = useNavigate();
+    const { logAction } = useAdminAuditLog();
     const [tab, setTab] = useState<'overview' | 'members' | 'comparison'>('overview');
 
     const { data: members = [], isLoading, refetch } = useQuery<GroupMember[]>({
@@ -96,6 +98,15 @@ export default function WhatsAppGroupPanel() {
                 .select('*')
                 .order('registered_at', { ascending: false });
             if (error) throw error;
+
+            // Log de visualização de membros do grupo
+            if (data && data.length > 0) {
+                logAction('view_user_details', 'profiles', undefined, {
+                    context: 'whatsapp_group',
+                    tab
+                });
+            }
+
             return (data ?? []) as GroupMember[];
         },
     });
@@ -110,6 +121,14 @@ export default function WhatsAppGroupPanel() {
                 .order('created_at', { ascending: false })
                 .limit(200);
             if (error) throw error;
+
+            // Log de visualização de métricas de compra direta
+            if (data && data.length > 0) {
+                logAction('view_financials', 'purchases', undefined, {
+                    context: 'direct_purchases_comparison'
+                });
+            }
+
             return (data as unknown as DirectPurchase[]) ?? [];
         },
     });
@@ -163,8 +182,8 @@ export default function WhatsAppGroupPanel() {
                         key={t.id}
                         onClick={() => setTab(t.id)}
                         className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${tab === t.id
-                                ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
-                                : 'bg-white/5 border border-white/10 text-white/40 hover:text-white/60'
+                            ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
+                            : 'bg-white/5 border border-white/10 text-white/40 hover:text-white/60'
                             }`}
                     >
                         {t.label}

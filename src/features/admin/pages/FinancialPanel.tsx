@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAdminAuditLog } from '@/features/admin/hooks/useAdminAuditLog';
 import { format, subDays, startOfDay, endOfDay, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -205,9 +206,9 @@ export default function FinancialPanel({ onOpenLegend }: FinancialPanelProps) {
     const [custom, setCustom] = useState({ from: '', to: '' });
     const [showCustom, setShowCustom] = useState(false);
 
+    const { logAction } = useAdminAuditLog();
     const range = useMemo(() => getRange(preset === 'all' && (custom.from || custom.to) ? 'all' : preset, custom), [preset, custom]);
 
-    // ── Queries ───────────────────────────────────────────────────────────────
     const { data: allPurchases = [], isLoading, refetch } = useQuery({
         queryKey: ['admin-financial-all'],
         queryFn: async () => {
@@ -219,6 +220,20 @@ export default function FinancialPanel({ onOpenLegend }: FinancialPanelProps) {
             return data ?? [];
         },
     });
+
+    // Registrar visualização de dados sensíveis
+    useEffect(() => {
+        if (!isLoading && allPurchases.length > 0) {
+            logAction('view_financials', 'purchases', undefined, {
+                preset,
+                range: {
+                    from: range.from.toISOString(),
+                    to: range.to.toISOString()
+                }
+            });
+        }
+    }, [preset, isLoading, allPurchases.length]); // Loga ao carregar ou trocar filtro
+
 
     const { data: allRenewals = [] } = useQuery({
         queryKey: ['admin-financial-renewals-all'],
