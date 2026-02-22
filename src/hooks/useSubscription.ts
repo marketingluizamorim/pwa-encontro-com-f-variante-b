@@ -48,8 +48,8 @@ export function useSubscription() {
 
     const query = useQuery({
         queryKey: ['subscription', user?.id],
-        staleTime: 1000 * 60 * 15,
-        gcTime: 1000 * 60 * 60,
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
         retry: false,
         refetchOnWindowFocus: false,
         enabled: !!user,

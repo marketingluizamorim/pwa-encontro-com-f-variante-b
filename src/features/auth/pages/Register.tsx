@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ export default function Register() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const { signUp, signIn, user, loading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Pre-fill from checkout redirect
   useEffect(() => {
@@ -102,6 +104,8 @@ export default function Register() {
           await supabaseRuntime.functions.invoke('link-purchase', {
             body: { email },
           });
+          // FORCE clear subscription cache so ProtectedRoute sees the new plan
+          await queryClient.invalidateQueries({ queryKey: ['subscription'] });
         } catch (err) {
           // Non-critical — subscription can still be activated via webhook
           console.error('Error linking purchase after registration:', err);
