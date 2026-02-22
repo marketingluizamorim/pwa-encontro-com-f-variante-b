@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 
-const VAPID_PUBLIC_KEY = 'BOpaomQeCfnzYQ3IUjkUglyq1ZJGXV9ZaOD3cZJDP3Z8GRdfZxN0BQiDH4jkooWMy64D4atGyyeqvDg8cyRroD8';
+const VAPID_PUBLIC_KEY = 'BHCl9qd0Bl1JrjW0Im3vkRMZdUuej-OxC6q6f4OUo2yuTd3f7Pn5Cb41JSoo2vPS8Lmk_Fj5TsthVE0WCh87t4Kk';
 
 export function usePushNotifications() {
     const { user } = useAuth();
