@@ -68,6 +68,7 @@ interface CreateSubscriptionRequest {
     userPhone?: string;
     orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; };
     quizData?: Record<string, unknown>;
+    gender?: string;
     purchaseSource?: string;
 }
 
@@ -80,7 +81,7 @@ Deno.serve(async (req) => {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         const body: CreateSubscriptionRequest = await req.json();
-        const { planId, userName, userEmail, userPhone, orderBumps, quizData, purchaseSource } = body;
+        const { planId, userName, userEmail, userPhone, orderBumps, quizData, gender, purchaseSource } = body;
 
         // ── Validate plan ──────────────────────────────────────────────────────────
         const planConfig = PLAN_FREQUENCY[planId];
@@ -207,7 +208,7 @@ Deno.serve(async (req) => {
                 payment_status: "PENDING",
                 payment_method: "PIX_AUTOMATIC",
                 order_bumps: orderBumpsList,
-                quiz_data: quizData || {},
+                quiz_data: { ...(quizData || {}), gender } || {},
                 source_platform: purchaseSource ?? "funnel",
             })
             .select()

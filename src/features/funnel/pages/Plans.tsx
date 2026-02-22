@@ -34,6 +34,7 @@ export default function Plans() {
 
   const {
     quizAnswers,
+    gender,
     checkoutInfo,
     setCheckoutInfo,
     setOrderBumps,
@@ -162,6 +163,7 @@ export default function Plans() {
           userPhone: data.phone,
           orderBumps: currentOrderBumps,
           quizData: quizAnswers,
+          gender: gender,
           isSpecialOffer,
           planName: PLAN_NAMES[planId],
           purchaseSource: 'backredirect',
@@ -186,6 +188,7 @@ export default function Plans() {
           userName: data.name,
           userEmail: data.email,
           userPhone: data.phone,
+          gender: gender,
           orderBumps: {
             allRegions: (currentOrderBumps as { allRegions?: boolean }).allRegions ?? false,
             grupoEvangelico: (currentOrderBumps as { grupoEvangelico?: boolean }).grupoEvangelico ?? false,

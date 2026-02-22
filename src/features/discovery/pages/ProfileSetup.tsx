@@ -68,13 +68,7 @@ export default function ProfileSetup() {
     }
   }, [showErrorBanner]);
 
-  // Cross-device: fetch quiz_data from DB if funnelStore is empty
-  useEffect(() => {
-    if (!user || Object.keys(quizAnswers).length > 0) return;
-    syncQuizDataFromPurchase(user.id);
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Sync form fields when quizAnswers update after async DB fetch
+  // 1. Sync from funnelStore (local device)
   useEffect(() => {
     if (quizAnswers.city && !city) setCity(quizAnswers.city);
     if (quizAnswers.state && !state) setState(quizAnswers.state);
@@ -83,7 +77,37 @@ export default function ProfileSetup() {
     if (quizAnswers.lookingFor && !lookingFor) setLookingFor(quizAnswers.lookingFor);
     if (quizAnswers.children && !aboutChildren) setAboutChildren(quizAnswers.children);
     if (quizAnswers.valuesImportance && !valuesImportance) setValuesImportance(quizAnswers.valuesImportance);
-  }, [quizAnswers]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (funnelGender && !gender) setGender(funnelGender);
+  }, [quizAnswers, funnelGender]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 2. Sync from database (cross-device/trigger fallback)
+  useEffect(() => {
+    async function loadProfileFromDB() {
+      if (!user) return;
+      try {
+        const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+        const { data: dbProfile } = await supabaseRuntime
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (dbProfile) {
+          if (dbProfile.gender && !gender) setGender(dbProfile.gender as any);
+          if (dbProfile.city && !city) setCity(dbProfile.city);
+          if (dbProfile.state && !state) setState(dbProfile.state);
+          if (dbProfile.religion && !religion) setReligion(dbProfile.religion);
+          if (dbProfile.church_frequency && !churchFrequency) setChurchFrequency(dbProfile.church_frequency);
+          if (dbProfile.looking_for && !lookingFor) setLookingFor(dbProfile.looking_for);
+          if (dbProfile.about_children && !aboutChildren) setAboutChildren(dbProfile.about_children);
+          if (dbProfile.values_importance && !valuesImportance) setValuesImportance(dbProfile.values_importance);
+        }
+      } catch (e) {
+        console.error('Error loading profile from DB:', e);
+      }
+    }
+    loadProfileFromDB();
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const validateBasics = () => {
     const newErrors: Record<string, boolean> = {};

@@ -16,6 +16,7 @@ interface CreatePaymentRequest {
   userPhone?: string;
   orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean; specialOffer: boolean };
   quizData?: Record<string, unknown>;
+  gender?: string;
   isSpecialOffer?: boolean;
   planName?: string;
   purchaseSource?: string;
@@ -83,6 +84,7 @@ Deno.serve(async (req) => {
       userPhone,
       orderBumps,
       quizData,
+      gender,
       isSpecialOffer,
       planName,
       purchaseSource,
@@ -186,7 +188,7 @@ Deno.serve(async (req) => {
         payment_status: "PENDING",
         payment_method: "PIX",
         order_bumps: orderBumpsList,
-        quiz_data: quizData || {},
+        quiz_data: { ...(quizData || {}), gender } || {},
         source_platform: purchaseSource ?? 'funnel',
         // UTM tracking
         utm_source: utmSource ?? null,

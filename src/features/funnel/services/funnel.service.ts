@@ -9,6 +9,7 @@ export interface PaymentRequest {
     userPhone: string;
     orderBumps: unknown;
     quizData: QuizAnswers;
+    gender: 'male' | 'female' | null;
     isSpecialOffer?: boolean;
     planName?: string;
     purchaseSource?: 'funnel' | 'backredirect' | 'in_app_upgrade' | 'in_app_renewal';
@@ -25,6 +26,7 @@ export interface SubscriptionRequest {
     planId: string;
     userName: string;
     userEmail: string;
+    gender: 'male' | 'female' | null;
     userPhone?: string;
     orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean };
     quizData?: QuizAnswers;
@@ -50,6 +52,7 @@ export const funnelService = {
                 userPhone: request.userPhone,
                 orderBumps: request.orderBumps,
                 quizData: request.quizData,
+                gender: request.gender,
                 isSpecialOffer: request.isSpecialOffer,
                 planName: request.planName,
                 purchaseSource: request.purchaseSource ?? 'funnel',
@@ -76,6 +79,7 @@ export const funnelService = {
                 userPhone: request.userPhone,
                 orderBumps: request.orderBumps,
                 quizData: request.quizData,
+                gender: request.gender,
                 purchaseSource: request.purchaseSource ?? 'funnel',
                 utmSource: request.utmSource ?? null,
                 utmMedium: request.utmMedium ?? null,
