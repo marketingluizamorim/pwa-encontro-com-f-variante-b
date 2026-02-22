@@ -13,17 +13,15 @@ import { PhotoUpload } from '@/features/discovery/components/PhotoUpload';
 import { InstallPwaDrawer } from '@/components/pwa/InstallPwaDrawer';
 import { ChevronLeft, Check, AlertCircle, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  RELIGIONS,
-  CHURCH_FREQUENCIES,
-  LOOKING_FOR,
-  CHILDREN_OPTIONS,
-  VALUES_OPTIONS
-} from '@/features/discovery/constants/profile-options';
 
 type Step = 'basics' | 'faith' | 'photos' | 'complete';
 
-
+// Constants matching Quiz
+const RELIGIONS = ['Evangélica', 'Católica', 'Protestante', 'Outra'];
+const CHURCH_FREQUENCIES = ['Sim, sou ativo(a)', 'Às vezes', 'Raramente', 'Não frequento'];
+const LOOKING_FOR = ['Relacionamento sério', 'Construir uma família', 'Conhecer pessoas novas', 'Amizade verdadeira'];
+const CHILDREN_OPTIONS = ['Já sou pai/mãe', 'Desejo ter filhos', 'Talvez no futuro', 'Não pretendo ter'];
+const VALUES_OPTIONS = ['Sim, é essencial', 'Muito importante', 'Não é prioridade', 'Indiferente'];
 export default function ProfileSetup() {
   const { user } = useAuth();
   const navigate = useNavigate();

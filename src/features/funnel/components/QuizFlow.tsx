@@ -7,6 +7,13 @@ import { useFunnelStore } from "@/features/funnel/hooks/useFunnelStore";
 import { BRAZIL_STATES, BRAZIL_CITIES } from '@/config/brazil-cities';
 import { ArrowLeft, Sparkles, ChevronRight, Heart } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+  RELIGIONS,
+  CHURCH_FREQUENCIES,
+  LOOKING_FOR,
+  VALUES_OPTIONS,
+  CHILDREN_OPTIONS
+} from '@/features/discovery/constants/profile-options';
 
 interface QuizFlowProps {
   onComplete: (answers: QuizAnswers) => void;
@@ -53,35 +60,35 @@ const BASE_QUESTIONS: Question[] = [
     slug: 'religiao',
     title: 'Qual o pilar da sua fé?',
     type: 'options',
-    options: ['Evangélica', 'Católica', 'Protestante', 'Outra']
+    options: RELIGIONS
   },
   {
     key: 'churchFrequency',
     slug: 'frequencia',
     title: 'Você frequenta a igreja regularmente?',
     type: 'options',
-    options: ['Sim, sou ativo(a)', 'Às vezes', 'Raramente', 'Não frequento']
+    options: CHURCH_FREQUENCIES
   },
   {
     key: 'lookingFor',
     slug: 'objetivo',
     title: 'O que você busca em um relacionamento?',
     type: 'options',
-    options: ['Relacionamento sério', 'Construir uma família', 'Conhecer pessoas novas', 'Amizade verdadeira']
+    options: LOOKING_FOR
   },
   {
     key: 'valuesImportance',
     slug: 'valores',
     title: 'É fundamental encontrar alguém com os mesmos valores?',
     type: 'options',
-    options: ['Sim, é essencial', 'Muito importante', 'Não é prioridade', 'Indiferente']
+    options: VALUES_OPTIONS
   },
   {
     key: 'children',
     slug: 'filhos',
     title: 'Qual o seu pensamento sobre filhos?',
     type: 'options',
-    options: ['Já sou pai/mãe', 'Desejo ter filhos', 'Talvez no futuro', 'Não pretendo ter']
+    options: CHILDREN_OPTIONS
   }
 ];
 

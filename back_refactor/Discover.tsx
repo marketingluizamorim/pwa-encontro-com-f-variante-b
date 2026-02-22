@@ -14,9 +14,6 @@ import { triggerHaptic } from '@/lib/haptics';
 import { PageTransition } from '@/features/discovery/components/PageTransition';
 import { DiscoverSkeleton } from '@/features/discovery/components/SkeletonLoaders';
 import { ProfileDetails } from '@/features/discovery/components/ProfileDetails';
-import { ProfilePhotoGallery } from '@/features/discovery/components/ProfilePhotoGallery';
-import { SafetyActions } from '@/features/discovery/components/SafetyActions';
-import { UpgradeFlow } from '@/features/discovery/components/UpgradeFlow';
 import { calculateDistance } from '@/lib/geo-utils';
 import { MatchCelebration } from '@/features/discovery/components/MatchCelebration';
 import { playNotification } from '@/lib/notifications';
@@ -24,8 +21,11 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { LocationPermissionModal } from '@/features/discovery/components/LocationPermissionModal';
 import { useLocationModal } from '@/contexts/LocationModalContext';
 import { useSubscription } from '@/hooks/useSubscription';
+import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
+import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
 import { LikeLimitDialog } from '@/features/discovery/components/LikeLimitDialog';
 import { MessageCircle, Zap, Search, MapPin, Home, Heart, User2, MoreHorizontal, UserCircle, CheckCircle2, Sparkles } from 'lucide-react';
+import { ReportDialog, BlockDialog } from "@/features/discovery/components/UserActions";
 import { useTheme } from '@/components/theme-provider';
 import { Header } from '@/features/discovery/components/Header';
 import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
@@ -97,21 +97,24 @@ export default function Discover() {
   const [showCompleteProfileDialog, setShowCompleteProfileDialog] = useState(false);
   const { data: subscription } = useSubscription();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [showCheckoutManager, setShowCheckoutManager] = useState(false);
-  const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
+
+
+
+
 
   const [upgradeData, setUpgradeData] = useState({
     title: '',
     description: '',
-    features: [] as string[],
+    features: [],
     planNeeded: 'silver' as 'silver' | 'gold' | 'bronze',
     icon: null as React.ReactNode,
     price: 0,
     planId: ''
   });
-
-  const [showReport, setShowReport] = useState(false);
-  const [showBlock, setShowBlock] = useState(false);
+  const [showCheckoutManager, setShowCheckoutManager] = useState(false);
+  const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
   const [showLikeLimitDialog, setShowLikeLimitDialog] = useState(false);
   const [showSuperLikeExplainer, setShowSuperLikeExplainer] = useState(false);
   const [showSuperLikeMessageDialog, setShowSuperLikeMessageDialog] = useState(false);
@@ -924,21 +927,51 @@ export default function Discover() {
                         </button>
 
                         {/* Hero Image Section */}
-                        {/* Galeria de Fotos Centralizada */}
-                        <ProfilePhotoGallery
-                          profile={currentProfile as any}
-                          currentPhotoIndex={currentPhotoIndex}
-                          onNextPhoto={handleNextPhoto}
-                          onPrevPhoto={handlePrevPhoto}
-                          dragControls={dragControls}
-                        />
+                        <motion.div
+                          className="relative w-full h-[60vh] touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
+                          onPointerDown={(e) => dragControls.start(e)}
+                        >
+                          {/* Photo Stories Progress Bar - Expanded View */}
+                          {currentProfile.photos && currentProfile.photos.length > 1 && (
+                            <div className="absolute top-[calc(1.25rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
+                              {currentProfile.photos.map((_, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`flex-1 rounded-full h-full shadow-sm transition-all duration-300 ${idx === currentPhotoIndex ? 'bg-white scale-y-110 shadow-lg' : 'bg-white/30'
+                                    }`}
+                                />
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Navigation Zones (Left/Right) - Expanded View */}
+                          <div className="absolute inset-0 z-30 flex">
+                            <div className="w-1/2 h-full cursor-pointer" onClick={handlePrevPhoto} />
+                            <div className="w-1/2 h-full cursor-pointer" onClick={handleNextPhoto} />
+                          </div>
+
+                          <img
+                            src={currentProfile.photos?.[currentPhotoIndex] || currentProfile.photos?.[0] || currentProfile.avatar_url || '/placeholder.svg'}
+                            className="w-full h-full object-cover pointer-events-none"
+                            alt={currentProfile.display_name}
+                          />
+                          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+
+                          {/* Destaque Badge - Expanded View */}
+                          {(currentProfile as any).is_boosted && (
+                            <div className="absolute bottom-24 left-5 z-40 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37] text-black text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-1.5 border border-white/20">
+                              <Zap className="w-3 h-3 fill-black animate-pulse" />
+                              <span>Perfil em Destaque</span>
+                            </div>
+                          )}
+                        </motion.div>
 
                         {/* Line Cover - hides the photo container bottom border */}
                         <div className="relative z-[5] h-3 -mt-3 bg-background" />
 
                         {/* Profile Info Content */}
                         <ProfileDetails
-                          profile={currentProfile as any}
+                          profile={currentProfile}
                           userCoords={userCoords}
                           showDirectMessage={true}
                           onSendMessage={() => {
@@ -949,19 +982,27 @@ export default function Discover() {
                               setShowSuperLikeMessageDialog(true);
                             }
                           }}
-                          onReport={() => setShowReport(true)}
-                          onBlock={() => setShowBlock(true)}
+                          onReport={() => setShowReportDialog(true)}
+                          onBlock={() => setShowBlockDialog(true)}
                         />
 
-                        {/* Ações de Segurança Agrupadas */}
-                        <SafetyActions
-                          showReport={showReport}
-                          setShowReport={setShowReport}
-                          showBlock={showBlock}
-                          setShowBlock={setShowBlock}
-                          targetId={(currentProfile as any).id || (currentProfile as any).user_id}
-                          targetName={currentProfile.display_name}
-                          onSuccess={() => {
+                        {/* Interaction Dialogs (Report/Block) */}
+                        <ReportDialog
+                          open={showReportDialog}
+                          onOpenChange={setShowReportDialog}
+                          userId={(currentProfile as any).id || (currentProfile as any).user_id}
+                          userName={currentProfile.display_name}
+                          onReported={() => {
+                            handleSwipe('dislike');
+                            setShowInfo(false);
+                          }}
+                        />
+                        <BlockDialog
+                          open={showBlockDialog}
+                          onOpenChange={setShowBlockDialog}
+                          userId={(currentProfile as any).id || (currentProfile as any).user_id}
+                          userName={currentProfile.display_name}
+                          onBlocked={() => {
                             handleSwipe('dislike');
                             setShowInfo(false);
                           }}
@@ -1070,19 +1111,39 @@ export default function Discover() {
                 }}
               />
 
-              <UpgradeFlow
-                showUpgrade={showUpgradeDialog}
-                setShowUpgrade={setShowUpgradeDialog}
-                upgradeData={upgradeData}
-                showCheckout={showCheckoutManager}
-                setShowCheckout={setShowCheckoutManager}
-                selectedPlan={selectedCheckoutPlan}
+              <FeatureGateDialog
+                open={showUpgradeDialog}
+                onOpenChange={setShowUpgradeDialog}
+                title={upgradeData.title}
+                description={upgradeData.description}
+                features={upgradeData.features}
+                icon={upgradeData.icon}
+                price={upgradeData.price}
                 onUpgrade={(planData) => {
                   setSelectedCheckoutPlan({ id: planData.id, name: planData.name, price: planData.price });
                   setShowUpgradeDialog(false);
                   setShowCheckoutManager(true);
                 }}
               />
+
+              {showCheckoutManager && selectedCheckoutPlan && (
+                <CheckoutManager
+                  key={`discover-checkout-v1-${selectedCheckoutPlan.id}`}
+                  open={showCheckoutManager}
+                  onOpenChange={(open) => {
+                    setShowCheckoutManager(open);
+                    if (!open) {
+                      setTimeout(() => {
+                        setSelectedCheckoutPlan(null);
+                        setShowUpgradeDialog(true);
+                      }, 50);
+                    }
+                  }}
+                  planId={selectedCheckoutPlan.id}
+                  planPrice={selectedCheckoutPlan.price}
+                  planName={selectedCheckoutPlan.name}
+                />
+              )}
 
               <LikeLimitDialog
                 open={showLikeLimitDialog}

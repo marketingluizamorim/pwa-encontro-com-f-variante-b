@@ -16,10 +16,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSwipeMutation } from '@/features/discovery/hooks/useDiscoverProfiles';
 import { MatchCelebration } from '@/features/discovery/components/MatchCelebration';
 import { playNotification } from '@/lib/notifications';
+import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
+import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
 import { ProfileDetails } from '@/features/discovery/components/ProfileDetails';
-import { ProfilePhotoGallery } from '@/features/discovery/components/ProfilePhotoGallery';
-import { SafetyActions } from '@/features/discovery/components/SafetyActions';
-import { UpgradeFlow } from '@/features/discovery/components/UpgradeFlow';
 import { Header } from '@/features/discovery/components/Header';
 import { HelpDrawer } from '@/features/discovery/components/HelpDrawer';
 import { triggerHaptic } from '@/lib/haptics';
@@ -37,9 +36,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSubscription } from '@/hooks/useSubscription';
 import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
-import { LOOKING_FOR_EMOJIS } from '@/features/discovery/constants/profile-options';
 
-
+const LOOKING_FOR_EMOJIS: Record<string, string> = {
+  'Relacionamento sério': '💍',
+  'Construir uma família': '👨‍👩‍👧‍👦',
+  'Conhecer pessoas novas': '✨',
+  'Amizade verdadeira': '🤝',
+};
 
 interface LikeProfile {
   id: string; // The swipe ID or user ID
@@ -226,9 +229,8 @@ export default function Matches() {
   const dragControls = useDragControls();
   // const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0); // This line was a duplicate and has been removed.
 
-  const handleNextPhoto = (e: React.MouseEvent) => {
+  const handleNextPhoto = (e: React.MouseEvent, photos: string[]) => {
     e.stopPropagation();
-    const photos = selectedLike?.profile?.photos || [];
     if (currentPhotoIndex < photos.length - 1) {
       setCurrentPhotoIndex(prev => prev + 1);
     }
@@ -250,14 +252,10 @@ export default function Matches() {
     title: '',
     description: '',
     features: [] as string[],
-    planNeeded: 'silver' as 'silver' | 'gold' | 'bronze',
     icon: null as React.ReactNode,
     price: 0,
     planId: ''
   });
-
-  const [showReport, setShowReport] = useState(false);
-  const [showBlock, setShowBlock] = useState(false);
   const [showCheckoutManager, setShowCheckoutManager] = useState(false);
   const [selectedCheckoutPlan, setSelectedCheckoutPlan] = useState<{ id: string, name: string, price: number } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
@@ -621,7 +619,6 @@ export default function Matches() {
                             "Fazer chamadas de voz e vídeo",
                             "Comunidade cristã no WhatsApp"
                           ],
-                          planNeeded: 'silver',
                           icon: <i className="ri-search-2-line text-4xl" />,
                           price: 29.90,
                           planId: 'silver'
@@ -644,7 +641,6 @@ export default function Matches() {
                             "Fazer chamadas de voz e vídeo",
                             "Comunidade cristã no WhatsApp"
                           ],
-                          planNeeded: 'silver',
                           icon: <i className="ri-search-2-line text-4xl" />,
                           price: 29.90,
                           planId: 'silver'
@@ -671,7 +667,6 @@ export default function Matches() {
                     title: "Plano Prata",
                     description: "Veja agora mesmo quem curtiu seu perfil e dê o primeiro passo para um novo encontro!",
                     features: PLANS.find(p => p.id === 'silver')?.features || [],
-                    planNeeded: 'silver',
                     icon: <i className="ri-search-2-line text-4xl text-amber-500" />,
                     price: PLANS.find(p => p.id === 'silver')?.price || 29.90,
                     planId: 'silver'
@@ -695,7 +690,6 @@ export default function Matches() {
                     title: "Escolha seu Plano",
                     description: "Dê um boost no seu perfil e apareça para mais pessoas!",
                     features: [],
-                    planNeeded: 'bronze',
                     icon: <i className="ri-rocket-2-fill text-4xl" />,
                     price: 0,
                     planId: ''
@@ -736,36 +730,55 @@ export default function Matches() {
                 </button>
 
                 {/* Hero Image - Drag Handle for Closing */}
-                <ProfilePhotoGallery
-                  profile={selectedLike.profile as any}
-                  currentPhotoIndex={currentPhotoIndex}
-                  onNextPhoto={handleNextPhoto}
-                  onPrevPhoto={handlePrevPhoto}
-                  dragControls={dragControls}
-                />
+                <motion.div
+                  className="relative w-full h-[60vh] touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
+                  drag="y"
+                  dragConstraints={{ top: 0, bottom: 0 }}
+                  dragElastic={{ top: 0, bottom: 0.7 }}
+                  onDragEnd={(_e, info) => {
+                    if (info.offset.y > 80 || info.velocity.y > 400) {
+                      handleManualBack();
+                    }
+                  }}
+                >
+                  {/* Photo Indicators */}
+                  {selectedLike.profile.photos && selectedLike.profile.photos.length > 1 && (
+                    <div className="absolute top-[calc(1.25rem+env(safe-area-inset-top))] inset-x-4 z-30 flex gap-1.5 px-2">
+                      {selectedLike.profile.photos.map((_, i) => (
+                        <div key={i} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
+                          <div
+                            className={cn(
+                              "h-full bg-white transition-all duration-300",
+                              i === currentPhotoIndex ? "w-full" : "w-0"
+                            )}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Photo Navigation Tap Areas */}
+                  <div className="absolute inset-0 z-20 flex">
+                    <div className="w-1/2 h-full cursor-pointer" onClick={(e) => handlePrevPhoto(e)} />
+                    <div className="w-1/2 h-full cursor-pointer" onClick={(e) => handleNextPhoto(e, selectedLike.profile.photos)} />
+                  </div>
+
+                  <img
+                    src={selectedLike.profile.photos?.[currentPhotoIndex] || selectedLike.profile.photos?.[0] || selectedLike.profile.avatar_url || '/placeholder.svg'}
+                    className="w-full h-full object-cover pointer-events-none"
+                    alt={selectedLike.profile.display_name}
+                  />
+                  {/* Gradient for Text Readability */}
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+                </motion.div>
 
                 {/* Line Cover - hides the photo container bottom border */}
                 <div className="relative z-[5] h-3 -mt-3 bg-background" />
 
                 {/* Profile Info Content */}
                 <ProfileDetails
-                  profile={selectedLike.profile as any}
+                  profile={selectedLike.profile}
                   showDirectMessage={false}
-                  onReport={() => setShowReport(true)}
-                  onBlock={() => setShowBlock(true)}
-                />
-
-                <SafetyActions
-                  showReport={showReport}
-                  setShowReport={setShowReport}
-                  showBlock={showBlock}
-                  setShowBlock={setShowBlock}
-                  targetId={selectedLike.user_id}
-                  targetName={selectedLike.profile.display_name}
-                  onSuccess={() => {
-                    setSelectedLike(null);
-                    fetchLikes();
-                  }}
                 />
               </div>
 
@@ -823,19 +836,43 @@ export default function Matches() {
         }}
       />
 
-      <UpgradeFlow
-        showUpgrade={showUpgradeDialog}
-        setShowUpgrade={setShowUpgradeDialog}
-        upgradeData={upgradeData}
-        showCheckout={showCheckoutManager}
-        setShowCheckout={setShowCheckoutManager}
-        selectedPlan={selectedCheckoutPlan}
+      <FeatureGateDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        title={upgradeData.title}
+        description={upgradeData.description}
+        features={upgradeData.features}
+        icon={upgradeData.icon}
+        price={upgradeData.price}
         onUpgrade={(planData) => {
-          setSelectedCheckoutPlan({ id: planData.id, name: planData.name, price: planData.price });
+          setSelectedCheckoutPlan({
+            id: planData.id,
+            name: planData.name,
+            price: planData.price
+          });
           setShowUpgradeDialog(false);
           setShowCheckoutManager(true);
         }}
       />
+
+      {showCheckoutManager && selectedCheckoutPlan && (
+        <CheckoutManager
+          key={`matches-checkout-v1-${selectedCheckoutPlan.id}`}
+          open={showCheckoutManager}
+          onOpenChange={(open) => {
+            setShowCheckoutManager(open);
+            if (!open) {
+              setTimeout(() => {
+                setSelectedCheckoutPlan(null);
+                setShowUpgradeDialog(true);
+              }, 50);
+            }
+          }}
+          planId={selectedCheckoutPlan.id}
+          planPrice={selectedCheckoutPlan.price}
+          planName={selectedCheckoutPlan.name}
+        />
+      )}
 
       <HelpDrawer open={showHelp} onOpenChange={setShowHelp} />
     </PageTransition>

@@ -15,10 +15,8 @@ import { CheckoutManager } from '@/features/discovery/components/CheckoutManager
 import { Header } from '@/features/discovery/components/Header';
 import { SafetyToolkitDrawer } from '@/features/discovery/components/SafetyToolkitDrawer';
 import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
+import { ReportDialog, BlockDialog, DeleteConversationDialog } from '@/features/discovery/components/UserActions';
 import { ProfileDetails } from '@/features/discovery/components/ProfileDetails';
-import { ProfilePhotoGallery } from '@/features/discovery/components/ProfilePhotoGallery';
-import { SafetyActions } from '@/features/discovery/components/SafetyActions';
-import { UpgradeFlow } from '@/features/discovery/components/UpgradeFlow';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -808,35 +806,62 @@ export default function Chat() {
                                         </DropdownMenuContent>
                                     </DropdownMenu>
 
-                                    {/* Imagem Hero */}
-                                    <ProfilePhotoGallery
-                                        profile={selectedProfile as any}
-                                        currentPhotoIndex={currentPhotoIndex}
-                                        onNextPhoto={(e) => handleNextPhoto(e, selectedProfile.photos)}
-                                        onPrevPhoto={(e) => handlePrevPhoto(e)}
-                                        dragControls={dragControls}
-                                        className="h-[65vh]"
-                                    />
+                                    {/* Imagem Hero - drag apenas aqui para fechar */}
+                                    <motion.div
+                                        className="relative w-full h-[65vh] touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
+                                        drag="y"
+                                        dragConstraints={{ top: 0, bottom: 0 }}
+                                        dragElastic={{ top: 0, bottom: 0.7 }}
+                                        onDragEnd={(_e, info) => {
+                                            if (info.offset.y > 80 || info.velocity.y > 400) {
+                                                handleManualBack();
+                                            }
+                                        }}
+                                    >
+                                        {/* Photo Indicators */}
+                                        {selectedProfile.photos && selectedProfile.photos.length > 1 && (
+                                            <div className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] inset-x-4 z-30 flex gap-1.5 px-2">
+                                                {selectedProfile.photos.map((_, i) => (
+                                                    <div key={i} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
+                                                        <div
+                                                            className={cn(
+                                                                "h-full bg-white transition-all duration-300",
+                                                                i === currentPhotoIndex ? "w-full" : "w-0"
+                                                            )}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
 
+                                        {/* Photo Navigation Tap Areas */}
+                                        <div className="absolute inset-0 z-20 flex">
+                                            <div className="w-1/2 h-full cursor-pointer" onClick={(e) => handlePrevPhoto(e)} />
+                                            <div className="w-1/2 h-full cursor-pointer" onClick={(e) => handleNextPhoto(e, selectedProfile.photos)} />
+                                        </div>
+
+                                        <img
+                                            src={selectedProfile.photos?.[currentPhotoIndex] || selectedProfile.avatar_url || '/placeholder.svg'}
+                                            className="w-full h-full object-cover pointer-events-none"
+                                            alt={selectedProfile.display_name}
+                                        />
+                                        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+                                    </motion.div>
+
+                                    {/* Line Cover - hides the photo container bottom border */}
                                     <div className="relative z-[5] h-3 -mt-3 bg-background" />
 
+                                    {/* Conteúdo de Informações do Perfil */}
                                     <ProfileDetails
-                                        profile={selectedProfile as any}
+                                        profile={selectedProfile}
                                         showDirectMessage={false}
-                                        onReport={() => setShowReport(true)}
-                                        onBlock={() => setShowBlock(true)}
-                                    />
-
-                                    <SafetyActions
-                                        showReport={showReport}
-                                        setShowReport={setShowReport}
-                                        showBlock={showBlock}
-                                        setShowBlock={setShowBlock}
-                                        targetId={actionProfileId || (selectedProfile as any).id}
-                                        targetName={selectedProfile.display_name}
-                                        onSuccess={() => {
-                                            setSelectedProfile(null);
-                                            handleRefresh();
+                                        onReport={() => {
+                                            setActionProfileId((selectedProfile as any).profile?.id || (selectedProfile as any).id);
+                                            setShowReport(true);
+                                        }}
+                                        onBlock={() => {
+                                            setActionProfileId((selectedProfile as any).profile?.id || (selectedProfile as any).id);
+                                            setShowBlock(true);
                                         }}
                                     />
                                 </div>
@@ -865,23 +890,75 @@ export default function Chat() {
                 )
             }
 
-            <UpgradeFlow
-                showUpgrade={showUpgradeDialog}
-                setShowUpgrade={setShowUpgradeDialog}
-                upgradeData={upgradeData}
-                showCheckout={showCheckoutManager}
-                setShowCheckout={setShowCheckoutManager}
-                selectedPlan={selectedCheckoutPlan}
+            <FeatureGateDialog
+                open={showUpgradeDialog}
+                onOpenChange={setShowUpgradeDialog}
+                title={upgradeData.title}
+                description={upgradeData.description}
+                features={upgradeData.features}
+                icon={upgradeData.icon}
+                price={upgradeData.price}
                 onUpgrade={(planData) => {
-                    setSelectedCheckoutPlan({ id: planData.id, name: planData.name, price: planData.price });
+                    setSelectedCheckoutPlan({
+                        id: planData.id,
+                        name: planData.name,
+                        price: planData.price
+                    });
                     setShowUpgradeDialog(false);
                     setShowCheckoutManager(true);
                 }}
             />
 
+            {showCheckoutManager && selectedCheckoutPlan && (
+                <CheckoutManager
+                    key={`chat-checkout-v1-${selectedCheckoutPlan.id}`}
+                    open={showCheckoutManager}
+                    onOpenChange={(open) => {
+                        setShowCheckoutManager(open);
+                        if (!open) {
+                            setTimeout(() => {
+                                setSelectedCheckoutPlan(null);
+                                setShowUpgradeDialog(true);
+                            }, 50);
+                        }
+                    }}
+                    planId={selectedCheckoutPlan.id}
+                    planPrice={selectedCheckoutPlan.price}
+                    planName={selectedCheckoutPlan.name}
+                />
+            )}
             <SafetyToolkitDrawer open={showSafety} onOpenChange={setShowSafety} />
 
-            {/* Dialogs de Ações Restantes */}
+            {/* Dialogs de Ações */}
+            {actionProfileId && (
+                <>
+                    <ReportDialog
+                        open={showReport}
+                        onOpenChange={setShowReport}
+                        userId={actionProfileId}
+                        userName={selectedProfile?.display_name || 'Usuário'}
+                        onReported={() => {
+                            toast.success('Denúncia enviada com sucesso');
+                            setSelectedProfile(null);
+                            setActionProfileId(null);
+                            setShowReport(false);
+                        }}
+                    />
+                    <BlockDialog
+                        open={showBlock}
+                        onOpenChange={setShowBlock}
+                        userId={actionProfileId}
+                        userName={selectedProfile?.display_name || 'Usuário'}
+                        onBlocked={() => {
+                            setSelectedProfile(null);
+                            setActionProfileId(null);
+                            setShowBlock(false);
+                            handleRefresh(); // Atualiza a lista para remover o usuário
+                        }}
+                    />
+                </>
+            )}
+
             {actionMatchId && (
                 <DeleteConversationDialog
                     open={showDelete}
@@ -891,7 +968,7 @@ export default function Chat() {
                         setSelectedProfile(null);
                         setActionMatchId(null);
                         setShowDelete(false);
-                        handleRefresh();
+                        handleRefresh(); // Atualiza a lista para remover a conversa
                     }}
                 />
             )}

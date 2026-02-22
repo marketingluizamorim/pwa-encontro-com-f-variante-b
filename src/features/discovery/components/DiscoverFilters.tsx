@@ -29,6 +29,13 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { FeatureGateDialog } from './FeatureGateDialog';
 import { CheckoutManager } from './CheckoutManager';
 import { Lock, MapPin, Heart, Target, Filter, Sliders } from 'lucide-react';
+import {
+  RELIGIONS as RELIGIONS_LIST,
+  CHURCH_FREQUENCIES as CHURCH_FREQUENCIES_LIST,
+  LOOKING_FOR as LOOKING_FOR_LIST,
+  CHRISTIAN_INTERESTS_OPTIONS
+} from '@/features/discovery/constants/profile-options';
+import { UpgradeFlow } from './UpgradeFlow';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -59,39 +66,20 @@ interface DiscoverFiltersProps {
 
 const RELIGIONS = [
   { value: '', label: 'Todas' },
-  { value: 'Evangélica', label: 'Evangélica' },
-  { value: 'Católica', label: 'Católica' },
-  { value: 'Protestante', label: 'Protestante' },
-  { value: 'Outra', label: 'Outra' },
+  ...RELIGIONS_LIST.map(r => ({ value: r, label: r }))
 ];
 
 const CHURCH_FREQUENCIES = [
   { value: '', label: 'Qualquer frequência' },
-  { value: 'Sim, sou ativo(a)', label: 'Sim, sou ativo(a)' },
-  { value: 'Às vezes', label: 'Às vezes' },
-  { value: 'Raramente', label: 'Raramente' },
-  { value: 'Não frequento', label: 'Não frequento' },
+  ...CHURCH_FREQUENCIES_LIST.map(f => ({ value: f, label: f }))
 ];
 
 const LOOKING_FOR_OPTIONS = [
   { value: '', label: 'Todos objetivos' },
-  { value: 'Relacionamento sério', label: 'Relacionamento sério' },
-  { value: 'Construir uma família', label: 'Construir uma família' },
-  { value: 'Conhecer pessoas novas', label: 'Conhecer pessoas novas' },
-  { value: 'Amizade verdadeira', label: 'Amizade verdadeira' },
+  ...LOOKING_FOR_LIST.map(l => ({ value: l, label: l }))
 ];
 
-const CHRISTIAN_INTERESTS = [
-  'Bíblia', 'Oração', 'Adoração', 'Família',
-  'Comunhão', 'Louvor', 'Santidade', 'Evangelismo',
-  'Missões', 'Teatro', 'Instrumental', 'Devocional',
-  'Jejum', 'Discipulado', 'Respeito', 'Propósito',
-  'Leitura', 'Estudos', 'Pregações', 'Podcasts',
-  'Chamado', 'Retiro', 'Acampamento', 'Viagem',
-  'Voluntariado', 'Profético', 'Dança', 'Coral',
-  'Teologia', 'Edificação', 'Maturidade', 'Composição',
-  'Pastoreio', 'ServiçoSocial', 'Companheirismo',
-];
+const CHRISTIAN_INTERESTS = CHRISTIAN_INTERESTS_OPTIONS;
 
 const DEFAULT_FILTERS: DiscoverFiltersState = {
   minAge: 18,
@@ -716,37 +704,19 @@ export default function DiscoverFilters({
       </FilterSheet>
 
       {/* Dialogs de upgrade (fora do sheet, no DOM raiz) */}
-      <FeatureGateDialog
-        open={showUpgradeDialog}
-        onOpenChange={setShowUpgradeDialog}
-        title={upgradeData.title}
-        description={upgradeData.description}
-        features={upgradeData.features}
-        icon={upgradeData.icon}
-        price={upgradeData.price}
+      <UpgradeFlow
+        showUpgrade={showUpgradeDialog}
+        setShowUpgrade={setShowUpgradeDialog}
+        upgradeData={upgradeData as any}
+        showCheckout={showCheckoutManager}
+        setShowCheckout={setShowCheckoutManager}
+        selectedPlan={selectedCheckoutPlan}
         onUpgrade={(planData) => {
           setSelectedCheckoutPlan({ id: planData.id, name: planData.name, price: planData.price });
           setShowUpgradeDialog(false);
           setShowCheckoutManager(true);
         }}
       />
-
-      {showCheckoutManager && selectedCheckoutPlan && (
-        <CheckoutManager
-          key={`filters-checkout-${selectedCheckoutPlan.id}`}
-          open={showCheckoutManager}
-          onOpenChange={(o) => {
-            setShowCheckoutManager(o);
-            if (!o) setTimeout(() => {
-              setSelectedCheckoutPlan(null);
-              setShowUpgradeDialog(true);
-            }, 50);
-          }}
-          planId={selectedCheckoutPlan.id}
-          planPrice={selectedCheckoutPlan.price}
-          planName={selectedCheckoutPlan.name}
-        />
-      )}
     </>
   );
 }

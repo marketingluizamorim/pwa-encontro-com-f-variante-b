@@ -28,10 +28,9 @@ import {
   GraduationCap, Languages
 } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { FeatureGateDialog } from '@/features/discovery/components/FeatureGateDialog';
+import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
 import { ProfileDetails } from '@/features/discovery/components/ProfileDetails';
-import { ProfilePhotoGallery } from '@/features/discovery/components/ProfilePhotoGallery';
-import { SafetyActions } from '@/features/discovery/components/SafetyActions';
-import { UpgradeFlow } from '@/features/discovery/components/UpgradeFlow';
 import {
   Dialog,
   DialogContent,
@@ -231,7 +230,6 @@ export default function ChatRoom() {
   const dragControls = useDragControls();
 
   const queryClient = useQueryClient();
-
 
   // chat-details: wait for auth to resolve before fetching
   // This prevents the race condition where user is null on first open
@@ -450,7 +448,6 @@ export default function ChatRoom() {
     title: '',
     description: '',
     features: [] as string[],
-    planNeeded: 'silver' as 'silver' | 'gold' | 'bronze',
     icon: null as React.ReactNode,
     price: 49.90,
     planId: 'gold'
@@ -739,7 +736,6 @@ export default function ChatRoom() {
           "Fazer chamadas de voz e vídeo",
           "Comunidade cristã no WhatsApp"
         ],
-        planNeeded: 'silver',
         icon: <i className="ri-image-line text-4xl" />,
         price: 29.90,
         planId: 'silver'
@@ -795,7 +791,6 @@ export default function ChatRoom() {
           "Fazer chamadas de voz e vídeo",
           "Comunidade cristã no WhatsApp"
         ],
-        planNeeded: 'silver',
         icon: <i className="ri-image-line text-4xl" />,
         price: 29.90,
         planId: 'silver'
@@ -824,7 +819,6 @@ export default function ChatRoom() {
           "Fazer chamadas de voz e vídeo",
           "Comunidade cristã no WhatsApp"
         ],
-        planNeeded: 'silver',
         icon: <i className="ri-mic-line text-4xl" />,
         price: 29.90,
         planId: 'silver'
@@ -1200,7 +1194,6 @@ export default function ChatRoom() {
                   "Chamadas de voz e vídeo",
                   "Comunidade cristã no WhatsApp"
                 ],
-                planNeeded: 'silver',
                 icon: <i className="ri-video-line text-4xl" />,
                 price: 29.90,
                 planId: 'silver'
@@ -1228,7 +1221,6 @@ export default function ChatRoom() {
                   "Chamadas de voz e vídeo",
                   "Comunidade cristã no WhatsApp"
                 ],
-                planNeeded: 'silver',
                 icon: <i className="ri-phone-line text-4xl" />,
                 price: 29.90,
                 planId: 'silver'
@@ -1337,7 +1329,12 @@ export default function ChatRoom() {
         </div>
       </div>
 
-
+      {otherUserId && (
+        <ReportDialog open={showReport} onOpenChange={setShowReport} userId={otherUserId} userName={matchProfile.display_name} />
+      )}
+      {otherUserId && (
+        <BlockDialog open={showBlock} onOpenChange={setShowBlock} userId={otherUserId} userName={matchProfile.display_name} onBlocked={() => navigate('/app/chat')} />
+      )}
       {matchId && otherUserId && (
         <UnmatchDialog open={showUnmatch} onOpenChange={setShowUnmatch} matchId={matchId} otherUserId={otherUserId} userName={matchProfile.display_name} />
       )}
@@ -1361,7 +1358,7 @@ export default function ChatRoom() {
               dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
               dragElastic={{ top: 0, bottom: 0.7, left: 0.1, right: 0.8 }}
               onDragEnd={(_, info) => {
-                if (info.offset.y > 100 || info.velocity.y > 500) {
+                if (info.offset.y > 100 || info.velocity.y > 500 || info.offset.x > 100 || info.velocity.x > 500) {
                   closeProfile();
                 }
               }}
@@ -1371,36 +1368,60 @@ export default function ChatRoom() {
               <div className="flex-1 overflow-y-auto pb-24 scrollbar-hide relative">
 
                 {/* Hero Image Section */}
-                <ProfilePhotoGallery
-                  profile={matchProfile as any}
-                  currentPhotoIndex={currentPhotoIndex}
-                  onNextPhoto={handleNextPhoto}
-                  onPrevPhoto={handlePrevPhoto}
-                  dragControls={dragControls}
-                />
-
-                {/* Close Button - Top Right */}
-                <Button
-                  onClick={closeProfile}
-                  variant="secondary"
-                  size="icon"
-                  className="fixed top-[calc(1.25rem+env(safe-area-inset-top))] right-4 z-[110] rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20 hover:bg-black/60 shadow-2xl active:scale-90 transition-all"
+                <div
+                  className="relative w-full h-[60vh] shrink-0 touch-none cursor-grab active:cursor-grabbing border-b-4 border-background"
+                  onPointerDown={(e) => dragControls.start(e)}
                 >
-                  <i className="ri-arrow-down-s-line text-2xl" />
-                </Button>
+                  {/* Photo Stories Progress Bar */}
+                  {matchProfile.photos && matchProfile.photos.length > 1 && (
+                    <div className="absolute top-[calc(1.25rem+env(safe-area-inset-top))] left-3 right-3 z-40 flex gap-1.5 h-1">
+                      {matchProfile.photos.map((_, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex-1 rounded-full h-full shadow-sm transition-all duration-300 ${idx === currentPhotoIndex ? 'bg-white scale-y-110 shadow-lg' : 'bg-white/30'
+                            }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Navigation Zones (Left/Right) */}
+                  <div className="absolute inset-0 z-30 flex">
+                    <div className="w-1/2 h-full cursor-pointer" onClick={handlePrevPhoto} />
+                    <div className="w-1/2 h-full cursor-pointer" onClick={handleNextPhoto} />
+                  </div>
+
+
+
+                  <img
+                    src={matchProfile.photos?.[currentPhotoIndex] || matchProfile.avatar_url || '/placeholder.svg'}
+                    className="h-full w-full object-cover pointer-events-none"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
+
+                  {/* Close Button - Top Right */}
+                  <Button
+                    onClick={closeProfile}
+                    variant="secondary"
+                    size="icon"
+                    className="fixed top-[calc(1.25rem+env(safe-area-inset-top))] right-4 z-[110] rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20 hover:bg-black/60 shadow-2xl active:scale-90 transition-all"
+                  >
+                    <i className="ri-arrow-down-s-line text-2xl" />
+                  </Button>
+                </div>
 
                 {/* Line Cover - hides the photo container bottom border */}
                 <div className="relative z-[5] h-3 -mt-3 bg-background" />
 
-                {/* Profile Info Content */}
-                <ProfileDetails
-                  profile={matchProfile as any}
-                  showDirectMessage={false}
-                  onReport={() => setShowReport(true)}
-                  onBlock={() => setShowBlock(true)}
-                />
+                {/* Profile Info Content - Overlaps Hero Image */}
+                <div className="px-4 -mt-16 relative z-10 space-y-4 pb-12">
 
-
+                  {/* Name, Age & Verified */}
+                  <ProfileDetails
+                    profile={matchProfile}
+                    showDirectMessage={false}
+                  />
+                </div>
               </div>
             </motion.div>
           )}
@@ -1408,34 +1429,46 @@ export default function ChatRoom() {
         document.body
       )}
 
-      <UpgradeFlow
-        showUpgrade={showUpgradeDialog}
-        setShowUpgrade={setShowUpgradeDialog}
-        upgradeData={upgradeData}
-        showCheckout={showCheckoutManager}
-        setShowCheckout={setShowCheckoutManager}
-        selectedPlan={selectedCheckoutPlan}
+      {/* Diálogo de Upgrade */}
+      <FeatureGateDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        title={upgradeData.title}
+        description={upgradeData.description}
+        features={upgradeData.features}
+        icon={upgradeData.icon}
+        price={upgradeData.price}
         onUpgrade={(planData) => {
-          setSelectedCheckoutPlan({ id: planData.id, name: planData.name, price: planData.price });
+          setSelectedCheckoutPlan({
+            id: planData.id,
+            name: planData.name,
+            price: planData.price
+          });
           setShowUpgradeDialog(false);
           setShowCheckoutManager(true);
         }}
       />
 
-      {otherUserId && (
-        <SafetyActions
-          showReport={showReport}
-          setShowReport={setShowReport}
-          showBlock={showBlock}
-          setShowBlock={setShowBlock}
-          targetId={otherUserId}
-          targetName={matchProfile?.display_name || 'Usuário'}
-          onSuccess={() => {
-            setShowProfileInfo(false);
-            navigate('/app/chat');
-          }}
-        />
-      )}
+      {
+        showCheckoutManager && selectedCheckoutPlan && (
+          <CheckoutManager
+            key={`chatroom-checkout-v1-${selectedCheckoutPlan.id}`}
+            open={showCheckoutManager}
+            onOpenChange={(open) => {
+              setShowCheckoutManager(open);
+              if (!open) {
+                setTimeout(() => {
+                  setSelectedCheckoutPlan(null);
+                  setShowUpgradeDialog(true);
+                }, 50);
+              }
+            }}
+            planId={selectedCheckoutPlan.id}
+            planPrice={selectedCheckoutPlan.price}
+            planName={selectedCheckoutPlan.name}
+          />
+        )
+      }
 
       {/* Modal de Entrada de Link de Rede Social */}
       <Dialog open={socialModal.isOpen} onOpenChange={(open) => setSocialModal(prev => ({ ...prev, isOpen: open }))}>
@@ -1476,7 +1509,6 @@ export default function ChatRoom() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Modal de Imagem em Tela Cheia (Lightbox) */}
       <AnimatePresence>
         {fullScreenImage && (
@@ -1506,8 +1538,7 @@ export default function ChatRoom() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* WhatsApp Style Video Call Overlay */}
+      {/* WhatsApp Style Video Call Overlay - REPLICATING IMAGE 1 */}
       <AnimatePresence>
         {activeCall && (
           <motion.div
@@ -1516,6 +1547,7 @@ export default function ChatRoom() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[12000] bg-[#0b141a] flex flex-col text-white overflow-hidden"
           >
+            {/* Background Pattern Overlay (Doodle Style) */}
             <div
               className="absolute inset-0 opacity-[0.03] pointer-events-none"
               style={{ backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: '400px' }}
@@ -1523,6 +1555,7 @@ export default function ChatRoom() {
 
             {activeCall.status === 'calling' ? (
               <div className="relative h-full flex flex-col items-center z-10 w-full">
+                {/* Header: Top aligned */}
                 <div className="w-full flex items-center justify-between px-6 pt-[calc(1.5rem+env(safe-area-inset-top))]">
                   <button onClick={handleEndCall} className="w-12 h-12 flex items-center justify-center bg-white/5 rounded-full backdrop-blur-md active:scale-90 transition-transform">
                     <i className="ri-arrow-down-s-line text-3xl" />
@@ -1531,11 +1564,14 @@ export default function ChatRoom() {
                     <h2 className="text-[20px] font-medium leading-tight text-white">{matchProfile?.display_name}</h2>
                     <p className="text-[14px] text-white/60 mt-0.5 font-normal tracking-wide">Chamando...</p>
                   </div>
+                  {/* Empty div to keep the title centered */}
                   <div className="w-12" />
                 </div>
 
+                {/* Spacer to push avatar down */}
                 <div className="flex-[1.5] flex items-center justify-center w-full" />
 
+                {/* Center: Circular Avatar - Large and positioned lower */}
                 <div className="relative z-10">
                   <div className="w-52 h-52 rounded-full overflow-hidden border-[6px] border-white/5 shadow-2xl">
                     <img
@@ -1544,11 +1580,14 @@ export default function ChatRoom() {
                       className="w-full h-full object-cover"
                     />
                   </div>
+                  {/* Subtle pulse animation */}
                   <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping opacity-20" />
                 </div>
 
+                {/* Smaller spacer before controls */}
                 <div className="flex-1 w-full" />
 
+                {/* Footer: Control Bar (Image 1 Style) */}
                 <div className="w-full px-5 mb-12">
                   {activeCall.isIncoming ? (
                     <div className="flex items-center justify-around w-full max-w-sm mx-auto mb-6">
@@ -1603,6 +1642,7 @@ export default function ChatRoom() {
                 </div>
               </div>
             ) : (
+              // Ongoing Call - Jitsi Iframe
               <div className="absolute inset-0 bg-black z-20">
                 <iframe
                   src={`https://meet.jit.si/${activeCall.roomId}#config.prejoinPageEnabled=false&config.startWithVideoMuted=${activeCall.type === 'audio' ? 'true' : 'false'}&interfaceConfig.TOOLBAR_BUTTONS=["microphone",${activeCall.type === 'video' ? '"camera",' : ''}"closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","videobackgroundblur","participants-pane"]`}
@@ -1610,6 +1650,9 @@ export default function ChatRoom() {
                   className="w-full h-full border-none"
                   onLoad={() => { }}
                 />
+
+                {/* Visual controls even on top of iframe if needed, but jitsi has its own. 
+                    Adding an exit button just in case */}
                 <button
                   onClick={handleEndCall}
                   className="absolute bottom-10 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-red-500 flex items-center justify-center text-white shadow-xl z-[12001] active:scale-90 transition-transform"
@@ -1621,8 +1664,6 @@ export default function ChatRoom() {
           </motion.div>
         )}
       </AnimatePresence>
-    </SlideTransition>
+    </SlideTransition >
   );
 }
-
-

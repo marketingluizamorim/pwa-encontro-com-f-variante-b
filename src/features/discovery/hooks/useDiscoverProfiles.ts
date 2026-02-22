@@ -83,10 +83,10 @@ async function fetchProfiles({ userId, filters, pageParam, userCity, userState }
   const swipedIds = existingSwipes?.map((s) => s.swiped_id) || [];
   const blockedIds = blockedUsers?.map((b) => b.blocked_id) || [];
   const blockedByIds = blockedByUsers?.map((b) => b.blocker_id) || [];
+  const whoLikedMeIds = whoLikedMe?.map((s) => s.swiper_id) || [];
 
-  // NOTE: We NO LONGER exclude whoLikedMeIds here so that users who liked you 
-  // can still be "discovered" in the main stack, which is standard for dating apps.
-  const excludedIds = [userId, ...swipedIds, ...blockedIds, ...blockedByIds];
+  // Excluímos quem já nos curtiu para não repetir identidades entre Discover e Curtidas
+  const excludedIds = [userId, ...swipedIds, ...blockedIds, ...blockedByIds, ...whoLikedMeIds];
 
   // Get current user's location and gender
   const { data: currentUserProfile } = await supabase

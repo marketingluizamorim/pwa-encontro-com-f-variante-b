@@ -19,7 +19,8 @@ interface MatchCelebrationProps {
   show: boolean;
   matchName?: string;
   matchPhoto?: string;
-  onComplete?: () => void;
+  onSendMessage: () => void;
+  onClose: () => void;
 }
 
 const COLORS = [
@@ -33,7 +34,7 @@ const COLORS = [
   '#A8D8EA', // Light blue
 ];
 
-export function MatchCelebration({ show, matchName, matchPhoto, onComplete }: MatchCelebrationProps) {
+export function MatchCelebration({ show, matchName, matchPhoto, onSendMessage, onClose }: MatchCelebrationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const confettiRef = useRef<ConfettiPiece[]>([]);
   const animationRef = useRef<number>();
@@ -49,8 +50,8 @@ export function MatchCelebration({ show, matchName, matchPhoto, onComplete }: Ma
         y: window.innerHeight * 0.3 + Math.random() * window.innerHeight * 0.2,
         rotation: Math.random() * 360,
         rotationSpeed: (Math.random() - 0.5) * 15,
-        velocityX: side === 'left' 
-          ? Math.random() * 15 + 5 
+        velocityX: side === 'left'
+          ? Math.random() * 15 + 5
           : -(Math.random() * 15 + 5),
         velocityY: -(Math.random() * 20 + 10),
         gravity: 0.3 + Math.random() * 0.2,
@@ -67,7 +68,7 @@ export function MatchCelebration({ show, matchName, matchPhoto, onComplete }: Ma
   const drawHeart = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
     const width = size;
     const height = size;
-    
+
     ctx.beginPath();
     ctx.moveTo(x, y + height / 4);
     ctx.bezierCurveTo(x, y, x - width / 2, y, x - width / 2, y + height / 4);
@@ -141,18 +142,12 @@ export function MatchCelebration({ show, matchName, matchPhoto, onComplete }: Ma
     confettiRef.current = createConfetti();
     animate();
 
-    // Auto-complete after animation
-    const timeout = setTimeout(() => {
-      onComplete?.();
-    }, 4000);
-
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
-      clearTimeout(timeout);
     };
-  }, [show, createConfetti, animate, onComplete]);
+  }, [show, createConfetti, animate]);
 
   // Handle resize
   useEffect(() => {
@@ -176,8 +171,7 @@ export function MatchCelebration({ show, matchName, matchPhoto, onComplete }: Ma
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          onClick={onComplete}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md"
         >
           {/* Confetti Canvas */}
           <canvas
@@ -190,13 +184,13 @@ export function MatchCelebration({ show, matchName, matchPhoto, onComplete }: Ma
             initial={{ scale: 0, rotate: -10 }}
             animate={{ scale: 1, rotate: 0 }}
             exit={{ scale: 0, rotate: 10 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 200, 
+            transition={{
+              type: "spring",
+              stiffness: 200,
               damping: 15,
-              delay: 0.1 
+              delay: 0.1
             }}
-            className="relative z-10 text-center px-8"
+            className="relative z-10 text-center px-8 w-full max-w-sm pb-32"
           >
             {/* Hearts animation */}
             <motion.div
@@ -206,12 +200,12 @@ export function MatchCelebration({ show, matchName, matchPhoto, onComplete }: Ma
               className="mb-6"
             >
               <div className="relative inline-block">
-                <motion.i 
-                  className="ri-hearts-fill text-8xl text-primary"
-                  animate={{ 
+                <motion.i
+                  className="ri-hearts-fill text-8xl text-primary drop-shadow-[0_0_15px_rgba(242,5,159,0.5)]"
+                  animate={{
                     scale: [1, 1.1, 1],
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 0.8,
                     repeat: Infinity,
                     ease: "easeInOut"
@@ -228,7 +222,7 @@ export function MatchCelebration({ show, matchName, matchPhoto, onComplete }: Ma
                 transition={{ delay: 0.3, type: "spring" }}
                 className="mb-4"
               >
-                <div className="w-24 h-24 mx-auto rounded-full overflow-hidden ring-4 ring-primary ring-offset-4 ring-offset-black/60">
+                <div className="w-28 h-28 mx-auto rounded-full overflow-hidden ring-4 ring-primary ring-offset-4 ring-offset-black/60 shadow-2xl">
                   <img
                     src={matchPhoto}
                     alt={matchName || 'Match'}
@@ -253,20 +247,38 @@ export function MatchCelebration({ show, matchName, matchPhoto, onComplete }: Ma
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="text-white/80 text-lg mb-6"
+                className="text-white/80 text-lg mb-8"
               >
                 Você e <span className="font-semibold text-white">{matchName}</span> combinaram!
               </motion.p>
             )}
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
-              className="text-white/60 text-sm"
+              className="flex flex-col gap-3"
             >
-              Toque para continuar
-            </motion.p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSendMessage();
+                }}
+                className="w-full py-4 rounded-2xl bg-primary text-white font-bold text-lg shadow-[0_10px_30px_rgba(242,5,159,0.3)] hover:scale-105 active:scale-95 transition-all"
+              >
+                Enviar Mensagem
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white/70 font-medium hover:bg-white/10 active:scale-95 transition-all"
+              >
+                Continuar Deslizando
+              </button>
+            </motion.div>
           </motion.div>
         </motion.div>
       )}
