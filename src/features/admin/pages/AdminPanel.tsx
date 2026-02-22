@@ -10,13 +10,14 @@ import {
     Shield, AlertTriangle, CheckCircle, XCircle, Clock,
     User, ChevronDown, ChevronUp, RefreshCw, Ban, Eye,
     DollarSign, ArrowLeft, HelpCircle, MessageCircle,
-    History as HistoryIcon
+    History as HistoryIcon, Send
 } from 'lucide-react';
 import FinancialPanel, { PlanLegendDialog } from './FinancialPanel';
 import AuditLogPanel from './AuditLogPanel';
+import CampaignPanel from './CampaignPanel';
 
 // ── Types ────────────────────────────────────────────────────────────────────
-type Section = 'menu' | 'reports' | 'financial' | 'audit';
+type Section = 'menu' | 'reports' | 'financial' | 'audit' | 'campaigns';
 
 const REASON_LABELS: Record<string, string> = {
     fake_profile: 'Perfil falso',
@@ -114,6 +115,20 @@ function MainMenu({ onSelect }: { onSelect: (s: Section) => void }) {
                     <h3 className="text-base font-bold text-white mb-1">Auditoria</h3>
                     <p className="text-xs text-white/40 leading-relaxed">
                         Histórico de ações dos administradores e segurança
+                    </p>
+                </button>
+
+                {/* Campaigns card */}
+                <button
+                    onClick={() => onSelect('campaigns')}
+                    className="group bg-slate-800/60 border border-white/10 hover:border-indigo-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                    <div className="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center mb-4 group-hover:bg-indigo-500/30 transition-colors">
+                        <Send className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <h3 className="text-base font-bold text-white mb-1">Campanhas Push</h3>
+                    <p className="text-xs text-white/40 leading-relaxed">
+                        Métricas de opt-in e disparo de notificações em massa
                     </p>
                 </button>
 
@@ -422,6 +437,7 @@ const SECTION_META: Record<Exclude<Section, 'menu'>, { label: string; icon: Reac
     reports: { label: 'Denúncias', icon: <AlertTriangle className="w-5 h-5 text-red-400" />, accent: 'bg-red-500/20 border-red-500/30' },
     financial: { label: 'Faturamento', icon: <DollarSign className="w-5 h-5 text-amber-400" />, accent: 'bg-amber-500/20 border-amber-500/30' },
     audit: { label: 'Auditoria', icon: <HistoryIcon className="w-5 h-5 text-blue-400" />, accent: 'bg-blue-500/20 border-blue-500/30' },
+    campaigns: { label: 'Campanhas Push', icon: <Send className="w-5 h-5 text-indigo-400" />, accent: 'bg-indigo-500/20 border-indigo-500/30' },
 };
 
 export default function AdminPanel() {
@@ -474,6 +490,7 @@ export default function AdminPanel() {
                 {section === 'reports' && <ReportsPanel />}
                 {section === 'financial' && <FinancialPanel onOpenLegend={() => setShowLegend(true)} />}
                 {section === 'audit' && <AuditLogPanel />}
+                {section === 'campaigns' && <CampaignPanel />}
             </div>
 
             <PlanLegendDialog open={showLegend} onClose={() => setShowLegend(false)} />
