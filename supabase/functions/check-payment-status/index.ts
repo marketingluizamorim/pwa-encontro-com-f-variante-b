@@ -86,64 +86,71 @@ Deno.serve(async (req) => {
 
       console.log(`Checking payment status for ID: ${paymentId}`);
 
-      // 1. Try Charge by ID
-      let wooviResponse = await fetch(`https://api.openpix.com.br/api/openpix/v1/charge/${paymentId}`, {
-        method: "GET",
-        headers: { "Authorization": wooviApiKey, "Content-Type": "application/json" },
-      });
-
       let wooviData;
-      if (wooviResponse.ok) {
-        wooviData = await wooviResponse.json();
-        console.log("Found charge by ID:", wooviData.charge?.status);
-      } else if (wooviResponse.status === 404) {
-        // 2. Try Subscription by ID
-        console.log("Charge not found by ID, trying subscription...");
-        wooviResponse = await fetch(`https://api.openpix.com.br/api/v1/subscriptions/${paymentId}`, {
+      // 1. Try Charge by ID
+      try {
+        let wooviResponse = await fetch(`https://api.openpix.com.br/api/openpix/v1/charge/${paymentId}`, {
           method: "GET",
           headers: { "Authorization": wooviApiKey, "Content-Type": "application/json" },
         });
 
         if (wooviResponse.ok) {
           wooviData = await wooviResponse.json();
-          console.log("Found subscription by ID:", wooviData.subscription?.status);
+          console.log("Found charge by ID:", wooviData.charge?.status);
         } else {
-          console.log(`Subscription check failed: ${wooviResponse.status}`);
-          // 3. Try Charge by correlationID
-          console.log("Trying charge by correlationID query...");
-          wooviResponse = await fetch(`https://api.openpix.com.br/api/openpix/v1/charge?correlationID=${paymentId}`, {
+          console.log(`Charge ID lookup returned ${wooviResponse.status}`);
+
+          // 2. Try Subscription by ID
+          wooviResponse = await fetch(`https://api.openpix.com.br/api/v1/subscriptions/${paymentId}`, {
             method: "GET",
             headers: { "Authorization": wooviApiKey, "Content-Type": "application/json" },
           });
 
           if (wooviResponse.ok) {
-            const listData = await wooviResponse.json();
-            if (listData.charges && listData.charges.length > 0) {
-              wooviData = { charge: listData.charges[0] };
-              console.log("Found charge by correlationID query:", wooviData.charge.status);
+            wooviData = await wooviResponse.json();
+            console.log("Found subscription by ID:", wooviData.subscription?.status);
+          } else {
+            console.log(`Subscription ID lookup returned ${wooviResponse.status}`);
+
+            // 3. Try Charge by correlationID query
+            wooviResponse = await fetch(`https://api.openpix.com.br/api/openpix/v1/charge?correlationID=${paymentId}`, {
+              method: "GET",
+              headers: { "Authorization": wooviApiKey, "Content-Type": "application/json" },
+            });
+
+            if (wooviResponse.ok) {
+              const listData = await wooviResponse.json();
+              if (listData.charges && listData.charges.length > 0) {
+                wooviData = { charge: listData.charges[0] };
+                console.log("Found charge by correlationID query:", wooviData.charge.status);
+              }
+            } else {
+              console.log(`CorrelationID query returned ${wooviResponse.status}`);
             }
           }
         }
+      } catch (e) {
+        console.error("Fetch error during Woovi check:", e);
       }
 
-      if (!wooviData) {
-        throw new Error(`Payment not found in Woovi for ID ${paymentId} (Status: ${wooviResponse.status})`);
-      }
+      if (wooviData) {
+        const charge = wooviData.charge;
+        const sub = wooviData.subscription;
 
-      const charge = wooviData.charge;
-      const sub = wooviData.subscription;
-
-      if (sub) {
-        // For subscriptions, ACTIVE means the subscription started
-        wooviStatus = sub.status;
-        if (wooviStatus === "ACTIVE") status = "PAID";
-        else if (wooviStatus === "EXPIRED" || wooviStatus === "CANCELED") status = "FAILED";
-        else status = "PENDING";
-      } else if (charge) {
-        wooviStatus = charge.status;
-        if (wooviStatus === "COMPLETED" || wooviStatus === "CONFIRMED") status = "PAID";
-        else if (wooviStatus === "EXPIRED" || wooviStatus === "ERROR") status = "FAILED";
-        else status = "PENDING";
+        if (sub) {
+          wooviStatus = sub.status;
+          if (wooviStatus === "ACTIVE") status = "PAID";
+          else if (wooviStatus === "EXPIRED" || wooviStatus === "CANCELED") status = "FAILED";
+          else status = "PENDING";
+        } else if (charge) {
+          wooviStatus = charge.status;
+          if (wooviStatus === "COMPLETED" || wooviStatus === "CONFIRMED") status = "PAID";
+          else if (wooviStatus === "EXPIRED" || wooviStatus === "ERROR") status = "FAILED";
+          else status = "PENDING";
+        }
+      } else {
+        console.log("Payment not found in Woovi after all attempts. Falling back to PENDING.");
+        status = "PENDING";
       }
     }
 
