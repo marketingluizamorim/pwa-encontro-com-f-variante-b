@@ -9,20 +9,34 @@ export function PushNotificationManager() {
     const [showPrompt, setShowPrompt] = useState(false);
 
     useEffect(() => {
-        // Check if we should show the prompt
-        const checkPermission = async () => {
+        const checkConditions = async () => {
+            // 1. Check if PWA is installed (Standalone mode)
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                || (window.navigator as any).standalone === true;
+
+            if (!isStandalone) return;
+
+            // 2. Check for Notification support
             if (!('Notification' in window)) return;
 
+            // 3. Check Location Permission
+            try {
+                const geoPermission = await navigator.permissions.query({ name: 'geolocation' });
+                if (geoPermission.state !== 'granted') return;
+            } catch (e) {
+                // Some browsers don't support permissions.query for geolocation
+                console.debug('Permissions API not fully supported for geolocation', e);
+            }
+
             if (Notification.permission === 'default') {
-                // Show prompt after a delay if not granted/denied yet
                 const dismissed = localStorage.getItem('push_prompt_dismissed');
                 if (!dismissed) {
-                    setTimeout(() => setShowPrompt(true), 5000);
+                    setTimeout(() => setShowPrompt(true), 3000);
                 }
             }
         };
 
-        checkPermission();
+        checkConditions();
     }, []);
 
     const handleSubscribe = async () => {
