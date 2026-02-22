@@ -3,15 +3,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
 
-const VAPID_PUBLIC_KEY = 'BK-K5887tR-uoP6KuYqmjOpEtY2enhfc2QpekIHNYc_RnxMqyYNZ2MEAthGGSqC8csDMGWKsUefpxWW7QyJoVBlw';
+const VAPID_PUBLIC_KEY = 'BFnXT9Dp2aED78sFmLH4SSjuuJacgWCJCCwCxh9mxDO4x16NHqiaetUoH7QQ3snh80LL4maki0qwm2-ZEQjjvkAE';
 
 export function usePushNotifications() {
     const { user } = useAuth();
     const [isSubscribing, setIsSubscribing] = useState(false);
 
     const urlBase64ToUint8Array = (base64String: string) => {
-        const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const str = base64String.trim();
+        const padding = '='.repeat((4 - (str.length % 4)) % 4);
+        const base64 = (str + padding).replace(/-/g, '+').replace(/_/g, '/');
         const rawData = window.atob(base64);
         const outputArray = new Uint8Array(rawData.length);
         for (let i = 0; i < rawData.length; ++i) {
