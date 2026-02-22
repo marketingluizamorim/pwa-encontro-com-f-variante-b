@@ -106,8 +106,7 @@ Deno.serve(async (req) => {
         const dayGenerateCharge = today.getDate();
 
         // ── Test user bypass ───────────────────────────────────────────────────────
-        const isTestUser = userEmail.includes("@test.com") || userEmail.includes("@temporario.com") ||
-            userName.toLowerCase().includes("dev");
+        const isTestUser = userEmail === "test@test.com"; // Strict test user only
 
         let pixCode = "";
         let qrCodeImage = "";

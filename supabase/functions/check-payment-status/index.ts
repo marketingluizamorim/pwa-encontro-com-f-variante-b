@@ -125,9 +125,16 @@ Deno.serve(async (req) => {
 
         if (sub) {
           wooviStatus = sub.status;
-          if (wooviStatus === "ACTIVE") status = "PAID";
-          else if (wooviStatus === "EXPIRED" || wooviStatus === "CANCELED") status = "FAILED";
-          else status = "PENDING";
+          // For subscriptions, ACTIVE means authorized, but we must check if the first/current charge is paid
+          const subCharge = sub.charge || sub.lastCharge;
+
+          if (wooviStatus === "ACTIVE" && subCharge && (subCharge.status === "COMPLETED" || subCharge.status === "CONFIRMED")) {
+            status = "PAID";
+          } else {
+            // Even if ACTIVE, if the charge is pending, we stay PENDING
+            status = "PENDING";
+            console.log(`Subscription ${wooviStatus} but charge is ${subCharge?.status || "NOT_FOUND"}`);
+          }
         } else if (charge) {
           wooviStatus = charge.status;
           if (wooviStatus === "COMPLETED" || wooviStatus === "CONFIRMED") status = "PAID";
