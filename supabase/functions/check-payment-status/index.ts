@@ -57,6 +57,7 @@ Deno.serve(async (req) => {
 
     let status: "PENDING" | "PAID" | "FAILED" = "PENDING";
     let wooviStatus = "PENDING";
+    let wooviData: any = null;
 
     // FORCED FALSE: This ensures no one bypasses the real check without paying
     const isActuallyTest = false;
@@ -72,7 +73,6 @@ Deno.serve(async (req) => {
 
       console.log(`Checking payment status for ID: ${paymentId}`);
 
-      let wooviData;
       // 1. Try Charge by ID
       try {
         let wooviResponse = await fetch(`https://api.openpix.com.br/api/openpix/v1/charge/${paymentId}`, {
@@ -126,14 +126,18 @@ Deno.serve(async (req) => {
         if (sub) {
           wooviStatus = sub.status;
           // For subscriptions, ACTIVE means authorized, but we must check if the first/current charge is paid
+          // Journey 3 (PAYMENT_ON_APPROVAL) often puts the status in pixRecurring
           const subCharge = sub.charge || sub.lastCharge;
+          const recurringStatus = sub.pixRecurring?.status;
 
-          if (wooviStatus === "ACTIVE" && subCharge && (subCharge.status === "COMPLETED" || subCharge.status === "CONFIRMED")) {
+          const isPaymentConfirmed = (subCharge && (subCharge.status === "COMPLETED" || subCharge.status === "CONFIRMED")) ||
+            (recurringStatus === "COMPLETED" || recurringStatus === "CONFIRMED");
+
+          if (wooviStatus === "ACTIVE" && isPaymentConfirmed) {
             status = "PAID";
           } else {
-            // Even if ACTIVE, if the charge is pending, we stay PENDING
             status = "PENDING";
-            console.log(`Subscription ${wooviStatus} but charge is ${subCharge?.status || "NOT_FOUND"}`);
+            console.log(`Subscription ${wooviStatus} - Charge: ${subCharge?.status || "NONE"} - Recurring: ${recurringStatus || "NONE"}`);
           }
         } else if (charge) {
           wooviStatus = charge.status;
@@ -160,10 +164,10 @@ Deno.serve(async (req) => {
           let expiresAt: Date | null = null;
 
           switch (purchase.plan_id) {
-            case "bronze": expiresAt = new Date(now.getTime() + 10 * 60 * 1000); break; // 10 mins testing
-            case "silver": expiresAt = new Date(now.getTime() + 20 * 60 * 1000); break; // 20 mins testing
-            case "gold": expiresAt = new Date(now.getTime() + 30 * 60 * 1000); break; // 30 mins testing
-            case "special-offer": expiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); break; // 3 months
+            case "bronze": expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); break; // 7 days
+            case "silver":
+            case "gold": expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); break; // 30 days
+            case "special-offer": expiresAt = new Date(now.getTime() + 99 * 365 * 24 * 60 * 60 * 1000); break; // Lifetime
             default: expiresAt = null;
           }
 
@@ -345,7 +349,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true, status, paymentId }), {
+    return new Response(JSON.stringify({ success: true, status, paymentId, wooviData }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

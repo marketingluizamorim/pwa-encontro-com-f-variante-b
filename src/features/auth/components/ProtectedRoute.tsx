@@ -18,39 +18,33 @@ const LoadingScreen = () => (
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading: authLoading } = useAuth();
-  const { data: subscription, isLoading: subLoading } = useSubscription();
+  const { data: subscription, isLoading: subLoading, isError } = useSubscription();
   const location = useLocation();
 
-  // 1. Auth ainda resolvendo — aguarda
-  if (authLoading) return <LoadingScreen />;
+  const isProfileSetupRoute =
+    location.pathname.startsWith('/app/onboarding') ||
+    location.pathname.startsWith('/app/profile/setup') ||
+    location.pathname.startsWith('/app/profile/edit');
+
+  // 1. Auth ou Subscription ainda resolvendo — aguarda
+  if (authLoading || subLoading) return <LoadingScreen />;
 
   // 2. Sem usuário — redireciona para login
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 3. Subscription ainda carregando — renderiza children imediatamente
-  if (subLoading) {
-    return <>{children}</>;
-  }
-
-  // 4. Nunca teve plano — redireciona para o funil de vendas (EXCETO se estiver configurando perfil)
-  const isProfileSetupRoute =
-    location.pathname.startsWith('/app/onboarding') ||
-    location.pathname.startsWith('/app/profile/setup') ||
-    location.pathname.startsWith('/app/profile/edit');
-
+  // 3. Nunca teve plano — redireciona para o funil de vendas (EXCETO se estiver configurando perfil)
   if ((!subscription || subscription.tier === 'none') && !isProfileSetupRoute) {
     return <Navigate to="/v1/planos" replace />;
   }
 
-  // 5. Plano expirado — Mostra modal de renovação (EXCETO se estiver configurando perfil)
-  if (!subscription.isActive && !isProfileSetupRoute) {
+  // 4. Plano expirado ou inativo — Mostra modal de renovação e BLOQUEIA acesso (EXCETO se estiver configurando perfil)
+  if (!subscription?.isActive && !isProfileSetupRoute) {
     return (
-      <>
-        {children}
-        <PlanExpiredModal open previousTier={subscription.tier} />
-      </>
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <PlanExpiredModal open previousTier={subscription?.tier} />
+      </div>
     );
   }
 
