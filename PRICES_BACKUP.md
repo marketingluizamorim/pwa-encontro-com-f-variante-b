@@ -2,14 +2,17 @@
 
 Use this file to restore original prices after testing.
 
-## Plans (PlansGrid.tsx)
+## Plans (PlansGrid.tsx & create-payment/index.ts)
 - Bronze: 12.90 (7 dias)
 - Silver: 29.90 (Mais escolhido)
-- Gold: 39.90 (Economia Completa)
+- Gold: 49.90 (Economia Completa)
+- Special Offer: 15.90 (create-payment/index.ts reference)
+- Special Reference: 15.90
+
 
 ## Special Offer (Plans.tsx)
 - Special Offer: 14.90
-- Gold Plan Reference: 39.90
+- Gold Plan Reference: 49.90
 
 ## Timer (PlansGrid.tsx)
 - Default: 7:34 (454 seconds)

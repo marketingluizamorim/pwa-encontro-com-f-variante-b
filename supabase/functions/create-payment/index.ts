@@ -37,9 +37,9 @@ const PLAN_NAMES: Record<string, string> = {
 };
 
 const PLAN_PRICES: Record<string, number> = {
-  bronze: 12.90,
-  silver: 29.90,
-  gold: 49.90,
+  bronze: 1.00,
+  silver: 2.00,
+  gold: 3.00,
   "special-offer": 15.90,
   special: 15.90,
 };
