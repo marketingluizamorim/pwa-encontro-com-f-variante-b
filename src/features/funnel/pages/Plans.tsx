@@ -237,7 +237,6 @@ export default function Plans() {
   };
 
   const checkPaymentStatus = useCallback(async () => {
-    if (DEV_MODE) return Promise.resolve('PAID' as const);
     return funnelService.checkPaymentStatus(paymentId);
   }, [paymentId]);
 

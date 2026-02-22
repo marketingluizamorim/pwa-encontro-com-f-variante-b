@@ -40,8 +40,6 @@ function formatDateForWebhook(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
-
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -60,15 +58,8 @@ Deno.serve(async (req) => {
     let status: "PENDING" | "PAID" | "FAILED" = "PENDING";
     let wooviStatus = "PENDING";
 
-    const { data: earlyPurchase } = await supabase
-      .from("purchases")
-      .select("user_email, user_name, plan_name")
-      .eq("payment_id", paymentId)
-      .maybeSingle();
-
-    const isActuallyTest = paymentId.startsWith("dev-test-") ||
-      paymentId.startsWith("mock-payment-id-") ||
-      earlyPurchase?.user_email === "test@test.com";
+    // FORCED FALSE: This ensures no one bypasses the real check without paying
+    const isActuallyTest = false;
 
     if (isActuallyTest) {
       status = "PAID";
@@ -176,10 +167,8 @@ Deno.serve(async (req) => {
           const hasSpecialOffer = orderBumpsArray.includes("specialOffer") || purchase.plan_id === "special-offer";
 
           const PLAN_TIER_ORDER: Record<string, number> = { bronze: 1, silver: 2, gold: 3 };
-          // ──────────────────────────────────────────────────────────────────
 
           if (purchase.user_id) {
-            // ── Detectar renovação ─────────────────────────────────────────────
             const { data: prevSub } = await supabase
               .from("user_subscriptions")
               .select("plan_id, expires_at, is_active")
@@ -196,14 +185,12 @@ Deno.serve(async (req) => {
             await supabase.from("user_subscriptions").upsert({
               user_id: purchase.user_id,
               purchase_id: purchase.id,
-              // special-offer is treated as Gold tier so frontend flags work correctly
               plan_id: hasSpecialOffer ? "gold" : purchase.plan_id,
               plan_name: purchase.plan_name,
               starts_at: now.toISOString(),
               expires_at: expiresAt?.toISOString() ?? null,
               is_active: true,
               is_lifetime: false,
-              // special-offer = all Gold features (downsell)
               has_all_regions: isGold || isSilver || hasSpecialOffer || orderBumpsArray.includes("allRegions"),
               has_grupo_evangelico: isGold || hasSpecialOffer || orderBumpsArray.includes("grupoEvangelico"),
               has_grupo_catolico: isGold || hasSpecialOffer || orderBumpsArray.includes("grupoCatolico"),
@@ -215,14 +202,12 @@ Deno.serve(async (req) => {
               can_see_recently_online: isGold || hasSpecialOffer,
             }, { onConflict: "user_id" });
 
-            // ── Marcar purchase como renovação ─────────────────────────────────
             if (isRenewal) {
               await supabase
                 .from("purchases")
                 .update({ is_renewal: true, previous_plan_id: prevPlanId })
                 .eq("id", purchase.id);
 
-              // ── Registrar renovação para métricas ──────────────────────────
               await supabase.from("subscription_renewals").insert({
                 user_id: purchase.user_id,
                 purchase_id: purchase.id,
@@ -234,12 +219,8 @@ Deno.serve(async (req) => {
                 is_upgrade: newTier > prevTier,
                 is_downgrade: newTier < prevTier,
               });
-              // ──────────────────────────────────────────────────────────────
             }
 
-
-            // ── Seed Funnel Likes (MED reduction) ──────────────────────────────
-            // Only seed on first purchase for this user
             const { count: existingSeeds } = await supabase
               .from("seed_likes")
               .select("id", { count: "exact", head: true })
@@ -269,12 +250,10 @@ Deno.serve(async (req) => {
 
               await supabase.from("seed_likes").insert(seedRows);
 
-              // ── Seed Discover profiles (indices 3-5 → top of swipe stack) ──────
-              // like_sequence_position: 1=no match, 2=match, 3=no match
               const discoverSeedRows = [3, 4, 5].map((idx, i) => ({
                 user_id: purchase.user_id,
                 profile_index: idx,
-                like_sequence_position: i + 1, // 1, 2, 3
+                like_sequence_position: i + 1,
                 age_range: quiz.age || "26-35",
                 user_gender: userGender,
                 city: quiz.city || "São Paulo",
@@ -285,13 +264,9 @@ Deno.serve(async (req) => {
               }));
 
               await supabase.from("seed_discover_profiles").insert(discoverSeedRows);
-              // ────────────────────────────────────────────────────────────────────
             }
-            // ───────────────────────────────────────────────────────────────────
           }
 
-
-          // ── Notify UTMify: paid ───────────────────────────────────────────────
           if (!isActuallyTest) {
             const utmifyToken = Deno.env.get("UTMIFY_API_TOKEN");
             if (utmifyToken) {
@@ -345,7 +320,6 @@ Deno.serve(async (req) => {
               });
             }
           }
-          // ── Send welcome email (fire-and-forget) ────────────────────
           if (!isActuallyTest) {
             fetch(`${supabaseUrl}/functions/v1/send-welcome-email`, {
               method: "POST",
@@ -360,7 +334,6 @@ Deno.serve(async (req) => {
               }),
             }).catch((e) => console.error("Welcome email error:", e));
           }
-          // ─────────────────────────────────────────────────────────────
         }
       }
     }
