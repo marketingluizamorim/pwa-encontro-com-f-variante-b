@@ -1110,6 +1110,63 @@ export default function ChatRoom() {
     }, {} as Record<string, Message[]>);
   }, [messages]);
 
+  const MessageList = useMemo(() => (Object.entries(groupedMessages) as [string, Message[]][]).map(([date, msgs]) => (
+    <div key={date} className="space-y-4">
+      <div className="flex justify-center"><span className="text-[10px] uppercase tracking-widest text-muted-foreground bg-muted px-3 py-1 rounded-full">{date}</span></div>
+      {msgs.map((m, index) => {
+        const isOwn = m.sender_id === user?.id;
+        return (
+          <div key={m.id} className={cn('flex', isOwn ? 'justify-end' : 'justify-start')}>
+            <div className={cn('max-w-[80%] shadow-sm relative overflow-hidden transition-all duration-200',
+              m.content.startsWith('[image:') ? 'p-1 rounded-2xl' : 'p-3 rounded-2xl',
+              isOwn ? 'bg-primary text-primary-foreground rounded-tr-none' : 'bg-muted rounded-tl-none',
+              (!isOwn && index === 0 && isSuperLikeMatch) && 'bg-gradient-to-r from-blue-600 to-blue-500 text-white border-2 border-[#d4af37]/50 shadow-[0_0_15px_rgba(212,175,55,0.3)]'
+            )}>
+              {(!isOwn && index === 0 && isSuperLikeMatch) && (
+                <div className="absolute -top-3 -right-3 w-8 h-8 bg-[#d4af37] rotate-12 flex items-center justify-center shadow-sm z-10 rounded-lg">
+                  <i className="ri-star-fill text-white text-xs" />
+                </div>
+              )}
+              {(!isOwn && index === 0 && isSuperLikeMatch) && (
+                <p className="text-[10px] font-bold text-[#d4af37] mb-1 uppercase tracking-wider flex items-center gap-1">
+                  <i className="ri-star-fill" /> Super Like
+                </p>
+              )}
+              {renderMessageContent(
+                m.content,
+                isOwn,
+                formatTime(m.created_at),
+                isOwn ? (
+                  <MessageStatus
+                    isRead={m.is_read}
+                    isSending={m.id.startsWith('temp-')}
+                    className={cn("text-[14px] opacity-100", m.is_read ? "text-blue-400" : "text-white/70")}
+                  />
+                ) : undefined
+              )}
+
+              {!m.content.startsWith('[image:') && (
+                <div className={cn('flex items-center justify-end gap-1 mt-1',
+                  isOwn ? 'text-primary-foreground' : 'text-muted-foreground',
+                  (!isOwn && index === 0 && isSuperLikeMatch) && 'text-blue-100'
+                )}>
+                  <p className="text-[9px] opacity-70">{formatTime(m.created_at)}</p>
+                  {isOwn && (
+                    <MessageStatus
+                      isRead={m.is_read}
+                      isSending={m.id.startsWith('temp-')}
+                      className={cn("text-[16px] opacity-100", m.is_read ? "text-blue-600" : "text-white")}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  )), [groupedMessages, user?.id, isSuperLikeMatch, renderMessageContent]);
+
   if (loading) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   if (!matchProfile) return <div className="p-8 text-center">Match não encontrado. <Link to="/app/chat" className="text-primary underline">Voltar</Link></div>;
 
@@ -1212,62 +1269,7 @@ export default function ChatRoom() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-        {useMemo(() => (Object.entries(groupedMessages) as [string, Message[]][]).map(([date, msgs]) => (
-          <div key={date} className="space-y-4">
-            <div className="flex justify-center"><span className="text-[10px] uppercase tracking-widest text-muted-foreground bg-muted px-3 py-1 rounded-full">{date}</span></div>
-            {msgs.map((m, index) => {
-              const isOwn = m.sender_id === user?.id;
-              return (
-                <div key={m.id} className={cn('flex', isOwn ? 'justify-end' : 'justify-start')}>
-                  <div className={cn('max-w-[80%] shadow-sm relative overflow-hidden transition-all duration-200',
-                    m.content.startsWith('[image:') ? 'p-1 rounded-2xl' : 'p-3 rounded-2xl',
-                    isOwn ? 'bg-primary text-primary-foreground rounded-tr-none' : 'bg-muted rounded-tl-none',
-                    (!isOwn && index === 0 && isSuperLikeMatch) && 'bg-gradient-to-r from-blue-600 to-blue-500 text-white border-2 border-[#d4af37]/50 shadow-[0_0_15px_rgba(212,175,55,0.3)]'
-                  )}>
-                    {(!isOwn && index === 0 && isSuperLikeMatch) && (
-                      <div className="absolute -top-3 -right-3 w-8 h-8 bg-[#d4af37] rotate-12 flex items-center justify-center shadow-sm z-10 rounded-lg">
-                        <i className="ri-star-fill text-white text-xs" />
-                      </div>
-                    )}
-                    {(!isOwn && index === 0 && isSuperLikeMatch) && (
-                      <p className="text-[10px] font-bold text-[#d4af37] mb-1 uppercase tracking-wider flex items-center gap-1">
-                        <i className="ri-star-fill" /> Super Like
-                      </p>
-                    )}
-                    {renderMessageContent(
-                      m.content,
-                      isOwn,
-                      formatTime(m.created_at),
-                      isOwn ? (
-                        <MessageStatus
-                          isRead={m.is_read}
-                          isSending={m.id.startsWith('temp-')}
-                          className={cn("text-[14px] opacity-100", m.is_read ? "text-blue-400" : "text-white/70")}
-                        />
-                      ) : undefined
-                    )}
-
-                    {!m.content.startsWith('[image:') && (
-                      <div className={cn('flex items-center justify-end gap-1 mt-1',
-                        isOwn ? 'text-primary-foreground' : 'text-muted-foreground',
-                        (!isOwn && index === 0 && isSuperLikeMatch) && 'text-blue-100'
-                      )}>
-                        <p className="text-[9px] opacity-70">{formatTime(m.created_at)}</p>
-                        {isOwn && (
-                          <MessageStatus
-                            isRead={m.is_read}
-                            isSending={m.id.startsWith('temp-')}
-                            className={cn("text-[16px] opacity-100", m.is_read ? "text-blue-600" : "text-white")}
-                          />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )), [groupedMessages, user?.id, isSuperLikeMatch, renderMessageContent])}
+        {MessageList}
         <div className="flex justify-start">
           <TypingIndicator isTyping={isBotTyping || isOtherUserTyping} />
         </div>
