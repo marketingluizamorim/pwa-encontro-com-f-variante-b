@@ -14,10 +14,8 @@ import { useQueryClient } from '@tanstack/react-query';
 
 const BENEFITS = [
     { icon: Star, text: '2 meses do Plano Prata grátis', color: 'text-amber-400' },
-    { icon: MapPin, text: 'Encontre pessoas cristãs perto de você', color: 'text-rose-400' },
-    { icon: Heart, text: 'Veja quem curtiu você', color: 'text-pink-400' },
-    { icon: Shield, text: 'Curtidas ilimitadas', color: 'text-emerald-400' },
-    { icon: MessageCircle, text: 'Filtros avançados de busca', color: 'text-blue-400' },
+    { icon: MapPin, text: 'Encontre pessoas perto de você', color: 'text-rose-400' },
+    { icon: Heart, text: 'Aplicativo de namoro cristão com propósito e valores', color: 'text-pink-400' },
 ];
 
 type Step = 'landing' | 'register' | 'activating' | 'done';
@@ -161,7 +159,7 @@ export default function Convite() {
                                 <img
                                     src="/3logo-nova1080x1080.png"
                                     alt="Encontro com Fé"
-                                    className="w-24 h-24 object-contain drop-shadow-[0_0_40px_rgba(212,175,55,0.6)]"
+                                    className="w-20 h-20 object-contain drop-shadow-[0_0_40px_rgba(212,175,55,0.6)]"
                                 />
                             </motion.div>
 
@@ -194,7 +192,7 @@ export default function Convite() {
                                         <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
                                             <b.icon className={`w-4 h-4 ${b.color}`} />
                                         </div>
-                                        <span className="text-white/80 text-sm leading-snug">{b.text}</span>
+                                        <span className="text-white/80 text-sm leading-snug text-left">{b.text}</span>
                                     </motion.div>
                                 ))}
                             </div>
@@ -230,7 +228,7 @@ export default function Convite() {
                                 <img
                                     src="/3logo-nova1080x1080.png"
                                     alt="Encontro com Fé"
-                                    className="w-16 h-16 object-contain mb-4 drop-shadow-[0_0_20px_rgba(212,175,55,0.5)]"
+                                    className="w-20 h-20 object-contain mb-4 drop-shadow-[0_0_20px_rgba(212,175,55,0.5)]"
                                 />
                                 <div className="inline-flex items-center gap-1.5 bg-emerald-400/10 border border-emerald-400/20 rounded-full px-3 py-1 mb-3">
                                     <CheckCircle2 className="w-3 h-3 text-emerald-400" />
