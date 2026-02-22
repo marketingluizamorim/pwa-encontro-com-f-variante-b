@@ -21,7 +21,7 @@ const PLANS: Plan[] = [
   {
     id: 'bronze',
     name: 'PLANO BRONZE',
-    price: 12.90,
+    price: 1.00,
     originalPrice: 29.90,
     period: 'Teste por 7 dias',
     gradient: 'gradient-plan-1',
@@ -43,7 +43,7 @@ const PLANS: Plan[] = [
   {
     id: 'silver',
     name: 'PLANO PRATA',
-    price: 29.90,
+    price: 2.00,
     originalPrice: 59.90,
     period: 'Mais escolhido',
     gradient: 'gradient-plan-2',
@@ -67,7 +67,7 @@ const PLANS: Plan[] = [
   {
     id: 'gold',
     name: 'PLANO OURO',
-    price: 49.90,
+    price: 3.00,
     originalPrice: 99.90,
     period: 'Economia Completa',
     gradient: 'gradient-plan-3',
@@ -94,7 +94,7 @@ interface PlansGridProps {
 }
 
 export function PlansGrid({ onSelectPlan }: PlansGridProps) {
-  const [timeLeft, setTimeLeft] = useState(7 * 60 + 34); // 07:34 in seconds
+  const [timeLeft, setTimeLeft] = useState(10 * 60); // 10:00 in seconds for testing
 
   useEffect(() => {
     const timer = setInterval(() => {

@@ -18,7 +18,7 @@ import type { SelectedBumps } from '@/features/funnel/components/OrderBumpDialog
 
 const SPECIAL_OFFER_PRICE = 14.90;
 const SPECIAL_OFFER_PLAN_ID = 'special-offer';
-const GOLD_PLAN_PRICE = 49.90;
+const GOLD_PLAN_PRICE = 3.00;
 const GOLD_PLAN_ID = 'gold';
 const DEV_MODE = false; // Set to false for real payments
 
