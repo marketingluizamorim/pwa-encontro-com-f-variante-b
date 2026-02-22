@@ -42,16 +42,24 @@ Deno.serve(async (req: Request) => {
 
         // 1. Authenticate / Identify User
         // Try JWT first but don't fail if it's not there/invalid (service-role allows us to continue)
-        const authHeader = req.headers.get("Authorization") ?? "";
-        const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-        const userClient = createClient(supabaseUrl, anonKey, {
-            global: { headers: { Authorization: authHeader } },
-        });
+        let jwtUser = null;
+        try {
+            const authHeader = req.headers.get("Authorization") ?? "";
+            const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+            const userClient = createClient(supabaseUrl, anonKey, {
+                global: { headers: { Authorization: authHeader } },
+            });
+            const { data } = await userClient.auth.getUser();
+            jwtUser = data?.user;
+        } catch (e) {
+            const errorMsg = e instanceof Error ? e.message : String(e);
+            console.log("JWT Auth skipped or failed (non-critical):", errorMsg);
+        }
 
-        const { data: { user: jwtUser } } = await userClient.auth.getUser();
         const lookupEmail = bodyEmail || jwtUser?.email;
 
         if (!lookupEmail) {
+            console.error("Link-purchase failed: No email provided in body or JWT");
             return new Response(JSON.stringify({ error: "Missing email for identification" }), {
                 status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
@@ -62,7 +70,7 @@ Deno.serve(async (req: Request) => {
         let targetUser = jwtUser;
         let linked = 0;
         let attempts = 0;
-        const maxAttempts = 3;
+        const maxAttempts = 5;
 
         // ── Retry Loop: Find User and Link Purchases ─────────────────────────
         while (attempts < maxAttempts) {
@@ -166,8 +174,8 @@ Deno.serve(async (req: Request) => {
             }
 
             if (attempts < maxAttempts) {
-                console.log(`User or purchase not found yet. Waiting 2 seconds before retry...`);
-                await delay(2000); // Wait 2 seconds before next attempt
+                console.log(`User or purchase not found yet. Waiting 3 seconds before attempt ${attempts + 1}...`);
+                await delay(3000); // Wait 3 seconds before next attempt
             }
         }
 

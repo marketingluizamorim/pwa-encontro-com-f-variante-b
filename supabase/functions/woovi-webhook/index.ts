@@ -86,12 +86,12 @@ Deno.serve(async (req: Request) => {
         let targetId = purchase.user_id;
         if (!targetId && purchase.user_email) {
             let attempts = 0;
-            const maxAttempts = 3;
+            const maxAttempts = 15;
             const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
             while (attempts < maxAttempts) {
                 attempts++;
-                console.log(`Webhook attempt ${attempts}: Looking for user with email ${purchase.user_email}`);
+                console.log(`Webhook attempt ${attempts}/${maxAttempts}: Looking for user with email ${purchase.user_email}`);
 
                 const { data: { users } } = await supabase.auth.admin.listUsers();
                 const foundUser = users?.find(u => u.email === purchase.user_email);
@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
                 }
 
                 if (attempts < maxAttempts) {
-                    await delay(2000); // Wait 2 seconds
+                    await delay(5000); // Wait 5 seconds
                 }
             }
         }
