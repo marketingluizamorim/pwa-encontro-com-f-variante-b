@@ -81,7 +81,7 @@ export default function AdminLogin() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Email de administrador"
-                                className="pl-10 bg-white/8 border-white/15 text-white placeholder:text-white/30 rounded-xl h-12 focus:border-red-400/50"
+                                className="pl-10 bg-slate-900/50 border-white/10 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-red-400/50"
                                 required
                                 autoComplete="username"
                             />
@@ -94,7 +94,7 @@ export default function AdminLogin() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Senha"
-                                className="pl-10 bg-white/8 border-white/15 text-white placeholder:text-white/30 rounded-xl h-12 focus:border-red-400/50"
+                                className="pl-10 bg-slate-900/50 border-white/10 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-red-400/50"
                                 required
                                 autoComplete="current-password"
                             />
