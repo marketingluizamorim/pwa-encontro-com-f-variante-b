@@ -14,7 +14,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSoundSettings } from '@/hooks/useSoundSettings';
@@ -262,20 +261,21 @@ export default function Settings() {
 
               {/* Change Password Dialog */}
               <AlertDialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-                <AlertDialogTrigger asChild>
-                  <button className="flex items-center justify-between w-full py-2 hover:bg-muted/30 rounded-lg transition-colors group">
-                    <div className="flex items-start gap-3 text-left">
-                      <div className="mt-0.5 text-muted-foreground/60 group-hover:text-primary transition-colors">
-                        <Key className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Alterar Senha</p>
-                        <p className="text-xs text-muted-foreground">Crie uma nova credencial de acesso</p>
-                      </div>
+                <button
+                  onClick={() => setShowPasswordDialog(true)}
+                  className="flex items-center justify-between w-full py-2 hover:bg-muted/30 rounded-lg transition-colors group text-left"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 text-muted-foreground/60 group-hover:text-primary transition-colors">
+                      <Key className="w-5 h-5" />
                     </div>
-                    <i className="ri-arrow-right-s-line text-muted-foreground" />
-                  </button>
-                </AlertDialogTrigger>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Alterar Senha</p>
+                      <p className="text-xs text-muted-foreground">Crie uma nova credencial de acesso</p>
+                    </div>
+                  </div>
+                  <i className="ri-arrow-right-s-line text-muted-foreground" />
+                </button>
                 <AlertDialogContent className="w-[90vw] max-w-sm rounded-2xl">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Alterar Senha</AlertDialogTitle>

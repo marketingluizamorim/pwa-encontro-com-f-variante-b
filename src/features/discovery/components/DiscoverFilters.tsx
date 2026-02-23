@@ -241,6 +241,32 @@ export default function DiscoverFilters({
   const [localFilters, setLocalFilters] = useState<DiscoverFiltersState>(filters);
   const [showAllInterests, setShowAllInterests] = useState(false);
 
+  // --- NATIVE-LIKE NAVIGATION LOGIC (BACK BUTTON CLOSES SHEET) ---
+  useEffect(() => {
+    const handlePopState = () => {
+      if (open) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      window.history.pushState({ filtersOpen: true }, "");
+      window.addEventListener('popstate', handlePopState);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [open]);
+
+  const handleClose = () => {
+    if (open) {
+      window.history.back();
+    } else {
+      setOpen(false);
+    }
+  };
+
   const { data: subscription } = useSubscription();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [upgradeData, setUpgradeData] = useState<UpgradeInfo>({
@@ -267,11 +293,11 @@ export default function DiscoverFilters({
     setOpen(true);
   };
 
-  const handleClose = () => setOpen(false);
-
   const handleApply = () => {
     onFiltersChange(localFilters);
     onApply(localFilters);
+    // Explicit close without back to avoid double-firing if necessary, 
+    // but usually handleClose with history.back is safer for sync.
     handleClose();
   };
 

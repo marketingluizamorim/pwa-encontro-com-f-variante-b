@@ -120,7 +120,7 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
                             <DropdownMenuContent align="end" className="w-48 bg-slate-900/95 backdrop-blur-xl border-white/10 rounded-2xl p-1 z-[10000]">
                                 {onReport && (
                                     <DropdownMenuItem
-                                        onClick={onReport}
+                                        onSelect={onReport}
                                         className="flex items-center gap-2 p-3 text-amber-500 focus:bg-amber-500/10 focus:text-amber-500 rounded-xl cursor-pointer"
                                     >
                                         <AlertTriangle className="w-4 h-4" />
@@ -129,7 +129,7 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
                                 )}
                                 {onBlock && (
                                     <DropdownMenuItem
-                                        onClick={onBlock}
+                                        onSelect={onBlock}
                                         className="flex items-center gap-2 p-3 text-rose-500 focus:bg-rose-500/10 focus:text-rose-500 rounded-xl cursor-pointer"
                                     >
                                         <Ban className="w-4 h-4" />

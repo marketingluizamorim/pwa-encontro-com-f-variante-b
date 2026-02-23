@@ -1,12 +1,13 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/features/discovery/hooks/useNotifications';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocationModal } from '@/contexts/LocationModalContext';
+import { WifiOff } from 'lucide-react';
 
 const navItems = [
   { to: '/app/discover', icon: 'ri-compass-3-fill', inactiveIcon: 'ri-compass-3-line', label: 'Descobrir', notificationKey: 'discover' as const },
@@ -23,6 +24,17 @@ export function AppLayout() {
   const { notifications, clearNotification } = useNotifications();
   const queryClient = useQueryClient();
   const { showLocationModal, shakeModal } = useLocationModal();
+  const [isOnline, setIsOnline] = useState(window.navigator.onLine);
+
+  useEffect(() => {
+    const handleStatus = () => setIsOnline(window.navigator.onLine);
+    window.addEventListener('online', handleStatus);
+    window.addEventListener('offline', handleStatus);
+    return () => {
+      window.removeEventListener('online', handleStatus);
+      window.removeEventListener('offline', handleStatus);
+    };
+  }, []);
 
   // Prefetch critical queries so child pages render instantly (no skeleton)
   useEffect(() => {
@@ -177,11 +189,24 @@ export function AppLayout() {
 
       {/* Main Content Area */}
       <main className="relative z-10 flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-hide">
+        <AnimatePresence mode="wait">
+          {!isOnline && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="bg-red-500/10 border-b border-red-500/20 px-4 py-2 flex items-center justify-center gap-2 sticky top-0 z-50 backdrop-blur-md"
+            >
+              <WifiOff className="w-3.5 h-3.5 text-red-500" />
+              <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">Você está offline · Algumas funções podem estar limitadas</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <Outlet />
       </main>
 
       {/* Floating Bottom Navigation */}
-      <nav className="relative z-50 pt-2 shrink-0 flex justify-center px-4 pointer-events-none" style={{ paddingBottom: 'calc(0.4rem + env(safe-area-inset-bottom) * 0.25)' }}>
+      <nav className="relative z-50 pt-2 shrink-0 flex justify-center px-4 pointer-events-none" style={{ paddingBottom: 'calc(0.6rem + env(safe-area-inset-bottom) * 0.8)' }}>
         <div className="pointer-events-auto bg-[#1e293b]/95 backdrop-blur-2xl border border-white/10 rounded-full px-5 py-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-between w-full max-w-[calc(min(450px,94vw))] gap-1 ring-1 ring-white/10 transition-all duration-500">
           {navItems.map((item) => {
             {/* 

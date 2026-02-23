@@ -722,7 +722,7 @@ export default function Discover() {
                     dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                     dragElastic={{ top: 0.7, bottom: 0, left: 0.7, right: 0.7 }}
                     onDragEnd={handleDragEnd}
-                    className="w-full h-full absolute inset-0 px-4 pt-4 pb-24 z-20 cursor-grab active:cursor-grabbing touch-none"
+                    className="w-full h-full absolute inset-0 px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] z-20 cursor-grab active:cursor-grabbing touch-none"
                     initial={false}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{
@@ -970,7 +970,7 @@ export default function Discover() {
                       </div>
 
                       {/* Floating Action Controls (Expanded View) */}
-                      <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom)*0.4)] pointer-events-none">
+                      <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom)*0.6)] pointer-events-none">
                         <div className="pointer-events-auto bg-[#1e293b]/95 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.03)] flex items-center justify-center gap-8 ring-1 ring-white/10">
                           <button onClick={() => handleSwipe('dislike')} className="w-14 h-14 rounded-full bg-card/40 backdrop-blur-lg border border-red-500/30 text-red-500 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
                             <i className="ri-close-line text-3xl font-semibold" />

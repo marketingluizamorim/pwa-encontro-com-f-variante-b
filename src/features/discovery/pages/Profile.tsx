@@ -260,7 +260,7 @@ export default function Profile() {
   return (
     <PageTransition className="h-[calc(100vh-8rem)]">
       <PullToRefresh onRefresh={async () => { await loadProfile(); }} className="h-full">
-        <div className="flex flex-col pb-24 relative">
+        <div className="flex flex-col pb-[calc(6rem+env(safe-area-inset-bottom))] relative">
           <Header action={
             <button
               onClick={() => navigate('/app/settings')}

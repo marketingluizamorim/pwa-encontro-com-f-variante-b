@@ -281,9 +281,9 @@ export function SafetyToolkitDrawer({ open, onOpenChange }: SafetyToolkitDrawerP
 
                         <div className="space-y-8 px-1">
                             {/* Report Item */}
-                            <div
+                            <button
                                 onClick={() => setView('report')}
-                                className="flex gap-4 cursor-pointer active:opacity-60 transition-opacity group"
+                                className="flex gap-4 w-full cursor-pointer active:opacity-60 transition-opacity group text-left"
                             >
                                 <div className="mt-1">
                                     <i className="ri-flag-fill text-[#FF4D67] text-2xl" />
@@ -297,12 +297,12 @@ export function SafetyToolkitDrawer({ open, onOpenChange }: SafetyToolkitDrawerP
                                         Denuncie alguém de quem você não é mais um match ou qualquer conteúdo ilegal em nossa plataforma.
                                     </p>
                                 </div>
-                            </div>
+                            </button>
 
                             {/* Message Settings Item */}
-                            <div
+                            <button
                                 onClick={() => setView('settings')}
-                                className="flex gap-4 cursor-pointer active:opacity-60 transition-opacity group"
+                                className="flex gap-4 w-full cursor-pointer active:opacity-60 transition-opacity group text-left"
                             >
                                 <div className="mt-1">
                                     <i className="ri-settings-4-fill text-muted-foreground text-2xl" />
@@ -316,12 +316,12 @@ export function SafetyToolkitDrawer({ open, onOpenChange }: SafetyToolkitDrawerP
                                         Configure quem pode ver seu status e confirmações de leitura.
                                     </p>
                                 </div>
-                            </div>
+                            </button>
 
                             {/* Security Center Item */}
-                            <div
+                            <button
                                 onClick={() => setView('center')}
-                                className="flex gap-4 cursor-pointer active:opacity-60 transition-opacity group"
+                                className="flex gap-4 w-full cursor-pointer active:opacity-60 transition-opacity group text-left"
                             >
                                 <div className="mt-1">
                                     <i className="ri-shield-keyhole-fill text-muted-foreground text-2xl" />
@@ -335,7 +335,7 @@ export function SafetyToolkitDrawer({ open, onOpenChange }: SafetyToolkitDrawerP
                                         Encontre as melhores ferramentas e suporte para sua segurança.
                                     </p>
                                 </div>
-                            </div>
+                            </button>
                         </div>
                     </div>
                 );

@@ -549,7 +549,7 @@ export default function Matches() {
   return (
     <PageTransition className="h-[calc(100vh-8rem)] relative">
       <PullToRefresh onRefresh={handleRefresh} className="h-full">
-        <div className="flex flex-col min-h-full pb-24">
+        <div className="flex flex-col min-h-full pb-[calc(6rem+env(safe-area-inset-bottom))]">
           <Header action={
             <button
               onClick={() => setShowHelp(true)}

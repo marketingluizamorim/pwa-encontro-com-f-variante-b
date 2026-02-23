@@ -129,7 +129,7 @@ export default function WelcomeChat() {
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                        <DropdownMenuItem onSelect={handleDelete} className="text-destructive">
                             Excluir conversa
                         </DropdownMenuItem>
                     </DropdownMenuContent>

@@ -771,7 +771,7 @@ export default function Chat() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="start" className="w-56 bg-background/95 backdrop-blur-xl border-white/10 z-[10000]">
                                             <DropdownMenuItem
-                                                onClick={() => {
+                                                onSelect={() => {
                                                     setActionProfileId(selectedProfile.id);
                                                     setShowReport(true);
                                                 }}
@@ -782,7 +782,7 @@ export default function Chat() {
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator className="bg-white/10" />
                                             <DropdownMenuItem
-                                                onClick={() => {
+                                                onSelect={() => {
                                                     setActionProfileId(selectedProfile.id);
                                                     setShowBlock(true);
                                                 }}
@@ -792,7 +792,7 @@ export default function Chat() {
                                                 Bloquear
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                onClick={() => {
+                                                onSelect={() => {
                                                     const match = conversations.find(c => c.profile.id === selectedProfile.id);
                                                     if (match) {
                                                         setActionMatchId(match.match_id);
@@ -841,7 +841,7 @@ export default function Chat() {
                                 </div>
 
                                 {/* Botão de Ação */}
-                                <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom)*0.25)] pointer-events-none">
+                                <div className="absolute bottom-6 left-0 right-0 z-[100] flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom)*0.6)] pointer-events-none">
                                     <button
                                         onClick={() => {
                                             const match = conversations.find(c => c.profile.id === selectedProfile.id);

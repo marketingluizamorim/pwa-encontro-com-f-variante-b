@@ -1285,7 +1285,7 @@ export default function ChatRoom() {
       <div
         className="px-4 pt-3 pb-0.5 border-t bg-background shrink-0 z-50 transition-none"
         style={{
-          paddingBottom: isKeyboardVisible ? '4px' : 'calc(4px + env(safe-area-inset-bottom) * 0.25)'
+          paddingBottom: isKeyboardVisible ? '4px' : 'calc(4px + env(safe-area-inset-bottom) * 0.6)'
         }}
       >
         <AnimatePresence>
