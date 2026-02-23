@@ -220,15 +220,43 @@ export default function Discover() {
     const realProfiles = data?.pages ? data.pages.flatMap((page) => page.profiles) : [];
 
     // Gerar perfis fakes baseados nas respostas do quiz (preferência de gênero)
-    // Se Curtidas usa os 6 primeiros (0-5), Discover usa os últimos 3 (6-8) para não repetir fotos/nomes
     const targetGender = gender === 'male' ? 'female' : 'male';
     const fakeProfilesData = getProfilesData(targetGender, quizAnswers);
 
     const fakes = fakeProfilesData
-      .slice(6, 9) // Pega os últimos 3 para não bater com os 6 de curtidas
-      .filter(fake => !swipedFakeNames.has(fake.name) && !realProfiles.some(rp => rp.display_name === fake.name)) // Filtra os que já foram mostrados ou já existem como reais
+      .filter(fake => {
+        // 1. Filtros básicos de sistema
+        const isSwiped = swipedFakeNames.has(fake.name);
+        const existsAsReal = realProfiles.some(rp => rp.display_name === fake.name);
+        if (isSwiped || existsAsReal) return false;
+
+        // 2. Filtros de Idade
+        if (fake.age < appliedFilters.minAge || fake.age > appliedFilters.maxAge) return false;
+
+        // 3. Filtros de Localização (Estado/Cidade)
+        if (appliedFilters.state && appliedFilters.state !== '' && fake.state !== appliedFilters.state) return false;
+        if (appliedFilters.city && appliedFilters.city !== '' && fake.city !== appliedFilters.city) return false;
+
+        // 4. Filtros de Fé e Religião
+        if (appliedFilters.religion && appliedFilters.religion !== '' && fake.religion !== appliedFilters.religion) return false;
+        if (appliedFilters.churchFrequency && appliedFilters.churchFrequency !== '' && fake.church_frequency !== appliedFilters.churchFrequency) return false;
+
+        // 5. Filtros de Objetivos
+        if (appliedFilters.lookingFor && appliedFilters.lookingFor !== '' && fake.looking_for !== appliedFilters.lookingFor) return false;
+
+        // 6. Interesses Cristãos (O fake deve conter TODOS os interesses selecionados, igual ao RPC)
+        if (appliedFilters.christianInterests && appliedFilters.christianInterests.length > 0) {
+          const hasAllInterests = appliedFilters.christianInterests.every(interest =>
+            fake.christian_interests?.includes(interest)
+          );
+          if (!hasAllInterests) return false;
+        }
+
+        return true;
+      })
+      .slice(0, 3) // Limita a 3 fakes filtrados
       .map((fake, index) => ({
-        user_id: `fake-discover-${index}`,
+        user_id: `fake-discover-${index}-${fake.name}`,
         display_name: fake.name,
         birth_date: new Date(new Date().getFullYear() - fake.age, 0, 1).toISOString(),
         photos: [fake.photo],
@@ -249,7 +277,7 @@ export default function Discover() {
 
     // Priorizar reais, depois fakes
     return [...realProfiles, ...fakes];
-  }, [data, gender, quizAnswers, userCoords, swipedFakeNames]);
+  }, [data, gender, quizAnswers, userCoords, swipedFakeNames, appliedFilters]);
 
   const currentProfile = profiles[currentIndex];
   const nextProfile = profiles[currentIndex + 1];
