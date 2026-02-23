@@ -238,73 +238,81 @@ export default function Convite() {
                                 <p className="text-white/50 text-sm mt-1">Rápido e gratuito</p>
                             </div>
 
-                            <form onSubmit={handleRegister} className="space-y-3" style={{ colorScheme: 'dark' }}>
-                                <div className="bg-white/5 border border-white/10 rounded-3xl p-5 space-y-4 backdrop-blur-sm">
+                            <form onSubmit={handleRegister} className="space-y-4">
+                                <div className="glass rounded-2xl p-6 space-y-4">
                                     {/* Name */}
-                                    <div className="relative">
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                        <Input
-                                            type="text"
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value)}
-                                            placeholder="Seu nome"
-                                            className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
-                                            required
-                                            autoComplete="name"
-                                            style={{ colorScheme: 'dark' }}
-                                        />
+                                    <div className="relative text-left">
+                                        <label className="text-white/70 text-xs mb-1 ml-1 block">Nome</label>
+                                        <div className="relative">
+                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                            <Input
+                                                type="text"
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                                placeholder="Seu nome"
+                                                className="pl-10 bg-white/20 border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/40"
+                                                required
+                                                autoComplete="name"
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* Email */}
-                                    <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                        <Input
-                                            type="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="seu@email.com"
-                                            className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
-                                            required
-                                            autoComplete="username"
-                                            style={{ colorScheme: 'dark' }}
-                                        />
+                                    <div className="relative text-left">
+                                        <label className="text-white/70 text-xs mb-1 ml-1 block">E-mail</label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                            <Input
+                                                type="email"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                placeholder="seu@email.com"
+                                                className="pl-10 bg-white/20 border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/40"
+                                                required
+                                                autoComplete="username"
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* Password */}
-                                    <div className="relative">
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                        <Input
-                                            type={showPassword ? 'text' : 'password'}
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="Senha (mín. 6 caracteres)"
-                                            className="pl-10 pr-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
-                                            required
-                                            autoComplete="new-password"
-                                            style={{ colorScheme: 'dark' }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
-                                        >
-                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                        </button>
+                                    <div className="relative text-left">
+                                        <label className="text-white/70 text-xs mb-1 ml-1 block">Senha</label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                            <Input
+                                                type={showPassword ? 'text' : 'password'}
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder="Mínimo 6 caracteres"
+                                                className="pl-10 pr-10 bg-white/20 border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/40"
+                                                required
+                                                autoComplete="new-password"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+                                            >
+                                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {/* Confirm Password */}
-                                    <div className="relative">
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                        <Input
-                                            type="password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            placeholder="Confirmar senha"
-                                            className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
-                                            required
-                                            autoComplete="new-password"
-                                            style={{ colorScheme: 'dark' }}
-                                        />
+                                    <div className="relative text-left">
+                                        <label className="text-white/70 text-xs mb-1 ml-1 block">Confirmar Senha</label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                            <Input
+                                                type="password"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                placeholder="Repita a senha"
+                                                className="pl-10 bg-white/20 border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/40"
+                                                required
+                                                autoComplete="new-password"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 

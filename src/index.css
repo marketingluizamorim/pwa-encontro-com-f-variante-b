@@ -382,9 +382,12 @@ textarea:-webkit-autofill:active,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #1a2235 inset !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
   -webkit-text-fill-color: #ffffff !important;
-  transition: background-color 999999s ease-in-out 0s;
+  box-shadow: 0 0 0 1000px #1a2235 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #1a2235 inset !important;
+  transition: background-color 999999s ease-in-out 0s, color 999999s ease-in-out 0s;
   caret-color: #ffffff !important;
   color-scheme: dark !important;
 }
