@@ -135,7 +135,6 @@
 
   *:focus {
     outline: none !important;
-    box-shadow: none !important;
   }
 
   html,
@@ -374,13 +373,14 @@ input:-webkit-autofill:active,
 textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px #1a2235 inset !important;
   -webkit-text-fill-color: #ffffff !important;
-  transition: background-color 5000s ease-in-out 0s;
   caret-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 /* ── Filter Sheet animations ─────────────────────────────────────────────── */
