@@ -248,7 +248,7 @@ export default function Convite() {
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             placeholder="Seu nome"
-                                            className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
+                                            className="pl-10 bg-[#1a2235] border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/60"
                                             required
                                             autoComplete="name"
                                             style={{ colorScheme: 'dark' }}
@@ -263,7 +263,7 @@ export default function Convite() {
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             placeholder="seu@email.com"
-                                            className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
+                                            className="pl-10 bg-[#1a2235] border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/60"
                                             required
                                             autoComplete="username"
                                             style={{ colorScheme: 'dark' }}
@@ -278,7 +278,7 @@ export default function Convite() {
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             placeholder="Senha (mín. 6 caracteres)"
-                                            className="pl-10 pr-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
+                                            className="pl-10 pr-10 bg-[#1a2235] border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/60"
                                             required
                                             autoComplete="new-password"
                                             style={{ colorScheme: 'dark' }}
@@ -300,7 +300,7 @@ export default function Convite() {
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                             placeholder="Confirmar senha"
-                                            className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
+                                            className="pl-10 bg-[#1a2235] border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/60"
                                             required
                                             autoComplete="new-password"
                                             style={{ colorScheme: 'dark' }}
