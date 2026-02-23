@@ -79,8 +79,6 @@ export default function Profile() {
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
-    retry: false,
-    refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!user) return null;
       const targetUserId = userId || user.id;
