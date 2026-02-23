@@ -381,12 +381,23 @@ textarea:-webkit-autofill:focus,
 textarea:-webkit-autofill:active,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
-select:-webkit-autofill:focus {
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0px 1000px #1a2235 inset !important;
   -webkit-text-fill-color: #ffffff !important;
   caret-color: #ffffff !important;
   transition: background-color 5000s ease-in-out 0s;
   color-scheme: dark !important;
+}
+
+/* Glass Variation for Autofill (Login Form) */
+.autofill-glass:-webkit-autofill,
+.autofill-glass:-webkit-autofill:hover,
+.autofill-glass:-webkit-autofill:focus,
+.autofill-glass:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px #3b3f4a inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
 }
 
 /* ── Filter Sheet animations ─────────────────────────────────────────────── */
