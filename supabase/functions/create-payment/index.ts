@@ -193,7 +193,7 @@ Deno.serve(async (req) => {
         payment_status: "PENDING",
         payment_method: "PIX",
         order_bumps: orderBumpsList,
-        quiz_data: { ...(quizData || {}), gender } || {},
+        quiz_data: { ...(quizData || {}), gender },
         source_platform: purchaseSource ?? 'funnel',
         // UTM tracking
         utm_source: utmSource ?? null,
