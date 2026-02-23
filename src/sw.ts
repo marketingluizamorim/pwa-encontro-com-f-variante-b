@@ -15,6 +15,7 @@ registerRoute(
     ({ url }) => url.hostname.includes('supabase.co') && url.pathname.startsWith('/rest/v1/'),
     new NetworkFirst({
         cacheName: 'supabase-api-cache',
+        networkTimeoutSeconds: 3, // Fast fail for protecting routes from infinite loading
         plugins: [
             new CacheableResponsePlugin({
                 statuses: [0, 200],

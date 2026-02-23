@@ -19,6 +19,7 @@ import { ProfileDetails } from '@/features/discovery/components/ProfileDetails';
 import { ProfilePhotoGallery } from '@/features/discovery/components/ProfilePhotoGallery';
 import { SafetyActions } from '@/features/discovery/components/SafetyActions';
 import { UpgradeFlow } from '@/features/discovery/components/UpgradeFlow';
+import { DeleteConversationDialog } from '@/features/discovery/components/UserActions';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -140,8 +141,6 @@ export default function Chat() {
         enabled: !!user,
         staleTime: 1000 * 60 * 5,
         gcTime: 1000 * 60 * 30,
-        retry: false,
-        refetchOnWindowFocus: false,
         queryFn: async () => {
             if (!user) return [];
             const { supabase } = await import('@/integrations/supabase/client');

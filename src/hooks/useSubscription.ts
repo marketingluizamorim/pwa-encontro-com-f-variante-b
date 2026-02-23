@@ -50,8 +50,6 @@ export function useSubscription() {
         queryKey: ['subscription', user?.id],
         staleTime: 1000 * 60 * 5,
         gcTime: 1000 * 60 * 10,
-        retry: false,
-        refetchOnWindowFocus: false,
         enabled: !!user,
         queryFn: async (): Promise<Subscription> => {
             if (!user) throw new Error('No user — query should be disabled');

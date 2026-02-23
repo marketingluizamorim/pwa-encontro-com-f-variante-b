@@ -239,8 +239,6 @@ export default function ChatRoom() {
     queryKey: ['chat-details', matchId],
     enabled: !!matchId && !authLoading,
     staleTime: Infinity,
-    retry: false,
-    refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!matchId) throw new Error('No matchId');
 
@@ -325,8 +323,6 @@ export default function ChatRoom() {
   const { data: messages = [], isLoading: loadingMessages } = useQuery({
     queryKey: ['chat-messages', matchId],
     enabled: !!matchId && !authLoading,
-    retry: false,
-    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data: messagesData } = await supabase
         .from('messages')
@@ -341,8 +337,6 @@ export default function ChatRoom() {
     queryKey: ['my-profile', user?.id],
     enabled: !!user,
     staleTime: Infinity,
-    retry: false,
-    refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!user) return null;
       const { data: profile } = await supabase

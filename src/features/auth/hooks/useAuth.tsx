@@ -21,10 +21,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
     let authSubscription: { unsubscribe: () => void } | null = null;
 
-    // Safety timeout — never stay in loading > 8s (handles import failures, network issues)
+    // Safety timeout — never stay in loading > 5s (handles import failures, network issues)
     const safetyTimer = setTimeout(() => {
-      if (mounted) setLoading(false);
-    }, 8000);
+      if (mounted && loading) {
+        console.warn('[Auth] Safety timeout reached. Forcing loading state to false.');
+        setLoading(false);
+      }
+    }, 5000);
 
     const setupAuth = async () => {
       try {
@@ -33,14 +36,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         let initialSessionResolved = false;
 
         // Set up auth state listener FIRST
-        const { data: { subscription } } = supabaseRuntime.auth.onAuthStateChange(
+        authSubscription = supabaseRuntime.auth.onAuthStateChange(
           async (_event, session) => {
             if (!mounted) return;
-            if (!initialSessionResolved) return;
 
             setSession(session);
             setUser(session?.user ?? null);
-            setLoading(false);
+
+            // Only stop loading if we've attempted initial session fetch
+            if (initialSessionResolved) {
+              setLoading(false);
+            }
 
             if (session?.user) {
               try {
@@ -53,10 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
             }
           }
-        );
-
-        // Store for cleanup — OUTSIDE the async so useEffect cleanup can access it
-        authSubscription = subscription;
+        ).data.subscription;
 
         const { data: { session: initialSession } } = await supabaseRuntime.auth.getSession();
         initialSessionResolved = true;
@@ -69,7 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         console.error('Auth setup failed:', err);
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoading(false);
+          clearTimeout(safetyTimer);
+        }
       }
     };
 
