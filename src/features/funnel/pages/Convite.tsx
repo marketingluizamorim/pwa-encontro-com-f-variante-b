@@ -238,7 +238,7 @@ export default function Convite() {
                                 <p className="text-white/50 text-sm mt-1">Rápido e gratuito</p>
                             </div>
 
-                            <form onSubmit={handleRegister} className="space-y-3">
+                            <form onSubmit={handleRegister} className="space-y-3" style={{ colorScheme: 'dark' }}>
                                 <div className="bg-white/5 border border-white/10 rounded-3xl p-5 space-y-4 backdrop-blur-sm">
                                     {/* Name */}
                                     <div className="relative">
@@ -251,6 +251,7 @@ export default function Convite() {
                                             className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
                                             required
                                             autoComplete="name"
+                                            style={{ colorScheme: 'dark' }}
                                         />
                                     </div>
 
@@ -265,6 +266,7 @@ export default function Convite() {
                                             className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
                                             required
                                             autoComplete="username"
+                                            style={{ colorScheme: 'dark' }}
                                         />
                                     </div>
 
@@ -279,6 +281,7 @@ export default function Convite() {
                                             className="pl-10 pr-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
                                             required
                                             autoComplete="new-password"
+                                            style={{ colorScheme: 'dark' }}
                                         />
                                         <button
                                             type="button"
@@ -300,6 +303,7 @@ export default function Convite() {
                                             className="pl-10 !bg-[#1a2235] !border-white/20 !text-white placeholder:!text-white/40 rounded-xl h-12 focus:!border-amber-400/60"
                                             required
                                             autoComplete="new-password"
+                                            style={{ colorScheme: 'dark' }}
                                         />
                                     </div>
                                 </div>
