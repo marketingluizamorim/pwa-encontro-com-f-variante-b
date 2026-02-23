@@ -46,6 +46,8 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
 
   // Load settings from Supabase (source of truth), fallback to localStorage cache
   useEffect(() => {
@@ -402,46 +404,48 @@ export default function Settings() {
               Conta
             </h2>
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-3"
-                >
-                  <LogOut className="w-5 h-5" />
-                  Sair da conta
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
+            <button
+              onClick={() => setShowLogoutDialog(true)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/30 transition-colors text-left group"
+            >
+              <LogOut className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <span className="text-sm font-medium text-foreground">Sair da conta</span>
+            </button>
+
+            <button
+              onClick={() => setShowDeactivateDialog(true)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/10 transition-colors text-left group"
+            >
+              <Trash2 className="w-5 h-5 text-destructive/70 group-hover:text-destructive transition-colors" />
+              <span className="text-sm font-medium text-destructive">Desativar minha conta</span>
+            </button>
+
+            {/* Logout Dialog */}
+            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+              <AlertDialogContent className="w-[90vw] max-w-sm rounded-2xl">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Sair da conta?</AlertDialogTitle>
                   <AlertDialogDescription>
                     Você precisará de suas credenciais para entrar novamente. Tem certeza que deseja sair?
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
+                <AlertDialogFooter className="flex flex-col gap-2">
+                  <Button
                     onClick={handleSignOut}
-                    className="bg-primary text-white hover:bg-primary/90"
+                    className="w-full bg-primary text-white h-11 rounded-xl"
                   >
                     Sair
-                  </AlertDialogAction>
+                  </Button>
+                  <AlertDialogCancel className="w-full h-11 rounded-xl border-none text-muted-foreground hover:bg-muted">
+                    Cancelar
+                  </AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-3 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/50 hover:bg-destructive/10"
-                >
-                  <Trash2 className="w-5 h-5" />
-                  Desativar minha conta
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
+            {/* Deactivate Dialog */}
+            <AlertDialog open={showDeactivateDialog} onOpenChange={setShowDeactivateDialog}>
+              <AlertDialogContent className="w-[90vw] max-w-sm rounded-2xl">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Desativar conta?</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -449,15 +453,17 @@ export default function Settings() {
                     fazendo login novamente. Seus dados serão mantidos.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
+                <AlertDialogFooter className="flex flex-col gap-2">
+                  <Button
                     onClick={handleDeactivateAccount}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     disabled={saving}
+                    className="w-full bg-destructive text-destructive-foreground h-11 rounded-xl"
                   >
                     {saving ? 'Desativando...' : 'Desativar'}
-                  </AlertDialogAction>
+                  </Button>
+                  <AlertDialogCancel className="w-full h-11 rounded-xl border-none text-muted-foreground hover:bg-muted">
+                    Cancelar
+                  </AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
