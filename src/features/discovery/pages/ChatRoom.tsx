@@ -1237,15 +1237,39 @@ export default function ChatRoom() {
           <Phone className="w-6 h-6" />
         </button>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><button className="p-2"><i className="ri-more-2-fill text-xl" /></button></DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setShowReport(true)} className="text-amber-600">Denunciar</DropdownMenuItem>
+          <DropdownMenuTrigger asChild>
+            <button className="p-2 outline-none">
+              <i className="ri-more-2-fill text-xl" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="z-[10001]">
+            <DropdownMenuItem
+              onSelect={() => setShowReport(true)}
+              className="text-amber-600 focus:text-amber-600 cursor-pointer"
+            >
+              Denunciar
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setShowBlock(true)} className="text-destructive">Bloquear</DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => setShowBlock(true)}
+              className="text-destructive focus:text-destructive cursor-pointer"
+            >
+              Bloquear
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setShowUnmatch(true)} className="text-destructive">Desfazer match</DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => setShowUnmatch(true)}
+              className="text-destructive focus:text-destructive cursor-pointer"
+            >
+              Desfazer match
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setShowDelete(true)} className="text-destructive">Excluir conversa</DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => setShowDelete(true)}
+              className="text-destructive focus:text-destructive cursor-pointer"
+            >
+              Excluir conversa
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
