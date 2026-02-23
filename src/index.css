@@ -378,7 +378,7 @@ select:-webkit-autofill {
   -webkit-text-fill-color: #ffffff !important;
   color-scheme: dark !important;
   caret-color: #ffffff !important;
-  transition: background-color 5000s ease-in-out 0s;
+  transition: background-color 0s 600000s, color 0s 600000s !important;
 }
 
 /* Specificity boost for passwords on iOS */
@@ -388,6 +388,7 @@ input[type="password"]:-webkit-autofill:focus,
 input[type="password"]:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0px 1000px #1a2235 inset !important;
   -webkit-text-fill-color: #ffffff !important;
+  transition: background-color 0s 600000s, color 0s 600000s !important;
 }
 
 /* Glass Variation for Autofill (Login Form) */
