@@ -13,7 +13,7 @@ import { Check, Lock, ShieldCheck } from 'lucide-react';
 interface SpecialOfferCheckoutDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { name: string; email: string; phone: string }) => void;
+  onSubmit: (data: { name: string; email: string; phone: string; cpf: string }) => void;
   isLoading?: boolean;
 }
 
@@ -25,6 +25,14 @@ const SPECIAL_BENEFITS = [
   'Desbloquear região',
   'Grupos no WhatsApp',
 ];
+
+function formatCpf(value: string): string {
+  const n = value.replace(/\D/g, '');
+  if (n.length <= 3) return n;
+  if (n.length <= 6) return `${n.slice(0, 3)}.${n.slice(3)}`;
+  if (n.length <= 9) return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6)}`;
+  return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6, 9)}-${n.slice(9, 11)}`;
+}
 
 function formatPhone(value: string): string {
   const numbers = value.replace(/\D/g, '');
@@ -42,6 +50,7 @@ export function SpecialOfferCheckoutDialog({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [cpf, setCpf] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,10 +60,11 @@ export function SpecialOfferCheckoutDialog({
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!name.trim()) newErrors.name = 'Nome é obrigatório';
-    if (!email.trim()) newErrors.email = 'Email é obrigatório';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Email inválido';
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Email inválido';
     if (!phone.trim()) newErrors.phone = 'Telefone é obrigatório';
     else if (phone.replace(/\D/g, '').length < 10) newErrors.phone = 'Telefone inválido';
+    if (!cpf.trim()) newErrors.cpf = 'CPF é obrigatório';
+    else if (cpf.replace(/\D/g, '').length !== 11) newErrors.cpf = 'CPF inválido';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -62,7 +72,7 @@ export function SpecialOfferCheckoutDialog({
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (validate()) {
-      onSubmit({ name, email, phone: '+55 ' + phone });
+      onSubmit({ name, email, phone: '+55 ' + phone, cpf });
     }
   };
 
@@ -140,6 +150,21 @@ export function SpecialOfferCheckoutDialog({
                 />
               </div>
               {errors.phone && <p className="text-xs text-red-400 pl-1">{errors.phone}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="special-cpf" className="text-white/90 pl-1 text-sm font-medium">CPF</Label>
+              <Input
+                id="special-cpf"
+                type="tel"
+                inputMode="numeric"
+                value={cpf}
+                onChange={(e) => setCpf(formatCpf(e.target.value))}
+                placeholder="000.000.000-00"
+                className={`bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-[#fcd34d] focus:ring-1 focus:ring-[#fcd34d] h-14 rounded-xl backdrop-blur-md transition-all text-sm ${errors.cpf ? 'border-red-500/50 focus:border-red-500' : ''}`}
+                maxLength={14}
+              />
+              {errors.cpf && <p className="text-xs text-red-400 pl-1">{errors.cpf}</p>}
             </div>
           </form>
         </div>

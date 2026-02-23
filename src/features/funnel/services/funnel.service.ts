@@ -7,6 +7,7 @@ export interface PaymentRequest {
     userName: string;
     userEmail: string;
     userPhone: string;
+    userCpf: string;
     orderBumps: unknown;
     quizData: QuizAnswers;
     gender: 'male' | 'female' | null;
@@ -27,6 +28,7 @@ export interface SubscriptionRequest {
     userName: string;
     userEmail: string;
     gender: 'male' | 'female' | null;
+    userCpf: string;
     userPhone?: string;
     orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean };
     quizData?: QuizAnswers;
@@ -50,6 +52,7 @@ export const funnelService = {
                 userName: request.userName,
                 userEmail: request.userEmail,
                 userPhone: request.userPhone,
+                userCpf: request.userCpf,
                 orderBumps: request.orderBumps,
                 quizData: request.quizData,
                 gender: request.gender,
@@ -77,6 +80,7 @@ export const funnelService = {
                 userName: request.userName,
                 userEmail: request.userEmail,
                 userPhone: request.userPhone,
+                userCpf: request.userCpf,
                 orderBumps: request.orderBumps,
                 quizData: request.quizData,
                 gender: request.gender,

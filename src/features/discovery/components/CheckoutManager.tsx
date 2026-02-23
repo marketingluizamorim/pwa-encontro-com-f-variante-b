@@ -69,7 +69,7 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
     const currentBumps = useRef<SelectedBumps>(bumpsForPlan);
     currentBumps.current = bumpsForPlan; // keep in sync when planId changes
 
-    const createPayment = async (data: { name: string; email: string; phone: string }) => {
+    const createPayment = async (data: { name: string; email: string; phone: string; cpf: string }) => {
         setIsProcessing(true);
         setCheckoutInfo(data);
         setOrderBumps(currentBumps.current);
@@ -90,6 +90,8 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
                 userName: data.name,
                 userEmail: data.email,
                 userPhone: data.phone,
+                userCpf: data.cpf,
+                gender: null, // Default to null for in-app upgrades
                 orderBumps: {
                     allRegions: currentBumps.current.allRegions,
                     grupoEvangelico: currentBumps.current.grupoEvangelico,
@@ -115,7 +117,7 @@ export function CheckoutManager({ open, onOpenChange, planId, planPrice, planNam
         }
     };
 
-    const handleCheckoutSubmit = async (data: { name: string; email: string; phone: string }) => {
+    const handleCheckoutSubmit = async (data: { name: string; email: string; phone: string; cpf: string }) => {
         const success = await createPayment(data);
         if (success) {
             onOpenChange(false);

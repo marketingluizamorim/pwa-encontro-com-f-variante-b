@@ -10,7 +10,7 @@ interface CheckoutDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     planPrice: number;
-    onSubmit: (data: { name: string; email: string; phone: string }) => void;
+    onSubmit: (data: { name: string; email: string; phone: string; cpf: string }) => void;
     isLoading?: boolean;
     planName?: string;
     orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean };
@@ -35,6 +35,14 @@ interface FloatingInputProps {
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
+function formatCpf(value: string): string {
+    const n = value.replace(/\D/g, '');
+    if (n.length <= 3) return n;
+    if (n.length <= 6) return `${n.slice(0, 3)}.${n.slice(3)}`;
+    if (n.length <= 9) return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6)}`;
+    return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6, 9)}-${n.slice(9, 11)}`;
+}
+
 function formatPhone(value: string): string {
     const n = value.replace(/\D/g, '');
     if (n.length <= 2) return n;
@@ -149,6 +157,7 @@ export function CheckoutDialog({
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
+    const [cpf, setCpf] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [extrasExpanded, setExtrasExpanded] = useState(false);
 
@@ -161,9 +170,10 @@ export function CheckoutDialog({
                 setEmail(initialData.email || '');
                 const clean = initialData.phone.replace('+55 ', '').replace('+55', '');
                 setPhone(formatPhone(clean));
+                setCpf(''); // Reset CPF on open
             }
         }
-    }, [open, initialData, planPrice, planName]);
+    }, [open, initialData]);
 
     // Plan detection — name always wins; price only used as last resort
     const cleanPlanName = planName?.toLowerCase() || '';
@@ -225,6 +235,7 @@ export function CheckoutDialog({
     const isNameValid = name.trim().length >= 3;
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const isPhoneValid = phone.replace(/\D/g, '').length >= 10;
+    const isCpfValid = cpf.replace(/\D/g, '').length === 11;
 
     const validate = () => {
         const e: Record<string, string> = {};
@@ -233,13 +244,15 @@ export function CheckoutDialog({
         else if (!isEmailValid) e.email = 'Email inválido';
         if (!phone.trim()) e.phone = 'Telefone é obrigatório';
         else if (!isPhoneValid) e.phone = 'Telefone inválido';
+        if (!cpf.trim()) e.cpf = 'CPF é obrigatório';
+        else if (!isCpfValid) e.cpf = 'CPF inválido';
         setErrors(e);
         return Object.keys(e).length === 0;
     };
 
     const handleSubmit = (ev?: React.FormEvent) => {
         ev?.preventDefault();
-        if (validate()) onSubmit({ name, email, phone: '+55 ' + phone });
+        if (validate()) onSubmit({ name, email, phone: '+55 ' + phone, cpf });
     };
 
 
@@ -403,6 +416,17 @@ export function CheckoutDialog({
                         onChange={(e) => setEmail(e.target.value)}
                         error={errors.email}
                         isValid={isEmailValid}
+                    />
+                    <FloatingInput
+                        id="cpf"
+                        label="CPF"
+                        type="tel"
+                        inputMode="numeric"
+                        value={cpf}
+                        onChange={(e) => setCpf(formatCpf(e.target.value))}
+                        maxLength={14}
+                        error={errors.cpf}
+                        isValid={isCpfValid}
                     />
                     <div>
                         <div className="flex gap-[6px]">

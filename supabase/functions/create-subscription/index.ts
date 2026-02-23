@@ -29,33 +29,15 @@ const PLAN_FREQUENCY: Record<string, { frequency: string; daysAccess: number }> 
 
 const BUMP_PRICE = 5;
 
-// ── CPF Generator (valid check digits — never a real person's CPF) ─────────────
-function generateFakeCPF(): string {
-    function calcDigit(digits: number[], factor: number): number {
-        const sum = digits.reduce((acc, d) => { acc += d * factor--; return acc; }, 0);
-        const rem = sum % 11;
-        return rem < 2 ? 0 : 11 - rem;
-    }
-
-    let base: number[];
-    do {
-        base = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10));
-    } while (new Set(base).size === 1); // reject all-same (111.111.111-xx)
-
-    const d1 = calcDigit(base, 10);
-    const d2 = calcDigit([...base, d1], 11);
-    return [...base, d1, d2].join("");
-}
-
 // ── Fake BR address (required by Woovi PIX_RECURRING) ─────────────────────────
 function generateFakeAddress() {
-    // Generic Brasília address — avoids revealing real user location
+    // Standard Parque Amazônia address — satisfies Woovi requirements
     return {
-        zipcode: "74840360",
-        street: "R. Cananeia",
-        number: "1",
-        neighborhood: "Jardim Goias",
-        city: "Goiania",
+        zipcode: "74843100",
+        street: "R BELO HORIZONTE",
+        number: "265",
+        neighborhood: "PRQ AMAZONIA",
+        city: "GOIANIA",
         state: "GO",
         complement: "",
     };
@@ -65,6 +47,7 @@ interface CreateSubscriptionRequest {
     planId: string;
     userName: string;
     userEmail: string;
+    userCpf: string;
     userPhone?: string;
     orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; };
     quizData?: Record<string, unknown>;
@@ -81,7 +64,7 @@ Deno.serve(async (req) => {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         const body: CreateSubscriptionRequest = await req.json();
-        const { planId, userName, userEmail, userPhone, orderBumps, quizData, gender, purchaseSource } = body;
+        const { planId, userName, userEmail, userCpf, userPhone, orderBumps, quizData, gender, purchaseSource } = body;
 
         // ── Validate plan ──────────────────────────────────────────────────────────
         const planConfig = PLAN_FREQUENCY[planId];
@@ -98,9 +81,11 @@ Deno.serve(async (req) => {
         const amountInCents = Math.round(totalPrice * 100);
         const correlationID = crypto.randomUUID();
 
-        // ── Generate CPF + address for Woovi (never collected from user) ──────────
-        const generatedCpf = generateFakeCPF();
+        // ── Address for Woovi (Static business address) ──────────────────────────
         const generatedAddress = generateFakeAddress();
+        const cleanCpf = userCpf.replace(/\D/g, "");
+
+        if (!cleanCpf) throw new Error("CPF é obrigatório para assinaturas");
 
         // dayGenerateCharge must be today for PAYMENT_ON_APPROVAL journey
         const today = new Date();
@@ -141,7 +126,7 @@ Deno.serve(async (req) => {
                 customer: {
                     name: userName.slice(0, 30),
                     email: userEmail,
-                    taxID: generatedCpf,
+                    taxID: cleanCpf,
                     phone: (userPhone || "").replace(/\D/g, "") || "00000000000",
                     address: generatedAddress,  // REQUIRED by Woovi for PIX_RECURRING
                 },
@@ -203,7 +188,7 @@ Deno.serve(async (req) => {
                 user_name: userName,
                 user_email: userEmail,
                 user_phone: userPhone,
-                user_cpf: generatedCpf,   // internal only — NEVER sent to frontend
+                user_cpf: cleanCpf,   // customer CPF from checkout
                 payment_id: wooviSubscriptionId,
                 payment_status: "PENDING",
                 payment_method: "PIX_AUTOMATIC",

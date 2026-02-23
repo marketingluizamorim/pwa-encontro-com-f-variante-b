@@ -14,6 +14,7 @@ interface CreatePaymentRequest {
   userName: string;
   userEmail: string;
   userPhone?: string;
+  userCpf?: string;
   orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean; specialOffer: boolean };
   quizData?: Record<string, unknown>;
   gender?: string;
@@ -82,6 +83,7 @@ Deno.serve(async (req) => {
       userName,
       userEmail,
       userPhone,
+      userCpf,
       orderBumps,
       quizData,
       gender,
@@ -124,6 +126,7 @@ Deno.serve(async (req) => {
     const amountInCents = Math.round(totalPrice * 100);
     const correlationID = crypto.randomUUID();
 
+    const cleanCpf = userCpf?.replace(/\D/g, "");
     let pixCode = "";
     let qrCodeImage = "";
     let paymentLinkUrl = "";
@@ -155,6 +158,7 @@ Deno.serve(async (req) => {
             name: userName,
             email: userEmail,
             phone: userPhone?.replace(/\D/g, ""),
+            taxID: cleanCpf,
           },
           additionalInfo,
         }),
@@ -184,6 +188,7 @@ Deno.serve(async (req) => {
         user_name: userName,
         user_email: userEmail,
         user_phone: userPhone,
+        user_cpf: cleanCpf,
         payment_id: paymentId,
         payment_status: "PENDING",
         payment_method: "PIX",
@@ -243,7 +248,7 @@ Deno.serve(async (req) => {
             name: userName,
             email: userEmail,
             phone: userPhone?.replace(/\D/g, "") || null,
-            document: null,
+            document: cleanCpf || null,
             country: "BR",
           },
           products,
