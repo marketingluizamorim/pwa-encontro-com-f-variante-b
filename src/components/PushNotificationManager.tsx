@@ -57,6 +57,7 @@ export function PushNotificationManager() {
 
     const handleBackdropClick = () => {
         triggerHaptic('light');
+        handleDismiss();
     };
 
     return (
