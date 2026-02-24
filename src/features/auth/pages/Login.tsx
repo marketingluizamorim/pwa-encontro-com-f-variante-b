@@ -97,7 +97,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/50 autofill-glass"
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/50 autofill-glass focus:border-amber-400/60 focus-visible:ring-0"
                 required
                 autoComplete="username"
               />
@@ -110,7 +110,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/50 autofill-glass"
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/50 autofill-glass focus:border-amber-400/60 focus-visible:ring-0"
                 required
                 autoComplete="current-password"
               />

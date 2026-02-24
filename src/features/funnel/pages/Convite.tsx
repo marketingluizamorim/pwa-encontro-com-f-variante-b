@@ -255,7 +255,7 @@ export default function Convite() {
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             placeholder="Seu nome"
-                                            className="pl-10 bg-[#1a2235] border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/60"
+                                            className="pl-10 bg-[#1a2235] border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/60 focus-visible:ring-0"
                                             required
                                             autoComplete="name"
                                             style={{ colorScheme: 'dark' }}
@@ -270,7 +270,7 @@ export default function Convite() {
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             placeholder="seu@email.com"
-                                            className="pl-10 bg-[#1a2235] border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/60"
+                                            className="pl-10 bg-[#1a2235] border-white/20 text-white placeholder:text-white/40 rounded-xl h-12 focus:border-amber-400/60 focus-visible:ring-0"
                                             required
                                             autoComplete="username"
                                             style={{ colorScheme: 'dark' }}

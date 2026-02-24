@@ -172,7 +172,7 @@ export default function Register() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Seu nome"
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/50 focus:border-amber-400/60 focus-visible:ring-0"
                 required
                 autoComplete="name"
               />
@@ -185,7 +185,7 @@ export default function Register() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/50 focus:border-amber-400/60 focus-visible:ring-0"
                 required
                 autoComplete="username"
               />
@@ -198,7 +198,7 @@ export default function Register() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/50 focus:border-amber-400/60 focus-visible:ring-0"
                 required
                 autoComplete="new-password"
               />
@@ -211,7 +211,7 @@ export default function Register() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repita a senha"
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/50 focus:border-amber-400/60 focus-visible:ring-0"
                 required
                 autoComplete="new-password"
               />
