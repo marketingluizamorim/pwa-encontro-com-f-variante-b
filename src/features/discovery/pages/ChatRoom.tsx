@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { getOptimizedImageUrl, IMAGE_SIZES } from '@/lib/image-utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createPortal } from 'react-dom';
@@ -160,11 +161,16 @@ function AudioMessage({ url, isOwn, avatarUrl }: { url: string; isOwn: boolean; 
     )}>
       {/* Avatar with Mic Badge */}
       <div className="relative shrink-0 ml-1">
-        <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20 shadow-md">
-          <img src={avatarUrl || '/placeholder.svg'} alt="Avatar" className="w-full h-full object-cover" />
+        <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20 shadow-md bg-muted">
+          <img
+            src={avatarUrl || '/placeholder.svg'}
+            alt="Avatar"
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
+          />
         </div>
         <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-background rounded-full flex items-center justify-center shadow-md border border-border/20">
-          <i className={cn("ri-mic-fill text-[10px]", isOwn ? "text-primary" : "text-primary")} />
+          <i className={cn("ri-mic-fill text-[10px]", isOwn ? "text-primary" : "text-emerald-500")} />
         </div>
       </div>
 
@@ -998,9 +1004,10 @@ export default function ChatRoom() {
     }
     if (content.startsWith('[audio:')) {
       const url = content.replace('[audio:', '').replace(']', '').trim();
-      const avatarUrl = isOwn
-        ? (myProfile?.photos?.[0] || myProfile?.avatar_url || user?.user_metadata?.avatar_url || '/placeholder.svg')
-        : (matchProfile?.photos?.[0] || matchProfile?.avatar_url || '/placeholder.svg');
+      const rawAvatarUrl = isOwn
+        ? (myProfile?.photos?.[0] || myProfile?.avatar_url || user?.user_metadata?.avatar_url)
+        : (matchProfile?.photos?.[0] || matchProfile?.avatar_url);
+      const avatarUrl = getOptimizedImageUrl(rawAvatarUrl, IMAGE_SIZES.AVATAR);
 
       return (
         <AudioMessage
@@ -1169,7 +1176,7 @@ export default function ChatRoom() {
           className="w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => setShowProfileInfo(true)}
         >
-          <img src={matchProfile.photos?.[0] || matchProfile.avatar_url || '/placeholder.svg'} className="w-full h-full object-cover" />
+          <img src={getOptimizedImageUrl(matchProfile.photos?.[0] || matchProfile.avatar_url, IMAGE_SIZES.AVATAR)} className="w-full h-full object-cover" />
         </div>
         <div
           className="flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
@@ -1557,7 +1564,7 @@ export default function ChatRoom() {
                 <div className="relative z-10">
                   <div className="w-52 h-52 rounded-full overflow-hidden border-[6px] border-white/5 shadow-2xl">
                     <img
-                      src={(matchProfile?.photos?.[0] || matchProfile?.avatar_url) || '/placeholder.svg'}
+                      src={getOptimizedImageUrl(matchProfile?.photos?.[0] || matchProfile?.avatar_url, IMAGE_SIZES.PROFILE_CARD)}
                       alt="Avatar"
                       className="w-full h-full object-cover"
                     />
