@@ -60,14 +60,20 @@ export default function Convite() {
         setIsSubmitting(true);
 
         try {
-            // 1. Create account — if already exists, fall through to sign-in
+            // 1. Create account
             const { error: signUpError } = await signUp(email, password, name);
             const errMsg = signUpError?.message?.toLowerCase() ?? '';
             const alreadyExists = errMsg.includes('already registered')
                 || errMsg.includes('already in use')
                 || errMsg.includes('user already');
 
-            if (signUpError && !alreadyExists) {
+            if (alreadyExists) {
+                toast.error('Não foi possível completar o cadastro. Verifique os dados e tente novamente ou faça login para continuar.');
+                setIsSubmitting(false);
+                return;
+            }
+
+            if (signUpError) {
                 let msg = signUpError.message;
                 if (errMsg.includes('rate limit')) msg = 'Muitas tentativas. Aguarde alguns minutos.';
                 toast.error(msg);
@@ -75,14 +81,11 @@ export default function Convite() {
                 return;
             }
 
-            // 2. Sign in (works for new and existing users)
+            // 2. Sign in (only for the new account just created)
             const { error: signInError } = await signIn(email, password);
             if (signInError) {
-                const msg = alreadyExists
-                    ? 'Senha incorreta para este e-mail. Tente novamente.'
-                    : 'Conta criada! Faça o login para continuar.';
-                toast.error(msg);
-                if (!alreadyExists) navigate('/login', { replace: true, state: {} });
+                toast.error('Conta criada! Faça o login para continuar.');
+                navigate('/login', { replace: true, state: {} });
                 setIsSubmitting(false);
                 return;
             }
