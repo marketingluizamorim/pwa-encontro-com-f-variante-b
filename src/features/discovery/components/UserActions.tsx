@@ -26,7 +26,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
-import { Shield, Ban, AlertTriangle, Loader2, HeartCrack } from 'lucide-react';
+import { Shield, Ban, AlertTriangle, Loader2, HeartCrack, CheckCircle } from 'lucide-react';
 
 const REPORT_REASONS = [
   { value: 'fake_profile', label: 'Perfil falso', description: 'Fotos ou informações falsas' },
@@ -123,6 +123,7 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
         queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
         queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
         queryClient.invalidateQueries({ queryKey: ['profile'] });
+        queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
       } else {
         console.log('📝 Simulating report for fake profile:', userId);
         // Pequeno atraso para feedback visual
@@ -131,9 +132,7 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
 
       // Show success state
       setShowSuccess(true);
-
-      onOpenChange(false);
-      onReported?.();
+      onOpenChange(false); // Close the form dialog
 
       // Reset form
       setReason('');
@@ -241,8 +240,8 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
             <AlertDialogAction
               onClick={() => {
                 setShowSuccess(false);
-                onReported?.();
-                navigate('/app/chat');
+                onOpenChange(false); // NOW we close the main dialog
+                onReported?.();      // AND notify the parent to take action (swipe, close profile, etc)
               }}
               className="bg-green-600 hover:bg-green-700 text-white"
             >
@@ -267,6 +266,7 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleBlock = async () => {
     if (!user) return;
@@ -327,8 +327,11 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
+      // Show success modal
+      setShowSuccess(true);
       onOpenChange(false);
-      onBlocked?.();
+
+      // We don't call onBlocked() yet
     } catch (err) {
       console.error('Error blocking user:', err);
       toast.error('Erro ao bloquear usuário', { style: { marginTop: '50px' } });
@@ -338,40 +341,72 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-md rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Ban className="w-5 h-5 text-destructive" />
-            Bloquear {userName || 'usuário'}?
-          </DialogTitle>
-          <DialogDescription className="space-y-2 text-left">
-            <p>Ao bloquear este usuário:</p>
-            <ul className="list-disc pl-5 space-y-1 text-left">
-              <li>Vocês não aparecerão mais um para o outro</li>
-              <li>Matches existentes serão desfeitos</li>
-              <li>Mensagens anteriores serão ocultadas</li>
-            </ul>
-            <p className="text-muted-foreground mt-2">
-              Você pode desbloquear a qualquer momento nas configurações.
-            </p>
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleBlock}
-            disabled={loading}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Bloquear
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="w-[90vw] max-w-md rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Ban className="w-5 h-5 text-destructive" />
+              Bloquear {userName || 'usuário'}?
+            </DialogTitle>
+            <DialogDescription className="space-y-2 text-left">
+              <p>Ao bloquear este usuário:</p>
+              <ul className="list-disc pl-5 space-y-1 text-left">
+                <li>Vocês não aparecerão mais um para o outro</li>
+                <li>Matches existentes serão desfeitos</li>
+                <li>Mensagens anteriores serão ocultadas</li>
+              </ul>
+              <p className="text-muted-foreground mt-2">
+                Você pode desbloquear a qualquer momento nas configurações.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleBlock}
+              disabled={loading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Bloquear
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <AlertDialogContent className="rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-green-500">
+              <CheckCircle className="w-6 h-6" />
+              Usuário Bloqueado!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 text-left">
+              <p className="text-base">O perfil foi bloqueado com sucesso:</p>
+              <ul className="list-disc pl-5 space-y-2 text-left">
+                <li>Vocês não aparecerão mais um para o outro</li>
+                <li>Matches e conversas existentes foram ocultados</li>
+                <li>Você pode gerenciar perfis bloqueados nas configurações</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setShowSuccess(false);
+                onBlocked?.();
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Entendi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -436,6 +471,7 @@ export function DeleteConversationDialog({ open, onOpenChange, matchId, onDelete
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleDelete = async () => {
     if (!user) return;
@@ -455,9 +491,9 @@ export function DeleteConversationDialog({ open, onOpenChange, matchId, onDelete
       // Invalidate queries to update UI in real-time
       queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
 
-      toast.success('Conversa excluída', { style: { marginTop: '50px' } });
+      // Show success modal
+      setShowSuccess(true);
       onOpenChange(false);
-      onDeleted?.();
     } catch (err) {
       console.error('Error deleting conversation:', err);
       toast.error('Erro ao excluir conversa', { style: { marginTop: '50px' } });
@@ -467,29 +503,57 @@ export function DeleteConversationDialog({ open, onOpenChange, matchId, onDelete
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-md rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
-        <DialogHeader>
-          <DialogTitle>Desfazer Conexão?</DialogTitle>
-          <DialogDescription>
-            Essa ação não pode ser desfeita. A conversa sumirá da sua lista e vocês perderão a conexão.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleDelete}
-            disabled={loading}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Desfazer Conexão
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="w-[90vw] max-w-md rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle>Desfazer Conexão?</DialogTitle>
+            <DialogDescription>
+              Essa ação não pode ser desfeita. A conversa sumirá da sua lista e vocês perderão a conexão.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleDelete}
+              disabled={loading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Desfazer Conexão
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Confirmation Dialog */}
+      <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <AlertDialogContent className="rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-green-500">
+              <CheckCircle className="w-6 h-6" />
+              Conexão Desfeita!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base text-left">
+              A conexão foi desfeita e a conversa foi removida da sua lista com sucesso.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setShowSuccess(false);
+                onDeleted?.();
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Entendi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -507,6 +571,7 @@ export function UnmatchDialog({ open, onOpenChange, matchId, otherUserId, userNa
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleUnmatch = async () => {
     if (!user) return;
@@ -534,14 +599,9 @@ export function UnmatchDialog({ open, onOpenChange, matchId, otherUserId, userNa
       queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
       queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
 
-      toast.success('Match desfeito', {
-        description: 'Vocês não são mais um match.',
-        style: { marginTop: '50px' }
-      });
-
+      // Show success modal
+      setShowSuccess(true);
       onOpenChange(false);
-      onUnmatched?.();
-      navigate('/app/chat');
     } catch (err) {
       console.error('Error unmatching:', err);
       toast.error('Erro ao desfazer match', { style: { marginTop: '50px' } });
@@ -551,36 +611,64 @@ export function UnmatchDialog({ open, onOpenChange, matchId, otherUserId, userNa
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-md rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <HeartCrack className="w-5 h-5 text-destructive" />
-            Desfazer match com {userName || 'este usuário'}?
-          </DialogTitle>
-          <DialogDescription className="space-y-2 text-left">
-            <p>Ao desfazer o match:</p>
-            <ul className="list-disc pl-5 space-y-1 text-left">
-              <li>Vocês deixarão de ser um match</li>
-              <li>A conversa será removida da sua lista</li>
-              <li>Vocês poderão se redescobrir no futuro</li>
-            </ul>
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleUnmatch}
-            disabled={loading}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Desfazer Match
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="w-[90vw] max-w-md rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <HeartCrack className="w-5 h-5 text-destructive" />
+              Desfazer match com {userName || 'este usuário'}?
+            </DialogTitle>
+            <DialogDescription className="space-y-2 text-left">
+              <p>Ao desfazer o match:</p>
+              <ul className="list-disc pl-5 space-y-1 text-left">
+                <li>Vocês deixarão de ser um match</li>
+                <li>A conversa será removida da sua lista</li>
+                <li>Vocês poderão se redescobrir no futuro</li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleUnmatch}
+              disabled={loading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Desfazer Match
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Confirmation Dialog */}
+      <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <AlertDialogContent className="rounded-3xl border-white/10 bg-slate-900 shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-green-500">
+              <CheckCircle className="w-6 h-6" />
+              Match Desfeito!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base text-left">
+              O match foi desfeito com sucesso. Vocês não são mais uma conexão, mas podem se redescobrir no futuro.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setShowSuccess(false);
+                onUnmatched?.();
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Entendi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

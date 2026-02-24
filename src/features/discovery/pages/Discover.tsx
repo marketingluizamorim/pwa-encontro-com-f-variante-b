@@ -988,7 +988,7 @@ export default function Discover() {
                           setShowReport={setShowReport}
                           showBlock={showBlock}
                           setShowBlock={setShowBlock}
-                          targetId={(currentProfile as any).id || (currentProfile as any).user_id}
+                          targetId={(currentProfile as any).user_id || (currentProfile as any).id}
                           targetName={currentProfile.display_name}
                           onSuccess={() => {
                             handleSwipe('dislike');
