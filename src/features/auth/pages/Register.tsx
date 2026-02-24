@@ -88,42 +88,11 @@ export default function Register() {
       const { error: signInError } = await signIn(email, password);
 
       if (!signInError) {
-        // Ensure profile is created with the provided name
-        try {
-          const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-          const { data: { user } } = await supabaseRuntime.auth.getUser();
-
-          if (user) {
-            await supabaseRuntime.from('profiles').upsert({
-              user_id: user.id,
-              display_name: name,
-              is_profile_complete: false
-            }, { onConflict: 'user_id' });
-          }
-        } catch (err) {
-          console.error('Error creating profile row:', err);
-        }
-
-        // 2. Link any PAID purchases (PIX one-time OR Pix Automático) to this new user
-        try {
-          const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-          await supabaseRuntime.functions.invoke('link-purchase', {
-            body: { email },
-          });
-          // FORCE clear subscription cache so ProtectedRoute sees the new plan
-          await queryClient.invalidateQueries({ queryKey: ['subscription'] });
-        } catch (err) {
-          // Non-critical — subscription can still be activated via webhook
-          console.error('Error linking purchase after registration:', err);
-        }
-
-        // Logged in! Show success dialog which will redirect to onboarding
+        // Clear subscription cache so ProtectedRoute sees the new plan linked by the DB trigger
+        await queryClient.invalidateQueries({ queryKey: ['subscription'] });
         setShowSuccessDialog(true);
       } else {
         // Could not auto-login (likely verify email required), but account created.
-        // Still show success, but maybe redirect to login instead?
-        // User requested "popup to proceed creating profile", implying flow continuity.
-        // We will show dialog, and if they click continue, we try ensuring flow.
         toast.success('Conta criada com sucesso!', { style: { marginTop: '50px' } });
         setShowSuccessDialog(true);
       }

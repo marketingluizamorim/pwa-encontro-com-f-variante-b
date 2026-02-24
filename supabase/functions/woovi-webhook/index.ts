@@ -84,12 +84,15 @@ Deno.serve(async (req: Request) => {
         // Try to find the user_id by email if it's missing in the purchase record
         let targetId = purchase.user_id;
         if (!targetId && purchase.user_email) {
-            const { data: { users } } = await supabase.auth.admin.listUsers();
-            const foundUser = users?.find(u => u.email === purchase.user_email);
-            if (foundUser) {
-                targetId = foundUser.id;
-                // Update purchase for future consistency
-                await supabase.from("purchases").update({ user_id: targetId }).eq("id", purchase.id);
+            try {
+                const { data: { user } } = await supabase.auth.admin.getUserByEmail(purchase.user_email);
+                if (user) {
+                    targetId = user.id;
+                    // Update purchase for future consistency
+                    await supabase.from("purchases").update({ user_id: targetId }).eq("id", purchase.id);
+                }
+            } catch (e) {
+                console.error("Error finding user by email:", e);
             }
         }
 
