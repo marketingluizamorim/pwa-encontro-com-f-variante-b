@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, cloneElement } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -126,9 +126,9 @@ export default function Onboarding() {
   const isFirstSlide = currentSlide === 0;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Skip button */}
-      <div className="absolute top-[calc(1rem+env(safe-area-inset-top))] right-4 z-10">
+      <div className="absolute top-[calc(0.5rem+env(safe-area-inset-top))] right-4 z-20">
         <Button
           variant="ghost"
           size="sm"
@@ -140,39 +140,45 @@ export default function Onboarding() {
       </div>
 
       {/* Slides container */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative">
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={currentSlide}
             custom={direction}
-            initial={false}
-            animate={{ x: 0, opacity: 1, scale: 1 }}
-            transition={{ duration: 0 }}
-            className="absolute inset-0 flex flex-col items-center justify-center px-8"
+            initial="enter"
+            animate="center"
+            exit="exit"
+            variants={slideVariants}
+            transition={{
+              x: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.2 }
+            }}
+            className="absolute inset-0 flex flex-col items-center justify-center px-6"
           >
             {/* Background gradient */}
-            <div className={`absolute inset-0 bg-gradient-to-b ${slides[currentSlide].gradient} pointer-events-none`} />
+            <div className={`absolute inset-0 bg-gradient-to-b ${slides[currentSlide].gradient} pointer-events-none opacity-50`} />
 
             {/* Content */}
-            <div className="relative z-10 text-center max-w-sm">
+            <div className="relative z-10 text-center w-full max-w-[280px] xs:max-w-sm">
               {/* Animated icon */}
               <motion.div
-                initial={false}
-                animate={{ scale: 1, rotate: 0 }}
-                className="mx-auto mb-8 w-28 h-28 rounded-full bg-primary/10 flex items-center justify-center text-primary"
+                variants={iconVariants}
+                className="mx-auto mb-6 sm:mb-8 w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-primary/10 flex items-center justify-center text-primary"
               >
-                {slides[currentSlide].icon}
+                {/* Adjust icon size based on container size */}
+                {cloneElement(slides[currentSlide].icon as React.ReactElement, {
+                  className: "w-10 h-10 sm:w-16 sm:h-16"
+                })}
               </motion.div>
 
               {/* Text content */}
               <motion.div
-                initial={false}
-                animate={{ opacity: 1, y: 0 }}
+                variants={textVariants}
               >
-                <h1 className="font-display text-2xl font-bold text-foreground mb-4">
+                <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-3 sm:mb-4">
                   {slides[currentSlide].title}
                 </h1>
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed px-2">
                   {slides[currentSlide].description}
                 </p>
               </motion.div>
@@ -182,18 +188,18 @@ export default function Onboarding() {
       </div>
 
       {/* Navigation */}
-      <div className="px-8 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-4">
+      <div className="px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-2 z-20 bg-background/80 backdrop-blur-sm border-t border-white/5">
         {/* Progress dots */}
-        <div className="flex justify-center gap-2 mb-8">
+        <div className="flex justify-center gap-2 mb-6 sm:mb-8">
           {slides.map((_, index) => (
             <motion.div
               key={index}
-              className={`h-2 rounded-full transition-colors ${index === currentSlide
+              className={`h-1.5 rounded-full transition-colors ${index === currentSlide
                 ? 'bg-primary w-8'
-                : 'bg-muted w-2'
+                : 'bg-muted w-1.5'
                 }`}
               animate={{
-                width: index === currentSlide ? 32 : 8
+                width: index === currentSlide ? 32 : 6
               }}
               transition={{ duration: 0.3 }}
             />
@@ -201,13 +207,13 @@ export default function Onboarding() {
         </div>
 
         {/* Navigation buttons */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 max-w-sm mx-auto w-full">
           <Button
             variant="outline"
             size="icon"
             onClick={() => paginate(-1)}
             disabled={isFirstSlide}
-            className={`rounded-full ${isFirstSlide ? 'opacity-0' : ''}`}
+            className={`rounded-full shrink-0 ${isFirstSlide ? 'opacity-0 pointer-events-none' : ''}`}
           >
             <ChevronLeft className="w-5 h-5" />
           </Button>
@@ -215,7 +221,7 @@ export default function Onboarding() {
           {isLastSlide ? (
             <Button
               onClick={handleComplete}
-              className="flex-1 rounded-full"
+              className="flex-1 rounded-full font-bold h-12 shadow-lg shadow-primary/20"
               size="lg"
             >
               Começar
@@ -224,7 +230,7 @@ export default function Onboarding() {
           ) : (
             <Button
               onClick={() => paginate(1)}
-              className="flex-1 rounded-full"
+              className="flex-1 rounded-full font-bold h-12 shadow-md"
               size="lg"
             >
               Próximo
@@ -233,7 +239,7 @@ export default function Onboarding() {
           )}
 
           {/* Spacer for alignment */}
-          <div className={`w-10 h-10 ${isLastSlide ? 'opacity-0' : ''}`} />
+          <div className={`w-10 h-10 shrink-0 ${isLastSlide ? 'hidden' : ''}`} />
         </div>
       </div>
     </div>
