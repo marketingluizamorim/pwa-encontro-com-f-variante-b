@@ -117,10 +117,18 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
                                     <MoreHorizontal className="w-5 h-5" />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48 bg-slate-900/95 backdrop-blur-xl border-white/10 rounded-2xl p-1 z-[10000]">
+                            <DropdownMenuContent
+                                align="end"
+                                className="w-48 bg-slate-900/95 backdrop-blur-xl border-white/10 rounded-2xl p-1 z-[10000]"
+                                // Prevent collision with touch events
+                                onCloseAutoFocus={(e) => e.preventDefault()}
+                            >
                                 {onReport && (
                                     <DropdownMenuItem
-                                        onSelect={onReport}
+                                        onSelect={() => {
+                                            // Pequeno delay para garantir que o menu fechou
+                                            setTimeout(() => onReport(), 150);
+                                        }}
                                         className="flex items-center gap-2 p-3 text-amber-500 focus:bg-amber-500/10 focus:text-amber-500 rounded-xl cursor-pointer"
                                     >
                                         <AlertTriangle className="w-4 h-4" />
@@ -129,7 +137,10 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
                                 )}
                                 {onBlock && (
                                     <DropdownMenuItem
-                                        onSelect={onBlock}
+                                        onSelect={() => {
+                                            // Pequeno delay para garantir que o menu fechou
+                                            setTimeout(() => onBlock(), 150);
+                                        }}
                                         className="flex items-center gap-2 p-3 text-rose-500 focus:bg-rose-500/10 focus:text-rose-500 rounded-xl cursor-pointer"
                                     >
                                         <Ban className="w-4 h-4" />

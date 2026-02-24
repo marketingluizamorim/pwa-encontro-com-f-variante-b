@@ -74,54 +74,60 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
     try {
       const { supabase } = await import('@/integrations/supabase/client');
 
-      const { error: insertError } = await supabase.from('user_reports').insert({
-        reporter_id: user.id,
-        reported_id: userId,
-        reason,
-        description: description.trim() || null,
-      });
+      // Se for um ID fake (ex: fake-discover-1), não tentamos inserir no banco
+      const isFakeProfile = String(userId).startsWith('fake-');
 
-      if (insertError) throw insertError;
+      if (!isFakeProfile) {
+        // ... insert into user_reports ...
+        const { error: insertError } = await supabase.from('user_reports').insert({
+          reporter_id: user.id,
+          reported_id: userId,
+          reason,
+          description: description.trim() || null,
+        });
 
-      // Send email notification to support team (production only)
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      if (!isLocalhost) {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            const emailResult = await supabase.functions.invoke('send-report-email', {
-              body: {
-                reporterId: user.id,
-                reportedId: userId,
-                reportedName: userName || 'Usuário',
-                reason,
-                description: description.trim() || undefined,
-              },
-            });
-            if (emailResult.error) {
-              console.error('Erro ao enviar email de denúncia:', emailResult.error);
+        if (insertError) throw insertError;
+
+        // Send email notification to support team (production only)
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (!isLocalhost) {
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              await supabase.functions.invoke('send-report-email', {
+                body: {
+                  reporterId: user.id,
+                  reportedId: userId,
+                  reportedName: userName || 'Usuário',
+                  reason,
+                  description: description.trim() || undefined,
+                },
+              });
             }
+          } catch (emailError) {
+            console.error('Falha ao enviar email de denúncia:', emailError);
           }
-        } catch (emailError) {
-          // Não impede o fluxo principal se o email falhar
-          console.error('Falha ao enviar email de denúncia:', emailError);
         }
+
+        // Automatically block the reported user
+        const { error: blockError } = await supabase.from('user_blocks').insert({
+          blocker_id: user.id,
+          blocked_id: userId,
+        });
+
+        if (blockError) {
+          console.error('❌ Error blocking user:', blockError);
+        }
+
+        // Invalidate queries to update UI in real-time
+        queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
+        queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+      } else {
+        console.log('📝 Simulating report for fake profile:', userId);
+        // Pequeno atraso para feedback visual
+        await new Promise(resolve => setTimeout(resolve, 800));
       }
-
-      // Automatically block the reported user
-      const { error: blockError } = await supabase.from('user_blocks').insert({
-        blocker_id: user.id,
-        blocked_id: userId,
-      });
-
-      if (blockError) {
-        console.error('❌ Error blocking user:', blockError);
-      }
-
-      // Invalidate queries to update UI in real-time
-      queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
-      queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
 
       // Show success state
       setShowSuccess(true);
@@ -267,48 +273,59 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
 
     setLoading(true);
 
+    const isFakeProfile = String(userId).startsWith('fake-');
+
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
+      if (!isFakeProfile) {
+        const { supabase } = await import('@/integrations/supabase/client');
 
-      // 1. Bloquear usuário
-      const { error } = await supabase.from('user_blocks').insert({
-        blocker_id: user.id,
-        blocked_id: userId,
-      });
+        // 1. Bloquear usuário
+        const { error } = await supabase.from('user_blocks').insert({
+          blocker_id: user.id,
+          blocked_id: userId,
+        });
 
-      if (error) {
-        if (error.code === '23505') {
-          toast.info('Usuário já bloqueado', { style: { marginTop: '50px' } });
+        if (error) {
+          if (error.code === '23505') {
+            toast.info('Usuário já bloqueado', { style: { marginTop: '50px' } });
+          } else {
+            throw error;
+          }
         } else {
-          throw error;
+          toast.success('Usuário bloqueado', {
+            description: 'Você não verá mais este perfil.',
+            style: { marginTop: '50px' }
+          });
         }
+
+        // 2. Desativar Match existente (Se houver)
+        const { data: matchData } = await supabase
+          .from('matches')
+          .select('id')
+          .or(`and(user1_id.eq.${user.id},user2_id.eq.${userId}),and(user1_id.eq.${userId},user2_id.eq.${user.id})`)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (matchData) {
+          await supabase
+            .from('matches')
+            .update({ is_active: false } as { is_active: boolean })
+            .eq('id', matchData.id);
+        }
+
+        // Invalidate queries to update UI in real-time
+        queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
+        queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
       } else {
+        console.log('📝 Simulating block for fake profile:', userId);
         toast.success('Usuário bloqueado', {
-          description: 'Você não verá mais este perfil.',
+          description: 'Você não verá mais este perfil simulado.',
           style: { marginTop: '50px' }
         });
+        // Pequeno atraso para feedback visual
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
-
-      // 2. Desativar Match existente (Se houver)
-      // Buscamos o match ativo entre os dois usuários
-      const { data: matchData } = await supabase
-        .from('matches')
-        .select('id')
-        .or(`and(user1_id.eq.${user.id},user2_id.eq.${userId}),and(user1_id.eq.${userId},user2_id.eq.${user.id})`)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (matchData) {
-        await supabase
-          .from('matches')
-          .update({ is_active: false } as { is_active: boolean })
-          .eq('id', matchData.id);
-      }
-
-      // Invalidate queries to update UI in real-time
-      queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
-      queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
 
       onOpenChange(false);
       onBlocked?.();

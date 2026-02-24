@@ -1251,28 +1251,28 @@ export default function ChatRoom() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="z-[10001]">
             <DropdownMenuItem
-              onSelect={() => setShowReport(true)}
+              onSelect={() => setTimeout(() => setShowReport(true), 150)}
               className="text-amber-600 focus:text-amber-600 cursor-pointer"
             >
               Denunciar
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onSelect={() => setShowBlock(true)}
+              onSelect={() => setTimeout(() => setShowBlock(true), 150)}
               className="text-destructive focus:text-destructive cursor-pointer"
             >
               Bloquear
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onSelect={() => setShowUnmatch(true)}
+              onSelect={() => setTimeout(() => setShowUnmatch(true), 150)}
               className="text-destructive focus:text-destructive cursor-pointer"
             >
               Desfazer match
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onSelect={() => setShowDelete(true)}
+              onSelect={() => setTimeout(() => setShowDelete(true), 150)}
               className="text-destructive focus:text-destructive cursor-pointer"
             >
               Excluir conversa
