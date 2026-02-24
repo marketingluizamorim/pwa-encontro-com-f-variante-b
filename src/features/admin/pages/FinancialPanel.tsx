@@ -12,7 +12,7 @@ import {
     DollarSign, TrendingUp, TrendingDown, RefreshCw,
     ArrowUpRight, ArrowDownRight, Minus,
     BarChart3, Repeat2, ShoppingCart, Calendar,
-    HelpCircle, X, Crown, Users, Target, Percent
+    HelpCircle, X, Crown, Users, Target, Percent, Clock, Info, Lightbulb
 } from 'lucide-react';
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -30,7 +30,9 @@ const SOURCE_META: Record<string, { label: string; hex: string }> = {
 
 const DATE_PRESETS = [
     { key: 'today', label: 'Hoje' },
+    { key: 'yesterday', label: 'Ontem' },
     { key: '7d', label: '7 dias' },
+    { key: '15d', label: '15 dias' },
     { key: '30d', label: '30 dias' },
     { key: '90d', label: '90 dias' },
     { key: 'month', label: 'Este mês' },
@@ -40,6 +42,7 @@ type Preset = typeof DATE_PRESETS[number]['key'];
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type PurchaseRow = {
+    user_id: string;
     plan_id: string;
     total_price: number;
     is_renewal: boolean;
@@ -71,7 +74,12 @@ function getRange(preset: Preset, custom: { from: string; to: string }) {
     const now = new Date();
     switch (preset) {
         case 'today': return { from: startOfDay(now), to: endOfDay(now) };
+        case 'yesterday': {
+            const yest = subDays(now, 1);
+            return { from: startOfDay(yest), to: endOfDay(yest) };
+        }
         case '7d': return { from: startOfDay(subDays(now, 6)), to: endOfDay(now) };
+        case '15d': return { from: startOfDay(subDays(now, 14)), to: endOfDay(now) };
         case '30d': return { from: startOfDay(subDays(now, 29)), to: endOfDay(now) };
         case '90d': return { from: startOfDay(subDays(now, 89)), to: endOfDay(now) };
         case 'month': return { from: startOfMonth(now), to: endOfMonth(now) };
@@ -88,7 +96,7 @@ function getRange(preset: Preset, custom: { from: string; to: string }) {
 function KpiCard({
     label, value, sub, delta, deltaLabel, icon, accent,
 }: {
-    label: string; value: string; sub?: string;
+    label: string; value: React.ReactNode; sub?: string;
     delta?: string; deltaLabel?: string;
     icon: React.ReactNode; accent: string;
 }) {
@@ -112,6 +120,52 @@ function KpiCard({
                 {sub && <p className="text-xs text-white/40 mt-0.5">{sub}</p>}
                 <p className="text-[10px] text-white/30 mt-1.5 uppercase tracking-wider">{label}</p>
                 {deltaLabel && <p className="text-[10px] text-white/20 mt-0.5">{deltaLabel}</p>}
+            </div>
+        </div>
+    );
+}
+
+// ── Metrics Importance Dialog ──────────────────────────────────────────
+export function MetricsImportanceDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+    if (!open) return null;
+    const items = [
+        { label: 'Receita Total', desc: 'Saúde financeira direta. É o KPI mestre que valida se o negócio está gerando caixa.', icon: <DollarSign className="w-4 h-4 text-emerald-400" /> },
+        { label: 'Compras Pendentes', desc: 'Sua maior oportunidade. Vendas quase prontas que precisam de um contato para converter.', icon: <Clock className="w-4 h-4 text-yellow-400" /> },
+        { label: 'Novos Clientes', desc: 'Indicador de tração e crescimento da base. Mostra o fôlego da sua aquisição.', icon: <Users className="w-4 h-4 text-blue-400" /> },
+        { label: 'Taxa de Conversão', desc: 'Eficiência do processo. Se está baixa, o problema pode estar no preço ou oferta.', icon: <Target className="w-4 h-4 text-indigo-400" /> },
+        { label: 'Upgrades', desc: 'Expansão de receita. Usuários antigos gastando mais dentro do seu app.', icon: <Crown className="w-4 h-4 text-emerald-400" /> },
+        { label: 'Downgrades', desc: 'Sinal de alerta. Usuários diminuindo o plano, o que reduz seu ticket médio.', icon: <TrendingDown className="w-4 h-4 text-red-400" /> },
+        { label: 'Renovações', desc: 'Retenção e LTV. Um app saudável vive da renovação e sustentabilidade.', icon: <Repeat2 className="w-4 h-4 text-purple-400" /> },
+    ];
+
+    return (
+        <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+            <div className="w-full max-w-sm bg-[#13191f] border border-white/10 rounded-3xl p-6 space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                            <Lightbulb className="w-4 h-4 text-yellow-400" />
+                        </div>
+                        <h3 className="font-bold text-white text-lg">Guia de Métricas</h3>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                        <X className="w-5 h-5 text-white/40" />
+                    </button>
+                </div>
+                <div className="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
+                    {items.map((it, i) => (
+                        <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex gap-4">
+                            <div className="shrink-0 mt-1">{it.icon}</div>
+                            <div>
+                                <h4 className="text-sm font-bold text-white mb-0.5">{it.label}</h4>
+                                <p className="text-[11px] text-white/40 leading-relaxed">{it.desc}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <p className="text-[10px] text-center text-white/20 pt-1">
+                    Prioridade estratégica da esquerda para direita, cima para baixo.
+                </p>
             </div>
         </div>
     );
@@ -221,18 +275,25 @@ export default function FinancialPanel({ onOpenLegend }: FinancialPanelProps) {
         },
     });
 
-    // Registrar visualização de dados sensíveis
+    const { data: totalUserCount = 0 } = useQuery({
+        queryKey: ['admin-total-users-snapshot'],
+        queryFn: async () => {
+            const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+            return count || 0;
+        }
+    });
+
+    // Registrar visualização de dados sensíveis (Auditoria)
     useEffect(() => {
-        if (!isLoading && allPurchases.length > 0) {
+        if (!isLoading) {
             logAction('view_financials', 'purchases', undefined, {
                 preset,
-                range: {
-                    from: range.from.toISOString(),
-                    to: range.to.toISOString()
-                }
+                range_from: range.from.toISOString(),
+                range_to: range.to.toISOString(),
+                rowCount: allPurchases.length
             });
         }
-    }, [preset, isLoading, allPurchases.length]); // Loga ao carregar ou trocar filtro
+    }, [preset, isLoading, range]);
 
 
     const { data: allRenewals = [] } = useQuery({
@@ -268,10 +329,21 @@ export default function FinancialPanel({ onOpenLegend }: FinancialPanelProps) {
     // ── KPIs ──────────────────────────────────────────────────────────────────
     const revenue = purchases.reduce((s, p) => s + Number(p.total_price ?? 0), 0);
     const prevRev = prevPurchases.reduce((s, p) => s + Number(p.total_price ?? 0), 0);
+
+    // Novas métricas (Pendentes e Conversão)
+    const pendingPurchases = allPurchases.filter(p => p.payment_status === 'PENDING' && inRange(p.created_at));
+    const pendingCount = pendingPurchases.length;
+    const pendingRevenue = pendingPurchases.reduce((s, p) => s + Number(p.total_price ?? 0), 0);
+
+    // Taxa de Conversão: Pagantes / Total de Usuários (no período ou base total)
+    // Para simplificar: usuários únicos que pagaram / total users
+    const uniquePaidUsers = new Set(allPurchases.filter(p => p.payment_status === 'PAID').map(p => p.user_id)).size;
+    const conversionRate = totalUserCount ? (uniquePaidUsers / totalUserCount) * 100 : 0;
+
     const newCount = purchases.filter(p => !p.is_renewal).length;
     const renCount = purchases.filter(p => p.is_renewal).length;
-    const newRev = purchases.filter(p => !p.is_renewal).reduce((s, p) => s + Number(p.total_price ?? 0), 0);
     const renRev = purchases.filter(p => p.is_renewal).reduce((s, p) => s + Number(p.total_price ?? 0), 0);
+    const newRev = purchases.filter(p => !p.is_renewal).reduce((s, p) => s + Number(p.total_price ?? 0), 0);
     const avgTicket = purchases.length ? revenue / purchases.length : 0;
     const renewRate = purchases.length ? (renCount / purchases.length) * 100 : 0;
     const prevNewC = prevPurchases.filter(p => !p.is_renewal).length;
@@ -308,22 +380,29 @@ export default function FinancialPanel({ onOpenLegend }: FinancialPanelProps) {
             .sort((a, b) => b.receita - a.receita);
     }, [purchases]);
 
-    // ── By source ────────────────────────────────────────────────────────────
     const bySource = useMemo(() => {
-        const map: Record<string, { count: number; revenue: number }> = {};
+        const counts: Record<string, { count: number; revenue: number }> = {
+            'Funil PWA': { count: 0, revenue: 0 },
+            'WhatsApp / Direto': { count: 0, revenue: 0 },
+            'Outros': { count: 0, revenue: 0 }
+        };
         purchases.forEach(p => {
-            const src = p.source_platform ?? 'funnel';
-            if (!map[src]) map[src] = { count: 0, revenue: 0 };
-            map[src].count++;
-            map[src].revenue += Number(p.total_price ?? 0);
+            const src = (p.source_platform || 'Funnel').toLowerCase();
+            const isWpp = src.includes('whatsapp') || src.includes('direct') || src === 'paid_direct' || src === 'whatsapp_group';
+            const isFunnel = src.includes('funnel') || src.includes('organic') || src === 'pwa';
+
+            const key = isWpp ? 'WhatsApp / Direto' : isFunnel ? 'Funil PWA' : 'Outros';
+            counts[key].revenue += Number(p.total_price);
+            counts[key].count++;
         });
-        return Object.entries(map).map(([src, v]) => ({
-            name: SOURCE_META[src]?.label ?? src,
-            src,
-            count: v.count,
-            receita: v.revenue,
-            fill: SOURCE_META[src]?.hex ?? '#6b7280',
-        }));
+        return Object.entries(counts)
+            .filter(([_, value]) => value.revenue > 0)
+            .map(([name, data], i) => ({
+                name,
+                receita: data.revenue,
+                count: data.count,
+                fill: ['#3b82f6', '#10b981', '#6366f1'][i % 3]
+            }));
     }, [purchases]);
 
     // ── New vs Renewal by day (stacked bar) ──────────────────────────────────
@@ -341,6 +420,15 @@ export default function FinancialPanel({ onOpenLegend }: FinancialPanelProps) {
     const renewals = useMemo(() =>
         allRenewals.filter(r => inRange(r.created_at)),
         [allRenewals, inRange]);
+
+    // Métricas de Upgrades e Downgrades
+    const upgrades = renewals.filter(r => r.is_upgrade);
+    const upgradeCount = upgrades.length;
+    const upgradeRevenue = upgrades.reduce((s, r) => s + Number(r.revenue), 0);
+
+    const downgrades = renewals.filter(r => r.is_downgrade);
+    const downCount = downgrades.length;
+    const downRevenue = downgrades.reduce((s, r) => s + Number(r.revenue), 0);
 
     if (isLoading) {
         return (
@@ -420,52 +508,59 @@ export default function FinancialPanel({ onOpenLegend }: FinancialPanelProps) {
                     accent="bg-emerald-500/20 text-emerald-400"
                 />
                 <KpiCard
+                    label="Compras Pendentes"
+                    value={String(pendingCount)}
+                    sub={BRL(pendingRevenue)}
+                    icon={<Clock className="w-5 h-5 text-yellow-400" />}
+                    accent="bg-yellow-500/20"
+                />
+                <KpiCard
                     label="Novos clientes"
                     value={String(newCount)}
                     sub={BRL(newRev)}
                     delta={pct(newCount, prevNewC)}
-                    icon={<ShoppingCart className="w-5 h-5" />}
-                    accent="bg-blue-500/20 text-blue-400"
+                    icon={<Users className="w-5 h-5 text-blue-400" />}
+                    accent="bg-blue-500/20"
+                />
+                <KpiCard
+                    label="Taxa Conversão"
+                    value={`${conversionRate.toFixed(1)}%`}
+                    sub="Base Total"
+                    icon={<Percent className="w-5 h-5 text-indigo-400" />}
+                    accent="bg-indigo-500/20"
+                />
+                <KpiCard
+                    label="Up / Downgrades"
+                    value={
+                        <div className="flex items-center gap-3">
+                            <span className="text-emerald-400">↑{upgradeCount}</span>
+                            <span className="text-red-400">↓{downCount}</span>
+                        </div>
+                    }
+                    sub={`${BRL(upgradeRevenue)} / ${BRL(downRevenue)}`}
+                    icon={<TrendingUp className="w-5 h-5 text-indigo-400" />}
+                    accent="bg-indigo-500/20"
                 />
                 <KpiCard
                     label="Renovações"
                     value={String(renCount)}
                     sub={BRL(renRev)}
-                    icon={<Repeat2 className="w-5 h-5" />}
-                    accent="bg-violet-500/20 text-violet-400"
-                />
-                <KpiCard
-                    label="Total compras"
-                    value={String(purchases.length)}
-                    delta={pct(purchases.length, prevPurchases.length)}
-                    icon={<BarChart3 className="w-5 h-5" />}
-                    accent="bg-amber-500/20 text-amber-400"
-                />
-                <KpiCard
-                    label="Ticket médio"
-                    value={BRL(avgTicket)}
-                    icon={<Target className="w-5 h-5" />}
-                    accent="bg-pink-500/20 text-pink-400"
+                    icon={<Repeat2 className="w-5 h-5 text-purple-400" />}
+                    accent="bg-purple-500/20"
                 />
                 <KpiCard
                     label="Taxa renovação"
                     value={`${renewRate.toFixed(1)}%`}
                     sub={`${renCount} de ${purchases.length}`}
-                    icon={<Percent className="w-5 h-5" />}
-                    accent="bg-cyan-500/20 text-cyan-400"
+                    icon={<Percent className="w-5 h-5 text-pink-400" />}
+                    accent="bg-pink-500/20"
                 />
                 <KpiCard
-                    label="Clientes únicos"
-                    value={String(purchases.length)}
-                    icon={<Users className="w-5 h-5" />}
-                    accent="bg-teal-500/20 text-teal-400"
-                />
-                <KpiCard
-                    label="Upgrades"
-                    value={String(renewals.filter(r => r.is_upgrade).length)}
-                    sub={`${renewals.filter(r => r.is_downgrade).length} downgrades`}
-                    icon={<TrendingUp className="w-5 h-5" />}
-                    accent="bg-indigo-500/20 text-indigo-400"
+                    label="Total compras"
+                    value={String(allPurchases.filter(p => inRange(p.created_at)).length)}
+                    sub={`${purchases.length} pagas`}
+                    icon={<BarChart3 className="w-5 h-5 text-amber-400" />}
+                    accent="bg-amber-500/20"
                 />
             </div>
 
@@ -522,10 +617,13 @@ export default function FinancialPanel({ onOpenLegend }: FinancialPanelProps) {
                 {/* Pie plan */}
                 <div className="bg-slate-800/50 border border-white/10 rounded-2xl p-5">
                     <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <Crown className="w-4 h-4" /> Por plano
+                        <Target className="w-4 h-4" /> Por plano
                     </h3>
-                    {byPlan.length === 0 ? (
-                        <p className="text-center text-white/20 py-8 text-sm">Sem dados</p>
+                    {!byPlan || byPlan.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-white/20 italic">
+                            <ShoppingCart className="w-8 h-8 opacity-20 mb-2" />
+                            <p className="text-sm">Sem vendas pagas no período</p>
+                        </div>
                     ) : (
                         <>
                             <ResponsiveContainer width="100%" height={150}>
@@ -571,11 +669,11 @@ export default function FinancialPanel({ onOpenLegend }: FinancialPanelProps) {
                             </ResponsiveContainer>
                             <div className="space-y-2 mt-2">
                                 {bySource.map(s => (
-                                    <div key={s.src} className="flex items-center justify-between">
+                                    <div key={s.name} className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <div className="w-2.5 h-2.5 rounded-full" style={{ background: s.fill }} />
                                             <span className="text-sm text-white/70">{s.name}</span>
-                                            <span className="text-xs text-white/30">{s.count}</span>
+                                            <span className="text-xs text-white/30">{s.count} vendas</span>
                                         </div>
                                         <span className="text-sm font-bold text-white">{BRL(s.receita)}</span>
                                     </div>
@@ -625,6 +723,6 @@ export default function FinancialPanel({ onOpenLegend }: FinancialPanelProps) {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

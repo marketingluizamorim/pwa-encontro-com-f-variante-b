@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuditLog } from '@/features/admin/hooks/useAdminAuditLog';
@@ -10,14 +10,15 @@ import {
     Shield, AlertTriangle, CheckCircle, XCircle, Clock,
     User, ChevronDown, ChevronUp, RefreshCw, Ban, Eye,
     DollarSign, ArrowLeft, HelpCircle, MessageCircle,
-    History as HistoryIcon, Send
+    History as HistoryIcon, Send, Heart, Lightbulb
 } from 'lucide-react';
-import FinancialPanel, { PlanLegendDialog } from './FinancialPanel';
+import FinancialPanel, { PlanLegendDialog, MetricsImportanceDialog } from './FinancialPanel';
 import AuditLogPanel from './AuditLogPanel';
 import CampaignPanel from './CampaignPanel';
+import EngagementPanel, { EngagementImportanceDialog } from './EngagementPanel';
 
 // ── Types ────────────────────────────────────────────────────────────────────
-type Section = 'menu' | 'reports' | 'financial' | 'audit' | 'campaigns';
+type Section = 'menu' | 'reports' | 'financial' | 'audit' | 'campaigns' | 'engagement';
 
 const REASON_LABELS: Record<string, string> = {
     fake_profile: 'Perfil falso',
@@ -64,6 +65,27 @@ function NumCard({ label, value, icon, color }: { label: string; value: number; 
 
 // ── Main Menu ────────────────────────────────────────────────────────────────
 function MainMenu({ onSelect }: { onSelect: (s: Section) => void }) {
+    const { data: menuStats } = useQuery({
+        queryKey: ['admin-menu-badges'],
+        queryFn: async () => {
+            const today = startOfDay(new Date()).toISOString();
+
+            const [
+                { count: pending },
+                { count: newProfiles }
+            ] = await Promise.all([
+                supabase.from('purchases').select('*', { count: 'exact', head: true }).eq('payment_status', 'PENDING').gte('created_at', today),
+                supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', today)
+            ]);
+
+            return {
+                pending: pending || 0,
+                newProfiles: newProfiles || 0
+            };
+        },
+        refetchInterval: 30000 // A cada 30s
+    });
+
     const navigate = useNavigate();
     return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">
@@ -75,8 +97,7 @@ function MainMenu({ onSelect }: { onSelect: (s: Section) => void }) {
                 <p className="text-sm text-white/40 mt-1">Selecione uma seção</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
-                {/* Reports card */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-4xl">
                 <button
                     onClick={() => onSelect('reports')}
                     className="group bg-slate-800/60 border border-white/10 hover:border-red-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
@@ -90,10 +111,9 @@ function MainMenu({ onSelect }: { onSelect: (s: Section) => void }) {
                     </p>
                 </button>
 
-                {/* Financial card */}
                 <button
                     onClick={() => onSelect('financial')}
-                    className="group bg-slate-800/60 border border-white/10 hover:border-amber-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
+                    className="group relative bg-slate-800/60 border border-white/10 hover:border-amber-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
                 >
                     <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mb-4 group-hover:bg-amber-500/30 transition-colors">
                         <DollarSign className="w-6 h-6 text-amber-400" />
@@ -102,23 +122,45 @@ function MainMenu({ onSelect }: { onSelect: (s: Section) => void }) {
                     <p className="text-xs text-white/40 leading-relaxed">
                         Receita, planos, renovações e origens de venda
                     </p>
+                    {menuStats?.pending ? (
+                        <span className="absolute top-4 right-4 bg-yellow-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+                            {menuStats.pending} PENDENTES
+                        </span>
+                    ) : null}
                 </button>
 
-                {/* Audit Logs card */}
+                {/* Grupo WhatsApp moved up */}
                 <button
-                    onClick={() => onSelect('audit')}
-                    className="group bg-slate-800/60 border border-white/10 hover:border-blue-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
+                    onClick={() => navigate('/admin/grupo-whatsapp')}
+                    className="group bg-slate-800/60 border border-white/10 hover:border-emerald-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
                 >
-                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-4 group-hover:bg-blue-500/30 transition-colors">
-                        <HistoryIcon className="w-6 h-6 text-blue-400" />
+                    <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-4 group-hover:bg-emerald-500/30 transition-colors">
+                        <MessageCircle className="w-6 h-6 text-emerald-400" />
                     </div>
-                    <h3 className="text-base font-bold text-white mb-1">Auditoria</h3>
+                    <h3 className="text-base font-bold text-white mb-1">Grupo WhatsApp</h3>
                     <p className="text-xs text-white/40 leading-relaxed">
-                        Histórico de ações dos administradores e segurança
+                        Membros do grupo, conversão, churn e renovações
                     </p>
                 </button>
 
-                {/* Campaigns card */}
+                <button
+                    onClick={() => onSelect('engagement')}
+                    className="group relative bg-slate-800/60 border border-white/10 hover:border-rose-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                    <div className="w-12 h-12 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center mb-4 group-hover:bg-rose-500/30 transition-colors">
+                        <Heart className="w-6 h-6 text-rose-400" />
+                    </div>
+                    <h3 className="text-base font-bold text-white mb-1">Engajamento</h3>
+                    <p className="text-xs text-white/40 leading-relaxed">
+                        Likes, matches, perfis e atividade de mensagens
+                    </p>
+                    {menuStats?.newProfiles ? (
+                        <span className="absolute top-4 right-4 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            +{menuStats.newProfiles} HOJE
+                        </span>
+                    ) : null}
+                </button>
+
                 <button
                     onClick={() => onSelect('campaigns')}
                     className="group bg-slate-800/60 border border-white/10 hover:border-indigo-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
@@ -132,22 +174,17 @@ function MainMenu({ onSelect }: { onSelect: (s: Section) => void }) {
                     </p>
                 </button>
 
-                {/* WhatsApp Group card */}
                 <button
-                    onClick={() => navigate('/admin/grupo-whatsapp')}
-                    className="group bg-slate-800/60 border border-white/10 hover:border-emerald-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98] sm:col-span-2"
+                    onClick={() => onSelect('audit')}
+                    className="group bg-slate-800/60 border border-white/10 hover:border-blue-500/40 rounded-2xl p-6 text-left transition-all hover:bg-slate-800/80 hover:scale-[1.02] active:scale-[0.98]"
                 >
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/30 transition-colors">
-                            <MessageCircle className="w-6 h-6 text-emerald-400" />
-                        </div>
-                        <div>
-                            <h3 className="text-base font-bold text-white mb-1">Grupo WhatsApp</h3>
-                            <p className="text-xs text-white/40 leading-relaxed">
-                                Membros do grupo, conversão, churn e renovações
-                            </p>
-                        </div>
+                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-4 group-hover:bg-blue-500/30 transition-colors">
+                        <HistoryIcon className="w-6 h-6 text-blue-400" />
                     </div>
+                    <h3 className="text-base font-bold text-white mb-1">Auditoria</h3>
+                    <p className="text-xs text-white/40 leading-relaxed">
+                        Histórico de ações dos administradores e segurança
+                    </p>
                 </button>
             </div>
         </div>
@@ -174,7 +211,6 @@ function ReportsPanel() {
             const { data: rawReports, error } = await query;
             if (error) throw error;
 
-            // Log de visualização de denúncias
             if (rawReports && rawReports.length > 0) {
                 logAction('view_reports', 'user_reports', undefined, { filter });
             }
@@ -207,8 +243,6 @@ function ReportsPanel() {
                 .update({ status, reviewed_at: new Date().toISOString() })
                 .eq('id', id);
             if (error) throw error;
-
-            // Log de alteração de status
             logAction(status === 'resolved' ? 'view_reports' : 'delete_report', 'user_reports', id, { status });
         },
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reports'] }),
@@ -223,8 +257,6 @@ function ReportsPanel() {
             ]);
             if (profileRes.error) throw profileRes.error;
             if (reportRes.error) throw reportRes.error;
-
-            // Log de suspensão de usuário (AÇÃO CRÍTICA)
             logAction('suspend_user', 'profiles', userId, { reportId, duration: '7 days' });
         },
         onSuccess: () => {
@@ -246,7 +278,6 @@ function ReportsPanel() {
 
     return (
         <div className="space-y-6">
-            {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <NumCard label="Total (filtro)" value={stats.total} icon={<Eye className="w-5 h-5" />} color="bg-blue-500/20 text-blue-400" />
                 <NumCard label="Pendentes" value={stats.pending} icon={<Clock className="w-5 h-5" />} color="bg-yellow-500/20 text-yellow-400" />
@@ -254,7 +285,6 @@ function ReportsPanel() {
                 <NumCard label="Ignorados" value={stats.dismissed} icon={<XCircle className="w-5 h-5" />} color="bg-slate-500/20 text-slate-400" />
             </div>
 
-            {/* Filter tabs */}
             <div className="flex gap-2 flex-wrap items-center justify-between">
                 <div className="flex gap-2 flex-wrap">
                     {(['all', 'pending', 'resolved', 'dismissed'] as const).map(tab => (
@@ -278,7 +308,6 @@ function ReportsPanel() {
                 </button>
             </div>
 
-            {/* Reports list */}
             {isLoading ? (
                 <div className="flex items-center justify-center py-20">
                     <RefreshCw className="w-6 h-6 animate-spin text-white/30" />
@@ -438,15 +467,17 @@ const SECTION_META: Record<Exclude<Section, 'menu'>, { label: string; icon: Reac
     financial: { label: 'Faturamento', icon: <DollarSign className="w-5 h-5 text-amber-400" />, accent: 'bg-amber-500/20 border-amber-500/30' },
     audit: { label: 'Auditoria', icon: <HistoryIcon className="w-5 h-5 text-blue-400" />, accent: 'bg-blue-500/20 border-blue-500/30' },
     campaigns: { label: 'Campanhas Push', icon: <Send className="w-5 h-5 text-indigo-400" />, accent: 'bg-indigo-500/20 border-indigo-500/30' },
+    engagement: { label: 'Engajamento', icon: <Heart className="w-5 h-5 text-rose-400" />, accent: 'bg-rose-500/20 border-rose-500/30' },
 };
 
 export default function AdminPanel() {
     const [section, setSection] = useState<Section>('menu');
     const [showLegend, setShowLegend] = useState(false);
+    const [showMetricsGuide, setShowMetricsGuide] = useState(false);
+    const [showEngagementGuide, setShowEngagementGuide] = useState(false);
 
     return (
         <div className="h-screen overflow-y-auto bg-[#0f172a] text-white">
-            {/* Header */}
             <div className="bg-slate-900/80 border-b border-white/10 sticky top-0 z-50 backdrop-blur-md">
                 <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
                     {section !== 'menu' && (
@@ -473,12 +504,30 @@ export default function AdminPanel() {
                     </div>
                     <div className="ml-auto flex items-center gap-2">
                         {section === 'financial' && (
+                            <>
+                                <button
+                                    onClick={() => setShowMetricsGuide(true)}
+                                    className="w-9 h-9 rounded-xl bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center hover:bg-yellow-500/30 transition-colors"
+                                    title="Importância das Métricas"
+                                >
+                                    <Lightbulb className="w-4 h-4 text-yellow-400" />
+                                </button>
+                                <button
+                                    onClick={() => setShowLegend(true)}
+                                    className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center hover:bg-amber-500/30 transition-colors"
+                                    title="Legenda dos planos"
+                                >
+                                    <HelpCircle className="w-4 h-4 text-amber-400" />
+                                </button>
+                            </>
+                        )}
+                        {section === 'engagement' && (
                             <button
-                                onClick={() => setShowLegend(true)}
-                                className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center hover:bg-amber-500/30 transition-colors"
-                                title="Legenda dos planos"
+                                onClick={() => setShowEngagementGuide(true)}
+                                className="w-9 h-9 rounded-xl bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center hover:bg-yellow-500/30 transition-colors"
+                                title="Importância das Métricas"
                             >
-                                <HelpCircle className="w-4 h-4 text-amber-400" />
+                                <Lightbulb className="w-4 h-4 text-yellow-400" />
                             </button>
                         )}
                     </div>
@@ -491,9 +540,12 @@ export default function AdminPanel() {
                 {section === 'financial' && <FinancialPanel onOpenLegend={() => setShowLegend(true)} />}
                 {section === 'audit' && <AuditLogPanel />}
                 {section === 'campaigns' && <CampaignPanel />}
+                {section === 'engagement' && <EngagementPanel />}
             </div>
 
             <PlanLegendDialog open={showLegend} onClose={() => setShowLegend(false)} />
+            <MetricsImportanceDialog open={showMetricsGuide} onClose={() => setShowMetricsGuide(false)} />
+            <EngagementImportanceDialog open={showEngagementGuide} onClose={() => setShowEngagementGuide(false)} />
         </div>
     );
 }
