@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,6 +23,13 @@ import {
 
 type Step = 'basics' | 'faith' | 'photos' | 'complete';
 
+// Memoized background to prevent re-renders on every keystroke
+const BackgroundBlobs = memo(() => (
+  <div className="fixed inset-0 pointer-events-none overflow-hidden">
+    <div className="absolute top-[-20%] left-[-20%] w-[70%] h-[70%] bg-[#14b8a6]/10 rounded-full blur-[80px]" style={{ willChange: 'filter' }} />
+    <div className="absolute bottom-[-20%] right-[-20%] w-[70%] h-[70%] bg-[#d4af37]/5 rounded-full blur-[80px]" style={{ willChange: 'filter' }} />
+  </div>
+));
 
 export default function ProfileSetup() {
   const { user } = useAuth();
@@ -227,11 +234,8 @@ export default function ProfileSetup() {
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground font-sans pt-[env(safe-area-inset-top)] overflow-hidden">
-      {/* Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-20%] left-[-20%] w-[70%] h-[70%] bg-[#14b8a6]/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-20%] right-[-20%] w-[70%] h-[70%] bg-[#d4af37]/5 rounded-full blur-[100px]" />
-      </div>
+      {/* Background Elements — memoized to avoid input lag */}
+      <BackgroundBlobs />
 
       <main className="flex-1 overflow-y-auto relative z-10 scrollbar-hide">
         <div className="flex flex-col max-w-md mx-auto w-full p-6">

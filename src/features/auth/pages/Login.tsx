@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
@@ -6,6 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { toast } from 'sonner';
+
+// Memoized background to prevent re-renders on every keystroke
+const BackgroundBlobs = memo(() => (
+  <>
+    <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#d4af37]/5 blur-[80px] rounded-full pointer-events-none" style={{ willChange: 'filter' }} />
+    <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#14b8a6]/5 blur-[80px] rounded-full pointer-events-none" style={{ willChange: 'filter' }} />
+  </>
+));
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -52,16 +60,12 @@ export default function Login() {
 
   return (
     <div className="h-[100dvh] bg-background flex flex-col items-center justify-center p-4 relative overflow-y-auto">
-      {/* Divine Background Elements */}
-      <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#d4af37]/5 blur-[120px] rounded-full" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#14b8a6]/5 blur-[120px] rounded-full" />
+      {/* Divine Background Elements — memoized to avoid input lag */}
+      <BackgroundBlobs />
 
       <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0 }}
+        <div
           className="flex flex-col items-center gap-6 mb-8"
         >
           <div className="relative cursor-pointer">
@@ -81,7 +85,7 @@ export default function Login() {
               Faça login para continuar
             </p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">

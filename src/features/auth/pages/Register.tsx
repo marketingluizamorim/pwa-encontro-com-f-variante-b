@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,13 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { AccountCreatedDialog } from '@/features/auth/components/AccountCreatedDialog';
 
-
+// Memoized background to prevent re-renders on every keystroke
+const BackgroundBlobs = memo(() => (
+  <>
+    <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#d4af37]/5 blur-[80px] rounded-full pointer-events-none" style={{ willChange: 'filter' }} />
+    <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#14b8a6]/5 blur-[80px] rounded-full pointer-events-none" style={{ willChange: 'filter' }} />
+  </>
+));
 
 export default function Register() {
   const [searchParams] = useSearchParams();
@@ -131,17 +137,13 @@ export default function Register() {
 
   return (
     <div className="h-[100dvh] bg-background flex flex-col items-center justify-center p-4 relative overflow-y-auto">
-      {/* Divine Background Elements */}
-      <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#d4af37]/5 blur-[120px] rounded-full" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#14b8a6]/5 blur-[120px] rounded-full" />
+      {/* Divine Background Elements — memoized to avoid input lag */}
+      <BackgroundBlobs />
 
       <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
         {/* Logo */}
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0 }}
+        <div
           className="flex flex-col items-center gap-6 mb-8"
         >
           <div className="relative cursor-pointer">
@@ -158,7 +160,7 @@ export default function Register() {
             </h1>
             <p className="text-white/80 mt-2 font-light">Você está a um passo de encontrar seu par ideal</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
