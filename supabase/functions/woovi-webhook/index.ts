@@ -53,8 +53,7 @@ Deno.serve(async (req: Request) => {
         let paymentId = charge.correlationID;
         if (!paymentId) throw new Error("No correlationID found in charge");
 
-        // RENEWAL HANDLING: If this is a subscription charge, Woovi might send the original correlationID 
-        // inside the subscription object, while the charge itself has a new one.
+        const isRenewal = !!charge.subscription && !!charge.subscription.correlationID && charge.correlationID !== charge.subscription.correlationID;
         const subscriptionCorrelationID = charge.subscription?.correlationID;
 
         const isTestPayment = paymentId.startsWith("dev-test-") || paymentId.startsWith("mock-payment-id-");
@@ -151,11 +150,12 @@ Deno.serve(async (req: Request) => {
             if (utmifyToken) {
                 const nowPaid = new Date();
                 const orderBumpsArr = Array.isArray(purchase.order_bumps) ? purchase.order_bumps as string[] : [];
+                const planDisplayName = isRenewal ? `Renovação ${purchase.plan_name}` : purchase.plan_name;
                 const products: UtmifyProduct[] = [{
                     id: purchase.plan_id,
-                    name: purchase.plan_name,
+                    name: planDisplayName,
                     planId: purchase.plan_id,
-                    planName: purchase.plan_name,
+                    planName: planDisplayName,
                     quantity: 1,
                     priceInCents: Math.round(Number(purchase.plan_price) * 100),
                 }];
@@ -173,7 +173,7 @@ Deno.serve(async (req: Request) => {
                 const totalInCents = Math.round(Number(purchase.total_price) * 100);
                 const p = purchase as Record<string, unknown>;
                 await notifyUtmify(utmifyToken, {
-                    orderId: purchase.id,
+                    orderId: isRenewal ? `${purchase.id}_${charge.correlationID}` : purchase.id,
                     platform: "EncontroComFe",
                     paymentMethod: "pix",
                     status: "paid",
