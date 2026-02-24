@@ -121,14 +121,20 @@ export default function Discover() {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [quizSwipedCount, setQuizSwipedCount] = useState(0);
 
-  // Nomes de fakes já deslizados (para não aparecerem novamente)
-  const [swipedFakeNames, setSwipedFakeNames] = useState<Set<string>>(() => {
-    const saved = localStorage.getItem('swiped-fake-names');
-    return new Set(saved ? JSON.parse(saved) : []);
-  });
+  // Nomes de fakes já deslizados (Sincronizado com DB e LocalStorage)
+  const [swipedFakeNames, setSwipedFakeNames] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    localStorage.setItem('swiped-fake-names', JSON.stringify(Array.from(swipedFakeNames)));
+    const saved = localStorage.getItem('swiped-fake-names');
+    if (saved) {
+      setSwipedFakeNames(new Set(JSON.parse(saved)));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (swipedFakeNames.size > 0) {
+      localStorage.setItem('swiped-fake-names', JSON.stringify(Array.from(swipedFakeNames)));
+    }
   }, [swipedFakeNames]);
 
   useEffect(() => {
@@ -212,6 +218,17 @@ export default function Discover() {
     },
     enabled: !!user,
   });
+
+  // Sincronizar com dados do perfil (DB) quando carregados
+  useEffect(() => {
+    if (profileData && (profileData as any).swiped_fakes) {
+      setSwipedFakeNames(prev => {
+        const next = new Set(prev);
+        (profileData as any).swiped_fakes.forEach((name: string) => next.add(name));
+        return next;
+      });
+    }
+  }, [profileData]);
 
   const { gender, quizAnswers } = useFunnelStore();
 
@@ -479,12 +496,25 @@ export default function Discover() {
       setShowInfo(false);
     }, 200);
 
-    // Se for um perfil fake, não enviamos para o banco de dados
+    // Se for um perfil fake, não enviamos para o banco de dados de swipes,
+    // mas registramos no perfil do usuário para nunca mais aparecer
     if (currentProfile.user_id.startsWith('fake-')) {
-      // Registrar que este fake já foi deslizado
+      const fakeName = currentProfile.display_name;
+
       setSwipedFakeNames(prev => {
         const next = new Set(prev);
-        next.add(currentProfile.display_name);
+        next.add(fakeName);
+
+        // Persistência em background
+        (async () => {
+          const { supabase } = await import('@/integrations/supabase/client');
+          const swipedList = Array.from(next);
+          await (supabase
+            .from('profiles')
+            .update({ swiped_fakes: swipedList } as any) as any)
+            .eq('user_id', user.id);
+        })();
+
         return next;
       });
       return;

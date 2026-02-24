@@ -39,6 +39,8 @@ export interface Profile {
   about_children?: string;
   education?: string;
   languages?: string[];
+  is_fake?: boolean;
+  swiped_fakes?: string[];
 }
 
 interface FetchProfilesParams {

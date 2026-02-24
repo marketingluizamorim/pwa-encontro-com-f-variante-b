@@ -24,6 +24,7 @@ export interface Profile {
     is_verified?: boolean;
     is_boosted?: boolean;
     is_fake?: boolean;
+    swiped_fakes?: string[];
     last_active_at?: string;
     show_online_status?: boolean;
     show_last_active?: boolean;
