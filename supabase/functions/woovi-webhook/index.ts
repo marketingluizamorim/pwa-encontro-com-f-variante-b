@@ -85,7 +85,8 @@ Deno.serve(async (req: Request) => {
         let targetId = purchase.user_id;
         if (!targetId && purchase.user_email) {
             try {
-                const { data: { user } } = await supabase.auth.admin.getUserByEmail(purchase.user_email);
+                const { data: { users } } = await supabase.auth.admin.listUsers();
+                const user = users?.find(u => u.email?.toLowerCase() === purchase.user_email.toLowerCase());
                 if (user) {
                     targetId = user.id;
                     // Update purchase for future consistency
@@ -202,19 +203,20 @@ Deno.serve(async (req: Request) => {
         }
         // ───────────────────────────────────────────────────────────────
 
-        // ── Send welcome email (fire-and-forget) ─────────────────────
-        fetch(`${supabaseUrl}/functions/v1/send-welcome-email`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${supabaseServiceKey}`,
-            },
-            body: JSON.stringify({
-                userName: purchase.user_name,
-                userEmail: purchase.user_email,
-                planName: purchase.plan_name,
-            }),
-        }).catch((e) => console.error("Welcome email error:", e));
+        // ── Send welcome email (await to ensure completion) ──────────
+        try {
+            await fetch(`${supabaseUrl}/functions/v1/send-welcome-email`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userName: purchase.user_name,
+                    userEmail: purchase.user_email,
+                    planName: purchase.plan_name,
+                }),
+            });
+        } catch (e) {
+            console.error("Welcome email error:", e);
+        }
         // ─────────────────────────────────────────────────────────────
 
         return new Response(JSON.stringify({ success: true }), {

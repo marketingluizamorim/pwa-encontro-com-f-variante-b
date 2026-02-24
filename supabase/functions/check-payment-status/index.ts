@@ -43,7 +43,18 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (purchase?.payment_status === "PAID") {
-      console.log(`Payment ${paymentId} already PAID in DB.`);
+      console.log(`Payment ${paymentId} already PAID in DB. Ensuring welcome email.`);
+      // Still try to send email if it's a manual verification
+      try {
+        await fetch(`${supabaseUrl}/functions/v1/send-welcome-email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userName: purchase.user_name, userEmail: purchase.user_email, planName: purchase.plan_name }),
+        });
+      } catch (e) {
+        console.error("Manual email error:", e);
+      }
+
       return new Response(JSON.stringify({ success: true, status: "PAID", paymentId }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -109,11 +120,15 @@ Deno.serve(async (req) => {
       }
 
       // Send welcome email
-      fetch(`${supabaseUrl}/functions/v1/send-welcome-email`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseServiceKey}` },
-        body: JSON.stringify({ userName: purchase.user_name, userEmail: purchase.user_email, planName: purchase.plan_name }),
-      }).catch(e => console.error("Email error:", e));
+      try {
+        await fetch(`${supabaseUrl}/functions/v1/send-welcome-email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userName: purchase.user_name, userEmail: purchase.user_email, planName: purchase.plan_name }),
+        });
+      } catch (e) {
+        console.error("Email error:", e);
+      }
     }
 
     return new Response(JSON.stringify({ success: true, status, paymentId }), {
