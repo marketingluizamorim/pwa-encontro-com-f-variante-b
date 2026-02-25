@@ -21,9 +21,12 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
     if (!user) {
-      toast.error('Você precisa estar logado', { style: { marginTop: '50px' } });
+      console.error('[PhotoUpload] No user session found during upload');
+      toast.error('Sessão expirada. Por favor, faça login novamente.', { style: { marginTop: '50px' } });
       return null;
     }
+
+    console.log('[PhotoUpload] Starting upload for user:', user.id);
 
     // Mock/test users: bypass storage
     if (user.id.startsWith('mock-')) {
@@ -46,23 +49,37 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
+      console.log('[PhotoUpload] Uploading file to storage:', fileName);
+
+      // Upload with a 30s timeout to prevent getting stuck
+      const uploadPromise = supabase.storage
         .from('profile-photos')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false,
         });
 
+      const timeoutPromise = new Promise<{ error: Error }>((_, reject) =>
+        setTimeout(() => reject(new Error('Tempo limite de upload excedido (30s)')), 30000)
+      );
+
+      const { error: uploadError } = await Promise.race([uploadPromise, timeoutPromise]) as any;
+
       if (uploadError) {
         console.error('Supabase upload error:', uploadError);
         throw uploadError;
       }
 
-      const { data: { publicUrl } } = supabase.storage
+      console.log('[PhotoUpload] File uploaded successfully, getting public URL...');
+      const { data: publicUrlData } = supabase.storage
         .from('profile-photos')
         .getPublicUrl(fileName);
 
-      return publicUrl;
+      if (!publicUrlData || !publicUrlData.publicUrl) {
+        throw new Error('Falha ao gerar URL pública da imagem');
+      }
+
+      return publicUrlData.publicUrl;
     } catch (error: unknown) {
       console.error('Upload error details:', error);
       const msg = (error as Error)?.message || 'Erro desconhecido';
@@ -84,24 +101,38 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
     }
 
     setUploading(true);
+    console.log('[PhotoUpload] Starting upload for', filesToUpload.length, 'files');
+    toast.info(`Iniciando envio de ${filesToUpload.length} foto(s)...`, { style: { marginTop: '50px' } });
 
-    const newPhotos = [...photos];
+    try {
+      const newPhotos = [...photos];
 
-    for (let i = 0; i < filesToUpload.length; i++) {
-      setUploadingIndex(newPhotos.length);
-      const url = await uploadPhoto(filesToUpload[i]);
-      if (url) {
-        newPhotos.push(url);
-        onPhotosChange([...newPhotos]);
+      for (let i = 0; i < filesToUpload.length; i++) {
+        setUploadingIndex(newPhotos.length);
+        console.log(`[PhotoUpload] Uploading file ${i + 1}/${filesToUpload.length}`);
+        const url = await uploadPhoto(filesToUpload[i]);
+
+        if (url) {
+          console.log('[PhotoUpload] Upload success:', url);
+          newPhotos.push(url);
+          // Important: call onPhotosChange immediately for better feedback
+          onPhotosChange([...newPhotos]);
+        } else {
+          console.warn('[PhotoUpload] Upload failed for file', i + 1);
+        }
       }
-    }
+    } catch (err) {
+      console.error('[PhotoUpload] Unexpected error in handleFileSelect:', err);
+      toast.error('Erro ao processar arquivos. Tente novamente.');
+    } finally {
+      console.log('[PhotoUpload] Upload process finished');
+      setUploading(false);
+      setUploadingIndex(null);
 
-    setUploading(false);
-    setUploadingIndex(null);
-
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 

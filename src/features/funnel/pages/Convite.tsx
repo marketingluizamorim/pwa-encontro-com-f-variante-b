@@ -446,6 +446,7 @@ export default function Convite() {
                                             <PhotoUpload
                                                 photos={photos}
                                                 onPhotosChange={(p) => {
+                                                    console.log('[Convite] Photos updated:', p);
                                                     setPhotos(p);
                                                     if (p.length > 0) {
                                                         const newErrors = { ...setupErrors };
