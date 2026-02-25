@@ -1,51 +1,33 @@
 import { QuizAnswers } from "@/types/funnel";
 
-// Female avatars by age range (shown to male users)
 const getFemalePhotosByAge = (age: string | undefined): string[] => {
     const range = age === '18-25' ? '18-25' : age === '26-35' ? '26-35' : age === '36-55' ? '36-55' : age === '56+' ? '56-plus' : '26-35';
-    // Base 4 photos for the range
-    const base = [
+    return [
         `/assets/matches/match-female-${range}-display.jpg`,
         `/assets/matches/match-female-${range}-1.jpg`,
         `/assets/matches/match-female-${range}-2.jpg`,
         `/assets/matches/match-female-${range}-3.jpg`,
+        `/assets/matches/match-female-${range}-4.jpg`,
+        `/assets/matches/match-female-${range}-5.jpg`,
+        `/assets/matches/match-female-${range}-6.jpg`,
+        `/assets/matches/match-female-${range}-7.jpg`,
+        `/assets/matches/match-female-${range}-8.jpg`,
     ];
-    // Complement with photos from other ranges to ensure 9 unique photos
-    const others = [
-        '/assets/matches/match-female-18-25-display.jpg',
-        '/assets/matches/match-female-18-25-1.jpg',
-        '/assets/matches/match-female-26-35-display.jpg',
-        '/assets/matches/match-female-26-35-1.jpg',
-        '/assets/matches/match-female-36-55-display.jpg',
-        '/assets/matches/match-female-36-55-1.jpg',
-        '/assets/matches/match-female-18-25-2.jpg',
-        '/assets/matches/match-female-26-35-2.jpg',
-        '/assets/matches/match-female-36-55-2.jpg',
-    ];
-    // Return unique set of 9
-    return Array.from(new Set([...base, ...others])).slice(0, 9);
 };
 
 const getMalePhotosByAge = (age: string | undefined): string[] => {
     const range = age === '18-25' ? '18-25' : age === '26-35' ? '26-35' : age === '36-55' ? '36-55' : age === '56+' ? '56-plus' : '26-35';
-    const base = [
+    return [
         `/assets/matches/match-male-${range}-display.jpg`,
         `/assets/matches/match-male-${range}-1.jpg`,
         `/assets/matches/match-male-${range}-2.jpg`,
         `/assets/matches/match-male-${range}-3.jpg`,
+        `/assets/matches/match-male-${range}-4.jpg`,
+        `/assets/matches/match-male-${range}-5.jpg`,
+        `/assets/matches/match-male-${range}-6.jpg`,
+        `/assets/matches/match-male-${range}-7.jpg`,
+        `/assets/matches/match-male-${range}-8.jpg`,
     ];
-    const others = [
-        '/assets/matches/match-male-18-25-display.jpg',
-        '/assets/matches/match-male-18-25-1.jpg',
-        '/assets/matches/match-male-26-35-display.jpg',
-        '/assets/matches/match-male-26-35-1.jpg',
-        '/assets/matches/match-male-36-55-display.jpg',
-        '/assets/matches/match-male-36-55-1.jpg',
-        '/assets/matches/match-male-18-25-2.jpg',
-        '/assets/matches/match-male-26-35-2.jpg',
-        '/assets/matches/match-male-36-55-2.jpg',
-    ];
-    return Array.from(new Set([...base, ...others])).slice(0, 9);
 };
 
 const SHORT_INTEREST_MAP: Record<string, string> = {
@@ -95,9 +77,9 @@ const getAgesForRange = (ageRange: string | undefined): number[] => {
     }
 };
 
-// Rich static metadata for each profile slot (index 0-2 are used as seeds)
-const FEMALE_EXTRA = [
+export const FEMALE_EXTRA = [
     {
+        name: 'Bruna',
         bio: 'Amo louvar a Deus e estar com a família. Busco um relacionamento com propósito, construído na fé e no amor verdadeiro. ❤️',
         occupation: 'Professora',
         religion: 'Evangélica',
@@ -116,6 +98,7 @@ const FEMALE_EXTRA = [
         city: 'São Paulo'
     },
     {
+        name: 'Amanda',
         bio: 'Apaixonada pela Palavra de Deus e por um bom café ☕. Valorizo honestidade e propósito em um relacionamento.',
         occupation: 'Enfermeira',
         religion: 'Evangélica',
@@ -134,6 +117,7 @@ const FEMALE_EXTRA = [
         city: 'Rio de Janeiro'
     },
     {
+        name: 'Carolina',
         bio: 'Acredito que Deus tem um plano lindo guardado para mim. Adoro viagens, música gospel e momentos em família. 🌿',
         occupation: 'Designer',
         religion: 'Católica',
@@ -152,6 +136,7 @@ const FEMALE_EXTRA = [
         city: 'Belo Horizonte'
     },
     {
+        name: 'Juliana',
         bio: 'Sou comunicativa, alegre e amo servir ao próximo. Busco alguém que ame a Deus acima de tudo.',
         occupation: 'Assistente Administrativa',
         religion: 'Evangélica',
@@ -170,6 +155,7 @@ const FEMALE_EXTRA = [
         city: 'Curitiba'
     },
     {
+        name: 'Fernanda',
         bio: 'Minha fé me move todos os dias. Amo natureza, leitura bíblica e cozinhar para as pessoas que amo. 🌸',
         occupation: 'Nutricionista',
         religion: 'Protestante',
@@ -188,6 +174,7 @@ const FEMALE_EXTRA = [
         city: 'Florianópolis'
     },
     {
+        name: 'Larissa',
         bio: 'Filha do Rei, apaixonada por louvor e por pessoas. Quero construir algo sólido com quem comparte os mesmos valores.',
         occupation: 'Contadora',
         religion: 'Evangélica',
@@ -206,6 +193,7 @@ const FEMALE_EXTRA = [
         city: 'Goiânia'
     },
     {
+        name: 'Rebeca',
         bio: 'Amo a simplicidade e a alegria de viver com Deus. Procuro alguém para dividir sonhos e propósito.',
         occupation: 'Psicóloga',
         religion: 'Católica',
@@ -224,6 +212,7 @@ const FEMALE_EXTRA = [
         city: 'Brasília'
     },
     {
+        name: 'Talita',
         bio: 'Sorridente e cheia de fé. Acredito que o amor verdadeiro é um presente de Deus que devemos cultivar.',
         occupation: 'Advogada',
         religion: 'Evangélica',
@@ -242,6 +231,7 @@ const FEMALE_EXTRA = [
         city: 'Salvador'
     },
     {
+        name: 'Letícia',
         bio: 'Aventureira e dedicada à obra de Deus. Gosto de viagens missionárias e de estar em contato com a criação.',
         occupation: 'Veterinária',
         religion: 'Protestante',
@@ -261,8 +251,9 @@ const FEMALE_EXTRA = [
     },
 ];
 
-const MALE_EXTRA = [
+export const MALE_EXTRA = [
     {
+        name: 'Lucas',
         bio: 'Homem de fé, família e propósito. Gosto de momentos simples: oração, churrasco e um futebol com amigos. ⚽🙏',
         occupation: 'Engenheiro Civil',
         religion: 'Evangélica',
@@ -281,6 +272,7 @@ const MALE_EXTRA = [
         city: 'São Paulo'
     },
     {
+        name: 'Gabriel',
         bio: 'Busco algo verdadeiro e duradouro. Minha fé é meu alicerce e valorizo honestidade acima de tudo.',
         occupation: 'Médico Veterinário',
         religion: 'Católica',
@@ -299,6 +291,7 @@ const MALE_EXTRA = [
         city: 'Rio de Janeiro'
     },
     {
+        name: 'Pedro',
         bio: 'Empreendedor, cristão e apaixonado por servir. Acredito que o amor começa na amizade e respeito mútuo. 🌟',
         occupation: 'Advogado',
         religion: 'Católica',
@@ -317,6 +310,7 @@ const MALE_EXTRA = [
         city: 'Belo Horizonte'
     },
     {
+        name: 'Mateus',
         bio: 'Amo louvor, trilhas na natureza e um bom livro. Quero alguém com quem crescer na fé e na vida.',
         occupation: 'Desenvolvedor de Software',
         religion: 'Evangélica',
@@ -335,6 +329,7 @@ const MALE_EXTRA = [
         city: 'Curitiba'
     },
     {
+        name: 'Rafael',
         bio: 'Médico nas horas de trabalho, adorador nas horas livres. Priorizo família, caráter e comprometimento.',
         occupation: 'Arquiteto',
         religion: 'Católica',
@@ -353,6 +348,7 @@ const MALE_EXTRA = [
         city: 'Florianópolis'
     },
     {
+        name: 'Thiago',
         bio: 'Simples, fiel e com o coração aberto para o que Deus tem preparado. Adoro comunidade e momentos em família.',
         occupation: 'Administrador',
         religion: 'Evangélica',
@@ -371,6 +367,7 @@ const MALE_EXTRA = [
         city: 'Goiânia'
     },
     {
+        name: 'André',
         bio: 'Focado em crescer profissionalmente e espiritualmente. Busco uma parceira para caminhar junto no evangelho.',
         occupation: 'Professor Universitário',
         religion: 'Protestante',
@@ -389,6 +386,7 @@ const MALE_EXTRA = [
         city: 'Brasília'
     },
     {
+        name: 'Hugo',
         bio: 'Cristão praticante, gosto de música e esportes. Acredito que a base de tudo é o respeito e a temor a Deus.',
         occupation: 'Designer Gráfico',
         religion: 'Evangélica',
@@ -407,6 +405,7 @@ const MALE_EXTRA = [
         city: 'Salvador'
     },
     {
+        name: 'Daniel',
         bio: 'Homem simples e dedicado à obra. Valorizo a lealdade e a sinceridade em todas as áreas da vida.',
         occupation: 'Contador',
         religion: 'Protestante',
@@ -426,53 +425,57 @@ const MALE_EXTRA = [
     },
 ];
 
-export const getProfilesData = (gender: 'male' | 'female' | null, quizAnswers: QuizAnswers) => {
-    const stateAbbr = getStateAbbreviation(quizAnswers.state);
-    const ages = getAgesForRange(quizAnswers.age);
-    const femalePhotos = getFemalePhotosByAge(quizAnswers.age);
-    const malePhotos = getMalePhotosByAge(quizAnswers.age);
+/**
+ * Enriches a bot profile with static metadata for consistency
+ * Accepts an optional ageRange to dynamically pick photos/birth_date
+ */
+export const enrichBotProfile = (profile: any, ageRange?: string) => {
+    if (!profile.is_bot) return profile;
 
-    const femaleProfiles = [
-        { name: 'Bruna', age: ages[0], distance: '4.7 km', photo: femalePhotos[0] },
-        { name: 'Amanda', age: ages[1], distance: '2.2 km', photo: femalePhotos[1] },
-        { name: 'Carolina', age: ages[2], distance: '6.4 km', photo: femalePhotos[2] },
-        { name: 'Juliana', age: ages[3], distance: '7.9 km', photo: femalePhotos[3] },
-        { name: 'Fernanda', age: ages[4], distance: '3.1 km', photo: femalePhotos[4] },
-        { name: 'Larissa', age: ages[5], distance: '5.6 km', photo: femalePhotos[5] },
-        { name: 'Rebeca', age: ages[6], distance: '2.8 km', photo: femalePhotos[6] },
-        { name: 'Talita', age: ages[7], distance: '4.1 km', photo: femalePhotos[7] },
-        { name: 'Letícia', age: ages[8], distance: '3.5 km', photo: femalePhotos[8] },
-    ];
+    const extras = profile.gender === 'female' ? FEMALE_EXTRA : MALE_EXTRA;
+    const index = extras.findIndex(e => e.name === profile.display_name);
+    const extra = extras[index === -1 ? 0 : index];
 
-    const maleProfiles = [
-        { name: 'Lucas', age: ages[0], distance: '4.7 km', photo: malePhotos[0] },
-        { name: 'Gabriel', age: ages[1], distance: '2.2 km', photo: malePhotos[1] },
-        { name: 'Pedro', age: ages[2], distance: '6.4 km', photo: malePhotos[2] },
-        { name: 'Mateus', age: ages[3], distance: '7.9 km', photo: malePhotos[3] },
-        { name: 'Rafael', age: ages[4], distance: '3.1 km', photo: malePhotos[4] },
-        { name: 'Thiago', age: ages[5], distance: '5.6 km', photo: malePhotos[5] },
-        { name: 'André', age: ages[6], distance: '2.8 km', photo: malePhotos[6] },
-        { name: 'Hugo', age: ages[7], distance: '4.1 km', photo: malePhotos[7] },
-        { name: 'Daniel', age: ages[8], distance: '3.5 km', photo: malePhotos[8] },
-    ];
+    let dynamicData: any = {};
+    if (ageRange) {
+        const ages = getAgesForRange(ageRange);
+        const photos = profile.gender === 'female' ? getFemalePhotosByAge(ageRange) : getMalePhotosByAge(ageRange);
 
-    const baseProfiles = gender === 'male' ? femaleProfiles : maleProfiles;
-    const extraData = gender === 'male' ? FEMALE_EXTRA : MALE_EXTRA;
-
-    return baseProfiles.map((profile, index) => {
-        const extra = extraData[index];
-        return {
-            ...profile,
-            state: extra.state || stateAbbr,
-            city: extra.city || quizAnswers.city || 'São Paulo',
-            unlocked: index === 0,
-            // Rich metadata so the expanded profile view looks complete
-            ...extra,
-            // Prioritize extra christian_interests but fallback to generated ones
-            christian_interests: extra.christian_interests || generateMatchingInterests(quizAnswers, index),
-            // Fallbacks for consistency
-            religion: extra.religion || quizAnswers.religion || 'Cristã',
-            looking_for: extra.looking_for || quizAnswers.lookingFor || 'Relacionamento sério',
+        const photo = photos[index % photos.length];
+        dynamicData = {
+            birth_date: new Date(new Date().getFullYear() - ages[index % ages.length], 0, 1).toISOString(),
+            photos: [photo],
+            avatar_url: photo
         };
-    });
+    }
+
+    return {
+        ...profile,
+        ...extra,
+        ...dynamicData,
+        // Override DB values with static rich ones if DB is empty
+        bio: profile.bio || extra.bio,
+        occupation: profile.occupation || extra.occupation,
+        christian_interests: profile.christian_interests?.length ? profile.christian_interests : extra.christian_interests,
+        religion: profile.religion || extra.religion,
+        looking_for: profile.looking_for || extra.looking_for,
+        city: profile.city || extra.city,
+        state: profile.state || extra.state,
+    };
 };
+
+// Deprecated: used for local generation, but we now use DB bots
+export const getProfilesData = (gender: 'male' | 'female' | null, quizAnswers: QuizAnswers) => {
+    const extras = gender === 'male' ? FEMALE_EXTRA : MALE_EXTRA;
+    const ages = getAgesForRange(quizAnswers.age);
+    const photos = gender === 'male' ? getFemalePhotosByAge(quizAnswers.age) : getMalePhotosByAge(quizAnswers.age);
+
+    return extras.map((extra, index) => ({
+        ...extra,
+        age: ages[index % ages.length],
+        photo: photos[index % photos.length],
+        distance: `${(Math.random() * 5 + 1).toFixed(1)} km`,
+        unlocked: index === 0,
+    }));
+};
+

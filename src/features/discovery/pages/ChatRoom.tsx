@@ -42,7 +42,8 @@ import {
 } from '@/components/ui/dialog';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
 import { supabase } from '@/integrations/supabase/client';
-import { getProfilesData } from '@/features/funnel/utils/profiles';
+import { enrichBotProfile } from '@/features/funnel/utils/profiles';
+import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
 import { QuizAnswers } from '@/types/funnel';
 
 interface Message {
@@ -285,35 +286,37 @@ export default function ChatRoom() {
 
       let mProfile: MatchProfile | null = null;
       if (profile) {
-        const p = profile as Record<string, any>;
+        const userAge = useFunnelStore.getState().quizAnswers.age;
+        const enriched = enrichBotProfile(profile, userAge);
+
         mProfile = {
-          id: String(p.user_id),
-          display_name: String(p.display_name || 'Usuário'),
-          avatar_url: p.avatar_url ? String(p.avatar_url) : undefined,
-          photos: Array.isArray(p.photos) ? p.photos.map(String) : [],
-          bio: p.bio ? String(p.bio) : undefined,
-          birth_date: p.birth_date ? String(p.birth_date) : undefined,
-          city: p.city ? String(p.city) : undefined,
-          state: p.state ? String(p.state) : undefined,
-          religion: p.religion ? String(p.religion) : undefined,
-          church_frequency: p.church_frequency ? String(p.church_frequency) : undefined,
-          looking_for: p.looking_for ? String(p.looking_for) : undefined,
-          occupation: p.occupation ? String(p.occupation) : undefined,
-          is_verified: !!p.is_verified,
-          is_bot: !!p.is_bot,
-          show_distance: !!p.show_distance,
-          christian_interests: Array.isArray(p.christian_interests) ? p.christian_interests.map(String) : [],
-          last_active_at: p.last_active_at ? String(p.last_active_at) : undefined,
-          show_online_status: !!p.show_online_status,
-          show_last_active: !!p.show_last_active,
-          gender: p.gender ? String(p.gender) : undefined,
-          pets: p.pets ? String(p.pets) : undefined,
-          drink: p.drink ? String(p.drink) : undefined,
-          smoke: p.smoke ? String(p.smoke) : undefined,
-          physical_activity: p.physical_activity ? String(p.physical_activity) : undefined,
-          about_children: p.about_children ? String(p.about_children) : undefined,
-          education: p.education ? String(p.education) : undefined,
-          languages: Array.isArray(p.languages) ? p.languages.map(String) : undefined
+          id: String(enriched.user_id),
+          display_name: String(enriched.display_name || 'Usuário'),
+          avatar_url: enriched.avatar_url ? String(enriched.avatar_url) : undefined,
+          photos: Array.isArray(enriched.photos) ? enriched.photos.map(String) : [],
+          bio: enriched.bio ? String(enriched.bio) : undefined,
+          birth_date: enriched.birth_date ? String(enriched.birth_date) : undefined,
+          city: enriched.city ? String(enriched.city) : undefined,
+          state: enriched.state ? String(enriched.state) : undefined,
+          religion: enriched.religion ? String(enriched.religion) : undefined,
+          church_frequency: enriched.church_frequency ? String(enriched.church_frequency) : undefined,
+          looking_for: enriched.looking_for ? String(enriched.looking_for) : undefined,
+          occupation: enriched.occupation ? String(enriched.occupation) : undefined,
+          is_verified: !!enriched.is_verified,
+          is_bot: !!enriched.is_bot,
+          show_distance: !!enriched.show_distance,
+          christian_interests: Array.isArray(enriched.christian_interests) ? enriched.christian_interests.map(String) : [],
+          last_active_at: enriched.last_active_at ? String(enriched.last_active_at) : undefined,
+          show_online_status: !!enriched.show_online_status,
+          show_last_active: !!enriched.show_last_active,
+          gender: enriched.gender ? String(enriched.gender) : undefined,
+          pets: enriched.pets ? String(enriched.pets) : undefined,
+          drink: enriched.drink ? String(enriched.drink) : undefined,
+          smoke: enriched.smoke ? String(enriched.smoke) : undefined,
+          physical_activity: enriched.physical_activity ? String(enriched.physical_activity) : undefined,
+          about_children: enriched.about_children ? String(enriched.about_children) : undefined,
+          education: enriched.education ? String(enriched.education) : undefined,
+          languages: Array.isArray(enriched.languages) ? enriched.languages.map(String) : undefined
         };
       }
 

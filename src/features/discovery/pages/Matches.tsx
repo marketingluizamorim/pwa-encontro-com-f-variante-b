@@ -9,8 +9,9 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
-import { getProfilesData } from '@/features/funnel/utils/profiles';
 import { QuizAnswers } from '@/types/funnel';
+import { useFunnelStore } from "@/features/funnel/hooks/useFunnelStore";
+import { enrichBotProfile } from '@/features/funnel/utils/profiles';
 import { motion, AnimatePresence, useDragControls, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSwipeMutation } from '@/features/discovery/hooks/useDiscoverProfiles';
@@ -299,6 +300,10 @@ export default function Matches() {
     queryFn: async () => {
       if (!user) return [];
 
+      // Get user's gender preference from store
+      const userGender = useFunnelStore.getState().gender;
+      const targetGender = userGender === 'male' ? 'female' : 'male';
+
       const { supabase } = await import('@/integrations/supabase/client');
 
       // 1. Get ALL users I have already SWIPED on (Like or Dislike)
@@ -354,6 +359,13 @@ export default function Matches() {
         .map((s) => {
           const profile = profilesMap.get(s.swiper_id);
           if (!profile) return null;
+
+          // Get user's age preference for bot enrichment
+          const userAge = useFunnelStore.getState().quizAnswers.age;
+
+          // Enrich bot profile for consistency
+          const enriched = enrichBotProfile(profile, userAge);
+
           return {
             id: s.swiper_id,
             user_id: s.swiper_id,
@@ -361,35 +373,36 @@ export default function Matches() {
             message: s.message,
             is_super_like: s.direction === 'super_like',
             profile: {
-              display_name: profile.display_name,
-              birth_date: profile.birth_date,
-              avatar_url: profile.avatar_url,
-              photos: profile.photos || [],
-              bio: profile.bio,
-              city: profile.city,
-              state: profile.state,
-              religion: profile.religion,
-              looking_for: (profile as any).looking_for,
-              show_distance: !!(profile as any).show_distance,
-              gender: (profile as any).gender,
-              church_frequency: (profile as any).church_frequency,
-              about_children: (profile as any).about_children,
-              pets: (profile as any).pets,
-              drink: (profile as any).drink,
-              smoke: (profile as any).smoke,
-              physical_activity: (profile as any).physical_activity,
-              last_active_at: (profile as any).last_active_at,
-              show_online_status: !!(profile as any).show_online_status,
-              show_last_active: !!(profile as any).show_last_active,
-              occupation: (profile as any).occupation,
-              education: (profile as any).education,
-              languages: (profile as any).languages,
-              social_media: (profile as any).social_media,
-              christian_interests: (profile as any).christian_interests,
+              display_name: enriched.display_name,
+              birth_date: enriched.birth_date,
+              avatar_url: enriched.avatar_url,
+              photos: enriched.photos || [],
+              bio: enriched.bio,
+              city: enriched.city,
+              state: enriched.state,
+              religion: enriched.religion,
+              looking_for: (enriched as any).looking_for,
+              show_distance: !!(enriched as any).show_distance,
+              gender: (enriched as any).gender,
+              church_frequency: (enriched as any).church_frequency,
+              about_children: (enriched as any).about_children,
+              pets: (enriched as any).pets,
+              drink: (enriched as any).drink,
+              smoke: (enriched as any).smoke,
+              physical_activity: (enriched as any).physical_activity,
+              last_active_at: (enriched as any).last_active_at,
+              show_online_status: !!(enriched as any).show_online_status,
+              show_last_active: !!(enriched as any).show_last_active,
+              occupation: (enriched as any).occupation,
+              education: (enriched as any).education,
+              languages: (enriched as any).languages,
+              social_media: (enriched as any).social_media,
+              christian_interests: (enriched as any).christian_interests,
             }
           };
         })
-        .filter((l) => l !== null) as LikeProfile[];
+        .filter((l) => l !== null)
+        .filter((l) => l?.profile.gender === targetGender) as LikeProfile[];
 
       return formattedLikes;
     }

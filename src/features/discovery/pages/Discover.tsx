@@ -34,7 +34,7 @@ import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
 import { SuperLikeExplainerDialog } from '@/features/discovery/components/SuperLikeExplainerDialog';
 import { SuperLikeMessageDialog } from '@/features/discovery/components/SuperLikeMessageDialog';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
-import { getProfilesData } from '@/features/funnel/utils/profiles';
+import { enrichBotProfile } from '@/features/funnel/utils/profiles';
 import {
   Dialog,
   DialogContent,
@@ -122,21 +122,7 @@ export default function Discover() {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [quizSwipedCount, setQuizSwipedCount] = useState(0);
 
-  // Nomes de fakes já deslizados (Sincronizado com DB e LocalStorage)
-  const [swipedFakeNames, setSwipedFakeNames] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    const saved = localStorage.getItem('swiped-fake-names');
-    if (saved) {
-      setSwipedFakeNames(new Set(JSON.parse(saved)));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (swipedFakeNames.size > 0) {
-      localStorage.setItem('swiped-fake-names', JSON.stringify(Array.from(swipedFakeNames)));
-    }
-  }, [swipedFakeNames]);
 
   useEffect(() => {
     setCurrentPhotoIndex(0);
@@ -220,82 +206,16 @@ export default function Discover() {
     enabled: !!user,
   });
 
-  // Sincronizar com dados do perfil (DB) quando carregados
-  useEffect(() => {
-    if (profileData && (profileData as any).swiped_fakes) {
-      setSwipedFakeNames(prev => {
-        const next = new Set(prev);
-        (profileData as any).swiped_fakes.forEach((name: string) => next.add(name));
-        return next;
-      });
-    }
-  }, [profileData]);
+
 
   const { gender, quizAnswers } = useFunnelStore();
 
-  // Simplificado para usar tanto perfis reais quanto fakes como fallback
   const profiles = useMemo(() => {
     const realProfiles = data?.pages ? data.pages.flatMap((page) => page.profiles) : [];
 
-    // Gerar perfis fakes baseados nas respostas do quiz (preferência de gênero)
-    const targetGender = gender === 'male' ? 'female' : 'male';
-    const fakeProfilesData = getProfilesData(targetGender, quizAnswers);
-
-    const fakes = fakeProfilesData
-      .filter(fake => {
-        // 1. Filtros básicos de sistema
-        const isSwiped = swipedFakeNames.has(fake.name);
-        const existsAsReal = realProfiles.some(rp => rp.display_name === fake.name);
-        if (isSwiped || existsAsReal) return false;
-
-        // 2. Filtros de Idade
-        if (fake.age < appliedFilters.minAge || fake.age > appliedFilters.maxAge) return false;
-
-        // 3. Filtros de Localização (Estado/Cidade)
-        if (appliedFilters.state && appliedFilters.state !== '' && fake.state !== appliedFilters.state) return false;
-        if (appliedFilters.city && appliedFilters.city !== '' && fake.city !== appliedFilters.city) return false;
-
-        // 4. Filtros de Fé e Religião
-        if (appliedFilters.religion && appliedFilters.religion !== '' && fake.religion !== appliedFilters.religion) return false;
-        if (appliedFilters.churchFrequency && appliedFilters.churchFrequency !== '' && fake.church_frequency !== appliedFilters.churchFrequency) return false;
-
-        // 5. Filtros de Objetivos
-        if (appliedFilters.lookingFor && appliedFilters.lookingFor !== '' && fake.looking_for !== appliedFilters.lookingFor) return false;
-
-        // 6. Interesses Cristãos (O fake deve conter TODOS os interesses selecionados, igual ao RPC)
-        if (appliedFilters.christianInterests && appliedFilters.christianInterests.length > 0) {
-          const hasAllInterests = appliedFilters.christianInterests.every(interest =>
-            fake.christian_interests?.includes(interest)
-          );
-          if (!hasAllInterests) return false;
-        }
-
-        return true;
-      })
-      .slice(0, 3) // Limita a 3 fakes filtrados
-      .map((fake, index) => ({
-        user_id: `fake-discover-${index}-${fake.name}`,
-        display_name: fake.name,
-        birth_date: new Date(new Date().getFullYear() - fake.age, 0, 1).toISOString(),
-        photos: [fake.photo],
-        avatar_url: fake.photo,
-        bio: fake.bio,
-        city: fake.city,
-        state: fake.state,
-        religion: fake.religion,
-        looking_for: fake.looking_for,
-        christian_interests: fake.christian_interests,
-        occupation: fake.occupation,
-        education: fake.education,
-        gender: targetGender,
-        is_fake: true,
-        latitude: userCoords?.latitude ? userCoords.latitude + (Math.random() * 0.05) : -23.5505,
-        longitude: userCoords?.longitude ? userCoords.longitude + (Math.random() * 0.05) : -46.6333,
-      }));
-
-    // Priorizar reais, depois fakes
-    return [...realProfiles, ...fakes];
-  }, [data, gender, quizAnswers, userCoords, swipedFakeNames, appliedFilters]);
+    // Enriquecer perfis de bots com metadados estáticos e fotos da faixa etária correta
+    return realProfiles.map(p => enrichBotProfile(p, quizAnswers.age));
+  }, [data, quizAnswers.age]);
 
   const currentProfile = profiles[currentIndex];
   const nextProfile = profiles[currentIndex + 1];
@@ -496,30 +416,6 @@ export default function Discover() {
       y.set(0);
       setShowInfo(false);
     }, 200);
-
-    // Se for um perfil fake, não enviamos para o banco de dados de swipes,
-    // mas registramos no perfil do usuário para nunca mais aparecer
-    if (currentProfile.user_id.startsWith('fake-')) {
-      const fakeName = currentProfile.display_name;
-
-      setSwipedFakeNames(prev => {
-        const next = new Set(prev);
-        next.add(fakeName);
-
-        // Persistência em background
-        (async () => {
-          const { supabase } = await import('@/integrations/supabase/client');
-          const swipedList = Array.from(next);
-          await (supabase
-            .from('profiles')
-            .update({ swiped_fakes: swipedList } as any) as any)
-            .eq('user_id', user.id);
-        })();
-
-        return next;
-      });
-      return;
-    }
 
     // Intercept Quiz Profiles for instant match or removal
     // Fire and forget mutation (handling errors/matches async)

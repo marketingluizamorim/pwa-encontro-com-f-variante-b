@@ -36,7 +36,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
-import { getProfilesData } from '@/features/funnel/utils/profiles';
+import { enrichBotProfile } from '@/features/funnel/utils/profiles';
+import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
 import { QuizAnswers } from '@/types/funnel';
 
 interface Conversation {
@@ -211,10 +212,14 @@ export default function Chat() {
                 }
             }
 
+            const userAge = useFunnelStore.getState().quizAnswers.age;
+
             const realConversations = activeMatches.map(m => {
                 const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
                 const profile = profilesMap.get(otherId);
                 if (!profile) return null;
+
+                const enriched = enrichBotProfile(profile, userAge);
 
                 const lastMsg = lastMsgByMatch.get(m.id);
                 const isSuperLike = superLikePairs.has(`${user.id}-${otherId}`) || superLikePairs.has(`${otherId}-${user.id}`);
@@ -225,30 +230,30 @@ export default function Chat() {
                     created_at: m.created_at,
                     is_super_like: isSuperLike,
                     profile: {
-                        id: profile.user_id,
-                        display_name: profile.display_name || 'Usuário',
-                        avatar_url: profile.avatar_url || undefined,
-                        photos: profile.photos || [],
-                        birth_date: profile.birth_date,
-                        bio: profile.bio,
-                        occupation: profile.occupation,
-                        city: profile.city,
-                        looking_for: profile.looking_for,
-                        religion: profile.religion,
-                        gender: profile.gender,
-                        pets: profile.pets,
-                        drink: profile.drink,
-                        smoke: profile.smoke,
-                        physical_activity: profile.physical_activity,
-                        church_frequency: profile.church_frequency,
-                        about_children: (profile as any).about_children,
-                        education: (profile as any).education,
-                        languages: (profile as any).languages,
-                        social_media: (profile as any).social_media,
-                        state: (profile as any).state,
-                        last_active_at: (profile as any).last_active_at,
-                        show_online_status: (profile as any).show_online_status,
-                        show_last_active: (profile as any).show_last_active,
+                        id: enriched.user_id,
+                        display_name: enriched.display_name || 'Usuário',
+                        avatar_url: enriched.avatar_url || undefined,
+                        photos: enriched.photos || [],
+                        birth_date: enriched.birth_date,
+                        bio: enriched.bio,
+                        occupation: enriched.occupation,
+                        city: enriched.city,
+                        looking_for: enriched.looking_for,
+                        religion: enriched.religion,
+                        gender: enriched.gender,
+                        pets: enriched.pets,
+                        drink: enriched.drink,
+                        smoke: enriched.smoke,
+                        physical_activity: enriched.physical_activity,
+                        church_frequency: enriched.church_frequency,
+                        about_children: (enriched as any).about_children,
+                        education: (enriched as any).education,
+                        languages: (enriched as any).languages,
+                        social_media: (enriched as any).social_media,
+                        state: (enriched as any).state,
+                        last_active_at: (enriched as any).last_active_at,
+                        show_online_status: (enriched as any).show_online_status,
+                        show_last_active: (enriched as any).show_last_active,
                     },
                     last_message: lastMsg ? {
                         content: lastMsg.content,
