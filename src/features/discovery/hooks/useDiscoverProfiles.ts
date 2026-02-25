@@ -40,6 +40,7 @@ export interface Profile {
   education?: string;
   languages?: string[];
   is_fake?: boolean;
+  is_bot?: boolean;
   swiped_fakes?: string[];
 }
 
