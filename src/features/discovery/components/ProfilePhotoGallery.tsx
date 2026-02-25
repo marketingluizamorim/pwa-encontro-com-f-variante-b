@@ -4,6 +4,7 @@ import { Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Profile } from '../types/profile';
 import { getOptimizedImageUrl, IMAGE_SIZES } from '@/lib/image-utils';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 interface ProfilePhotoGalleryProps {
     profile: Profile;
@@ -53,9 +54,10 @@ export const ProfilePhotoGallery: React.FC<ProfilePhotoGalleryProps> = ({
                 <div className="w-1/2 h-full cursor-pointer" onClick={onNextPhoto} />
             </div>
 
-            <img
+            <OptimizedImage
                 src={getOptimizedImageUrl(photos[currentPhotoIndex], IMAGE_SIZES.PROFILE_CARD)}
                 className="w-full h-full object-cover pointer-events-none"
+                containerClassName="w-full h-full"
                 alt={profile.display_name}
             />
 

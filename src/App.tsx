@@ -170,11 +170,11 @@ const AppContent = () => {
                     </ProtectedRoute>
                   }
                 >
-                  <Route path="discover" element={<Discover />} />
-                  <Route path="explore" element={<Explore />} />
-                  <Route path="matches" element={<Matches />} />
-                  <Route path="chat" element={<Chat />} />
-                  <Route path="profile" element={<Profile />} />
+                  <Route path="discover" element={<></>} />
+                  <Route path="explore" element={<></>} />
+                  <Route path="matches" element={<></>} />
+                  <Route path="chat" element={<></>} />
+                  <Route path="profile" element={<></>} />
                   <Route path="profile/:userId" element={<Profile />} />
                 </Route>
 

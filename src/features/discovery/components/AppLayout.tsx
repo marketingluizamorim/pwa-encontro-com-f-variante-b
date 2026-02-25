@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/features/discovery/hooks/useNotifications';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +17,12 @@ const navItems = [
   { to: '/app/chat', icon: 'ri-chat-3-fill', inactiveIcon: 'ri-chat-3-line', label: 'Mensagens', notificationKey: 'chat' as const },
   { to: '/app/profile', icon: 'ri-user-3-fill', inactiveIcon: 'ri-user-3-line', label: 'Perfil', notificationKey: null },
 ];
+
+const TabDiscover = lazy(() => import('../pages/Discover'));
+const TabExplore = lazy(() => import('../pages/Explore'));
+const TabMatches = lazy(() => import('../pages/Matches'));
+const TabChat = lazy(() => import('../pages/Chat'));
+const TabProfile = lazy(() => import('../pages/Profile'));
 
 export function AppLayout() {
   const { user, signOut } = useAuth();
@@ -125,12 +132,8 @@ export function AppLayout() {
   // Check if we are in the Discover page to apply special layout rules
   const isDiscover = location.pathname.includes('/discover');
 
-  // Limpar notificações quando usuário visita uma seção
+  // Reset notification when user visits a section
   useEffect(() => {
-    // Reset scroll on any navigation within AppLayout
-    window.scrollTo(0, 0);
-    document.body.scrollTop = 0;
-
     if (location.pathname.includes('/discover')) {
       clearNotification('discover');
     } else if (location.pathname.includes('/explore')) {
@@ -202,7 +205,38 @@ export function AppLayout() {
             </motion.div>
           )}
         </AnimatePresence>
-        <Outlet />
+
+        <Suspense fallback={
+          <div className="flex h-[80vh] items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
+          </div>
+        }>
+          <div className={cn("h-full w-full", location.pathname !== '/app/discover' && "hidden")}>
+            <TabDiscover />
+          </div>
+          <div className={cn("h-full w-full", location.pathname !== '/app/explore' && "hidden")}>
+            <TabExplore />
+          </div>
+          <div className={cn("h-full w-full", location.pathname !== '/app/matches' && "hidden")}>
+            <TabMatches />
+          </div>
+          <div className={cn("h-full w-full", location.pathname !== '/app/chat' && "hidden")}>
+            <TabChat />
+          </div>
+          <div className={cn("h-full w-full", location.pathname !== '/app/profile' && "hidden")}>
+            <TabProfile />
+          </div>
+
+          <div className={cn("h-full w-full", ![
+            '/app/discover',
+            '/app/explore',
+            '/app/matches',
+            '/app/chat',
+            '/app/profile'
+          ].includes(location.pathname) ? "block" : "hidden")}>
+            <Outlet />
+          </div>
+        </Suspense>
       </main>
 
       {/* Floating Bottom Navigation */}
@@ -304,6 +338,6 @@ export function AppLayout() {
           })}
         </div>
       </nav>
-    </div>
+    </div >
   );
 }

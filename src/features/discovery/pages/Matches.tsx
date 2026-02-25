@@ -20,6 +20,7 @@ import { ProfileDetails } from '@/features/discovery/components/ProfileDetails';
 import { ProfilePhotoGallery } from '@/features/discovery/components/ProfilePhotoGallery';
 import { SafetyActions } from '@/features/discovery/components/SafetyActions';
 import { getOptimizedImageUrl, IMAGE_SIZES } from '@/lib/image-utils';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { UpgradeFlow } from '@/features/discovery/components/UpgradeFlow';
 import { Header } from '@/features/discovery/components/Header';
 import { HelpDrawer } from '@/features/discovery/components/HelpDrawer';
@@ -142,17 +143,16 @@ const SwipeableMatchCard = ({
       animate={undefined}
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
     >
-      <img
+      <OptimizedImage
         src={getOptimizedImageUrl(like.profile.photos[0] || like.profile.avatar_url, IMAGE_SIZES.THUMBNAIL)}
-        alt="Foto oculta"
+        alt="Foto perfil"
         className={cn(
           "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none",
           locked && "blur-lg scale-110"
         )}
-        draggable={false}
+        containerClassName="w-full h-full"
         loading="eager"
         fetchPriority="high"
-        style={{ minHeight: '100%', display: 'block' }}
       />
 
       {/* Super Like Star Badge */}

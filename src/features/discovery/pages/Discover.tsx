@@ -17,6 +17,7 @@ import { ProfileDetails } from '@/features/discovery/components/ProfileDetails';
 import { ProfilePhotoGallery } from '@/features/discovery/components/ProfilePhotoGallery';
 import { SafetyActions } from '@/features/discovery/components/SafetyActions';
 import { getOptimizedImageUrl, IMAGE_SIZES } from '@/lib/image-utils';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { UpgradeFlow } from '@/features/discovery/components/UpgradeFlow';
 import { calculateDistance } from '@/lib/geo-utils';
 import { MatchCelebration } from '@/features/discovery/components/MatchCelebration';
@@ -743,9 +744,10 @@ export default function Discover() {
               {nextProfile && (
                 <div className="absolute inset-x-4 top-4 bottom-28 z-0">
                   <div className="w-full h-full bg-card rounded-[2rem] overflow-hidden border border-border opacity-60 scale-95 translate-y-2 shadow-xl">
-                    <img
+                    <OptimizedImage
                       src={nextProfile.photos?.[0] || nextProfile.avatar_url || '/placeholder.svg'}
                       className="w-full h-full object-cover opacity-50 grayscale"
+                      containerClassName="w-full h-full"
                       alt="Next"
                     />
                   </div>
@@ -820,11 +822,11 @@ export default function Discover() {
                       </div>
 
                       {/* Photo */}
-                      <img
+                      <OptimizedImage
                         src={getOptimizedImageUrl(photoSrc, IMAGE_SIZES.PROFILE_CARD)}
                         className="w-full h-full object-cover pointer-events-none"
+                        containerClassName="w-full h-full"
                         alt="Profile"
-                        draggable={false}
                         loading="eager"
                         fetchPriority="high"
                       />

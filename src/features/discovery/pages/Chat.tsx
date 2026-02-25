@@ -20,6 +20,7 @@ import { ProfilePhotoGallery } from '@/features/discovery/components/ProfilePhot
 import { SafetyActions } from '@/features/discovery/components/SafetyActions';
 import { UpgradeFlow } from '@/features/discovery/components/UpgradeFlow';
 import { DeleteConversationDialog } from '@/features/discovery/components/UserActions';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -630,9 +631,10 @@ export default function Chat() {
                                             : "border-white/5"
                                     )}>
                                         <div className="absolute inset-0 rounded-[2.1rem] overflow-hidden">
-                                            <img
+                                            <OptimizedImage
                                                 src={conv.profile.photos[0] || conv.profile.avatar_url || '/placeholder.svg'}
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                containerClassName="w-full h-full"
                                                 alt={conv.profile.display_name}
                                                 loading="eager"
                                                 fetchPriority="high"
@@ -692,10 +694,11 @@ export default function Chat() {
                                     >
                                         <div className="relative">
                                             <div className="w-16 h-16 rounded-full overflow-hidden border border-border">
-                                                <img
+                                                <OptimizedImage
                                                     src={conv.profile.photos[0] || conv.profile.avatar_url || '/placeholder.svg'}
                                                     alt={conv.profile.display_name}
                                                     className="w-full h-full object-cover"
+                                                    containerClassName="w-full h-full"
                                                     loading="eager"
                                                     fetchPriority="high"
                                                 />

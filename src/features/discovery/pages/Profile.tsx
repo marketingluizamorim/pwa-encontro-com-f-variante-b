@@ -23,6 +23,7 @@ import { Header } from '@/features/discovery/components/Header';
 import { PullToRefresh } from '@/features/discovery/components/PullToRefresh';
 import { CheckoutManager } from '@/features/discovery/components/CheckoutManager';
 import { PLANS } from '@/features/funnel/components/plans/PlansGrid';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 interface UserProfile {
   display_name: string;
@@ -317,10 +318,11 @@ export default function Profile() {
               {/* Avatar */}
               <div className="w-28 h-28 rounded-full overflow-hidden bg-muted mx-auto ring-4 ring-background relative z-10">
                 {profile?.photos[0] || profile?.avatar_url ? (
-                  <img
-                    src={profile.photos[0] || profile.avatar_url}
+                  <OptimizedImage
+                    src={profile.photos[0] || profile.avatar_url || ''}
                     alt={profile.display_name}
                     className="w-full h-full object-cover"
+                    containerClassName="w-full h-full"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
