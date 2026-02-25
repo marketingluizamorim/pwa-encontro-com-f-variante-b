@@ -430,37 +430,53 @@ export const MALE_EXTRA = [
  * Accepts an optional ageRange to dynamically pick photos/birth_date
  */
 export const enrichBotProfile = (profile: any, ageRange?: string) => {
+    // 1. Proteção contra entrada nula
+    if (!profile) return profile;
+
+    // 2. Só enriquece se for explicitamente um bot
     if (!profile.is_bot) return profile;
 
-    const extras = profile.gender === 'female' ? FEMALE_EXTRA : MALE_EXTRA;
-    const index = extras.findIndex(e => e.name === profile.display_name);
-    const extra = extras[index === -1 ? 0 : index];
+    // 3. Determinação robusta de gênero com fallback seguro
+    const botGender = profile.gender === 'male' || profile.gender === 'female' ? profile.gender : 'female';
+    const extrasList = botGender === 'female' ? FEMALE_EXTRA : MALE_EXTRA;
 
-    let dynamicData: any = {};
-    if (ageRange) {
-        const ages = getAgesForRange(ageRange);
-        const photos = profile.gender === 'female' ? getFemalePhotosByAge(ageRange) : getMalePhotosByAge(ageRange);
+    // 4. Seleção do 'extra' estático por nome, fallback para o primeiro da lista
+    let index = extrasList.findIndex(e => e.name === profile.display_name);
+    if (index === -1) index = 0;
+    const extra = extrasList[index] || (extrasList.length > 0 ? extrasList[0] : {});
 
-        const photo = photos[index % photos.length];
-        dynamicData = {
-            birth_date: new Date(new Date().getFullYear() - ages[index % ages.length], 0, 1).toISOString(),
-            photos: [photo],
-            avatar_url: photo
-        };
-    }
+    // 5. Enriquecimento Dinâmico (Fotos e Idade)
+    // Usamos sempre uma faixa etária (a fornecida ou uma padrão) para garantir que bots NUNCA fiquem vazios
+    const activeRange = ageRange || '26-35';
+    const ages = getAgesForRange(activeRange);
+    const photos = botGender === 'female' ? getFemalePhotosByAge(activeRange) : getMalePhotosByAge(activeRange);
 
+    // Uso de módulo para garantir segurança nos índices se as listas forem menores que o index
+    const photo = (photos && photos.length > 0) ? photos[index % photos.length] : '/placeholder.svg';
+    const ageValue = (ages && ages.length > 0) ? ages[index % ages.length] : 25;
+
+    const dynamicData = {
+        birth_date: new Date(new Date().getFullYear() - ageValue, 0, 1).toISOString(),
+        photos: [photo],
+        avatar_url: photo
+    };
+
+    // 6. Montagem final com fallbacks em profundidade
     return {
         ...profile,
         ...extra,
         ...dynamicData,
-        // Override DB values with static rich ones if DB is empty
-        bio: profile.bio || extra.bio,
-        occupation: profile.occupation || extra.occupation,
-        christian_interests: profile.christian_interests?.length ? profile.christian_interests : extra.christian_interests,
-        religion: profile.religion || extra.religion,
-        looking_for: profile.looking_for || extra.looking_for,
-        city: profile.city || extra.city,
-        state: profile.state || extra.state,
+        // Garantimos que campos críticos nunca sejam undefined/null para evitar crashes na UI
+        display_name: profile.display_name || (extra as any).name || 'Próximo Encontro',
+        bio: profile.bio || (extra as any).bio || 'Olá! Estou em busca de uma companhia especial para caminhar na fé.',
+        occupation: profile.occupation || (extra as any).occupation || 'Profissional',
+        christian_interests: (profile.christian_interests && profile.christian_interests.length > 0)
+            ? profile.christian_interests
+            : ((extra as any).christian_interests || ['Fé', 'Família', 'Oração']),
+        religion: profile.religion || (extra as any).religion || 'Cristã',
+        looking_for: profile.looking_for || (extra as any).looking_for || 'Relacionamento sério',
+        city: profile.city || (extra as any).city || 'São Paulo',
+        state: profile.state || (extra as any).state || 'SP',
     };
 };
 

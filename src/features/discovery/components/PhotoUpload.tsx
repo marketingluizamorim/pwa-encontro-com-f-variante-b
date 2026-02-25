@@ -162,102 +162,114 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full max-w-[200px] aspect-[3/4] rounded-3xl border-2 border-dashed border-[#d4af37]/30 bg-[#d4af37]/5 flex flex-col items-center justify-center gap-3 hover:bg-[#d4af37]/10 transition-colors group cursor-pointer"
+            disabled={uploading}
+            className="w-full max-w-[200px] aspect-[3/4] rounded-3xl border-2 border-dashed border-[#d4af37]/30 bg-[#d4af37]/5 flex flex-col items-center justify-center gap-3 hover:bg-[#d4af37]/10 transition-colors group cursor-pointer disabled:opacity-70"
           >
-            <div className="w-12 h-12 rounded-full bg-[#d4af37]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Camera className="w-6 h-6 text-[#d4af37]" />
-            </div>
-            <div className="text-center px-4">
-              <span className="block text-[#d4af37] font-bold text-xs mb-1 uppercase tracking-wide">Adicionar Principal</span>
-              <span className="text-white/40 text-[10px] leading-tight block">Foto mais importante do seu perfil</span>
-            </div>
+            {uploading ? (
+              <>
+                <Loader2 className="w-8 h-8 animate-spin text-[#d4af37]" />
+                <span className="text-[#d4af37] font-bold text-[10px] uppercase">Enviando...</span>
+              </>
+            ) : (
+              <>
+                <div className="w-12 h-12 rounded-full bg-[#d4af37]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Camera className="w-6 h-6 text-[#d4af37]" />
+                </div>
+                <div className="text-center px-4">
+                  <span className="block text-[#d4af37] font-bold text-xs mb-1 uppercase tracking-wide">Adicionar Foto Principal</span>
+                  <span className="text-white/40 text-[10px] leading-tight block">Foto mais importante do seu perfil</span>
+                </div>
+              </>
+            )}
           </button>
         )}
       </div>
 
-      <div className="h-px bg-white/10 w-full" />
+      {maxPhotos > 1 && <div className="h-px bg-white/10 w-full" />}
 
       {/* Secondary Photos Grid */}
-      <div>
-        <p className="text-xs text-white/40 font-semibold uppercase tracking-wider mb-3">Fotos Adicionais</p>
-        <div className={cn(
-          "grid gap-3 transition-all duration-300 ease-in-out",
-          (() => {
-            const secondaryCount = Math.max(0, photos.length - 1);
-            const showAdd = photos.length < maxPhotos;
-            const totalItems = secondaryCount + (showAdd ? 1 : 0);
-            // Min 3 cols (larger), Max 5 cols (smaller to fit 5)
-            const cols = Math.min(5, Math.max(3, totalItems));
-            return {
-              3: "grid-cols-3",
-              4: "grid-cols-4",
-              5: "grid-cols-5",
-            }[cols];
-          })()
-        )}>
-          <AnimatePresence mode="popLayout">
-            {photos.slice(1).map((photo, i) => {
-              const realIndex = i + 1;
-              return (
-                <motion.div
-                  key={photo}
+      {maxPhotos > 1 && (
+        <div>
+          <p className="text-xs text-white/40 font-semibold uppercase tracking-wider mb-3">Fotos Adicionais</p>
+          <div className={cn(
+            "grid gap-3 transition-all duration-300 ease-in-out",
+            (() => {
+              const secondaryCount = Math.max(0, photos.length - 1);
+              const showAdd = photos.length < maxPhotos;
+              const totalItems = secondaryCount + (showAdd ? 1 : 0);
+              // Min 3 cols (larger), Max 5 cols (smaller to fit 5)
+              const cols = Math.min(5, Math.max(3, totalItems));
+              return {
+                3: "grid-cols-3",
+                4: "grid-cols-4",
+                5: "grid-cols-5",
+              }[cols];
+            })()
+          )}>
+            <AnimatePresence mode="popLayout">
+              {photos.slice(1).map((photo, i) => {
+                const realIndex = i + 1;
+                return (
+                  <motion.div
+                    key={photo}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="relative aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/10 group"
+                  >
+                    <img
+                      src={photo}
+                      alt={`Foto ${realIndex + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+
+                    {/* Actions Overlay */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col items-center justify-center gap-2">
+                      <button
+                        onClick={() => setAsMain(realIndex)}
+                        className="w-8 h-8 rounded-full bg-white/20 hover:bg-[#d4af37] flex items-center justify-center text-white transition-colors"
+                        title="Tornar Principal"
+                      >
+                        <Camera size={14} />
+                      </button>
+                      <button
+                        onClick={() => removePhoto(realIndex)}
+                        className="w-8 h-8 rounded-full bg-white/20 hover:bg-red-500 flex items-center justify-center text-white transition-colors"
+                        title="Remover"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {/* Small Add Button - Only show if we have a main photo AND less than max */}
+              {photos.length > 0 && photos.length < maxPhotos && (
+                <motion.button
                   layout
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="relative aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/10 group"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="aspect-[3/4] rounded-xl border border-dashed border-white/20 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-colors disabled:opacity-50"
                 >
-                  <img
-                    src={photo}
-                    alt={`Foto ${realIndex + 1}`}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-
-                  {/* Actions Overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col items-center justify-center gap-2">
-                    <button
-                      onClick={() => setAsMain(realIndex)}
-                      className="w-8 h-8 rounded-full bg-white/20 hover:bg-[#d4af37] flex items-center justify-center text-white transition-colors"
-                      title="Tornar Principal"
-                    >
-                      <Camera size={14} />
-                    </button>
-                    <button
-                      onClick={() => removePhoto(realIndex)}
-                      className="w-8 h-8 rounded-full bg-white/20 hover:bg-red-500 flex items-center justify-center text-white transition-colors"
-                      title="Remover"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            })}
-
-            {/* Small Add Button - Only show if we have a main photo AND less than max */}
-            {photos.length > 0 && photos.length < maxPhotos && (
-              <motion.button
-                layout
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="aspect-[3/4] rounded-xl border border-dashed border-white/20 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-colors disabled:opacity-50"
-              >
-                {uploading ? (
-                  <Loader2 className="w-5 h-5 text-[#d4af37] animate-spin" />
-                ) : (
-                  <>
-                    <Plus className="w-6 h-6 text-white/30" />
-                    <span className="text-[10px] uppercase font-bold text-white/30">Adicionar</span>
-                  </>
-                )}
-              </motion.button>
-            )}
-          </AnimatePresence>
+                  {uploading ? (
+                    <Loader2 className="w-5 h-5 text-[#d4af37] animate-spin" />
+                  ) : (
+                    <>
+                      <Plus className="w-6 h-6 text-white/30" />
+                      <span className="text-[10px] uppercase font-bold text-white/30">Adicionar</span>
+                    </>
+                  )}
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
+      )}
 
       <input
         ref={fileInputRef}

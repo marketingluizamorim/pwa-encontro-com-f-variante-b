@@ -11,6 +11,9 @@ import {
     MessageCircle, Shield, Eye, EyeOff, ChevronRight, MapPin,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { PhotoUpload } from '@/features/discovery/components/PhotoUpload';
+import { BRAZIL_STATES, BRAZIL_CITIES } from '@/config/brazil-cities';
+import { cn } from '@/lib/utils';
 
 const BENEFITS = [
     { icon: Star, text: '2 meses do Plano Prata grátis', color: 'text-amber-400' },
@@ -18,7 +21,7 @@ const BENEFITS = [
     { icon: Heart, text: 'Aplicativo de namoro cristão com propósito e valores', color: 'text-pink-400' },
 ];
 
-type Step = 'landing' | 'register' | 'activating' | 'done';
+type Step = 'landing' | 'register' | 'activating' | 'done' | 'setup';
 
 // Memoized background to prevent re-renders on every keystroke
 const BackgroundBlobs = memo(() => (
@@ -41,6 +44,14 @@ export default function Convite() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Mini Profile Setup State
+    const [birthDate, setBirthDate] = useState('');
+    const [gender, setGender] = useState<'male' | 'female' | ''>('');
+    const [city, setCity] = useState('');
+    const [state, setState] = useState('');
+    const [photos, setPhotos] = useState<string[]>([]);
+    const [setupErrors, setSetupErrors] = useState<Record<string, boolean>>({});
 
     // Allow body to scroll on this page (global CSS has overflow:hidden)
     useBodyScroll();
@@ -123,13 +134,15 @@ export default function Convite() {
                 console.error('[Convite] RPC error:', rpcError.message);
             } else {
                 console.log('[Convite] Plan activation:', rpcData);
-                // Force immediate refresh of subscription state
+                // Force immediate refresh of auth state and subscription
+                const { supabase } = await import('@/integrations/supabase/client');
+                await supabase.auth.getUser(); // Refresh standard client session
                 await queryClient.refetchQueries({ queryKey: ['subscription', userId] });
-                // Small delay to ensure DB propagation and state settlement
                 await new Promise(r => setTimeout(r, 800));
             }
 
             setStep('done');
+            setIsSubmitting(false);
         } catch (err) {
             console.error('Invite registration error:', err);
             toast.error('Erro inesperado. Tente novamente.');
@@ -138,7 +151,57 @@ export default function Convite() {
     };
 
     const handleContinueToProfile = () => {
-        navigate('/app/onboarding', { replace: true });
+        setStep('setup');
+    };
+
+    const handleSaveProfile = async () => {
+        const errors: Record<string, boolean> = {};
+        if (!photos.length) errors.photos = true;
+        if (!name.trim()) errors.name = true;
+        if (!birthDate) errors.birthDate = true;
+        if (!gender) errors.gender = true;
+        if (!state) errors.state = true;
+        if (!city) errors.city = true;
+
+        if (Object.keys(errors).length > 0) {
+            setSetupErrors(errors);
+            toast.error('Preencha todos os campos obrigatórios');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+            const { data: { user: currentUser } } = await supabaseRuntime.auth.getUser();
+
+            if (!currentUser) throw new Error('Usuário não encontrado');
+
+            const { error } = await supabaseRuntime
+                .from('profiles')
+                .update({
+                    display_name: name,
+                    birth_date: birthDate,
+                    gender,
+                    state,
+                    city,
+                    photos,
+                    avatar_url: photos[0],
+                })
+                .eq('user_id', currentUser.id);
+
+            if (error) throw error;
+
+            toast.success('Perfil configurado com sucesso!');
+            await queryClient.invalidateQueries({ queryKey: ['profile', currentUser.id] });
+
+            // Redireciona para o app
+            navigate('/app/discover', { replace: true });
+        } catch (err) {
+            console.error('Error saving mini profile:', err);
+            toast.error('Erro ao salvar informações. Tente novamente.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -359,6 +422,200 @@ export default function Convite() {
                             </div>
                             <h2 className="text-xl font-bold text-white mb-2">Ativando seu plano…</h2>
                             <p className="text-white/50 text-sm">Aguenta um segundo, quase pronto!</p>
+                        </motion.div>
+                    )}
+
+                    {/* ── MINI PROFILE SETUP ── */}
+                    {step === 'setup' && (
+                        <motion.div
+                            key="setup"
+                            initial={{ opacity: 0, x: 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="space-y-6"
+                        >
+                            <div className="text-center mb-6">
+                                <h2 className="text-2xl font-serif font-bold text-white mb-2">Configure seu Perfil</h2>
+                                <p className="text-white/50 text-sm">Só mais alguns detalhes para você começar</p>
+                            </div>
+
+                            <div className="space-y-5 bg-white/5 border border-white/10 rounded-3xl p-5 backdrop-blur-sm">
+                                {/* Photo Upload */}
+                                <div className="space-y-2">
+                                    <div className="flex justify-center py-2">
+                                        <div className="w-[150px]">
+                                            <PhotoUpload
+                                                photos={photos}
+                                                onPhotosChange={(p) => {
+                                                    setPhotos(p);
+                                                    if (p.length > 0) {
+                                                        const newErrors = { ...setupErrors };
+                                                        delete newErrors.photos;
+                                                        setSetupErrors(newErrors);
+                                                    }
+                                                }}
+                                                maxPhotos={1}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Name */}
+                                <div className="space-y-2">
+                                    <label className={cn("text-[10px] font-bold uppercase tracking-wider ml-1 transition-colors", setupErrors.name ? "text-red-400" : "text-white/40")}>
+                                        Nome {setupErrors.name && "*"}
+                                    </label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                        <Input
+                                            type="text"
+                                            value={name}
+                                            onChange={(e) => {
+                                                setName(e.target.value);
+                                                const newErrors = { ...setupErrors };
+                                                delete newErrors.name;
+                                                setSetupErrors(newErrors);
+                                            }}
+                                            placeholder="Seu nome"
+                                            className={cn(
+                                                "pl-10 bg-[#1a2235] text-white placeholder:text-white/40 rounded-xl h-12 focus-visible:ring-0",
+                                                setupErrors.name ? "border-red-500/50" : "border-white/20"
+                                            )}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Birth Date */}
+                                <div className="space-y-2">
+                                    <label className={cn("text-[10px] font-bold uppercase tracking-wider ml-1 transition-colors", setupErrors.birthDate ? "text-red-400" : "text-white/40")}>
+                                        Data de Nascimento {setupErrors.birthDate && "*"}
+                                    </label>
+                                    <Input
+                                        type="date"
+                                        value={birthDate}
+                                        onChange={(e) => {
+                                            setBirthDate(e.target.value);
+                                            const newErrors = { ...setupErrors };
+                                            delete newErrors.birthDate;
+                                            setSetupErrors(newErrors);
+                                        }}
+                                        className={cn(
+                                            "bg-[#1a2235] text-white rounded-xl h-12 focus-visible:ring-0",
+                                            setupErrors.birthDate ? "border-red-500/50" : "border-white/20"
+                                        )}
+                                        max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                                    />
+                                </div>
+
+                                {/* Gender */}
+                                <div className="space-y-2">
+                                    <label className={cn("text-[10px] font-bold uppercase tracking-wider ml-1 transition-colors", setupErrors.gender ? "text-red-400" : "text-white/40")}>
+                                        Gênero {setupErrors.gender && "*"}
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {[
+                                            { value: 'male', label: 'Homem' },
+                                            { value: 'female', label: 'Mulher' },
+                                        ].map((opt) => (
+                                            <button
+                                                key={opt.value}
+                                                type="button"
+                                                onClick={() => {
+                                                    setGender(opt.value as 'male' | 'female');
+                                                    const newErrors = { ...setupErrors };
+                                                    delete newErrors.gender;
+                                                    setSetupErrors(newErrors);
+                                                }}
+                                                className={cn(
+                                                    "h-12 rounded-xl border transition-all text-sm font-medium",
+                                                    gender === opt.value
+                                                        ? 'bg-amber-400/20 border-amber-400 text-white shadow-[0_0_15px_rgba(251,191,36,0.1)]'
+                                                        : 'bg-[#1a2235] text-white/40 border-white/10 hover:bg-white/5',
+                                                    setupErrors.gender && !gender ? "border-red-500/50 text-red-400" : ""
+                                                )}
+                                            >
+                                                {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* State/City */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-2">
+                                        <label className={cn("text-[10px] font-bold uppercase tracking-wider ml-1 transition-colors", setupErrors.state ? "text-red-400" : "text-white/40")}>
+                                            Estado {setupErrors.state && "*"}
+                                        </label>
+                                        <select
+                                            value={state}
+                                            onChange={(e) => {
+                                                setState(e.target.value);
+                                                setCity('');
+                                                const newErrors = { ...setupErrors };
+                                                delete newErrors.state;
+                                                setSetupErrors(newErrors);
+                                            }}
+                                            className={cn(
+                                                "w-full h-12 bg-[#1a2235] border rounded-xl text-white px-3 text-sm focus:outline-none appearance-none",
+                                                setupErrors.state ? "border-red-500/50" : "border-white/20"
+                                            )}
+                                        >
+                                            <option value="">UF</option>
+                                            {BRAZIL_STATES.map(s => (
+                                                <option key={s} value={s}>{s}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className={cn("text-[10px] font-bold uppercase tracking-wider ml-1 transition-colors", setupErrors.city ? "text-red-400" : "text-white/40")}>
+                                            Cidade {setupErrors.city && "*"}
+                                        </label>
+                                        <select
+                                            value={city}
+                                            onChange={(e) => {
+                                                setCity(e.target.value);
+                                                const newErrors = { ...setupErrors };
+                                                delete newErrors.city;
+                                                setSetupErrors(newErrors);
+                                            }}
+                                            disabled={!state}
+                                            className={cn(
+                                                "w-full h-12 bg-[#1a2235] border rounded-xl text-white px-3 text-sm focus:outline-none appearance-none disabled:opacity-50",
+                                                setupErrors.city ? "border-red-500/50" : "border-white/20"
+                                            )}
+                                        >
+                                            <option value="">Cidade</option>
+                                            {state && BRAZIL_CITIES[state]?.map(c => (
+                                                <option key={c} value={c}>{c}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Button
+                                onClick={handleSaveProfile}
+                                disabled={isSubmitting}
+                                className="w-full h-14 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-bold text-sm uppercase tracking-wider shadow-[0_8px_30px_rgba(212,175,55,0.35)] hover:opacity-90 transition-all active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                        Salvando Perfil…
+                                    </>
+                                ) : (
+                                    <>
+                                        Salvar e Continuar
+                                        <ChevronRight className="w-5 h-5" />
+                                    </>
+                                )}
+                            </Button>
+
+                            <button
+                                onClick={() => setStep('done')}
+                                className="w-full text-center text-white/30 text-xs hover:text-white/50"
+                            >
+                                ← Voltar
+                            </button>
                         </motion.div>
                     )}
 
