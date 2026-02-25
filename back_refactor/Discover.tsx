@@ -1068,7 +1068,7 @@ export default function Discover() {
                       Complete seu Perfil!
                     </DialogTitle>
                     <DialogDescription className="text-center text-sm text-muted-foreground leading-relaxed">
-                      Adicione até 6 fotos e seus interesses para se destacar e conectar com pessoas na sua região.
+                      Adicione até 6 fotos e seus interesses para destacar seu perfil.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex flex-col gap-3 mt-6">
