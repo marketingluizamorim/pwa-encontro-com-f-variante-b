@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { getProfilesData } from '@/features/funnel/utils/profiles';
 import { calculateAge } from '@/lib/date-utils';
-import { QuizAnswers } from '@/types/funnel';
 
 interface NotificationState {
     discover: boolean;  // Novos perfis disponíveis

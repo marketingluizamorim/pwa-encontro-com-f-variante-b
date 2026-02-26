@@ -19,6 +19,7 @@ interface PlansProps {
 
 export function PlansSection({ onSelectPlan, onBack, isDialogOpen = false }: PlansProps) {
   const gender = useFunnelStore((state) => state.gender);
+  const quizAnswers = useFunnelStore((state) => state.quizAnswers);
   const [selectedPlan, setSelectedPlan] = useState<typeof PLANS[0] | null>(null);
   const [showOrderBump, setShowOrderBump] = useState(false);
 
@@ -52,7 +53,11 @@ export function PlansSection({ onSelectPlan, onBack, isDialogOpen = false }: Pla
 
   return (
     <>
-      <PushNotification gender={gender === 'male' ? 'masculino' : 'feminino'} paused={notificationsPaused} />
+      <PushNotification
+        gender={gender === 'male' ? 'masculino' : 'feminino'}
+        ageRange={quizAnswers.age}
+        paused={notificationsPaused}
+      />
 
       <div className="h-[100dvh] bg-[#0f172a] relative overflow-y-auto pb-32 flex flex-col items-center w-full">
         {/* Premium Dark Background with Subtle Lighting */}

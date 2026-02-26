@@ -13,6 +13,7 @@ import { PhotoUpload } from '@/features/discovery/components/PhotoUpload';
 import { InstallPwaDrawer } from '@/components/pwa/InstallPwaDrawer';
 import { ChevronLeft, Check, AlertCircle, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
 import {
   RELIGIONS,
   CHURCH_FREQUENCIES,
@@ -220,6 +221,39 @@ export default function ProfileSetup() {
       try {
         await (supabaseRuntime as unknown as { rpc: (fn: string) => Promise<unknown> })
           .rpc('seed_whatsapp_user_profiles');
+      } catch { /* non-critical */ }
+
+      // Auto-likes handled server-side by trigger trg_auto_like_on_profile_complete
+
+      // ── Persist discover-filters to localStorage (age range + location) ──
+      try {
+        const ageRange = quizAnswers.age || '26-35';
+        let minAge = 18;
+        let maxAge = 80;
+        if (ageRange === '18-25') { minAge = 18; maxAge = 25; }
+        else if (ageRange === '26-35') { minAge = 26; maxAge = 35; }
+        else if (ageRange === '36-45') { minAge = 36; maxAge = 45; }
+        else if (ageRange === '46-55') { minAge = 46; maxAge = 55; }
+        else if (ageRange === '36-55') { minAge = 36; maxAge = 55; }
+        else if (ageRange === '56+') { minAge = 56; maxAge = 80; }
+
+        // Always overwrite to ensure correct filters are applied for new users
+        const initialFilters = {
+          minAge,
+          maxAge,
+          state: state || '',
+          city: city || '',
+          religion: '',
+          churchFrequency: '',
+          lookingFor: '',
+          christianInterests: [],
+          hasPhotos: false,
+          isVerified: false,
+          onlineRecently: false,
+          maxDistance: 100,
+        };
+        localStorage.setItem('discover-filters', JSON.stringify(initialFilters));
+        localStorage.setItem('discover-filters-version', 'v5'); // Must match Discover.tsx FILTERS_VERSION
       } catch { /* non-critical */ }
 
       setStep('complete');

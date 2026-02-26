@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
-import { enrichBotProfile } from '@/features/funnel/utils/profiles';
+import { enrichBotProfile, BOT_PHOTO_MAP } from '@/features/funnel/utils/profiles';
 import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
 import { QuizAnswers } from '@/types/funnel';
 
@@ -183,9 +183,9 @@ export default function Chat() {
 
             // 4. Buscar Perfis, Super Likes e Últimas Mensagens em paralelo
             const [profilesResult, superLikesResult, lastMessagesResult] = await Promise.all([
-                supabase
+                (supabase
                     .from('profiles')
-                    .select('user_id, display_name, avatar_url, photos, birth_date, bio, occupation, city, state, looking_for, christian_interests, religion, gender, pets, drink, smoke, physical_activity, church_frequency, about_children, education, languages, social_media, last_active_at, show_online_status, show_last_active')
+                    .select('user_id, display_name, avatar_url, photos, birth_date, bio, occupation, city, state, looking_for, christian_interests, religion, gender, pets, drink, smoke, physical_activity, church_frequency, about_children, education, languages, social_media, last_active_at, show_online_status, show_last_active, is_bot') as any)
                     .in('user_id', otherUserIds),
                 supabase
                     .from('swipes')
@@ -456,13 +456,17 @@ export default function Chat() {
         setLikesCount(pendingLikes.length);
 
         if (pendingLikes.length > 0) {
-            const { data: profile } = await supabase
+            const { data: profile } = await (supabase
                 .from('profiles')
-                .select('avatar_url, photos')
+                .select('avatar_url, photos, is_bot, display_name, gender, birth_date') as any)
                 .eq('user_id', pendingLikes[0].swiper_id)
                 .single();
+
             if (profile) {
-                setLikesPhoto(profile.photos?.[0] || profile.avatar_url || null);
+                // Enriquecimento vital para mostrar a foto do bot no teaser
+                const userAge = useFunnelStore.getState().quizAnswers.age;
+                const enriched = enrichBotProfile(profile, userAge);
+                setLikesPhoto(enriched.photos?.[0] || enriched.avatar_url || null);
             }
         } else {
             setLikesPhoto(null);
@@ -637,7 +641,7 @@ export default function Chat() {
                                     )}>
                                         <div className="absolute inset-0 rounded-[2.1rem] overflow-hidden">
                                             <OptimizedImage
-                                                src={conv.profile.photos[0] || conv.profile.avatar_url || '/placeholder.svg'}
+                                                src={BOT_PHOTO_MAP[conv.profile.id] || conv.profile.photos?.[0] || conv.profile.avatar_url || '/placeholder.svg'}
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 containerClassName="w-full h-full"
                                                 alt={conv.profile.display_name}
@@ -700,7 +704,7 @@ export default function Chat() {
                                         <div className="relative">
                                             <div className="w-16 h-16 rounded-full overflow-hidden border border-border">
                                                 <OptimizedImage
-                                                    src={conv.profile.photos[0] || conv.profile.avatar_url || '/placeholder.svg'}
+                                                    src={BOT_PHOTO_MAP[conv.profile.id] || conv.profile.photos?.[0] || conv.profile.avatar_url || '/placeholder.svg'}
                                                     alt={conv.profile.display_name}
                                                     className="w-full h-full object-cover"
                                                     containerClassName="w-full h-full"

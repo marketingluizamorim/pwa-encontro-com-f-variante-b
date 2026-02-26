@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import type { DiscoverFiltersState } from '@/features/discovery/components/DiscoverFilters';
+import { FEMALE_FUNNEL_BOT_IDS, MALE_FUNNEL_BOT_IDS } from '@/features/funnel/utils/profiles';
 
 const PAGE_SIZE = 10;
 
@@ -78,49 +79,113 @@ async function fetchProfiles({ userId, filters, pageParam, userCity, userState }
   const blockedByIds = blockedByUsers?.map((b) => b.blocker_id) || [];
   const whoLikedMeIds = whoLikedMe?.map((s) => s.swiper_id) || [];
 
-  // Excluímos quem já nos curtiu para não repetir identidades entre Discover e Curtidas
-  const excludedIds = [userId, ...swipedIds, ...blockedIds, ...blockedByIds, ...whoLikedMeIds];
+  const userGender = currentUserProfile?.gender;
+  const funnelBotIds = userGender === 'male' ? FEMALE_FUNNEL_BOT_IDS : MALE_FUNNEL_BOT_IDS;
+
+  // whoLikedMeIds are NOT excluded so bots that liked the user still appear in Discover
 
   const userLat = currentUserProfile?.latitude ? parseFloat(String(currentUserProfile.latitude)) : null;
   const userLon = currentUserProfile?.longitude ? parseFloat(String(currentUserProfile.longitude)) : null;
-  const userGender = currentUserProfile?.gender;
   const targetGender = userGender === 'male' ? 'female' : 'male';
 
-  // Use RPC for advanced discovery (supports PostGIS distance and complex filters)
-  const { data: profilesData, error } = await (supabase as any).rpc('get_profiles_discovery', {
-    user_lat: userLat,
-    user_lon: userLon,
-    min_age: filters.minAge,
-    max_age: filters.maxAge,
-    max_dist_km: filters.maxDistance,
-    target_gender: targetGender,
-    target_state: filters.state && filters.state !== 'all' ? filters.state : null,
-    target_city: filters.city && filters.city !== '' ? filters.city : null,
-    target_religion: filters.religion && filters.religion !== '' ? filters.religion : null,
-    target_church_frequency: filters.churchFrequency && filters.churchFrequency !== '' ? filters.churchFrequency : null,
-    target_looking_for: filters.lookingFor && filters.lookingFor !== '' ? filters.lookingFor : null,
-    target_interests: filters.christianInterests && filters.christianInterests.length > 0 ? filters.christianInterests : null,
-    excluded_ids: excludedIds,
-    // Fallback de localização quando sem GPS: usa cidade/estado do perfil do usuário
-    fallback_state: userState || null,
-    fallback_city: userCity || null,
-  });
+  // ── Track A: Bots — own fetch, only gender + age filters ──────────────────
+  // Location, religion, churchFrequency and distance are intentionally ignored.
+  // Bots exist to guarantee the deck is never empty (Tinder/Badoo approach).
+  const excludedForBots = [userId, ...swipedIds, ...blockedIds, ...blockedByIds];
+
+  // Build the bots query dynamically (Supabase JS v2 chained builder)
+  let botQuery = supabase
+    .from('profiles')
+    .select('*')
+    .in('user_id', funnelBotIds)
+    .not('user_id', 'in', `(${excludedForBots.join(',')})`)
+    .eq('gender', targetGender);
+
+  if (filters.minAge && filters.minAge > 18) {
+    const maxBirth = new Date();
+    maxBirth.setFullYear(maxBirth.getFullYear() - filters.minAge);
+    botQuery = (botQuery as any).lte('birth_date', maxBirth.toISOString().split('T')[0]);
+  }
+  if (filters.maxAge && filters.maxAge < 80) {
+    const minBirth = new Date();
+    minBirth.setFullYear(minBirth.getFullYear() - filters.maxAge - 1);
+    botQuery = (botQuery as any).gte('birth_date', minBirth.toISOString().split('T')[0]);
+  }
+
+  // ── Track B: Real profiles — full RPC with every user-applied filter ───────
+  // Bots are explicitly excluded from the RPC so they don't appear twice.
+  const excludedIdsForRPC = [userId, ...swipedIds, ...blockedIds, ...blockedByIds, ...funnelBotIds];
+
+  const [{ data: botsData }, { data: profilesData, error }] = await Promise.all([
+    botQuery,
+    (supabase as any).rpc('get_profiles_discovery', {
+      user_lat: userLat,
+      user_lon: userLon,
+      min_age: filters.minAge,
+      max_age: filters.maxAge,
+      max_dist_km: filters.maxDistance,
+      target_gender: targetGender,
+      target_state: filters.state && filters.state !== 'all' ? filters.state : null,
+      target_city: filters.city && filters.city !== '' ? filters.city : null,
+      target_religion: filters.religion && filters.religion !== '' ? filters.religion : null,
+      target_church_frequency: filters.churchFrequency && filters.churchFrequency !== '' ? filters.churchFrequency : null,
+      target_looking_for: filters.lookingFor && filters.lookingFor !== '' ? filters.lookingFor : null,
+      target_interests: filters.christianInterests && filters.christianInterests.length > 0 ? filters.christianInterests : null,
+      excluded_ids: excludedIdsForRPC,
+      fallback_state: userState || null,
+      fallback_city: userCity || null,
+    })
+  ]);
 
   if (error) {
     console.error('Error in fetchProfiles RPC:', error);
     throw error;
   }
 
-  let profiles = (profilesData as Profile[]) || [];
+  // Tag has_liked_me on bots and real profiles
+  const taggedBots: any[] = ((botsData as any[]) || [])
+    .filter(Boolean)
+    .map((p: any) => ({ ...p, has_liked_me: whoLikedMeIds.includes(p.user_id) }));
 
-  // Client-side filters not supported by RPC
+  const realProfiles: any[] = ((profilesData as any[]) || [])
+    .filter(Boolean)
+    .map((p: any) => ({ ...p, has_liked_me: whoLikedMeIds.includes(p.user_id) }));
+
+  // Separate bots by like status and interleave: like, like, no-like, ...
+  const likedBots = taggedBots.filter(p => p.has_liked_me);
+  const nonLikedBots = taggedBots.filter(p => !p.has_liked_me);
+
+  const shuffledLikedBots = [...likedBots].sort(() => Math.random() - 0.5);
+  const shuffledNonLikedBots = [...nonLikedBots].sort(() => Math.random() - 0.5);
+
+  const allBots: any[] = [];
+  const maxBotSlots = shuffledLikedBots.length + shuffledNonLikedBots.length;
+  let li = 0, ni = 0;
+  for (let i = 0; i < maxBotSlots; i++) {
+    if (ni < shuffledNonLikedBots.length && (li % 3 === 2 || li >= shuffledLikedBots.length)) {
+      allBots.push(shuffledNonLikedBots[ni++]);
+    } else if (li < shuffledLikedBots.length) {
+      allBots.push(shuffledLikedBots[li++]);
+    }
+  }
+
+  // On the first session (< 5 swipes), cap the deck at 9 so the user sees a curated start
+  let profiles: any[];
+  if (pageParam === 0 && swipedIds.length < 5) {
+    profiles = [...allBots, ...realProfiles].slice(0, 9);
+  } else {
+    profiles = [...allBots, ...realProfiles];
+  }
+
+  // Client-side filters not backed by RPC
   if (filters.onlineRecently) {
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     profiles = profiles.filter(p =>
-      p.show_online_status !== false &&
-      p.last_active_at !== undefined &&
-      p.last_active_at !== null &&
-      p.last_active_at >= cutoff
+      funnelBotIds.includes(p.user_id) || // bots always count as recently online
+      (p.show_online_status !== false &&
+        p.last_active_at !== undefined &&
+        p.last_active_at !== null &&
+        p.last_active_at >= cutoff)
     );
   }
   if (filters.hasPhotos) {
@@ -130,7 +195,7 @@ async function fetchProfiles({ userId, filters, pageParam, userCity, userState }
   const from = pageParam * PAGE_SIZE;
   const to = from + PAGE_SIZE;
   const paginatedProfiles = profiles.slice(from, to);
-  const hasMore = profiles.length > to;
+  const hasMore = profiles.length > to && (pageParam === 0 && swipedIds.length < 5 ? false : true);
 
   return {
     profiles: paginatedProfiles,

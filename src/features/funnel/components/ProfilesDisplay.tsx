@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useFunnelStore } from "@/features/funnel/hooks/useFunnelStore";
 import { MapPin, Lock, HandHeart, ArrowRight, Heart, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getProfilesData, getStateAbbreviation } from "../utils/profiles";
+import { FEMALE_EXTRA, MALE_EXTRA, enrichBotProfile, getStateAbbreviation } from "../utils/profiles";
 
 interface ProfilesDisplayProps {
   gender: 'male' | 'female' | null;
@@ -12,7 +12,46 @@ interface ProfilesDisplayProps {
 
 export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplayProps) {
   const { quizAnswers } = useFunnelStore();
-  const profiles = getProfilesData(gender, quizAnswers);
+
+  // Build bot-like stubs and enrich them with enrichBotProfile so photos,
+  // ages and interests are identical to what the user will see post-registration.
+  const extrasList = gender === 'male' ? FEMALE_EXTRA : MALE_EXTRA;
+  const funnelBotIds: Record<string, string> = {
+    Juliana: 'cc45228c-cd04-400e-8007-8d4de4a8ecc6',
+    Bruna: 'c1a3130f-4cb8-4110-a57e-9670275ce458',
+    Larissa: '456c0124-beb0-4a4d-a06c-ec65e2fc36cc',
+    Amanda: '841f9a86-ec64-44c6-ba52-4da8c9e4eed5',
+    Rebeca: 'decb62ae-a8ef-4a38-b685-50c0a09c1c3f',
+    Carolina: 'b0fddbf9-7d27-45b6-972d-97e4e7617224',
+    Talita: 'b0fddbf9-7d27-45b6-972d-97e4e7617224', // fallback id
+    Pedro: 'de57bf5f-f94f-4fec-a822-31b32bee1ae4',
+    Thiago: 'd87eb4da-45da-446e-af23-49cd3cef940a',
+    Gabriel: '9af3ae24-5cf9-4c5a-b755-3b09e4f2da39',
+    Lucas: 'ec25b940-2a73-4857-8fdb-9c0e09d98a5d',
+    Mateus: '3785dfbf-df2e-4e93-8573-54d46e4c9a1f',
+    André: '622a1bd7-4d92-46e5-9d60-30ee561cddec',
+  };
+
+  const profiles = extrasList.slice(0, 9).map((extra, idx) => {
+    const stub = {
+      is_bot: true,
+      user_id: funnelBotIds[extra.name] || `bot-${idx}`,
+      display_name: extra.name,
+      gender: gender === 'male' ? 'female' : 'male',
+      // Use a birth_date corresponding to user's preferred age range
+      birth_date: (() => {
+        const range = quizAnswers.age || '26-35';
+        const ageMap: Record<string, number> = {
+          '18-25': 22, '26-35': 30, '36-55': 42, '56+': 60,
+        };
+        const targetAge = ageMap[range] || 30;
+        const year = new Date().getFullYear() - targetAge;
+        return `${year}-06-15`;
+      })(),
+      ...extra,
+    };
+    return enrichBotProfile(stub, quizAnswers.age);
+  });
 
   return (
     <div className="h-[100dvh] bg-[#0f172a] relative overflow-y-auto pb-52 flex flex-col items-center w-full">
@@ -74,19 +113,19 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
           <div className="grid grid-cols-2 gap-4 mb-8">
             {profiles.map((profile, index) => (
               <div
-                key={`${profile.name}-${index}`}
+                key={`${profile.display_name || profile.name}-${index}`}
                 className="group relative rounded-[2rem] overflow-hidden shadow-2xl aspect-[3/4.2] border border-white/10 fade-in-fast"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Profile Image */}
                 <div className="w-full h-full relative overflow-hidden">
                   <img
-                    src={profile.photo}
-                    alt={profile.name}
+                    src={profile.photos?.[0] || profile.avatar_url || '/placeholder.svg'}
+                    alt={profile.display_name || profile.name}
                     loading={index < 4 ? "eager" : "lazy"}
                     decoding="async"
                     fetchPriority={index < 2 ? "high" : "auto"}
-                    className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!profile.unlocked ? 'blur-sm opacity-60 brightness-75' : ''}`}
+                    className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${index > 0 ? 'blur-sm opacity-60 brightness-75' : ''}`}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
                   <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/20 to-transparent" />
@@ -94,7 +133,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
 
                 {/* Status Badges */}
                 <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
-                  {profile.unlocked ? (
+                  {index === 0 ? (
                     <div className="flex flex-col gap-2">
                       <div className="bg-amber-400 text-[#1e3a8a] px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg font-bold text-[10px] uppercase tracking-wider">
                         <Heart className="w-3 h-3 fill-current" />
@@ -112,18 +151,18 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                 <div className="absolute bottom-0 left-0 right-0 p-4 pt-10">
                   <div className="space-y-1.5">
                     <h3 className="text-white font-bold text-lg flex items-center gap-1.5">
-                      {profile.name}, {profile.age}
+                      {profile.display_name || profile.name}, {profile.age}
                       <div className="w-2 h-2 rounded-full bg-teal-400" />
                     </h3>
                     <div className="flex items-center gap-1.5 text-white/60">
                       <MapPin className="w-3 h-3 text-teal-400" />
                       <span className="text-[11px] font-medium tracking-wide">
-                        {profile.distance}
+                        {profile.city || 'Perto de você'}
                       </span>
                     </div>
-                    {profile.unlocked && (
+                    {index === 0 && (
                       <div className="flex gap-1.5 flex-nowrap mt-2.5 overflow-hidden">
-                        {profile.christian_interests.slice(0, 2).map(interest => (
+                        {(profile.christian_interests || []).slice(0, 2).map((interest: string) => (
                           <span key={interest} className="bg-black/40 px-2 py-1 rounded-md text-[8px] text-white font-bold uppercase tracking-wide whitespace-nowrap">
                             {interest}
                           </span>
@@ -134,7 +173,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                 </div>
 
                 {/* Locked Message Layer — static div (no motion) to prevent flickering */}
-                {!profile.unlocked && (
+                {index > 0 && (
                   <div className="absolute inset-0 flex items-center justify-center p-4">
                     <div className="text-center space-y-2 pb-12">
                       <p className="text-[10px] text-white/50 font-bold uppercase tracking-[0.2em] mb-1">Privado</p>

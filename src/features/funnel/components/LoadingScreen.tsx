@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MapPin, Users, Loader2, Cpu, CheckCircle, ShieldCheck, Bot } from 'lucide-react';
 import { useFunnelStore } from "@/features/funnel/hooks/useFunnelStore";
-import { getProfilesData } from "../utils/profiles";
+import { FEMALE_FUNNEL_BOTS, MALE_FUNNEL_BOTS } from "../utils/profiles";
 
 interface LoadingScreenProps {
     onComplete: () => void;
@@ -56,9 +56,9 @@ export function LoadingScreen({ onComplete, gender }: LoadingScreenProps) {
     const { quizAnswers } = useFunnelStore();
 
     const profileNames = useMemo(() => {
-        const profiles = getProfilesData(gender, quizAnswers);
-        return profiles.map(p => p.name);
-    }, [gender, quizAnswers]);
+        const bots = gender === 'male' ? FEMALE_FUNNEL_BOTS : MALE_FUNNEL_BOTS;
+        return bots.map(b => b.name);
+    }, [gender]);
 
     const [currentStage, setCurrentStage] = useState(0);
     const [progress, setProgress] = useState(0);

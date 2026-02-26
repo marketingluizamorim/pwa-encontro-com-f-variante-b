@@ -125,8 +125,7 @@ export function ReportDialog({ open, onOpenChange, userId, userName, onReported 
         queryClient.invalidateQueries({ queryKey: ['profile'] });
         queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
       } else {
-        console.log('📝 Simulating report for fake profile:', userId);
-        // Pequeno atraso para feedback visual
+        // Simulate delay for visual feedback
         await new Promise(resolve => setTimeout(resolve, 800));
       }
 
@@ -318,7 +317,6 @@ export function BlockDialog({ open, onOpenChange, userId, userName, onBlocked }:
         queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
         queryClient.invalidateQueries({ queryKey: ['profile'] });
       } else {
-        console.log('📝 Simulating block for fake profile:', userId);
         toast.success('Usuário bloqueado', {
           description: 'Você não verá mais este perfil simulado.',
           style: { marginTop: '50px' }

@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { calculateAge, formatLastActive } from '@/lib/date-utils';
 import { QuizAnswers } from '@/types/funnel';
 import { useFunnelStore } from "@/features/funnel/hooks/useFunnelStore";
-import { enrichBotProfile } from '@/features/funnel/utils/profiles';
+import { enrichBotProfile, BOT_PHOTO_MAP } from '@/features/funnel/utils/profiles';
 import { motion, AnimatePresence, useDragControls, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSwipeMutation } from '@/features/discovery/hooks/useDiscoverProfiles';
@@ -145,7 +145,7 @@ const SwipeableMatchCard = ({
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
     >
       <OptimizedImage
-        src={getOptimizedImageUrl(like.profile.photos[0] || like.profile.avatar_url, IMAGE_SIZES.THUMBNAIL)}
+        src={BOT_PHOTO_MAP[like.user_id] || getOptimizedImageUrl(like.profile.photos?.[0] || like.profile.avatar_url, IMAGE_SIZES.THUMBNAIL) || '/placeholder.svg'}
         alt="Foto perfil"
         className={cn(
           "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none",
@@ -175,7 +175,7 @@ const SwipeableMatchCard = ({
             <div className="h-5 w-20 bg-white/20 backdrop-blur-md rounded-full border border-white/10" />
             <div className="flex items-center gap-2">
               <span className="text-xl font-display font-bold text-white tracking-tight">
-                {calculateAge(like.profile.birth_date)}
+                {(like.profile as any).age || calculateAge(like.profile.birth_date)}
               </span>
               <div className="flex items-center gap-1 opacity-70">
                 <i className="ri-search-line text-[10px]" />
@@ -192,7 +192,7 @@ const SwipeableMatchCard = ({
                 {like.profile.display_name}
               </span>
               <span className="text-lg font-extralight text-white/80">
-                {calculateAge(like.profile.birth_date)}
+                {(like.profile as any).age || calculateAge(like.profile.birth_date)}
               </span>
             </div>
 
@@ -307,10 +307,23 @@ export default function Matches() {
       const { supabase } = await import('@/integrations/supabase/client');
 
       // 1. Get ALL users I have already SWIPED on (Like or Dislike)
-      const { data: mySwipes } = await supabase
-        .from('swipes')
-        .select('swiped_id')
-        .eq('swiper_id', user.id);
+      const [{ data: mySwipes }, { data: currentUserProfile }] = await Promise.all([
+        supabase.from('swipes').select('swiped_id').eq('swiper_id', user.id),
+        supabase.from('profiles').select('birth_date').eq('user_id', user.id).single(),
+      ]);
+
+      // Derive user's age range (for bot photo selection)
+      // Priority: quiz store (funnel users) → calculated from birth_date (convite users)
+      const quizAge = useFunnelStore.getState().quizAnswers.age;
+      const resolvedAgeRange = (() => {
+        if (quizAge) return quizAge;
+        if (!currentUserProfile?.birth_date) return '26-35';
+        const age = new Date().getFullYear() - new Date(currentUserProfile.birth_date).getFullYear();
+        if (age <= 25) return '18-25';
+        if (age <= 35) return '26-35';
+        if (age <= 55) return '36-55';
+        return '56+';
+      })();
 
       const mySwipedIds = new Set(mySwipes?.map(s => s.swiped_id));
 
@@ -345,9 +358,9 @@ export default function Matches() {
       }
 
       // 3. Get Profiles with MORE fields
-      const { data: profilesData, error: profilesError } = await supabase
+      const { data: profilesData, error: profilesError } = await (supabase
         .from('profiles')
-        .select('user_id, display_name, birth_date, avatar_url, photos, bio, city, state, religion, looking_for, gender, pets, drink, smoke, physical_activity, church_frequency, about_children, occupation, education, languages, social_media, christian_interests, show_distance, last_active_at, show_online_status, show_last_active')
+        .select('user_id, display_name, birth_date, avatar_url, photos, bio, city, state, religion, looking_for, gender, pets, drink, smoke, physical_activity, church_frequency, about_children, occupation, education, languages, social_media, christian_interests, show_distance, last_active_at, show_online_status, show_last_active, is_bot') as any)
         .in('user_id', pendingLikeUserIds);
 
       if (profilesError) throw profilesError;
@@ -360,11 +373,8 @@ export default function Matches() {
           const profile = profilesMap.get(s.swiper_id);
           if (!profile) return null;
 
-          // Get user's age preference for bot enrichment
-          const userAge = useFunnelStore.getState().quizAnswers.age;
-
-          // Enrich bot profile for consistency
-          const enriched = enrichBotProfile(profile, userAge);
+          // Enrich bot profile using the resolved age range
+          const enriched = enrichBotProfile(profile, resolvedAgeRange);
 
           return {
             id: s.swiper_id,
@@ -373,6 +383,7 @@ export default function Matches() {
             message: s.message,
             is_super_like: s.direction === 'super_like',
             profile: {
+              ...enriched, // Garante que is_bot e outras flags venham junto
               display_name: enriched.display_name,
               birth_date: enriched.birth_date,
               avatar_url: enriched.avatar_url,

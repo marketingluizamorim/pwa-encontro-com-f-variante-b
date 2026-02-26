@@ -278,9 +278,9 @@ export default function ChatRoom() {
         .eq('direction', 'super_like')
         .maybeSingle();
 
-      const { data: profile } = await supabase
+      const { data: profile } = await (supabase
         .from('profiles')
-        .select('user_id, display_name, avatar_url, photos, bio, birth_date, city, state, religion, church_frequency, looking_for, occupation, show_distance, christian_interests, last_active_at, show_online_status, show_last_active, gender, pets, drink, smoke, physical_activity, about_children, is_bot')
+        .select('user_id, display_name, avatar_url, photos, bio, birth_date, city, state, religion, church_frequency, looking_for, occupation, show_distance, christian_interests, last_active_at, show_online_status, show_last_active, gender, pets, drink, smoke, physical_activity, about_children, is_bot') as any)
         .eq('user_id', matchedOtherUserId)
         .single();
 

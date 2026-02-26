@@ -26,8 +26,6 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
       return null;
     }
 
-    console.log('[PhotoUpload] Starting upload for user:', user.id);
-
     // Mock/test users: bypass storage
     if (user.id.startsWith('mock-')) {
       return URL.createObjectURL(file);
@@ -49,8 +47,6 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-      console.log('[PhotoUpload] Uploading file to storage:', fileName);
-
       // Upload with a 30s timeout to prevent getting stuck
       const uploadPromise = supabase.storage
         .from('profile-photos')
@@ -70,7 +66,6 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
         throw uploadError;
       }
 
-      console.log('[PhotoUpload] File uploaded successfully, getting public URL...');
       const { data: publicUrlData } = supabase.storage
         .from('profile-photos')
         .getPublicUrl(fileName);
@@ -101,7 +96,6 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
     }
 
     setUploading(true);
-    console.log('[PhotoUpload] Starting upload for', filesToUpload.length, 'files');
     toast.info(`Iniciando envio de ${filesToUpload.length} foto(s)...`, { style: { marginTop: '50px' } });
 
     try {
@@ -109,11 +103,9 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
 
       for (let i = 0; i < filesToUpload.length; i++) {
         setUploadingIndex(newPhotos.length);
-        console.log(`[PhotoUpload] Uploading file ${i + 1}/${filesToUpload.length}`);
         const url = await uploadPhoto(filesToUpload[i]);
 
         if (url) {
-          console.log('[PhotoUpload] Upload success:', url);
           newPhotos.push(url);
           // Important: call onPhotosChange immediately for better feedback
           onPhotosChange([...newPhotos]);
@@ -125,7 +117,6 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 6 }: PhotoUplo
       console.error('[PhotoUpload] Unexpected error in handleFileSelect:', err);
       toast.error('Erro ao processar arquivos. Tente novamente.');
     } finally {
-      console.log('[PhotoUpload] Upload process finished');
       setUploading(false);
       setUploadingIndex(null);
 

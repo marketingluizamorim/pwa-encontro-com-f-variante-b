@@ -210,12 +210,25 @@ export default function Discover() {
 
   const { gender, quizAnswers } = useFunnelStore();
 
+  // Resolve age range: prefer quiz store (funnel users), fall back to user's
+  // actual birth_date (convite users who never took the quiz).
+  const resolvedAgeRange = useMemo(() => {
+    if (quizAnswers.age) return quizAnswers.age;
+    const bd = profileData?.birth_date;
+    if (!bd) return '26-35';
+    const age = new Date().getFullYear() - new Date(bd).getFullYear();
+    if (age <= 25) return '18-25';
+    if (age <= 35) return '26-35';
+    if (age <= 55) return '36-55';
+    return '56+';
+  }, [quizAnswers.age, profileData?.birth_date]);
+
   const profiles = useMemo(() => {
     const realProfiles = data?.pages ? data.pages.flatMap((page) => page.profiles) : [];
 
-    // Enriquecer perfis de bots com metadados estáticos e fotos da faixa etária correta
-    return realProfiles.map(p => enrichBotProfile(p, quizAnswers.age));
-  }, [data, quizAnswers.age]);
+    // Enrich bot profiles with static metadata + age-appropriate photos
+    return realProfiles.map(p => enrichBotProfile(p, resolvedAgeRange));
+  }, [data, resolvedAgeRange]);
 
   const currentProfile = profiles[currentIndex];
   const nextProfile = profiles[currentIndex + 1];
@@ -732,24 +745,36 @@ export default function Discover() {
 
                       {/* Text Info */}
                       <div className="absolute bottom-0 left-0 right-0 p-6 text-white pointer-events-none z-30">
-                        {/* Online Badge */}
-                        {onlineStatus && (
-                          <div className="mb-2.5 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
-                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                            ONLINE
-                          </div>
-                        )}
+                        {/* Online Badge & Liked You Badge */}
+                        <div className="flex flex-wrap gap-2 mb-2.5">
+                          {onlineStatus && (
+                            <div className="bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5">
+                              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                              ONLINE
+                            </div>
+                          )}
+                          {(activeCard as any).has_liked_me && (
+                            <div className="bg-orange-500/20 backdrop-blur-md border border-orange-500/30 text-orange-400 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 shadow-[0_0_15px_rgba(251,146,60,0.2)]">
+                              <Heart className="w-3 h-3 fill-orange-500" />
+                              CURTIU VOCÊ!
+                            </div>
+                          )}
+                        </div>
 
                         {/* Name and Age */}
                         <div className="flex items-center gap-2 mb-2">
                           <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-md">
                             {activeCard.display_name}
                           </h1>
-                          {activeCard.birth_date && (
+                          {(activeCard as any).is_bot && (activeCard as any).age ? (
+                            <span className="text-3xl font-extralight text-white/90 drop-shadow-md">
+                              {(activeCard as any).age}
+                            </span>
+                          ) : activeCard.birth_date ? (
                             <span className="text-3xl font-extralight text-white/90 drop-shadow-md">
                               {calculateAge(activeCard.birth_date)}
                             </span>
-                          )}
+                          ) : null}
                           {(activeCard as any).is_verified && (
                             <div className="bg-blue-500 rounded-full p-0.5 shadow-lg border border-white/20">
                               <CheckCircle2 className="w-3.5 h-3.5 text-white fill-blue-500" />

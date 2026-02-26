@@ -14,6 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { PhotoUpload } from '@/features/discovery/components/PhotoUpload';
 import { BRAZIL_STATES, BRAZIL_CITIES } from '@/config/brazil-cities';
 import { cn } from '@/lib/utils';
+import { ALL_FUNNEL_BOT_IDS } from '@/features/funnel/utils/profiles';
 
 const BENEFITS = [
     { icon: Star, text: '2 meses do Plano Prata grátis', color: 'text-amber-400' },
@@ -133,8 +134,7 @@ export default function Convite() {
             if (rpcError) {
                 console.error('[Convite] RPC error:', rpcError.message);
             } else {
-                console.log('[Convite] Plan activation:', rpcData);
-                // Force immediate refresh of auth state and subscription
+
                 const { supabase } = await import('@/integrations/supabase/client');
                 await supabase.auth.getUser(); // Refresh standard client session
                 await queryClient.refetchQueries({ queryKey: ['subscription', userId] });
@@ -185,7 +185,7 @@ export default function Convite() {
                     state,
                     city,
                     photos,
-                    avatar_url: photos[0],
+                    avatar_url: photos?.[0],
                 })
                 .eq('user_id', currentUser.id);
 
@@ -193,6 +193,51 @@ export default function Convite() {
 
             toast.success('Perfil configurado com sucesso!');
             await queryClient.invalidateQueries({ queryKey: ['profile', currentUser.id] });
+
+            // --- Inteligência de Filtros (Coerência /convite) ---
+            const userBirthDate = new Date(birthDate);
+            const today = new Date();
+            let userAge = today.getFullYear() - userBirthDate.getFullYear();
+            const m = today.getMonth() - userBirthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < userBirthDate.getDate())) {
+                userAge--;
+            }
+
+            let minAge = 18;
+            let maxAge = 80;
+
+            if (userAge <= 25) {
+                minAge = 18; maxAge = 25;
+            } else if (userAge <= 35) {
+                minAge = 26; maxAge = 35;
+            } else if (userAge <= 55) {
+                minAge = 36; maxAge = 55;
+            } else {
+                minAge = 56; maxAge = 80;
+            }
+
+            const FILTERS_VERSION = 'v5';
+            const initialFilters = {
+                minAge,
+                maxAge,
+                state: state || '',
+                city: city || '',
+                religion: '',
+                churchFrequency: '',
+                lookingFor: '',
+                christianInterests: [],
+                hasPhotos: false,
+                isVerified: false,
+                onlineRecently: false,
+                maxDistance: 100,
+            };
+
+            localStorage.setItem('discover-filters', JSON.stringify(initialFilters));
+            localStorage.setItem('discover-filters-version', FILTERS_VERSION);
+
+            // Auto-likes are handled server-side by the PostgreSQL trigger
+            // trg_auto_like_on_profile_complete (fires on profile INSERT/UPDATE of birth_date/gender)
+
 
             // Redireciona para o app
             navigate('/app/discover', { replace: true });
@@ -446,7 +491,6 @@ export default function Convite() {
                                             <PhotoUpload
                                                 photos={photos}
                                                 onPhotosChange={(p) => {
-                                                    console.log('[Convite] Photos updated:', p);
                                                     setPhotos(p);
                                                     if (p.length > 0) {
                                                         const newErrors = { ...setupErrors };

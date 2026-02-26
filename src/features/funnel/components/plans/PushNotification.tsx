@@ -77,12 +77,14 @@ const MALE_MESSAGES = [
 
 interface PushNotificationProps {
   gender?: 'masculino' | 'feminino';
+  ageRange?: string;
   baseInterval?: number;
   paused?: boolean;
 }
 
 export function PushNotification({
   gender = 'feminino',
+  ageRange = '26-35',
   baseInterval = 12,
   paused = false,
 }: PushNotificationProps) {
@@ -104,12 +106,18 @@ export function PushNotification({
     const randomPerson = notifications[Math.floor(Math.random() * notifications.length)];
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
 
+    // Use assets/matches photos based on ageRange for realism
+    const range = ageRange === '18-25' ? '18-25' : ageRange === '26-35' ? '26-35' : ageRange === '36-55' ? '36-55' : ageRange === '56+' ? '56-plus' : '26-35';
+    const photoGender = isMaleUser ? 'female' : 'male';
+    const photoNum = Math.floor(Math.random() * 8) + 1;
+    const dynamicImage = `/assets/matches/match-${photoGender}-${range}-${photoNum}.jpg`;
+
     return {
       name: randomPerson.name,
-      image: randomPerson.image,
+      image: dynamicImage, // Use dynamic image from our verified matching assets
       message: randomMessage,
     };
-  }, [gender]);
+  }, [gender, ageRange]);
 
   const showNotification = useCallback(() => {
     if (isDismissed || paused) return;
