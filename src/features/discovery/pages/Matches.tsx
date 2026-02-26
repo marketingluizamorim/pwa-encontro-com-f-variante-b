@@ -311,17 +311,24 @@ export default function Matches() {
         supabase.from('profiles').select('birth_date').eq('user_id', user.id).single(),
       ]);
 
-      // Derive user's age range (for bot photo selection)
-      // Priority: quiz store (funnel users) → calculated from birth_date (convite users)
+      // Derive user's age range for the strict age filter
+      // Priority: 1st - real birth_date from DB (most accurate)
+      //           2nd - quizAge from funnel store (only if no birth_date)
       const quizAge = useFunnelStore.getState().quizAnswers.age;
       const resolvedAgeRange = (() => {
+        if (currentUserProfile?.birth_date) {
+          // Use exact age calculation (accounts for month/day, not just year)
+          const age = Math.floor(
+            (Date.now() - new Date(currentUserProfile.birth_date).getTime()) / (365.25 * 24 * 60 * 60 * 1000)
+          );
+          if (age <= 25) return '18-25';
+          if (age <= 35) return '26-35';
+          if (age <= 55) return '36-55';
+          return '56+';
+        }
+        // Fallback: use quiz store age if no birth_date in DB
         if (quizAge) return quizAge;
-        if (!currentUserProfile?.birth_date) return '26-35';
-        const age = new Date().getFullYear() - new Date(currentUserProfile.birth_date).getFullYear();
-        if (age <= 25) return '18-25';
-        if (age <= 35) return '26-35';
-        if (age <= 55) return '36-55';
-        return '56+';
+        return '26-35'; // safe default
       })();
 
       const mySwipedIds = new Set(mySwipes?.map(s => s.swiped_id));
