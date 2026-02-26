@@ -170,7 +170,7 @@ export const BOT_PHOTO_MAP: Record<string, string> = {
     'd6914334-aa71-4bd0-add2-018a2d92efd3': '/assets/matches/match-female-36-55-2.jpg',       // Letícia, 46
     '75a62c48-613d-43a7-9856-eca9cae94a8d': '/assets/matches/match-female-36-55-3.jpg',       // Patrícia, 44
     '1617df4d-4fab-464a-b063-1ee496b24dfe': '/assets/matches/match-female-36-55-4.jpg',       // Soraia, 39
-    '2458c24c-ce86-47d5-b616-e5e1892e20d1': '/assets/matches/match-female-56-plus-2.jpg',     // Regina, 55
+    '2458c24c-ce86-47d5-b616-e5e1892e20d1': '/assets/matches/match-female-36-55-5.jpg',       // Regina, 55
     // ─ Female 56+ ─
     'cce83ef9-c355-46d7-af1c-4ceaf4d3cdc8': '/assets/matches/match-female-56-plus-display.jpg', // Maria, 58
     'e42aba99-b319-4be5-a47b-792a16639e39': '/assets/matches/match-female-56-plus-1.jpg',        // Sandra, 62
@@ -180,6 +180,7 @@ export const BOT_PHOTO_MAP: Record<string, string> = {
     'b1a2c3d4-e5f6-7890-abcd-ef1234560004': '/assets/matches/match-female-56-plus-6.jpg',        // Vera, 59
     'b1a2c3d4-e5f6-7890-abcd-ef1234560005': '/assets/matches/match-female-56-plus-7.jpg',        // Tereza, 65
     'b1a2c3d4-e5f6-7890-abcd-ef1234560006': '/assets/matches/match-female-56-plus-8.jpg',        // Lurdes, 61
+    'b1a2c3d4-e5f6-7890-abcd-ef1234560007': '/assets/matches/match-female-56-plus-2.jpg',        // Nair, 64
 
     // ─ Female 18-25 extra ─
     'c2d3e4f5-0000-0001-0001-000000000001': '/assets/matches/match-female-18-25-6.jpg',        // Isabela, 22

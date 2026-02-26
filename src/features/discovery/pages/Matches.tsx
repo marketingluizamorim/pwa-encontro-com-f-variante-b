@@ -412,7 +412,19 @@ export default function Matches() {
           };
         })
         .filter((l) => l !== null)
-        .filter((l) => l?.profile.gender === targetGender) as LikeProfile[];
+        .filter((l) => l?.profile.gender === targetGender)
+        // Strict age filter: only show profiles within the user's own age range
+        .filter((l) => {
+          if (!l?.profile.birth_date) return true; // no birth_date = don't exclude
+          const profileAge = Math.floor(
+            (Date.now() - new Date(l.profile.birth_date).getTime()) / (365.25 * 24 * 60 * 60 * 1000)
+          );
+          if (resolvedAgeRange === '18-25') return profileAge >= 18 && profileAge <= 25;
+          if (resolvedAgeRange === '26-35') return profileAge >= 26 && profileAge <= 35;
+          if (resolvedAgeRange === '36-55') return profileAge >= 36 && profileAge <= 55;
+          if (resolvedAgeRange === '56+') return profileAge >= 56;
+          return true;
+        }) as LikeProfile[];
 
       return formattedLikes;
     }
