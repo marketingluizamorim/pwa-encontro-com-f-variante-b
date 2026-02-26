@@ -434,7 +434,7 @@ export default function Matches() {
     enabled: !!user,
   });
 
-  // Real-time listener for incoming likes
+  // Real-time listener for incoming likes — único listener, sem duplicatas
   useEffect(() => {
     if (!user) return;
 
@@ -446,60 +446,28 @@ export default function Matches() {
           event: 'INSERT',
           schema: 'public',
           table: 'swipes',
-          filter: `swiped_id=eq.${user.id}`
+          filter: `swiped_id=eq.${user.id}`,
         },
         (payload) => {
-          if (payload.new.direction === 'like' || payload.new.direction === 'super_like') {
+          const { direction, swiper_id } = payload.new;
+
+          // Ignora swipes que o próprio usuário fez (evita refetch após swipe interno)
+          if (swiper_id === user.id) return;
+
+          // Só invalida se for like ou super_like de outra pessoa
+          if (direction === 'like' || direction === 'super_like') {
             queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
           }
         }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [user, queryClient]);
 
   const allLikes: LikeProfile[] = useMemo(() => {
     return likes || [];
   }, [likes]);
-
-  // Real-time: Listen for new likes to update the list automatically
-  useEffect(() => {
-    if (!user) return;
-
-    let channel: { unsubscribe: () => void } | null = null;
-    let supabaseClient: { removeChannel: (ch: unknown) => void } | null = null;
-
-    (async () => {
-      const { supabase } = await import('@/integrations/supabase/client');
-      supabaseClient = supabase;
-
-      channel = supabase
-        .channel('realtime:new_likes')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'swipes',
-            filter: `swiped_id=eq.${user.id}`,
-          },
-          () => {
-            // When a new swipe is directed to the user, refresh the likes list
-            queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
-          }
-        )
-        .subscribe();
-    })();
-
-    return () => {
-      if (supabaseClient && channel) {
-        supabaseClient.removeChannel(channel);
-      }
-    };
-  }, [user, queryClient]);
 
   const handleRefresh = async () => {
     await fetchLikes();
