@@ -579,7 +579,40 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_swiped_bots_count: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      get_profiles_discovery: {
+        Args: {
+          p_user_id: string
+          p_gender: string
+          p_target_gender: string
+          p_min_age?: number
+          p_max_age?: number
+          p_state?: string
+          p_city?: string
+          p_religion?: string
+          p_church_frequency?: string
+          p_looking_for?: string
+          p_christian_interests?: string[]
+          p_has_photos?: boolean
+          p_is_verified?: boolean
+          p_online_recently?: boolean
+          p_max_distance?: number
+          p_latitude?: number
+          p_longitude?: number
+          p_fallback_state?: string
+          p_fallback_city?: string
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: unknown[]
+      }
+      activate_whatsapp_invite: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
