@@ -3,59 +3,90 @@ import { QuizAnswers } from "@/types/funnel";
 // ─── Real bot UUIDs from the database ───────────────────────────────────────
 // Female bots (shown to male users)
 export const FEMALE_FUNNEL_BOTS = [
-    // 18-25 range (6 bots)
+    // 18-25 range (9 bots)
     { id: '8f517b2a-e1f8-4c2c-bdd2-a5af0f3cbe56', name: 'Juliana', ageRange: '18-25' },
     { id: '97b2d8a6-6775-46a9-8345-7f66f2398605', name: 'Bruna', ageRange: '18-25' },
     { id: 'd5229a6d-5194-4a70-a69d-503528bc2ede', name: 'Larissa', ageRange: '18-25' },
     { id: '57a194d3-7753-429b-914e-40662166f6bf', name: 'Camila', ageRange: '18-25' },
     { id: '7ec107c6-7285-4059-b869-8dc2d982ef05', name: 'Vanessa', ageRange: '18-25' },
     { id: 'e041c226-0ef1-4b48-b132-a14cbb70d4ba', name: 'Beatriz', ageRange: '18-25' },
-    // 26-35 range (6 bots)
+    { id: 'c2d3e4f5-0000-0001-0001-000000000001', name: 'Isabela', ageRange: '18-25' },
+    { id: 'c2d3e4f5-0000-0001-0001-000000000002', name: 'Gabriela', ageRange: '18-25' },
+    { id: 'c2d3e4f5-0000-0001-0001-000000000003', name: 'Natália', ageRange: '18-25' },
+    // 26-35 range (9 bots)
     { id: '64149ade-351e-4814-9a0d-c84839c7a7ca', name: 'Amanda', ageRange: '26-35' },
     { id: '078bfc3e-241c-4c8b-877a-3693b1123814', name: 'Rebeca', ageRange: '26-35' },
     { id: 'f21f9930-2084-4d16-946a-62e81e6b14b3', name: 'Fernanda', ageRange: '26-35' },
     { id: 'b497822e-07c8-437e-9e83-bac513e7ab99', name: 'Priscila', ageRange: '26-35' },
     { id: 'b4985418-abe7-4fc6-b1f6-8c64955f8310', name: 'Luana', ageRange: '26-35' },
     { id: '345ba593-7ac8-4bc5-901f-a52503b5cbd1', name: 'Daniela', ageRange: '26-35' },
-    // 36-55 range (6 bots)
+    { id: 'c2d3e4f5-0000-0002-0002-000000000001', name: 'Mariana', ageRange: '26-35' },
+    { id: 'c2d3e4f5-0000-0002-0002-000000000002', name: 'Caroline', ageRange: '26-35' },
+    { id: 'c2d3e4f5-0000-0002-0002-000000000003', name: 'Jéssica', ageRange: '26-35' },
+    // 36-55 range (9 bots)
     { id: '26006097-3918-43d9-af0f-bba823538f36', name: 'Carolina', ageRange: '36-55' },
     { id: '46c9673c-f9d3-4b6d-bd5c-dfaa5f4b5454', name: 'Talita', ageRange: '36-55' },
     { id: 'd6914334-aa71-4bd0-add2-018a2d92efd3', name: 'Letícia', ageRange: '36-55' },
     { id: '75a62c48-613d-43a7-9856-eca9cae94a8d', name: 'Patrícia', ageRange: '36-55' },
     { id: '1617df4d-4fab-464a-b063-1ee496b24dfe', name: 'Soraia', ageRange: '36-55' },
-    { id: '2458c24c-ce86-47d5-b616-e5e1892e20d1', name: 'Regina', ageRange: '36-55' }, // 55 years — primary 36-55
-    // 56+ range (2 bots)
+    { id: '2458c24c-ce86-47d5-b616-e5e1892e20d1', name: 'Regina', ageRange: '36-55' },
+    { id: 'c2d3e4f5-0000-0003-0003-000000000001', name: 'Andréa', ageRange: '36-55' },
+    { id: 'c2d3e4f5-0000-0003-0003-000000000002', name: 'Simone', ageRange: '36-55' },
+    { id: 'c2d3e4f5-0000-0003-0003-000000000003', name: 'Cláudia', ageRange: '36-55' },
+    // 56+ range (8 bots — full coverage for users 56+)
     { id: 'cce83ef9-c355-46d7-af1c-4ceaf4d3cdc8', name: 'Maria', ageRange: '56+' },
     { id: 'e42aba99-b319-4be5-a47b-792a16639e39', name: 'Sandra', ageRange: '56+' },
+    { id: 'b1a2c3d4-e5f6-7890-abcd-ef1234560001', name: 'Beatriz', ageRange: '56+' },
+    { id: 'b1a2c3d4-e5f6-7890-abcd-ef1234560002', name: 'Rosana', ageRange: '56+' },
+    { id: 'b1a2c3d4-e5f6-7890-abcd-ef1234560003', name: 'Eliane', ageRange: '56+' },
+    { id: 'b1a2c3d4-e5f6-7890-abcd-ef1234560004', name: 'Vera', ageRange: '56+' },
+    { id: 'b1a2c3d4-e5f6-7890-abcd-ef1234560005', name: 'Tereza', ageRange: '56+' },
+    { id: 'b1a2c3d4-e5f6-7890-abcd-ef1234560006', name: 'Lurdes', ageRange: '56+' },
 ];
 
 
 // Male bots (shown to female users)
 export const MALE_FUNNEL_BOTS = [
-    // 18-25 range (6 bots)
+    // 18-25 range (9 bots)
     { id: 'b837f035-10e8-4e7d-81ae-418920c0a781', name: 'Gabriel', ageRange: '18-25' },
     { id: '189d38e0-ddc4-42ce-aeba-7b54b94d25c3', name: 'Lucas', ageRange: '18-25' },
     { id: 'f623beab-2a2c-4f88-b74e-5e38e556dd6f', name: 'André', ageRange: '18-25' },
     { id: '05a650f6-a420-4816-bc6a-fa7cf5367ac0', name: 'João', ageRange: '18-25' },
     { id: '14a74979-2b05-4c30-9730-ec7a0e8a4d9c', name: 'Vitor', ageRange: '18-25' },
     { id: 'ef9c737c-71c7-427b-97dd-35a21d45117c', name: 'Diego', ageRange: '18-25' },
-    // 26-35 range (6 bots)
+    { id: 'c2d3e4f5-0000-0004-0004-000000000001', name: 'Henrique', ageRange: '18-25' },
+    { id: 'c2d3e4f5-0000-0004-0004-000000000002', name: 'Thiago', ageRange: '18-25' },
+    { id: 'c2d3e4f5-0000-0004-0004-000000000003', name: 'Rodrigo', ageRange: '18-25' },
+    // 26-35 range (9 bots)
     { id: '8274a79f-073d-4417-b0b0-6b609cd8aa81', name: 'Pedro', ageRange: '26-35' },
     { id: '899e3661-5c53-4626-b3d0-e3244c6e42c5', name: 'Mateus', ageRange: '26-35' },
     { id: 'a4fb49e9-63b1-4b8e-9595-511c42ba7d67', name: 'Rafael', ageRange: '26-35' },
     { id: '89f16352-6277-4689-bd3c-bd73efbf3aa3', name: 'Felipe', ageRange: '26-35' },
     { id: '162f9e97-2bf4-4d77-ae2d-b0d73bb99902', name: 'Carlos', ageRange: '26-35' },
     { id: '93d35964-4586-4ae4-a692-0286de2a2fbd', name: 'Bruno', ageRange: '26-35' },
-    // 36-55 range (6 bots)
+    { id: 'c2d3e4f5-0000-0005-0005-000000000001', name: 'Leandro', ageRange: '26-35' },
+    { id: 'c2d3e4f5-0000-0005-0005-000000000002', name: 'Gustavo', ageRange: '26-35' },
+    { id: 'c2d3e4f5-0000-0005-0005-000000000003', name: 'Renato', ageRange: '26-35' },
+    // 36-55 range (9 bots)
     { id: 'cab812c5-fa56-453f-be4e-0611bbc3547f', name: 'Hugo', ageRange: '36-55' },
     { id: '6c2b02cd-a2da-46b0-8be8-6e7935f78137', name: 'Daniel', ageRange: '36-55' },
     { id: '16df381d-9af3-41d2-b544-37b872bf8df9', name: 'Robson', ageRange: '36-55' },
     { id: '1d46109a-34b4-45de-9ecf-2d8b17ee3be8', name: 'Marcos', ageRange: '36-55' },
     { id: '833fd769-7dc0-4ce7-b24f-b5b1559df8c2', name: 'Fernando', ageRange: '36-55' },
     { id: 'bd69597b-ec63-45ef-831c-a52bc2a77360', name: 'Eduardo', ageRange: '36-55' },
-    // 56+ range (2 bots)
+    { id: 'c2d3e4f5-0000-0006-0006-000000000001', name: 'Wellington', ageRange: '36-55' },
+    { id: 'c2d3e4f5-0000-0006-0006-000000000002', name: 'Gilberto', ageRange: '36-55' },
+    { id: 'c2d3e4f5-0000-0006-0006-000000000003', name: 'Nelson', ageRange: '36-55' },
+    // 56+ range (9 bots)
     { id: '04f6a6d4-11b8-4202-8989-8debf1f49511', name: 'Thiago', ageRange: '56+' },
     { id: '966176ab-715d-4efc-8bd8-21ada2ff75cd', name: 'Benedito', ageRange: '56+' },
+    { id: 'c2d3e4f5-0000-0007-0007-000000000001', name: 'Antônio', ageRange: '56+' },
+    { id: 'c2d3e4f5-0000-0007-0007-000000000002', name: 'José', ageRange: '56+' },
+    { id: 'c2d3e4f5-0000-0007-0007-000000000003', name: 'Luiz', ageRange: '56+' },
+    { id: 'c2d3e4f5-0000-0007-0007-000000000004', name: 'Carlos', ageRange: '56+' },
+    { id: 'c2d3e4f5-0000-0007-0007-000000000005', name: 'Roberto', ageRange: '56+' },
+    { id: 'c2d3e4f5-0000-0007-0007-000000000006', name: 'Paulo', ageRange: '56+' },
+    { id: 'c2d3e4f5-0000-0007-0007-000000000007', name: 'Sebastião', ageRange: '56+' },
 ];
 
 export const FEMALE_FUNNEL_BOT_IDS = FEMALE_FUNNEL_BOTS.map(b => b.id);
@@ -65,11 +96,11 @@ export const ALL_FUNNEL_BOT_IDS = [...FEMALE_FUNNEL_BOT_IDS, ...MALE_FUNNEL_BOT_
 /**
  * Returns bot IDs that should auto-like a user of a given age.
  *
- * Adjacent strategy (avoids jarring age gaps):
- *  - 18-25 → only older adjacent: 26-35  (slight older is fine for young users)
- *  - 26-35 → only older adjacent: 36-55  (avoids pairing 32-yr-olds with 18-yr-olds)
- *  - 36-55 → both sides: 26-35 + 56+
- *  - 56+   → only younger adjacent: 36-55
+ * REALISTIC strategy (mimics how real people behave):
+ *  - 18-25 → bots 18-30  (young generation)
+ *  - 26-35 → bots 22-45  (±10 years)
+ *  - 36-55 → bots 30-65  (broader mid-life)
+ *  - 56+   → bots 50+    (same mature generation — no 37-yr-olds liking a 69-yr-old)
  *
  * Cap: 6 bots per user for good variety.
  */
@@ -77,22 +108,42 @@ export function getBotsForAgeRange(
     userAge: number,
     botList: Array<{ id: string; name: string; ageRange: string }>
 ): string[] {
-    const primary = userAge <= 25 ? '18-25' : userAge <= 35 ? '26-35' : userAge <= 55 ? '36-55' : '56+';
-    const adjacent = userAge <= 25 ? ['26-35']
-        : userAge <= 35 ? ['36-55']           // only older — NOT 18-25
-            : userAge <= 55 ? ['26-35', '56+']
-                : ['36-55'];
+    let eligibleRanges: string[];
 
+    if (userAge <= 25) {
+        // 18-25 user → likes from 18-25 bots (same generation, ±5 years)
+        eligibleRanges = ['18-25'];
+    } else if (userAge <= 35) {
+        // 26-35 user → likes from 18-25 and 26-35 (±10 years)
+        eligibleRanges = ['18-25', '26-35'];
+    } else if (userAge <= 55) {
+        // 36-55 user → likes from 26-35 and 36-55 (mid-life range)
+        eligibleRanges = ['26-35', '36-55'];
+    } else {
+        // 56+ user → likes ONLY from 36-55 and 56+ (mature, realistic)
+        // 50+ minimum: 36-55 bots include ages 36-55, but we prefer 56+
+        eligibleRanges = ['36-55', '56+'];
+    }
+
+    const primary = userAge <= 25 ? '18-25'
+        : userAge <= 35 ? '26-35'
+            : userAge <= 55 ? '36-55'
+                : '56+';
+
+    // Primary bots first, then adjacent to fill up to 6
     const primaryBots = botList.filter(b => b.ageRange === primary).map(b => b.id);
-    const adjacentBots = botList.filter(b => adjacent.includes(b.ageRange)).map(b => b.id);
+    const adjacentBots = botList
+        .filter(b => eligibleRanges.includes(b.ageRange) && b.ageRange !== primary)
+        .map(b => b.id);
 
     const result = [...primaryBots];
     for (const id of adjacentBots) {
-        if (result.length >= 6) break; // up to 6 bots for variety
+        if (result.length >= 6) break;
         result.push(id);
     }
     return result;
 }
+
 
 // ─── Fixed photo assignment per bot UUID ─────────────────────────────────────
 // Each bot gets ONE specific photo that never changes, regardless of who is
@@ -123,7 +174,25 @@ export const BOT_PHOTO_MAP: Record<string, string> = {
     // ─ Female 56+ ─
     'cce83ef9-c355-46d7-af1c-4ceaf4d3cdc8': '/assets/matches/match-female-56-plus-display.jpg', // Maria, 58
     'e42aba99-b319-4be5-a47b-792a16639e39': '/assets/matches/match-female-56-plus-1.jpg',        // Sandra, 62
+    'b1a2c3d4-e5f6-7890-abcd-ef1234560001': '/assets/matches/match-female-56-plus-3.jpg',        // Beatriz, 60
+    'b1a2c3d4-e5f6-7890-abcd-ef1234560002': '/assets/matches/match-female-56-plus-4.jpg',        // Rosana, 57
+    'b1a2c3d4-e5f6-7890-abcd-ef1234560003': '/assets/matches/match-female-56-plus-5.jpg',        // Eliane, 63
+    'b1a2c3d4-e5f6-7890-abcd-ef1234560004': '/assets/matches/match-female-56-plus-6.jpg',        // Vera, 59
+    'b1a2c3d4-e5f6-7890-abcd-ef1234560005': '/assets/matches/match-female-56-plus-7.jpg',        // Tereza, 65
+    'b1a2c3d4-e5f6-7890-abcd-ef1234560006': '/assets/matches/match-female-56-plus-8.jpg',        // Lurdes, 61
 
+    // ─ Female 18-25 extra ─
+    'c2d3e4f5-0000-0001-0001-000000000001': '/assets/matches/match-female-18-25-6.jpg',        // Isabela, 22
+    'c2d3e4f5-0000-0001-0001-000000000002': '/assets/matches/match-female-18-25-7.jpg',        // Gabriela, 23
+    'c2d3e4f5-0000-0001-0001-000000000003': '/assets/matches/match-female-18-25-8.jpg',        // Natália, 23
+    // ─ Female 26-35 extra ─
+    'c2d3e4f5-0000-0002-0002-000000000001': '/assets/matches/match-female-26-35-6.jpg',        // Mariana, 30
+    'c2d3e4f5-0000-0002-0002-000000000002': '/assets/matches/match-female-26-35-7.jpg',        // Caroline, 32
+    'c2d3e4f5-0000-0002-0002-000000000003': '/assets/matches/match-female-26-35-8.jpg',        // Jéssica, 35
+    // ─ Female 36-55 extra ─
+    'c2d3e4f5-0000-0003-0003-000000000001': '/assets/matches/match-female-36-55-6.jpg',        // Andréa, 42
+    'c2d3e4f5-0000-0003-0003-000000000002': '/assets/matches/match-female-36-55-7.jpg',        // Simone, 46
+    'c2d3e4f5-0000-0003-0003-000000000003': '/assets/matches/match-female-36-55-8.jpg',        // Cláudia, 50
     // ─ Male 18-25 ─
     'b837f035-10e8-4e7d-81ae-418920c0a781': '/assets/matches/match-male-18-25-display.jpg',   // Gabriel, 23
     '189d38e0-ddc4-42ce-aeba-7b54b94d25c3': '/assets/matches/match-male-18-25-1.jpg',         // Lucas, 21
@@ -131,6 +200,9 @@ export const BOT_PHOTO_MAP: Record<string, string> = {
     '05a650f6-a420-4816-bc6a-fa7cf5367ac0': '/assets/matches/match-male-18-25-3.jpg',         // João, 22
     '14a74979-2b05-4c30-9730-ec7a0e8a4d9c': '/assets/matches/match-male-18-25-4.jpg',         // Vitor, 20
     'ef9c737c-71c7-427b-97dd-35a21d45117c': '/assets/matches/match-male-18-25-5.jpg',         // Diego, 24
+    'c2d3e4f5-0000-0004-0004-000000000001': '/assets/matches/match-male-18-25-6.jpg',          // Henrique, 23
+    'c2d3e4f5-0000-0004-0004-000000000002': '/assets/matches/match-male-18-25-7.jpg',          // Thiago, 25
+    'c2d3e4f5-0000-0004-0004-000000000003': '/assets/matches/match-male-18-25-8.jpg',          // Rodrigo, 22
     // ─ Male 26-35 ─
     '8274a79f-073d-4417-b0b0-6b609cd8aa81': '/assets/matches/match-male-26-35-display.jpg',   // Pedro, 27
     '899e3661-5c53-4626-b3d0-e3244c6e42c5': '/assets/matches/match-male-26-35-1.jpg',         // Mateus, 31
@@ -138,6 +210,9 @@ export const BOT_PHOTO_MAP: Record<string, string> = {
     '89f16352-6277-4689-bd3c-bd73efbf3aa3': '/assets/matches/match-male-26-35-3.jpg',         // Felipe, 28
     '162f9e97-2bf4-4d77-ae2d-b0d73bb99902': '/assets/matches/match-male-26-35-4.jpg',         // Carlos, 32
     '93d35964-4586-4ae4-a692-0286de2a2fbd': '/assets/matches/match-male-26-35-5.jpg',         // Bruno, 30
+    'c2d3e4f5-0000-0005-0005-000000000001': '/assets/matches/match-male-26-35-6.jpg',          // Leandro, 29
+    'c2d3e4f5-0000-0005-0005-000000000002': '/assets/matches/match-male-26-35-7.jpg',          // Gustavo, 33
+    'c2d3e4f5-0000-0005-0005-000000000003': '/assets/matches/match-male-26-35-8.jpg',          // Renato, 36
     // ─ Male 36-55 ─
     'cab812c5-fa56-453f-be4e-0611bbc3547f': '/assets/matches/match-male-36-55-display.jpg',   // Hugo, 39
     '6c2b02cd-a2da-46b0-8be8-6e7935f78137': '/assets/matches/match-male-36-55-1.jpg',         // Daniel, 44
@@ -145,9 +220,19 @@ export const BOT_PHOTO_MAP: Record<string, string> = {
     '1d46109a-34b4-45de-9ecf-2d8b17ee3be8': '/assets/matches/match-male-36-55-4.jpg',         // Marcos, 51
     '833fd769-7dc0-4ce7-b24f-b5b1559df8c2': '/assets/matches/match-male-36-55-2.jpg',         // Fernando, 42
     'bd69597b-ec63-45ef-831c-a52bc2a77360': '/assets/matches/match-male-36-55-5.jpg',         // Eduardo, 48
+    'c2d3e4f5-0000-0006-0006-000000000001': '/assets/matches/match-male-36-55-6.jpg',          // Wellington, 45
+    'c2d3e4f5-0000-0006-0006-000000000002': '/assets/matches/match-male-36-55-7.jpg',          // Gilberto, 49
+    'c2d3e4f5-0000-0006-0006-000000000003': '/assets/matches/match-male-36-55-8.jpg',          // Nelson, 53
     // ─ Male 56+ ─
     '04f6a6d4-11b8-4202-8989-8debf1f49511': '/assets/matches/match-male-56-plus-display.jpg', // Thiago, 57
     '966176ab-715d-4efc-8bd8-21ada2ff75cd': '/assets/matches/match-male-56-plus-1.jpg',       // Benedito, 61
+    'c2d3e4f5-0000-0007-0007-000000000001': '/assets/matches/match-male-56-plus-2.jpg',        // Antônio, 60
+    'c2d3e4f5-0000-0007-0007-000000000002': '/assets/matches/match-male-56-plus-3.jpg',        // José, 63
+    'c2d3e4f5-0000-0007-0007-000000000003': '/assets/matches/match-male-56-plus-4.jpg',        // Luiz, 66
+    'c2d3e4f5-0000-0007-0007-000000000004': '/assets/matches/match-male-56-plus-5.jpg',        // Carlos, 69
+    'c2d3e4f5-0000-0007-0007-000000000005': '/assets/matches/match-male-56-plus-6.jpg',        // Roberto, 62
+    'c2d3e4f5-0000-0007-0007-000000000006': '/assets/matches/match-male-56-plus-7.jpg',        // Paulo, 65
+    'c2d3e4f5-0000-0007-0007-000000000007': '/assets/matches/match-male-56-plus-8.jpg',        // Sebastião, 68
 };
 
 const SHORT_INTEREST_MAP: Record<string, string> = {

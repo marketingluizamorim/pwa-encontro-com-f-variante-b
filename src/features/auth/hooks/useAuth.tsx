@@ -5,8 +5,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName: string) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ data: any; error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ data: any; error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -90,11 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   const signUp = async (email: string, password: string, displayName: string) => {
-
-
     try {
       const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-      const { error } = await supabaseRuntime.auth.signUp({
+      const { data, error } = await supabaseRuntime.auth.signUp({
         email,
         password,
         options: {
@@ -103,24 +101,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           },
         },
       });
-      return { error: error ? new Error(error.message) : null };
-    } catch (err) {
-      return { error: err as Error };
+
+      if (error) throw error;
+
+      // If we got a session immediately (autologin), update states
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+      }
+
+      return { data, error: null };
+    } catch (err: any) {
+      console.error('[Auth] SignUp error:', err);
+      return { data: null, error: err };
     }
   };
 
   const signIn = async (email: string, password: string) => {
-
-
     try {
       const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-      const { error } = await supabaseRuntime.auth.signInWithPassword({
+      const { data, error } = await supabaseRuntime.auth.signInWithPassword({
         email,
         password,
       });
-      return { error: error ? new Error(error.message) : null };
-    } catch (err) {
-      return { error: err as Error };
+
+      if (error) throw error;
+
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+      }
+
+      return { data, error: null };
+    } catch (err: any) {
+      console.error('[Auth] SignIn error:', err);
+      return { data: null, error: err };
     }
   };
 

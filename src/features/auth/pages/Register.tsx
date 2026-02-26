@@ -66,36 +66,41 @@ export default function Register() {
     }
 
     setIsSubmitting(true);
+    try {
+      const { data: signUpData, error } = await signUp(email, password, name);
 
-    const { error } = await signUp(email, password, name);
+      if (error) {
+        console.error('Registration error:', error);
+        let errorMessage = error.message || 'Erro ao criar conta';
 
-    if (error) {
-      console.error('Registration error:', error);
-      let errorMessage = error.message || 'Erro ao criar conta';
+        // Translate common Supabase errors
+        if (errorMessage.includes('rate limit')) {
+          errorMessage = 'Muitas tentativas recentes. Por favor, aguarde alguns minutos antes de tentar novamente.';
+        } else if (errorMessage.includes('User already registered')) {
+          errorMessage = 'Este e-mail já está cadastrado. Tente fazer login.';
+        }
 
-      // Translate common Supabase errors
-      if (errorMessage.includes('rate limit')) {
-        errorMessage = 'Muitas tentativas recentes. Por favor, aguarde alguns minutos antes de tentar novamente.';
-      } else if (errorMessage.includes('User already registered')) {
-        errorMessage = 'Este e-mail já está cadastrado. Tente fazer login.';
-      }
+        toast.error(errorMessage, { style: { marginTop: '50px' } });
+      } else {
+        // Account created successfully.
+        // 1. Check if we need to manually sign in (usually signUp auto-logs in)
+        if (!signUpData?.session) {
+          const { error: signInError } = await signIn(email, password);
+          if (signInError) {
+            toast.success('Conta criada com sucesso! Faça login para continuar.', { style: { marginTop: '50px' } });
+            navigate('/login');
+            return;
+          }
+        }
 
-      toast.error(errorMessage, { style: { marginTop: '50px' } });
-      setIsSubmitting(false);
-    } else {
-      // Account created successfully.
-      // 1. Try to auto-login immediately for better UX
-      const { error: signInError } = await signIn(email, password);
-
-      if (!signInError) {
-        // Clear subscription cache so ProtectedRoute sees the new plan linked by the DB trigger
+        // Success
         await queryClient.invalidateQueries({ queryKey: ['subscription'] });
         setShowSuccessDialog(true);
-      } else {
-        // Could not auto-login (likely verify email required), but account created.
-        toast.success('Conta criada com sucesso!', { style: { marginTop: '50px' } });
-        setShowSuccessDialog(true);
       }
+    } catch (err) {
+      console.error('[Register] Unexpected error:', err);
+      toast.error('Ocorreu um erro inesperado. Tente novamente.');
+    } finally {
       setIsSubmitting(false);
     }
   };

@@ -115,10 +115,17 @@ export default function Plans() {
 
   const handleAcceptSpecialOffer = () => {
     setShowExitIntent(false);
-    // Use the standard CheckoutDialog for consistent UX, pre-configured for special offer
+    // Special offer goes through the standard checkout — same UX as regular plans
     setSelectedPlanId(SPECIAL_OFFER_PLAN_ID);
     setSelectedPlanPrice(SPECIAL_OFFER_PRICE);
-    const specialBumps = { allRegions: true, grupoEvangelico: true, grupoCatolico: true, filtrosAvancados: false, specialOffer: true };
+    // Full Gold features: all bumps enabled including filtrosAvancados
+    const specialBumps = {
+      allRegions: true,
+      grupoEvangelico: true,
+      grupoCatolico: true,
+      filtrosAvancados: true,   // ← Gold feature, must be true
+      specialOffer: true,
+    };
     currentBumpsRef.current = specialBumps;
     setOrderBumps(specialBumps);
     setShowCheckout(true);
@@ -153,21 +160,23 @@ export default function Plans() {
       }
 
       if (isSpecialOffer) {
-        // Special offer is a one-time PIX charge
+        // Special offer = Gold Trimestral via PIX Automático (mesma infra dos outros planos)
         const utms = getStoredUTMParams();
-        const paymentData = await funnelService.createPayment({
-          planId,
-          planPrice,
+        const subData = await funnelService.createSubscription({
+          planId,                                // 'special-offer'
           userName: data.name,
           userEmail: data.email,
           userPhone: data.phone,
           userCpf: data.cpf,
-          orderBumps: currentOrderBumps,
-          quizData: quizAnswers,
           gender: gender,
-          isSpecialOffer,
-          planName: PLAN_NAMES[planId],
-          purchaseSource: 'backredirect',
+          orderBumps: {
+            allRegions: true,
+            grupoEvangelico: true,
+            grupoCatolico: true,
+            filtrosAvancados: true,              // Gold completo
+          },
+          quizData: quizAnswers,
+          purchaseSource: 'backredirect',        // rastreia origem backdirect
           utmSource: utms.utm_source ?? null,
           utmMedium: utms.utm_medium ?? null,
           utmCampaign: utms.utm_campaign ?? null,
@@ -176,11 +185,12 @@ export default function Plans() {
           src: utms.src ?? null,
           sck: utms.sck ?? null,
         });
-        setPixCode(paymentData.pixCode || '');
-        setPixQrCode(paymentData.qrCode || paymentData.qrCodeImage || '');
-        setPaymentId(paymentData.paymentId || '');
-        setPixTotalAmount(paymentData.totalAmount || planPrice);
-        setIsPixAutomatic(false);
+        setPixCode(subData.pixCode || '');
+        setPixQrCode(subData.qrCodeImage || '');
+        setPaymentId(subData.subscriptionId || '');
+        setPixTotalAmount(subData.totalAmount || planPrice);
+        setIsPixAutomatic(true);
+        setPlanCycle('QUARTERLY');               // exibe como recorrente trimestral
       } else {
         // Regular plans use Pix Automático (Journey 3)
         const utms = getStoredUTMParams();

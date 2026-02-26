@@ -102,6 +102,7 @@ export default function ProfileSetup() {
 
         if (dbProfile) {
           if (dbProfile.gender && !gender) setGender(dbProfile.gender as any);
+          if (dbProfile.birth_date && !birthDate) setBirthDate(dbProfile.birth_date);
           if (dbProfile.city && !city) setCity(dbProfile.city);
           if (dbProfile.state && !state) setState(dbProfile.state);
           if (dbProfile.religion && !religion) setReligion(dbProfile.religion);
@@ -241,8 +242,9 @@ export default function ProfileSetup() {
         const initialFilters = {
           minAge,
           maxAge,
-          state: state || '',
-          city: city || '',
+          // Location and distance NOT pre-set: bots bypass location, new users should see all.
+          state: '',
+          city: '',
           religion: '',
           churchFrequency: '',
           lookingFor: '',
@@ -250,7 +252,7 @@ export default function ProfileSetup() {
           hasPhotos: false,
           isVerified: false,
           onlineRecently: false,
-          maxDistance: 100,
+          maxDistance: 100, // 100 = max = no restriction (not counted as active by countActive)
         };
         localStorage.setItem('discover-filters', JSON.stringify(initialFilters));
         localStorage.setItem('discover-filters-version', 'v5'); // Must match Discover.tsx FILTERS_VERSION

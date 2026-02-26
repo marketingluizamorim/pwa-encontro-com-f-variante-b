@@ -73,7 +73,7 @@ export default function Convite() {
 
         try {
             // 1. Create account
-            const { error: signUpError } = await signUp(email, password, name);
+            const { data: signUpData, error: signUpError } = await signUp(email, password, name);
             const errMsg = signUpError?.message?.toLowerCase() ?? '';
             const alreadyExists = errMsg.includes('already registered')
                 || errMsg.includes('already in use')
@@ -93,48 +93,51 @@ export default function Convite() {
                 return;
             }
 
-            // 2. Sign in (only for the new account just created)
-            const { error: signInError } = await signIn(email, password);
-            if (signInError) {
-                toast.error('Conta criada! Faça o login para continuar.');
-                navigate('/login', { replace: true, state: {} });
+            // 2. Sign in ONLY if signUp didn't auto-login
+            let userId = signUpData?.user?.id;
+
+            if (!signUpData?.session) {
+                console.log('[Convite] No session from signUp, trying signIn...');
+                const { data: signInData, error: signInError } = await signIn(email, password);
+                if (signInError) {
+                    toast.error('Conta criada! Faça o login para continuar.');
+                    navigate('/login', { replace: true, state: {} });
+                    setIsSubmitting(false);
+                    return;
+                }
+                userId = signInData?.user?.id;
+            }
+
+            // --- Authenticated: all steps below are best-effort ---
+            const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
+
+            if (!userId) {
+                console.error('[Convite] No user ID found after registration flow');
+                setStep('done');
                 setIsSubmitting(false);
                 return;
             }
 
-            // --- signIn succeeded: all steps below are best-effort ---
-            const { supabaseRuntime } = await import('@/integrations/supabase/runtimeClient');
-
-            // Give auth state time to settle
-            await new Promise((r) => setTimeout(r, 500));
-
-            // 3. Get the current user
-            const { data: { user: currentUser } } = await supabaseRuntime.auth.getUser();
-            const userId = currentUser?.id ?? null;
-
-            if (!userId) {
-                console.warn('[Convite] No user after signIn');
-                setStep('done');
-                return;
-            }
-
-            // 4. Upsert profile row
-            await supabaseRuntime.from('profiles').upsert({
+            // 4. Upsert profile row (This triggers bot likes)
+            console.log('[Convite] Upserting profile for:', userId);
+            const { error: upsertError } = await supabaseRuntime.from('profiles').upsert({
                 user_id: userId,
                 display_name: name,
                 is_profile_complete: false,
                 acquisition_source: 'whatsapp_group',
             }, { onConflict: 'user_id' });
 
+            if (upsertError) console.error('[Convite] Profile upsert error:', upsertError);
+
             // 5. Activate Silver plan via SECURITY DEFINER RPC (bypasses RLS)
+            console.log('[Convite] Activating bonus plan...');
             setStep('activating');
-            const { data: rpcData, error: rpcError } = await (supabaseRuntime as unknown as { rpc: (fn: string) => Promise<{ data: unknown; error: { message: string } | null }> })
-                .rpc('activate_whatsapp_invite');
+
+            const { data: rpcData, error: rpcError } = await (supabaseRuntime as any).rpc('activate_whatsapp_invite');
 
             if (rpcError) {
                 console.error('[Convite] RPC error:', rpcError.message);
             } else {
-
                 const { supabase } = await import('@/integrations/supabase/client');
                 await supabase.auth.getUser(); // Refresh standard client session
                 await queryClient.refetchQueries({ queryKey: ['subscription', userId] });
@@ -142,10 +145,10 @@ export default function Convite() {
             }
 
             setStep('done');
-            setIsSubmitting(false);
         } catch (err) {
-            console.error('Invite registration error:', err);
+            console.error('[Convite] Unexpected registration error:', err);
             toast.error('Erro inesperado. Tente novamente.');
+        } finally {
             setIsSubmitting(false);
         }
     };
@@ -220,8 +223,10 @@ export default function Convite() {
             const initialFilters = {
                 minAge,
                 maxAge,
-                state: state || '',
-                city: city || '',
+                // Location and distance NOT pre-set: bots bypass location anyway,
+                // and new users should see the widest possible pool first.
+                state: '',
+                city: '',
                 religion: '',
                 churchFrequency: '',
                 lookingFor: '',
@@ -229,7 +234,7 @@ export default function Convite() {
                 hasPhotos: false,
                 isVerified: false,
                 onlineRecently: false,
-                maxDistance: 100,
+                maxDistance: 100, // 100 = max range = no distance restriction (not counted as active)
             };
 
             localStorage.setItem('discover-filters', JSON.stringify(initialFilters));

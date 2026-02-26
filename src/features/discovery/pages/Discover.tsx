@@ -58,6 +58,18 @@ const DEFAULT_FILTERS: DiscoverFiltersState = {
   maxDistance: 100,
 };
 
+/** Returns age-appropriate default filter range for a given user age.
+ *  Matches the adjacent strategy: 56+ users see 36-80, 36-55 see 26-80,
+ *  26-35 see 22-55, 18-25 see 18-35.
+ */
+function getAgeFilterForUser(userAge: number | null): { minAge: number; maxAge: number } {
+  if (!userAge) return { minAge: 18, maxAge: 80 };
+  if (userAge >= 56) return { minAge: 36, maxAge: 80 };
+  if (userAge >= 36) return { minAge: 26, maxAge: 70 };
+  if (userAge >= 26) return { minAge: 22, maxAge: 55 };
+  return { minAge: 18, maxAge: 35 };
+}
+
 const SWIPE_THRESHOLD = 100;
 const SWIPE_VELOCITY_THRESHOLD = 500;
 
@@ -75,7 +87,7 @@ export default function Discover() {
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<DiscoverFiltersState>(() => {
-    const FILTERS_VERSION = 'v5'; // bump when defaults change
+    const FILTERS_VERSION = 'v6'; // bumped: age-smart defaults
     const savedVersion = localStorage.getItem('discover-filters-version');
     const saved = localStorage.getItem('discover-filters');
     if (saved && savedVersion === FILTERS_VERSION) {
@@ -85,7 +97,7 @@ export default function Discover() {
     // Clear stale filters and save new version
     localStorage.removeItem('discover-filters');
     localStorage.setItem('discover-filters-version', FILTERS_VERSION);
-    return DEFAULT_FILTERS;
+    return DEFAULT_FILTERS; // will be updated by profile load effect below
   });
 
   const [appliedFilters, setAppliedFilters] = useState<DiscoverFiltersState>(filters);
@@ -121,6 +133,7 @@ export default function Discover() {
   // Photo Navigation State
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [quizSwipedCount, setQuizSwipedCount] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
 
 
@@ -222,6 +235,18 @@ export default function Discover() {
     if (age <= 55) return '36-55';
     return '56+';
   }, [quizAnswers.age, profileData?.birth_date]);
+
+  // Initialize age-smart filters when profile first loads and no saved filters exist
+  useEffect(() => {
+    if (!profileData?.birth_date) return;
+    const hasSavedFilters = localStorage.getItem('discover-filters') !== null;
+    if (hasSavedFilters) return; // user already has custom filters — don't override
+
+    const age = new Date().getFullYear() - new Date(profileData.birth_date).getFullYear();
+    const { minAge, maxAge } = getAgeFilterForUser(age);
+    setFilters(prev => ({ ...prev, minAge, maxAge }));
+    setAppliedFilters(prev => ({ ...prev, minAge, maxAge }));
+  }, [profileData?.birth_date]);
 
   const profiles = useMemo(() => {
     const realProfiles = data?.pages ? data.pages.flatMap((page) => page.profiles) : [];
@@ -537,9 +562,36 @@ export default function Discover() {
   };
 
   const handleRefresh = async () => {
-    setCurrentIndex(0);
-    await queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
-    refetch();
+    setIsRefreshing(true);
+    try {
+      setCurrentIndex(0);
+      await queryClient.invalidateQueries({ queryKey: ['discover-profiles'] });
+      const result = await refetch();
+
+      const newProfiles = result.data?.pages?.flatMap(p => p.profiles) || [];
+      const hasContent = newProfiles.length > 0;
+
+      if (hasContent) {
+        toast.success('Novos perfis encontrados!', {
+          description: 'Sua lista foi atualizada com novos rostos.',
+          icon: <Search className="w-4 h-4 text-emerald-500" />,
+          duration: 3000,
+          style: { marginTop: '50px' }
+        });
+      } else {
+        toast.info('Nenhum perfil novo no momento.', {
+          description: 'Tente ajustar seus filtros para ver mais pessoas.',
+          icon: <Search className="w-4 h-4 text-amber-500" />,
+          duration: 4000,
+          style: { marginTop: '50px' }
+        });
+      }
+    } catch (err) {
+      console.error('Refresh error:', err);
+      toast.error('Erro ao buscar perfis. Tente novamente.');
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // ── Swipe Feedback Portal ───────────────────────────────────────────────────
@@ -627,9 +679,17 @@ export default function Discover() {
               </Button>
               <Button
                 onClick={handleRefresh}
-                className="w-full h-11 rounded-xl gradient-button text-white shadow-lg shadow-primary/20"
+                disabled={isRefreshing}
+                className="w-full h-11 rounded-xl gradient-button text-white shadow-lg shadow-primary/20 flex items-center justify-center font-bold"
               >
-                Procurar Novamente
+                {isRefreshing ? (
+                  <>
+                    <i className="ri-loader-4-line animate-spin mr-2"></i>
+                    Buscando...
+                  </>
+                ) : (
+                  'Procurar Novamente'
+                )}
               </Button>
             </div>
 
