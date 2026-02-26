@@ -166,12 +166,6 @@ export default function Chat() {
 
             if (matchesError) throw matchesError;
 
-            // 3. Buscar Seeds que deram match (liked)
-            const { data: seedMatches } = await supabase
-                .from('seed_likes')
-                .select('id, profile_index, age_range, user_gender, city, state_name, looking_for, religion, created_at')
-                .eq('user_id', user.id)
-                .eq('status', 'liked');
 
             const activeMatches = (matchesData as { id: string, user1_id: string, user2_id: string, created_at: string }[] || []).filter(m => {
                 const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
@@ -485,7 +479,7 @@ export default function Chat() {
             supabaseClient = supabase;
 
             channel = supabase
-                .channel('realtime:chat_and_likes')
+                .channel(`realtime:chat_and_likes:${user.id}`)
                 .on(
                     'postgres_changes',
                     {

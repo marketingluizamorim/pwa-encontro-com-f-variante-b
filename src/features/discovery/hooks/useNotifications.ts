@@ -208,7 +208,9 @@ export function useNotifications() {
                         checkMessages();
                         checkMatches();
                         queryClient.invalidateQueries({ queryKey: ['conversations', user.id] });
-                        queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
+                        // NOTE: do NOT invalidate ['likes'] here — it causes the Curtidas list
+                        // to flash empty after a match. The incoming-likes and swipes-notif
+                        // channels already handle likes invalidation correctly.
                     }
                 }
             )
