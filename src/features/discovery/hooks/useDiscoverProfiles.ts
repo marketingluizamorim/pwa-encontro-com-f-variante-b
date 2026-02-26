@@ -301,17 +301,17 @@ export function useSwipeMutation() {
       return { match: null };
     },
     onSuccess: (_data, variables) => {
-      // Invalidate the discover profiles query to refresh swiped profiles
-      queryClient.invalidateQueries({ queryKey: ['discover-profiles', user?.id] });
-
-      // If a match was created, or even if not certain, invalidate conversations to show new matches
-      queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
-
-      // Only invalidate likes when swiping from Descobrir.
-      // When swiping from Curtidas the optimistic setQueryData already removed the card —
-      // invalidating here would trigger a refetch that empties the list momentarily.
       if (variables.source !== 'curtidas') {
+        // Only needed when swiping in Descobrir:
+        // refresh the discover queue and the likes list (in case they had liked us too)
+        queryClient.invalidateQueries({ queryKey: ['discover-profiles', user?.id] });
         queryClient.invalidateQueries({ queryKey: ['likes', user?.id] });
+      }
+
+      // Always invalidate conversations when a match happened,
+      // regardless of source — so the new chat appears in Mensagens
+      if (_data?.match) {
+        queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
       }
     },
   });
