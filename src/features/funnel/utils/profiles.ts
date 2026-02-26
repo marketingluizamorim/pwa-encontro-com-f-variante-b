@@ -646,6 +646,7 @@ export const enrichBotProfile = (profile: any, _userAgeRange?: string) => {
     return {
         ...profile,
         ...extra,
+        birth_date: profile.birth_date,  // preserved explicitly — required for age filter in Curtidas
         age: ageValue,
         photos: [fixedPhoto],
         avatar_url: fixedPhoto,

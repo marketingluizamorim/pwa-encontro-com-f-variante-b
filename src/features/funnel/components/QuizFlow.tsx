@@ -37,7 +37,7 @@ const BASE_QUESTIONS: Question[] = [
     slug: 'idade',
     title: 'Qual a sua idade atual?',
     type: 'options',
-    options: ['18-25', '26-35', '36-45', '46-55', '56+']
+    options: ['18-25', '26-35', '36-55', '56+']
   },
   {
     key: 'state',
