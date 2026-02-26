@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -63,6 +63,7 @@ export default function ProfileEdit() {
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const hasLoadedRef = useRef(false); // prevents re-triggering spinner on authLoading flicker (background/foreground)
   const [showAllInterests, setShowAllInterests] = useState(false);
   const [activeSocial, setActiveSocial] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfileData>({
@@ -97,11 +98,14 @@ export default function ProfileEdit() {
   // Without this guard, user starts as null, loadProfile returns early
   // without calling setLoading(false), causing infinite spinner.
   useEffect(() => {
-    if (authLoading) return;   // auth still initializing — wait
+    if (authLoading) return;    // auth still initializing — wait
     if (!user) {
-      setLoading(false);       // not logged in — stop spinner
+      setLoading(false);        // not logged in — stop spinner
       return;
     }
+    // Guard: if data was already loaded once (e.g. user returned from background),
+    // skip re-fetch — data is still in component state.
+    if (hasLoadedRef.current) return;
     loadProfile();
   }, [user, authLoading]);
 
@@ -120,6 +124,7 @@ export default function ProfileEdit() {
 
       if (error) throw error;
 
+      hasLoadedRef.current = true; // mark as loaded — won't re-fetch on background return
       setProfile({
         display_name: data.display_name || '',
         bio: data.bio || '',
