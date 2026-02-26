@@ -224,9 +224,13 @@ export default function Matches() {
   const [selectedLike, setSelectedLike] = useState<LikeProfile | null>(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  // Interaction State
-  const dragControls = useDragControls();
-  // const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0); // This line was a duplicate and has been removed.
+  // Invalidate likes cache every time the user navigates to this tab
+  // This fixes the bug where profiles disappear after swiping in Discover and returning
+  useEffect(() => {
+    if (user?.id) {
+      queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
+    }
+  }, [user?.id, queryClient]);
 
   const handleNextPhoto = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -295,8 +299,10 @@ export default function Matches() {
   const { data: likes = [], isLoading: loading, refetch: fetchLikes } = useQuery({
     queryKey: ['likes', user?.id],
     enabled: !!user,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
+    staleTime: 0,           // always revalidate when navigating back to this tab
+    gcTime: 1000 * 60 * 5, // keep cache for 5min between navigations
+    refetchOnMount: true,   // always refetch when component mounts
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!user) return [];
 
