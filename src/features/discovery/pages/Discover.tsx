@@ -813,12 +813,7 @@ export default function Discover() {
                               ONLINE
                             </div>
                           )}
-                          {(activeCard as any).has_liked_me && (
-                            <div className="bg-orange-500/20 backdrop-blur-md border border-orange-500/30 text-orange-400 text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 shadow-[0_0_15px_rgba(251,146,60,0.2)]">
-                              <Heart className="w-3 h-3 fill-orange-500" />
-                              CURTIU VOCÊ!
-                            </div>
-                          )}
+
                         </div>
 
                         {/* Name and Age */}
