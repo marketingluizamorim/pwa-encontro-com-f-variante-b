@@ -519,7 +519,8 @@ export default function Matches() {
       {
         swiperId: user.id,
         swipedId: targetUserId,
-        direction: direction,
+        direction,
+        source: 'curtidas', // prevents global onSuccess from invalidating likes cache
       },
       {
         onSuccess: (data) => {
@@ -533,7 +534,7 @@ export default function Matches() {
             playNotification('match');
             triggerHaptic('success');
           } else if (direction === 'like' || direction === 'super_like') {
-            toast.success('Você curtiu também!', { style: { marginTop: '50px' } });
+            toast.success('Curtida enviada!', { style: { marginTop: '50px' } });
           }
         },
         onError: (error) => {

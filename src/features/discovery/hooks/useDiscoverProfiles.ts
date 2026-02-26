@@ -218,6 +218,7 @@ interface SwipeParams {
   swipedId: string;
   direction: 'like' | 'dislike' | 'super_like';
   message?: string;
+  source?: 'discover' | 'curtidas'; // identifies where the swipe originated
 }
 
 export function useSwipeMutation() {
@@ -299,15 +300,19 @@ export function useSwipeMutation() {
 
       return { match: null };
     },
-    onSuccess: (data) => {
+    onSuccess: (_data, variables) => {
       // Invalidate the discover profiles query to refresh swiped profiles
       queryClient.invalidateQueries({ queryKey: ['discover-profiles', user?.id] });
 
       // If a match was created, or even if not certain, invalidate conversations to show new matches
       queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
 
-      // Also invalidate likes to keep the matches page in sync
-      queryClient.invalidateQueries({ queryKey: ['likes', user?.id] });
+      // Only invalidate likes when swiping from Descobrir.
+      // When swiping from Curtidas the optimistic setQueryData already removed the card —
+      // invalidating here would trigger a refetch that empties the list momentarily.
+      if (variables.source !== 'curtidas') {
+        queryClient.invalidateQueries({ queryKey: ['likes', user?.id] });
+      }
     },
   });
 }
