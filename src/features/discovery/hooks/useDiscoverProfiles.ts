@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient, useQuery, keepPreviousData } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -210,6 +210,7 @@ export function useDiscoverProfiles(
     enabled: !!user && !isLoadingMetadata,
     staleTime: 1000 * 60,
     gcTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData, // keeps cards visible during background refetch (no skeleton flash)
   });
 }
 
