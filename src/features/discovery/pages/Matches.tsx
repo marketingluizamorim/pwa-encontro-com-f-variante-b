@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -224,11 +224,28 @@ export default function Matches() {
   const [selectedLike, setSelectedLike] = useState<LikeProfile | null>(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  // Invalidate likes cache every time the user navigates to this tab
-  // This fixes the bug where profiles disappear after swiping in Discover and returning
+  // Track whether this is a return navigation (came back from another tab)
+  // vs. an internal re-render after a swipe action
+  const hasInitializedRef = useRef(false);
+  const lastSwipeTimeRef = useRef(0);
+  const dragControls = useDragControls();
+
+  // Invalidate likes cache when user navigates BACK to this tab
+  // (but NOT after an internal swipe — that would cause empty list flash)
   useEffect(() => {
-    if (user?.id) {
+    if (!user?.id) return;
+
+    if (!hasInitializedRef.current) {
+      // First mount: always fetch fresh
+      hasInitializedRef.current = true;
       queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
+    } else {
+      // Re-mount after navigation: only refetch if last swipe was > 2s ago
+      // This prevents interference with the optimistic update after in-tab swipes
+      const timeSinceSwipe = Date.now() - lastSwipeTimeRef.current;
+      if (timeSinceSwipe > 2000) {
+        queryClient.invalidateQueries({ queryKey: ['likes', user.id] });
+      }
     }
   }, [user?.id, queryClient]);
 
@@ -299,9 +316,9 @@ export default function Matches() {
   const { data: likes = [], isLoading: loading, refetch: fetchLikes } = useQuery({
     queryKey: ['likes', user?.id],
     enabled: !!user,
-    staleTime: 0,           // always revalidate when navigating back to this tab
-    gcTime: 1000 * 60 * 5, // keep cache for 5min between navigations
-    refetchOnMount: true,   // always refetch when component mounts
+    staleTime: 1000 * 30,   // 30s stale — revalidates on tab return without flash
+    gcTime: 1000 * 60 * 5,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!user) return [];
@@ -528,6 +545,7 @@ export default function Matches() {
 
     setSelectedLike(null);
     setCurrentPhotoIndex(0);
+    lastSwipeTimeRef.current = Date.now(); // record swipe time to prevent invalidation flash
 
     // Remove from list cache optimistically
     queryClient.setQueryData(['likes', user?.id], (old: LikeProfile[] | undefined) => {
