@@ -19,11 +19,11 @@ export interface Plan {
 
 const PLANS: Plan[] = [
   {
-    id: 'bronze',
+    id: 'bronze_3d',
     name: 'PLANO BRONZE',
-    price: 1.00,
-    originalPrice: 29.90,
-    period: 'Teste por 7 dias',
+    price: 2.00,
+    originalPrice: 12.90,
+    period: 'Teste por 3 dias',
     gradient: 'gradient-plan-1',
     features: [
       'A conversa só começa quando ambos curtirem',
@@ -41,11 +41,11 @@ const PLANS: Plan[] = [
     ]
   },
   {
-    id: 'silver',
+    id: 'silver_3d',
     name: 'PLANO PRATA',
-    price: 2.00,
-    originalPrice: 59.90,
-    period: 'Mais escolhido',
+    price: 4.00,
+    originalPrice: 29.90,
+    period: 'Teste por 3 dias',
     gradient: 'gradient-plan-2',
     popular: true,
     features: [
@@ -65,11 +65,11 @@ const PLANS: Plan[] = [
     ]
   },
   {
-    id: 'gold',
+    id: 'gold_3d',
     name: 'PLANO OURO',
-    price: 3.00,
-    originalPrice: 99.90,
-    period: 'Economia Completa',
+    price: 6.00,
+    originalPrice: 39.90,
+    period: 'Teste por 3 dias',
     gradient: 'gradient-plan-3',
     savings: '90% DESCONTO',
     features: [

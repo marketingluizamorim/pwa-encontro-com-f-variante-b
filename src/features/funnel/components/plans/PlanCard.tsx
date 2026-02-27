@@ -54,7 +54,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
       check: 'text-amber-300 bg-amber-900/30 border-amber-500/30',
       x: 'text-amber-900/40 bg-amber-900/10 border-amber-900/10'
     }
-  }[plan.id as 'bronze' | 'silver' | 'gold'] || {
+  }[plan.id.startsWith('bronze') ? 'bronze' : plan.id.startsWith('silver') || plan.id === 'silver' ? 'silver' : plan.id.startsWith('gold') || plan.id === 'gold' ? 'gold' : ''] || {
     bg: 'bg-white/10 border-white/10 backdrop-blur-md',
     badge: 'bg-white/5 text-white/40',
     glow: 'opacity-0',
@@ -79,7 +79,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
       )}
 
       {/* Gold Discount Badge - Floating at Top */}
-      {plan.id === 'gold' && (
+      {plan.id.startsWith('gold') && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
           <div className="bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 text-[#064e3b] px-6 py-1.5 rounded-full text-[10px] font-black tracking-[0.1em] uppercase shadow-[0_0_25px_rgba(16,185,129,0.5)] flex items-center gap-2 border border-emerald-300/30">
             <Sparkles className="w-3.5 h-3.5 fill-current" />
@@ -105,7 +105,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
               <h3 className="text-white font-serif text-xl md:text-2xl font-semibold tracking-normal mb-1">{plan.name}</h3>
               <p className="text-amber-400 text-sm font-bold tracking-wide uppercase mb-4">{plan.period}</p>
             </div>
-            {plan.savings && plan.id !== 'gold' && (
+            {plan.savings && !plan.id.startsWith('gold') && (
               <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest backdrop-blur-md">
                 {plan.savings}
               </div>
@@ -122,7 +122,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
             <div className="flex items-baseline justify-start gap-1">
               <span className="text-slate-400 text-lg font-light">R$</span>
               <span className="text-white text-4xl font-extrabold font-sans tracking-tight drop-shadow-sm">{formattedPrice}</span>
-              <span className="text-slate-500 text-[0.85rem] font-bold ml-1">{plan.id === 'bronze' ? '/semana' : '/mês'}</span>
+              <span className="text-slate-500 text-[0.85rem] font-bold ml-1">{plan.id.startsWith('bronze') ? '/semana' : '/mês'}</span>
             </div>
 
 
@@ -219,7 +219,7 @@ export function PlanCard({ plan, index, onSelect }: PlanCardProps) {
               <span className="relative z-10 uppercase">ASSINAR AGORA</span>
             </Button>
 
-            {plan.id === 'gold' && (
+            {plan.id.startsWith('gold') && (
               <Button
                 variant="ghost"
                 onClick={(e) => { e.stopPropagation(); setShowComparison(true); }}

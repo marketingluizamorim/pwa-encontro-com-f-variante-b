@@ -26,21 +26,17 @@ export function PlansSection({ onSelectPlan, onBack, isDialogOpen = false }: Pla
   const handleSelectPlan = (planId: string, price: number) => {
     const plan = PLANS.find(p => p.id === planId);
     if (plan) {
-      if (plan.id === 'gold') {
-        // Gold plan has everything, skip order bump
-        onSelectPlan(plan.id, plan.price, {
-          allRegions: true,
-          grupoEvangelico: true,
-          grupoCatolico: true,
-          filtrosAvancados: true,
-          specialOffer: false,
-        });
-      } else {
-        setSelectedPlan(plan);
-        setShowOrderBump(true);
-      }
+      // Order bumps desativados — vai direto pro checkout
+      onSelectPlan(plan.id, plan.price, {
+        allRegions: false,
+        grupoEvangelico: false,
+        grupoCatolico: false,
+        filtrosAvancados: false,
+        specialOffer: false,
+      });
     }
   };
+
 
   const handleOrderBumpComplete = (extraAmount: number, bumps: SelectedBumps) => {
     if (selectedPlan) {

@@ -23,11 +23,15 @@ const GOLD_PLAN_ID = 'gold';
 const DEV_MODE = false; // Set to false for real payments
 
 const PLAN_NAMES: Record<string, string> = {
-  bronze: "Plano Bronze",
-  silver: "Plano Prata",
-  gold: "Plano Ouro",
+  bronze: "Plano Bronze · 3 Dias",
+  bronze_3d: "Plano Bronze · 3 Dias",
+  silver: "Plano Prata · 3 Dias",
+  silver_3d: "Plano Prata · 3 Dias",
+  gold: "Plano Ouro · 3 Dias",
+  gold_3d: "Plano Ouro · 3 Dias",
   [SPECIAL_OFFER_PLAN_ID]: "Plano Ouro · 3 Meses",
 };
+
 
 export default function Plans() {
   const navigate = useNavigate();
@@ -103,15 +107,10 @@ export default function Plans() {
   };
 
   const handleExitIntent = () => {
-    if (!isProcessing && !hasShownExitIntent) {
-      setShowCheckout(false);
-      setShowExitIntent(true);
-      setHasShownExitIntent(true);
-    } else {
-      // Already shown exit-intent once → just close
-      setShowCheckout(false);
-    }
+    // Backredirect desativado — apenas fecha o checkout
+    setShowCheckout(false);
   };
+
 
   const handleAcceptSpecialOffer = () => {
     setShowExitIntent(false);
@@ -271,7 +270,7 @@ export default function Plans() {
     <div className="bg-[#0f172a] relative">
       <PlansSection
         onSelectPlan={handleSelectPlan}
-        onBack={() => navigate('/v1/quiz')}
+        onBack={() => navigate('/quiz')}
         isDialogOpen={showCheckout || showPixPayment || showThankYou || showExitIntent || showSpecialOfferCheckout}
       />
 

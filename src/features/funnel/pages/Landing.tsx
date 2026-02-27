@@ -166,7 +166,7 @@ const WelcomeScreen = () => {
           whileTap={{ scale: 0.98 }}
           onClick={() => {
             useFunnelStore.getState().reset();
-            navigate('/v1/genero');
+            navigate('/genero');
           }}
           onMouseEnter={() => import('@/features/funnel/pages/Gender')}
           className="w-full h-14 md:h-20 bg-gradient-to-r from-[#14b8a6] via-[#0d9488] to-[#f59e0b] rounded-[24px] md:rounded-[30px] shadow-lg flex items-center justify-center gap-3 md:gap-4 text-white font-bold text-lg md:text-xl group transition-all relative overflow-hidden border border-white/20 outline-none focus:outline-none"

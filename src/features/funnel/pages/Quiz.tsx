@@ -8,8 +8,8 @@ export default function Quiz() {
     return (
         <QuizFlow
             step={step}
-            onComplete={() => navigate('/v1/analise')}
-            onBack={() => navigate('/v1/genero')}
+            onComplete={() => navigate('/analise')}
+            onBack={() => navigate('/genero')}
         />
     );
 }

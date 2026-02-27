@@ -549,7 +549,7 @@ export const MALE_EXTRA = [
         pets: 'Tenho cachorro(s)',
         languages: ['Português'],
         values_importance: 'Sim, é essencial',
-        christian_interests: ['Esportes', 'Acampamento', 'Louvor', 'Social'],
+        christian_interests: ['Louvor', 'Devocional', 'Acampamento', 'Social'],
         state: 'Paraná',
         city: 'Curitiba'
     },

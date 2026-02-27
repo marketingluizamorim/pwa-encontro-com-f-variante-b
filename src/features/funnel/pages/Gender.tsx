@@ -13,7 +13,7 @@ export default function Gender() {
     Object.keys(quizAnswers).forEach(key => {
       setQuizAnswer(key as keyof QuizAnswers, undefined);
     });
-    navigate('/v1/quiz');
+    navigate('/quiz');
   };
 
   const handleBack = () => {

@@ -7,7 +7,7 @@ export default function Analysis() {
     const { gender } = useFunnelStore();
 
     const handleLoadingComplete = () => {
-        navigate('/v1/perfis');
+        navigate('/perfis');
     };
 
     return <LoadingScreen gender={gender} onComplete={handleLoadingComplete} />;

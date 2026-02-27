@@ -1,288 +1,106 @@
 import { Suspense, lazy } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/features/auth/hooks/useAuth";
-import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
-import { AdminRoute } from "@/components/AdminRoute";
-import { AppLayout } from "@/features/discovery/components/AppLayout";
-import SplashScreen from "@/features/discovery/components/SplashScreen";
-import { useSplashScreen } from "@/features/discovery/hooks/useSplashScreen";
-import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "@/components/theme-provider";
-import { LocationModalProvider } from "@/contexts/LocationModalContext";
-import { useQuizSync } from "@/features/funnel/hooks/useQuizSync";
 import { useUTMTracking } from "@/hooks/useUTMTracking";
 
+// Funil
+import Landing  from "@/features/funnel/pages/Landing";
+import Gender   from "@/features/funnel/pages/Gender";
+import Quiz     from "@/features/funnel/pages/Quiz";
+import Analysis from "@/features/funnel/pages/Analysis";
+import Profiles from "@/features/funnel/pages/Profiles";
+import Plans    from "@/features/funnel/pages/Plans";
 
-// Rotas onde o splash NUNCA deve aparecer
-const NO_SPLASH_ROUTES = [
-  '/v1',
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-  '/install',
-  '/termos-de-uso',
-  '/politica-de-reembolso',
-  '/convite',
-  '/admin/login',
-];
-
-function SplashGate() {
-  const { showSplash, completeSplash } = useSplashScreen();
-  const location = useLocation();
-
-  // Splash ONLY on /app/* routes — never on funnel, public or root
-  const isNoSplashRoute =
-    location.pathname === '/' ||
-    NO_SPLASH_ROUTES.some(
-      (route) =>
-        location.pathname === route ||
-        location.pathname.startsWith(route + '/'),
-    );
-
-  if (!showSplash || isNoSplashRoute) return null;
-  return <SplashScreen onComplete={completeSplash} />;
-}
-
-/** Zero-render component: activates cross-device quiz sync hook */
-function QuizSyncGate() {
-  useQuizSync();
-  return null;
-}
-
-/** Zero-render component: captures UTM params from URL → localStorage on first visit */
-function UTMGate() {
-  useUTMTracking();
-  return null;
-}
-
-
-// Static imports for critical path (Performance)
-import Landing from "@/features/funnel/pages/Landing";
-import GenderV1 from "@/features/funnel/pages/Gender";
-import QuizV1 from "@/features/funnel/pages/Quiz";
-import AnalysisV1 from "@/features/funnel/pages/Analysis";
-import ProfilesV1 from "@/features/funnel/pages/Profiles";
-import PlansV1 from "@/features/funnel/pages/Plans";
-
-// Auth pages — static so login appears instantly after HTML splash (no double loader)
-import Login from "@/features/auth/pages/Login";
-import Register from "@/features/auth/pages/Register";
-import ForgotPassword from "@/features/auth/pages/ForgotPassword";
-import ResetPassword from "@/features/auth/pages/ResetPassword";
-
-// Lazy load secondary public pages
-const Install = lazy(() => import("@/features/shared/pages/public/Install"));
-const Construction = lazy(() => import("@/features/shared/pages/public/Construction"));
-const NotFound = lazy(() => import("@/features/shared/pages/public/NotFound"));
-
-
-// Lazy load legal pages
-const TermosDeUso = lazy(() => import("@/features/legal/pages/TermosDeUso"));
+// Legal
+const TermosDeUso         = lazy(() => import("@/features/legal/pages/TermosDeUso"));
 const PoliticaDeReembolso = lazy(() => import("@/features/legal/pages/PoliticaDeReembolso"));
 
-
-
-// Lazy load protected app pages (Discovery)
-const Discover = lazy(() => import("@/features/discovery/pages/Discover"));
-const Matches = lazy(() => import("@/features/discovery/pages/Matches"));
-const Chat = lazy(() => import("@/features/discovery/pages/Chat"));
-const ChatRoom = lazy(() => import("@/features/discovery/pages/ChatRoom"));
-const WelcomeChat = lazy(() => import("@/features/discovery/pages/WelcomeChat"));
-
-
-const Profile = lazy(() => import("@/features/discovery/pages/Profile"));
-const ProfileSetup = lazy(() => import("@/features/discovery/pages/ProfileSetup"));
-const ProfileEdit = lazy(() => import("@/features/discovery/pages/ProfileEdit"));
-const Onboarding = lazy(() => import("@/features/discovery/pages/Onboarding"));
-const Settings = lazy(() => import("@/features/discovery/pages/Settings"));
-const Explore = lazy(() => import("@/features/discovery/pages/Explore"));
-const AdminPanel = lazy(() => import("@/features/admin/pages/AdminPanel"));
-const AdminLogin = lazy(() => import("@/features/admin/pages/AdminLogin"));
-const WhatsAppGroupPanel = lazy(() => import("@/features/admin/pages/WhatsAppGroupPanel"));
-const Convite = lazy(() => import("@/features/funnel/pages/Convite"));
+// 404
+const NotFound = lazy(() => import("@/features/shared/pages/public/NotFound"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      retry: 2,
-      refetchOnWindowFocus: true,
-      staleTime: 1000 * 60 * 1, // 1 minute
-      gcTime: 1000 * 60 * 5,    // 5 minutes
-    },
+    queries: { staleTime: 1000 * 60 * 5, retry: 1 },
   },
 });
 
-// Loading Fallback Component
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen bg-[#0f172a]">
-    <div className="flex flex-col items-center gap-4">
-      <Loader2 className="w-8 h-8 animate-spin text-[#d4af37]" />
-      <p className="text-sm text-white/80 animate-pulse">Carregando...</p>
-    </div>
-  </div>
-);
+function UTMGate({ children }: { children: React.ReactNode }) {
+  useUTMTracking();
+  return <>{children}</>;
+}
 
-import { PushNotificationManager } from "@/components/PushNotificationManager";
-
-const AppContent = () => {
+function AppFallback() {
   return (
-    <>
-      <BrowserRouter>
-        <AuthProvider>
-          <LocationModalProvider>
-            <PushNotificationManager />
-            <QuizSyncGate />
-            <UTMGate />
-            <SplashGate />
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                {/* Root redirect */}
-                <Route path="/" element={<Login />} />
-
-                {/* Funnel V1 routes */}
-                <Route path="/v1" element={<Landing />} />
-                <Route path="/v1/genero" element={<GenderV1 />} />
-                <Route path="/v1/quiz/:step?" element={<QuizV1 />} />
-                <Route path="/v1/analise" element={<AnalysisV1 />} />
-                <Route path="/v1/perfis" element={<ProfilesV1 />} />
-                <Route path="/v1/planos" element={<PlansV1 />} />
-
-                {/* Public routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/install" element={<Install />} />
-                <Route path="/termos-de-uso" element={<TermosDeUso />} />
-                <Route path="/politica-de-reembolso" element={<PoliticaDeReembolso />} />
-
-                {/* Protected app routes */}
-                <Route
-                  path="/app"
-                  element={
-                    <ProtectedRoute>
-                      <AppLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route path="discover" element={<></>} />
-                  <Route path="explore" element={<></>} />
-                  <Route path="matches" element={<></>} />
-                  <Route path="chat" element={<></>} />
-                  <Route path="profile" element={<></>} />
-                  <Route path="profile/:userId" element={<Profile />} />
-                </Route>
-
-                {/* Welcome Chat — must be before :matchId to avoid route conflicts */}
-                <Route
-                  path="/app/chat/welcome"
-                  element={
-                    <ProtectedRoute>
-                      <WelcomeChat />
-                    </ProtectedRoute>
-                  }
-                />
-
-
-
-                {/* Chat Room (Standalone layout to cover AppLayout) */}
-                <Route
-                  path="/app/chat/:matchId"
-                  element={
-                    <ProtectedRoute>
-                      <ChatRoom />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Onboarding (protected but different layout) */}
-                <Route
-                  path="/app/onboarding"
-                  element={
-                    <ProtectedRoute>
-                      <Onboarding />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Settings (protected but different layout) */}
-                <Route
-                  path="/app/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Profile edit (protected but different layout) */}
-                <Route
-                  path="/app/profile/edit"
-                  element={
-                    <ProtectedRoute>
-                      <ProfileEdit />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Profile setup (protected but different layout) */}
-                <Route
-                  path="/app/profile/setup"
-                  element={
-                    <ProtectedRoute>
-                      <ProfileSetup />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Admin login — public, no guard */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-
-                {/* Admin panel (admin role only) */}
-                <Route
-                  path="/admin"
-                  element={
-                    <AdminRoute>
-                      <AdminPanel />
-                    </AdminRoute>
-                  }
-                />
-
-                {/* WhatsApp Group Panel (admin) */}
-                <Route
-                  path="/admin/grupo-whatsapp"
-                  element={
-                    <AdminRoute>
-                      <WhatsAppGroupPanel />
-                    </AdminRoute>
-                  }
-                />
-
-                {/* Invite page — public, no auth required */}
-                <Route path="/convite" element={<Convite />} />
-
-                {/* Catch-all */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </LocationModalProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </>
+    <div style={{
+      minHeight: "100dvh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#0f0f1a",
+    }}>
+      <div style={{
+        width: 40,
+        height: 40,
+        borderRadius: "50%",
+        border: "3px solid #7c3aed33",
+        borderTopColor: "#7c3aed",
+        animation: "spin 0.8s linear infinite",
+      }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
   );
-};
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark" storageKey="theme">
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <TooltipProvider>
-        <Sonner position="top-center" closeButton />
-        <AppContent />
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <UTMGate>
+            <Suspense fallback={<AppFallback />}>
+              <Routes>
+                {/* Funil principal */}
+                <Route path="/"            element={<Landing />} />
+                <Route path="/genero"      element={<Gender />} />
+                <Route path="/quiz/:step?" element={<Quiz />} />
+                <Route path="/analise"     element={<Analysis />} />
+                <Route path="/perfis"      element={<Profiles />} />
+                <Route path="/planos"      element={<Plans />} />
+
+                {/* Legal */}
+                <Route path="/termos-de-uso"         element={<TermosDeUso />} />
+                <Route path="/politica-de-reembolso" element={<PoliticaDeReembolso />} />
+
+                {/* Redirects de URLs antigas */}
+                <Route path="/v1"             element={<Navigate to="/" replace />} />
+                <Route path="/v1/genero"      element={<Navigate to="/genero" replace />} />
+                <Route path="/v1/quiz/:step?" element={<Navigate to="/quiz" replace />} />
+                <Route path="/v1/analise"     element={<Navigate to="/analise" replace />} />
+                <Route path="/v1/perfis"      element={<Navigate to="/perfis" replace />} />
+                <Route path="/v1/planos"      element={<Navigate to="/planos" replace />} />
+
+                {/* Rotas removidas — redirect para início */}
+                <Route path="/login"           element={<Navigate to="/" replace />} />
+                <Route path="/register"        element={<Navigate to="/" replace />} />
+                <Route path="/forgot-password" element={<Navigate to="/" replace />} />
+                <Route path="/reset-password"  element={<Navigate to="/" replace />} />
+                <Route path="/convite"         element={<Navigate to="/" replace />} />
+                <Route path="/install"         element={<Navigate to="/" replace />} />
+                <Route path="/app/*"           element={<Navigate to="/" replace />} />
+                <Route path="/admin/*"         element={<Navigate to="/" replace />} />
+
+                {/* 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </UTMGate>
+        </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>

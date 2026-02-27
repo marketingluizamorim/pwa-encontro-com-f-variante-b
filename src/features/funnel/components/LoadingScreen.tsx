@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MapPin, Users, Loader2, Cpu, CheckCircle, ShieldCheck, Bot } from 'lucide-react';
 import { useFunnelStore } from "@/features/funnel/hooks/useFunnelStore";
-import { FEMALE_FUNNEL_BOTS, MALE_FUNNEL_BOTS } from "../utils/profiles";
+import { FEMALE_EXTRA, MALE_EXTRA } from "../utils/profiles";
 
 interface LoadingScreenProps {
     onComplete: () => void;
@@ -56,8 +56,8 @@ export function LoadingScreen({ onComplete, gender }: LoadingScreenProps) {
     const { quizAnswers } = useFunnelStore();
 
     const profileNames = useMemo(() => {
-        const bots = gender === 'male' ? FEMALE_FUNNEL_BOTS : MALE_FUNNEL_BOTS;
-        return bots.map(b => b.name);
+        const list = gender === 'male' ? FEMALE_EXTRA : MALE_EXTRA;
+        return list.map(b => b.name);
     }, [gender]);
 
     const [currentStage, setCurrentStage] = useState(0);
@@ -262,7 +262,7 @@ export function LoadingScreen({ onComplete, gender }: LoadingScreenProps) {
                                             >
                                                 <div className="w-2 h-2 rounded-full bg-teal-400" />
                                                 <span className="text-sm text-white font-bold tracking-tight whitespace-nowrap">
-                                                    {discoveredNames[0] === 'Buscando...' ? 'Buscando conexões...' : `${discoveredNames[0]} identificada`}
+                                                    {discoveredNames[0] === 'Buscando...' ? 'Buscando conexões...' : `${discoveredNames[0]} encontrada`}
                                                 </span>
                                             </motion.div>
                                         )}

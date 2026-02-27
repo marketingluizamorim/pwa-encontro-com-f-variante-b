@@ -17,65 +17,39 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
-      strategies: "injectManifest",
-      srcDir: "src",
-      filename: "sw.ts",
       registerType: "autoUpdate",
-      injectRegister: null,
-      devOptions: {
-        enabled: true,
-        type: "module",
-      },
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "pwa-192x192.png", "pwa-512x512.png", "2pwa-512x512.png", "3logo-nova1080x1080.png", "nova-logo-azul.png"],
+      injectRegister: "auto",
+      strategies: "generateSW",
+      devOptions: { enabled: false },
+      includeAssets: ["favicon.ico", "apple-touch-icon.png", "pwa-192x192.png"],
       manifest: {
         name: "Encontro com Fé",
-        short_name: "Encontro c/Fé",
-        description: "Encontre pessoas que compartilham seus valores e sua fé. Conexões cristãs genuínas para relacionamentos duradouros.",
-        theme_color: "#0f172a",
-        background_color: "#0f172a",
+        short_name: "Encontro com Fé",
+        description: "Relacionamentos cristãos",
+        theme_color: "#7c3aed",
+        background_color: "#0f0f1a",
         display: "standalone",
         orientation: "portrait",
         scope: "/",
         start_url: "/",
-        categories: ["social", "lifestyle"],
         icons: [
           {
             src: "pwa-192x192.png",
             sizes: "192x192",
-            type: "image/png",
-            purpose: "any",
+            type: "image/png"
           },
           {
             src: "pwa-512x512.png",
             sizes: "512x512",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
-        ],
-        screenshots: [
-          {
-            src: "screenshot-wide.png",
-            sizes: "1280x720",
-            type: "image/png",
-            form_factor: "wide",
-          },
-          {
-            src: "screenshot-narrow.png",
-            sizes: "720x1280",
-            type: "image/png",
-            form_factor: "narrow",
-          },
-        ],
+            type: "image/png"
+          }
+        ]
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-      },
+        cleanupOutdatedCaches: true,
+        runtimeCaching: []
+      }
     }),
   ].filter(Boolean),
   resolve: {

@@ -57,14 +57,14 @@ function toTitleCase(str: string): string {
 }
 
 const OLD_PRICES: Record<string, number> = {
-    bronze: 24.90,
-    weekly: 24.90,
-    silver: 59.90,
-    prata: 59.90,
-    monthly: 59.90,
-    gold: 99.90,
-    ouro: 99.90,
-    annual: 99.90,
+    bronze: 12.90,
+    weekly: 12.90,
+    silver: 29.90,
+    prata: 29.90,
+    monthly: 29.90,
+    gold: 39.90,
+    ouro: 39.90,
+    annual: 39.90,
     'special-offer': 49.90,
 };
 
@@ -194,13 +194,12 @@ export function CheckoutDialog({
 
     const hasExtras = orderBumps?.allRegions || orderBumps?.grupoEvangelico || orderBumps?.grupoCatolico || orderBumps?.filtrosAvancados;
 
-    // Label: "Plano Prata · Mensal" — skip suffix if plan name already includes period info
-    const alreadyHasPeriod = cleanPlanName.includes('meses') || cleanPlanName.includes('semanal') || cleanPlanName.includes('mensal') || cleanPlanName.includes('anual');
-    const planPeriod = cleanPlanName.includes('bronze') ? 'Semanal' : 'Mensal';
+    // Label — skip suffix if plan name already has period info (including '3 dias')
+    const alreadyHasPeriod = cleanPlanName.includes('dias') || cleanPlanName.includes('meses') || cleanPlanName.includes('semanal') || cleanPlanName.includes('mensal') || cleanPlanName.includes('anual');
     const planLabel = planName
         ? alreadyHasPeriod
             ? toTitleCase(planName)
-            : `${toTitleCase(planName)} · ${planPeriod}`
+            : `${toTitleCase(planName)}`
         : '';
 
     // Old (crossed-out) price

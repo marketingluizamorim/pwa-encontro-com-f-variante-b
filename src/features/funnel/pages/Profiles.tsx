@@ -8,11 +8,11 @@ export default function Profiles() {
 
   const handleViewPlans = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    navigate('/v1/planos');
+    navigate('/planos');
   };
 
   const handleBack = () => {
-    navigate('/v1/quiz');
+    navigate('/quiz');
   };
 
   return <ProfilesDisplay gender={gender} onViewPlans={handleViewPlans} onBack={handleBack} />;

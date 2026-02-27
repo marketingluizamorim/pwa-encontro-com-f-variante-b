@@ -16,38 +16,96 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
   // Build bot-like stubs and enrich them with enrichBotProfile so photos,
   // ages and interests are identical to what the user will see post-registration.
   const extrasList = gender === 'male' ? FEMALE_EXTRA : MALE_EXTRA;
+  // UUIDs que batem exatamente com BOT_PHOTO_MAP em profiles.ts
   const funnelBotIds: Record<string, string> = {
-    Juliana: 'cc45228c-cd04-400e-8007-8d4de4a8ecc6',
-    Bruna: 'c1a3130f-4cb8-4110-a57e-9670275ce458',
-    Larissa: '456c0124-beb0-4a4d-a06c-ec65e2fc36cc',
-    Amanda: '841f9a86-ec64-44c6-ba52-4da8c9e4eed5',
-    Rebeca: 'decb62ae-a8ef-4a38-b685-50c0a09c1c3f',
-    Carolina: 'b0fddbf9-7d27-45b6-972d-97e4e7617224',
-    Talita: 'b0fddbf9-7d27-45b6-972d-97e4e7617224', // fallback id
-    Pedro: 'de57bf5f-f94f-4fec-a822-31b32bee1ae4',
-    Thiago: 'd87eb4da-45da-446e-af23-49cd3cef940a',
-    Gabriel: '9af3ae24-5cf9-4c5a-b755-3b09e4f2da39',
-    Lucas: 'ec25b940-2a73-4857-8fdb-9c0e09d98a5d',
-    Mateus: '3785dfbf-df2e-4e93-8573-54d46e4c9a1f',
-    André: '622a1bd7-4d92-46e5-9d60-30ee561cddec',
+    // Female
+    Juliana: '8f517b2a-e1f8-4c2c-bdd2-a5af0f3cbe56',
+    Bruna: '97b2d8a6-6775-46a9-8345-7f66f2398605',
+    Larissa: 'd5229a6d-5194-4a70-a69d-503528bc2ede',
+    Amanda: '64149ade-351e-4814-9a0d-c84839c7a7ca',
+    Rebeca: '078bfc3e-241c-4c8b-877a-3693b1123814',
+    Carolina: '26006097-3918-43d9-af0f-bba823538f36',
+    Talita: '46c9673c-f9d3-4b6d-bd5c-dfaa5f4b5454',
+    'Letícia': 'd6914334-aa71-4bd0-add2-018a2d92efd3',
+    // Male
+    Pedro: '8274a79f-073d-4417-b0b0-6b609cd8aa81',
+    Thiago: '04f6a6d4-11b8-4202-8989-8debf1f49511',
+    Gabriel: 'b837f035-10e8-4e7d-81ae-418920c0a781',
+    Lucas: '189d38e0-ddc4-42ce-aeba-7b54b94d25c3',
+    Felipe: '89f16352-6277-4689-bd3c-bd73efbf3aa3',
+    Mateus: '899e3661-5c53-4626-b3d0-e3244c6e42c5',
+    'André': 'f623beab-2a2c-4f88-b74e-5e38e556dd6f',
+    Daniel: '6c2b02cd-a2da-46b0-8be8-6e7935f78137',
   };
 
-  const profiles = extrasList.slice(0, 9).map((extra, idx) => {
+  // Idade real de cada bot (independente das respostas do usuário)
+  const botAgeMap: Record<string, number> = {
+    Juliana: 18, Bruna: 22, Larissa: 20, Camila: 21, Vanessa: 23, Beatriz: 19,
+    Amanda: 30, Rebeca: 28, Fernanda: 26, Priscila: 29, Luana: 33, Daniela: 27,
+    Carolina: 37, Talita: 41, 'Letícia': 46, 'Patrícia': 44, Soraia: 39, Regina: 55,
+    Maria: 58, Sandra: 62,
+    Gabriel: 23, Lucas: 21, 'André': 19, 'João': 22, Vitor: 20, Diego: 24,
+    Pedro: 27, Mateus: 31, Rafael: 33, Felipe: 28, Carlos: 32, Bruno: 30,
+    Hugo: 39, Daniel: 44, Robson: 46, Marcos: 51, Fernando: 42, Eduardo: 48,
+    Thiago: 57, Benedito: 61,
+  };
+
+  // Limites ideais por faixa do usuário
+  const getIdealAgeLimit = (userRange: string): [number, number] => {
+    switch (userRange) {
+      case '18-25': return [18, 29];
+      case '26-35': return [22, 40];
+      case '36-55': return [30, 58];
+      case '56+': return [48, 99];
+      default: return [22, 40];
+    }
+  };
+
+  const userAgeRange = quizAnswers.age || '26-35';
+  const [minAge, maxAge] = getIdealAgeLimit(userAgeRange);
+
+  // Centro da faixa para calcular proximidade no fallback
+  const centerAge: Record<string, number> = {
+    '18-25': 21, '26-35': 30, '36-55': 45, '56+': 62,
+  };
+  const center = centerAge[userAgeRange] || 30;
+
+  // Shuffle determinístico baseado na cidade do usuário (parece aleatório mas é consistente por sessão)
+  const shuffleSeed = (quizAnswers.city || 'sp').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const seededShuffle = <T,>(arr: T[]): T[] => {
+    const result = [...arr];
+    let seed = shuffleSeed;
+    for (let i = result.length - 1; i > 0; i--) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      const j = seed % (i + 1);
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+  };
+
+  // 1. Perfis da faixa ideal (embaralhados)
+  const primary = seededShuffle(
+    extrasList.filter(e => { const a = botAgeMap[e.name] || 28; return a >= minAge && a <= maxAge; })
+  );
+
+  // 2. Fallback: os mais próximos em idade ao centro da faixa
+  const fallback = extrasList
+    .filter(e => { const a = botAgeMap[e.name] || 28; return a < minAge || a > maxAge; })
+    .sort((a, b) =>
+      Math.abs((botAgeMap[a.name] || 28) - center) - Math.abs((botAgeMap[b.name] || 28) - center)
+    );
+
+  // 3. Sempre 6 perfis: primários + fallback se necessário
+  const combined = [...primary, ...fallback].slice(0, 6);
+
+  const profiles = combined.map((extra, idx) => {
+    const botAge = botAgeMap[extra.name] || 28;
     const stub = {
       is_bot: true,
       user_id: funnelBotIds[extra.name] || `bot-${idx}`,
       display_name: extra.name,
       gender: gender === 'male' ? 'female' : 'male',
-      // Use a birth_date corresponding to user's preferred age range
-      birth_date: (() => {
-        const range = quizAnswers.age || '26-35';
-        const ageMap: Record<string, number> = {
-          '18-25': 22, '26-35': 30, '36-55': 42, '56+': 60,
-        };
-        const targetAge = ageMap[range] || 30;
-        const year = new Date().getFullYear() - targetAge;
-        return `${year}-06-15`;
-      })(),
+      birth_date: `${new Date().getFullYear() - botAge}-06-15`,
       ...extra,
     };
     return enrichBotProfile(stub, quizAnswers.age);
@@ -154,21 +212,35 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                       {profile.display_name || profile.name}, {profile.age}
                       <div className="w-2 h-2 rounded-full bg-teal-400" />
                     </h3>
-                    <div className="flex items-center gap-1.5 text-white/60">
-                      <MapPin className="w-3 h-3 text-teal-400" />
-                      <span className="text-[11px] font-medium tracking-wide">
-                        {profile.city || 'Perto de você'}
-                      </span>
-                    </div>
+
+                    {index === 0 ? (
+                      // Primeiro card: mostra a cidade do usuário para personalização
+                      <div className="flex items-center gap-1.5 text-white/60">
+                        <MapPin className="w-3 h-3 text-teal-400" />
+                        <span className="text-[11px] font-medium tracking-wide">
+                          {quizAnswers.city || profile.city || 'Perto de você'}
+                        </span>
+                      </div>
+                    ) : (
+                      // Cards bloqueados: "Perfil privado"
+                      <div className="flex items-center gap-1.5 text-white/40">
+                        <svg className="w-3 h-3 text-white/40 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                        <span className="text-[11px] font-medium tracking-wide italic">Perfil privado</span>
+                      </div>
+                    )}
+
                     {index === 0 && (
                       <div className="flex gap-1.5 flex-nowrap mt-2.5 overflow-hidden">
-                        {(profile.christian_interests || []).slice(0, 2).map((interest: string) => (
-                          <span key={interest} className="bg-black/40 px-2 py-1 rounded-md text-[8px] text-white font-bold uppercase tracking-wide whitespace-nowrap">
-                            {interest}
+                        {['LOUVOR', 'DEVOCIONAL'].map((badge) => (
+                          <span key={badge} className="bg-black/40 px-2 py-1 rounded-md text-[8px] text-white font-bold uppercase tracking-wide whitespace-nowrap">
+                            {badge}
                           </span>
                         ))}
                       </div>
                     )}
+
                   </div>
                 </div>
 

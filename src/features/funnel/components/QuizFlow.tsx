@@ -7,13 +7,7 @@ import { useFunnelStore } from "@/features/funnel/hooks/useFunnelStore";
 import { BRAZIL_STATES, BRAZIL_CITIES } from '@/config/brazil-cities';
 import { ArrowLeft, Sparkles, ChevronRight, Heart } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  RELIGIONS,
-  CHURCH_FREQUENCIES,
-  LOOKING_FOR,
-  VALUES_OPTIONS,
-  CHILDREN_OPTIONS
-} from '@/features/discovery/constants/profile-options';
+
 
 interface QuizFlowProps {
   onComplete: (answers: QuizAnswers) => void;
@@ -32,64 +26,9 @@ interface Question {
 }
 
 const BASE_QUESTIONS: Question[] = [
-  {
-    key: 'age',
-    slug: 'idade',
-    title: 'Qual a sua idade atual?',
-    type: 'options',
-    options: ['18-25', '26-35', '36-55', '56+']
-  },
-  {
-    key: 'state',
-    slug: 'estado',
-    title: 'Em qual estado você reside?',
-    type: 'select',
-    options: BRAZIL_STATES,
-    placeholder: 'Selecione seu estado'
-  },
-  {
-    key: 'city',
-    slug: 'cidade',
-    title: 'E qual a sua cidade?',
-    type: 'select',
-    placeholder: 'Selecione sua cidade',
-    dependsOn: 'state'
-  },
-  {
-    key: 'religion',
-    slug: 'religiao',
-    title: 'Qual o pilar da sua fé?',
-    type: 'options',
-    options: RELIGIONS
-  },
-  {
-    key: 'churchFrequency',
-    slug: 'frequencia',
-    title: 'Você frequenta a igreja regularmente?',
-    type: 'options',
-    options: CHURCH_FREQUENCIES
-  },
-  {
-    key: 'lookingFor',
-    slug: 'objetivo',
-    title: 'O que você busca em um relacionamento?',
-    type: 'options',
-    options: LOOKING_FOR
-  },
-  {
-    key: 'valuesImportance',
-    slug: 'valores',
-    title: 'É fundamental encontrar alguém com os mesmos valores?',
-    type: 'options',
-    options: VALUES_OPTIONS
-  },
-  {
-    key: 'children',
-    slug: 'filhos',
-    title: 'Qual o seu pensamento sobre filhos?',
-    type: 'options',
-    options: CHILDREN_OPTIONS
-  }
+  { key: 'age', slug: 'idade', title: 'Qual a sua idade atual?', type: 'options', options: ['18-25', '26-35', '36-55', '56+'] },
+  { key: 'state', slug: 'estado', title: 'Em qual estado você reside?', type: 'select', options: BRAZIL_STATES, placeholder: 'Selecione seu estado' },
+  { key: 'city', slug: 'cidade', title: 'E qual a sua cidade?', type: 'select', placeholder: 'Selecione sua cidade', dependsOn: 'state' },
 ];
 
 export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps) {
@@ -109,7 +48,7 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
   // Handle initial redirect if no step provided
   useEffect(() => {
     if (!paramStep && !forcedStep) {
-      navigate(`/v1/quiz/${BASE_QUESTIONS[0].slug}`, { replace: true });
+      navigate(`/quiz/${BASE_QUESTIONS[0].slug}`, { replace: true });
     }
   }, [paramStep, forcedStep, navigate]);
 
@@ -136,7 +75,7 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
     // Navigate immediately - relying on React Router's transition
     if (currentIndex < BASE_QUESTIONS.length - 1) {
       const nextSlug = BASE_QUESTIONS[currentIndex + 1].slug;
-      navigate(`/v1/quiz/${nextSlug}`);
+      navigate(`/quiz/${nextSlug}`);
     } else {
       onComplete({ ...quizAnswers, [question.key]: value });
     }
@@ -145,7 +84,7 @@ export function QuizFlow({ onComplete, onBack, step: forcedStep }: QuizFlowProps
   const handleManualBack = () => {
     if (currentIndex > 0) {
       const prevSlug = BASE_QUESTIONS[currentIndex - 1].slug;
-      navigate(`/v1/quiz/${prevSlug}`);
+      navigate(`/quiz/${prevSlug}`);
     } else {
       onBack();
     }
