@@ -14,8 +14,8 @@ export function VideoSection() {
         <h2 className="text-2xl font-serif font-bold text-white tracking-tight leading-tight mb-2">
           Veja como funciona
         </h2>
-        <p className="text-white/60 text-sm font-medium tracking-tight whitespace-nowrap">
-          Conheça nossa plataforma e encontre seu par ideal.
+        <p className="text-white/60 text-sm font-light tracking-tight whitespace-nowrap">
+          Conheça nosso <strong className="font-bold text-white">aplicativo</strong> e encontre seu par ideal.
         </p>
       </div>
 
