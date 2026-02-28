@@ -158,24 +158,20 @@ export default function Plans() {
         return true;
       }
 
+      const utms = getStoredUTMParams();
+
       if (isSpecialOffer) {
-        // Special offer = Gold Trimestral via PIX Automático (mesma infra dos outros planos)
-        const utms = getStoredUTMParams();
-        const subData = await funnelService.createSubscription({
-          planId,                                // 'special-offer'
+        const subData = await funnelService.createPayment({
+          planId,
+          planPrice,
           userName: data.name,
           userEmail: data.email,
           userPhone: data.phone,
           userCpf: data.cpf,
-          gender: gender,
-          orderBumps: {
-            allRegions: true,
-            grupoEvangelico: true,
-            grupoCatolico: true,
-            filtrosAvancados: true,              // Gold completo
-          },
+          gender,
+          orderBumps: { allRegions: true, grupoEvangelico: true, grupoCatolico: true, filtrosAvancados: true },
           quizData: quizAnswers,
-          purchaseSource: 'backredirect',        // rastreia origem backdirect
+          purchaseSource: 'funnel_b_special',
           utmSource: utms.utm_source ?? null,
           utmMedium: utms.utm_medium ?? null,
           utmCampaign: utms.utm_campaign ?? null,
@@ -186,20 +182,19 @@ export default function Plans() {
         });
         setPixCode(subData.pixCode || '');
         setPixQrCode(subData.qrCodeImage || '');
-        setPaymentId(subData.subscriptionId || '');
+        setPaymentId(subData.paymentId || '');
         setPixTotalAmount(subData.totalAmount || planPrice);
-        setIsPixAutomatic(true);
-        setPlanCycle('QUARTERLY');               // exibe como recorrente trimestral
+        setIsPixAutomatic(false);
+        setPlanCycle('ONE_TIME');
       } else {
-        // Regular plans use Pix Automático (Journey 3)
-        const utms = getStoredUTMParams();
-        const subData = await funnelService.createSubscription({
+        const subData = await funnelService.createPayment({
           planId,
+          planPrice,
           userName: data.name,
           userEmail: data.email,
           userPhone: data.phone,
           userCpf: data.cpf,
-          gender: gender,
+          gender,
           orderBumps: {
             allRegions: (currentOrderBumps as { allRegions?: boolean }).allRegions ?? false,
             grupoEvangelico: (currentOrderBumps as { grupoEvangelico?: boolean }).grupoEvangelico ?? false,
@@ -207,7 +202,7 @@ export default function Plans() {
             filtrosAvancados: (currentOrderBumps as { filtrosAvancados?: boolean }).filtrosAvancados ?? false,
           },
           quizData: quizAnswers,
-          purchaseSource: 'funnel',
+          purchaseSource: 'funnel_b',
           utmSource: utms.utm_source ?? null,
           utmMedium: utms.utm_medium ?? null,
           utmCampaign: utms.utm_campaign ?? null,
@@ -218,10 +213,10 @@ export default function Plans() {
         });
         setPixCode(subData.pixCode || '');
         setPixQrCode(subData.qrCodeImage || '');
-        setPaymentId(subData.subscriptionId || '');
+        setPaymentId(subData.paymentId || '');
         setPixTotalAmount(subData.totalAmount || planPrice);
-        setIsPixAutomatic(true);
-        setPlanCycle(subData.planCycle || 'MONTHLY');
+        setIsPixAutomatic(false);
+        setPlanCycle('ONE_TIME');
       }
 
       return true;

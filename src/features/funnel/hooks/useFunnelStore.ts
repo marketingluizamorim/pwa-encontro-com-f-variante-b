@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { QuizAnswers, OrderBumps, CheckoutInfo, PaymentStatus } from '@/types/funnel';
+import { QuizAnswers, OrderBumps, CheckoutInfo, PaymentStatus, UTMData } from '@/types/funnel';
 
 export interface FunnelState {
   gender: 'male' | 'female' | null;
@@ -11,7 +11,8 @@ export interface FunnelState {
   checkoutInfo: CheckoutInfo;
   paymentId: string | null;
   paymentStatus: PaymentStatus;
-
+  utmData: UTMData;
+  purchaseIdB: string | null;
 
   // Actions
   setGender: (gender: 'male' | 'female') => void;
@@ -22,6 +23,8 @@ export interface FunnelState {
   setCheckoutInfo: (info: Partial<FunnelState['checkoutInfo']>) => void;
   setPaymentId: (id: string) => void;
   setPaymentStatus: (status: FunnelState['paymentStatus']) => void;
+  setUTMData: (utm: Partial<UTMData>) => void;
+  setPurchaseIdB: (id: string) => void;
   reset: () => void;
 }
 
@@ -41,9 +44,12 @@ const initialState = {
     name: '',
     email: '',
     phone: '',
+    password: '',
   },
   paymentId: null,
   paymentStatus: 'idle' as const,
+  utmData: {},
+  purchaseIdB: null,
 };
 
 export const useFunnelStore = create<FunnelState>()(
@@ -65,10 +71,13 @@ export const useFunnelStore = create<FunnelState>()(
       })),
       setPaymentId: (id) => set({ paymentId: id }),
       setPaymentStatus: (status) => set({ paymentStatus: status }),
+      setUTMData: (utm) =>
+        set((state) => ({ utmData: { ...state.utmData, ...utm } })),
+      setPurchaseIdB: (id) => set({ purchaseIdB: id }),
       reset: () => set(initialState),
     }),
     {
-      name: 'encontro-funnel-storage',
+      name: 'encontro-funnel-b-storage',
     }
   )
 );

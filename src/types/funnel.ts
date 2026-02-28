@@ -23,4 +23,13 @@ export interface CheckoutInfo {
     name: string;
     email: string;
     phone: string;
+    password: string;
+}
+
+export interface UTMData {
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_content?: string;
+    utm_term?: string;
 }

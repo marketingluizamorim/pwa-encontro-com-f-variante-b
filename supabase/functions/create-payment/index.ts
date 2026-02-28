@@ -32,19 +32,19 @@ interface CreatePaymentRequest {
 }
 
 const PLAN_NAMES: Record<string, string> = {
-  bronze: "Plano Bronze (Semanal)",
-  silver: "Plano Prata (Mensal)",
-  gold: "Plano Ouro (Mensal)",
-  "special-offer": "Oferta Especial (3 Meses)",
+  bronze_3d: "Plano Bronze — Teste 3 Dias",
+  silver_3d: "Plano Prata — Teste 3 Dias",
+  gold_3d: "Plano Ouro — Teste 3 Dias",
+  "special-offer": "Oferta Especial — Teste 3 Dias",
 };
 
 const PLAN_PRICES: Record<string, number> = {
-  bronze: 1.00,
-  silver: 2.00,
-  gold: 3.00,
-  "special-offer": 15.90,
-  special: 15.90,
+  bronze_3d: 2.00,
+  silver_3d: 4.00,
+  gold_3d: 6.00,
+  "special-offer": 14.90,
 };
+
 
 const BUMP_NAMES: Record<string, string> = {
   allRegions: "Desbloquear Região",
@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
         payment_method: "PIX",
         order_bumps: orderBumpsList,
         quiz_data: { ...(quizData || {}), gender },
-        source_platform: purchaseSource ?? 'funnel',
+        source_platform: purchaseSource ?? 'funnel_b',
         // UTM tracking
         utm_source: utmSource ?? null,
         utm_medium: utmMedium ?? null,

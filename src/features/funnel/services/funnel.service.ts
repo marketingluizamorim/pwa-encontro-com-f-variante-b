@@ -13,7 +13,7 @@ export interface PaymentRequest {
     gender: 'male' | 'female' | null;
     isSpecialOffer?: boolean;
     planName?: string;
-    purchaseSource?: 'funnel' | 'backredirect' | 'in_app_upgrade' | 'in_app_renewal';
+    purchaseSource?: 'funnel' | 'funnel_b' | 'funnel_b_special' | 'backredirect' | 'in_app_upgrade' | 'in_app_renewal';
     utmSource?: string | null;
     utmMedium?: string | null;
     utmCampaign?: string | null;

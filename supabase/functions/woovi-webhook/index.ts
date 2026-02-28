@@ -1,232 +1,106 @@
-/// <reference path="../deno.d.ts" />
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { notifyUtmify, fmtDate, calcCommission } from "../_shared/utmify.ts";
-import type { UtmifyProduct } from "../_shared/utmify.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PLAN_NAMES: Record<string, string> = {
-    bronze: "Plano Bronze (Semanal)",
-    silver: "Plano Prata (Mensal)",
-    gold: "Plano Ouro (Mensal)",
-    weekly: "Plano Semanal",
-    monthly: "Plano Mensal",
-    annual: "Plano Anual",
-};
-
-const BUMP_PRICE = 5;
-const BUMP_NAMES: Record<string, string> = {
-    allRegions: "Desbloquear Regiões",
-    grupoEvangelico: "Grupo Evangélico",
-    grupoCatolico: "Grupo Católico",
-    lifetime: "Acesso Vitalício",
-};
-
-function formatDateForWebhook(date: Date): string {
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-}
-
-
-
-Deno.serve(async (req: Request) => {
-    if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+Deno.serve(async (req) => {
+    if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
     try {
-        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const payload = await req.json();
+        console.log("[woovi-webhook] Payload recebido:", JSON.stringify(payload));
 
-        const body = await req.json();
-        const charge = body.charge;
-        const event = body.event;
+        // Eventos aceitos — cobrança Pix única confirmada
+        const event = payload.event || payload.type || "";
+        const isChargeCompleted =
+            event === "OPENPIX:CHARGE_COMPLETED" ||
+            event === "OPENPIX:TRANSACTION_RECEIVED" ||
+            event === "charge.completed";
 
-        if (!charge || (event && event !== "OPENPIX:CHARGE_COMPLETED" && event !== "OPENPIX:CHARGE_CONFIRMED")) {
-            return new Response(JSON.stringify({ success: true, message: "Ignored" }), {
-                status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" }
-            });
+        if (!isChargeCompleted) {
+            console.log("[woovi-webhook] Evento ignorado:", event);
+            return new Response(
+                JSON.stringify({ ok: true, ignored: true, event }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
         }
 
-        let paymentId = charge.correlationID;
-        if (!paymentId) throw new Error("No correlationID found in charge");
+        // Extrai correlationID do payload
+        const charge = payload.charge || payload.data?.charge || {};
+        const correlationID = charge.correlationID || charge.identifier || payload.correlationID;
 
-        const isRenewal = !!charge.subscription && !!charge.subscription.correlationID && charge.correlationID !== charge.subscription.correlationID;
-        const subscriptionCorrelationID = charge.subscription?.correlationID;
-
-        const isTestPayment = paymentId.startsWith("dev-test-") || paymentId.startsWith("mock-payment-id-");
-
-        // 1. Try to find the purchase by charge correlationID first
-        let { data: purchase, error: purchaseError } = await supabase
-            .from("purchases").update({ payment_status: "PAID", updated_at: new Date().toISOString() })
-            .eq("payment_id", paymentId).select().maybeSingle();
-
-        // 2. If not found and it's a subscription charge, try the original subscription correlationID
-        if (!purchase && subscriptionCorrelationID) {
-            console.log(`Charge ${paymentId} not found, trying subscription ID: ${subscriptionCorrelationID}`);
-            const { data: subPurchase, error: subError } = await supabase
-                .from("purchases").update({ payment_status: "PAID", updated_at: new Date().toISOString() })
-                .eq("payment_id", subscriptionCorrelationID).select().maybeSingle();
-
-            purchase = subPurchase;
-            purchaseError = subError;
-            if (purchase) paymentId = subscriptionCorrelationID; // Use the matched one for consistency
+        if (!correlationID) {
+            console.error("[woovi-webhook] correlationID não encontrado no payload");
+            return new Response(
+                JSON.stringify({ ok: true, warning: "correlationID_missing" }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
         }
 
-        if (purchaseError) throw purchaseError;
-        if (!purchase) return new Response(JSON.stringify({ success: false, error: "Purchase not found" }), {
-            status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
-        });
+        console.log("[woovi-webhook] correlationID:", correlationID);
 
-        // Try to find the user_id by email if it's missing in the purchase record
-        let targetId = purchase.user_id;
-        if (!targetId && purchase.user_email) {
-            try {
-                const { data: { users } } = await supabase.auth.admin.listUsers();
-                const user = users?.find(u => u.email?.toLowerCase() === purchase.user_email.toLowerCase());
-                if (user) {
-                    targetId = user.id;
-                    // Update purchase for future consistency
-                    await supabase.from("purchases").update({ user_id: targetId }).eq("id", purchase.id);
-                }
-            } catch (e) {
-                console.error("Error finding user by email:", e);
-            }
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+        // Busca a purchase pelo payment_id (correlationID da Woovi)
+        const { data: purchase, error: purchaseErr } = await supabase
+            .from("purchases")
+            .select("*")
+            .eq("payment_id", correlationID)
+            .single();
+
+        if (purchaseErr || !purchase) {
+            console.error("[woovi-webhook] Purchase não encontrada:", correlationID);
+            // Retorna 200 para Woovi não retentar
+            return new Response(
+                JSON.stringify({ ok: true, warning: "purchase_not_found", correlationID }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
         }
 
-        if (targetId) {
-            const now = new Date();
-            let expiresAt: Date;
-            switch (purchase.plan_id) {
-                case "bronze": expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); break; // 7 days
-                case "silver":
-                case "gold": expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); break; // 30 days
-                case "special-offer": expiresAt = new Date(now.getTime() + 99 * 365 * 24 * 60 * 60 * 1000); break; // Lifetime
-                default: expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-            }
+        // Evita processar duas vezes
+        if (purchase.payment_status === "PAID") {
+            console.log("[woovi-webhook] Purchase já processada:", purchase.id);
+            return new Response(
+                JSON.stringify({ ok: true, duplicate: true }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
 
-            const orderBumps = Array.isArray(purchase.order_bumps) ? purchase.order_bumps as string[] : [];
-            const isGold = purchase.plan_id === "gold";
-            const isSilver = purchase.plan_id === "silver";
-            const isBronze = purchase.plan_id === "bronze";
-            const hasSpecialOffer = orderBumps.includes("specialOffer") || purchase.plan_id === "special-offer";
-            const isPixAutomatic = purchase.payment_method === "PIX_AUTOMATIC";
+        // Atualiza payment_status para PAID no Supabase B
+        const { error: updateErr } = await supabase
+            .from("purchases")
+            .update({
+                payment_status: "PAID",
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", purchase.id);
 
-            await supabase.from("user_subscriptions").upsert({
-                user_id: targetId,
+        if (updateErr) {
+            throw new Error(`Erro ao atualizar purchase: ${updateErr.message}`);
+        }
+
+        console.log("[woovi-webhook] ✅ Purchase atualizada para PAID:", purchase.id);
+
+        return new Response(
+            JSON.stringify({
+                ok: true,
                 purchase_id: purchase.id,
-                plan_id: hasSpecialOffer ? "gold" : purchase.plan_id,
-                plan_name: purchase.plan_name,
-                starts_at: now.toISOString(),
-                expires_at: expiresAt.toISOString(),
-                is_active: true,
-                is_lifetime: hasSpecialOffer || purchase.plan_id === "special-offer",
-                subscription_type: isPixAutomatic ? "pix_automatic" : "one_time",
-                woovi_subscription_id: purchase.payment_id ?? null,
-                auto_renew: isPixAutomatic,
-                next_charge_at: isPixAutomatic ? expiresAt.toISOString() : null,
-                acquisition_source: purchase.source_platform ?? "funnel",
-                has_all_regions: isGold || isSilver || hasSpecialOffer || orderBumps.includes("allRegions"),
-                has_grupo_evangelico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoEvangelico"),
-                has_grupo_catolico: isGold || isSilver || hasSpecialOffer || orderBumps.includes("grupoCatolico"),
-                can_use_advanced_filters: isGold || hasSpecialOffer || orderBumps.includes("filtrosAvancados"),
-                daily_swipes_limit: isBronze ? 20 : 9999,
-                can_see_who_liked: !isBronze || hasSpecialOffer,
-                can_video_call: !isBronze || hasSpecialOffer,
-                is_profile_boosted: isGold || hasSpecialOffer,
-                can_see_recently_online: isGold || hasSpecialOffer,
-                updated_at: now.toISOString(),
-            }, { onConflict: "user_id" });
-        }
+                email: purchase.user_email,
+                plan_id: purchase.plan_id,
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
 
-        const isTestUser = purchase.user_email?.includes("@test.com") || purchase.user_email?.includes("@temporario.com") ||
-            purchase.user_name?.toLowerCase().includes("dev") || purchase.plan_name?.toLowerCase().includes("dev");
-
-        // ── Notify UTMify: paid ───────────────────────────────────────
-        if (!isTestPayment && !isTestUser) {
-            const utmifyToken = Deno.env.get("UTMIFY_API_TOKEN");
-            if (utmifyToken) {
-                const nowPaid = new Date();
-                const orderBumpsArr = Array.isArray(purchase.order_bumps) ? purchase.order_bumps as string[] : [];
-                const planDisplayName = isRenewal ? `Renovação ${purchase.plan_name}` : purchase.plan_name;
-                const products: UtmifyProduct[] = [{
-                    id: purchase.plan_id,
-                    name: planDisplayName,
-                    planId: purchase.plan_id,
-                    planName: planDisplayName,
-                    quantity: 1,
-                    priceInCents: Math.round(Number(purchase.plan_price) * 100),
-                }];
-                for (const bumpId of orderBumpsArr) {
-                    if (bumpId === 'specialOffer') continue;
-                    products.push({
-                        id: bumpId,
-                        name: BUMP_NAMES[bumpId] || bumpId,
-                        planId: null,
-                        planName: null,
-                        quantity: 1,
-                        priceInCents: Math.round(BUMP_PRICE * 100),
-                    });
-                }
-                const totalInCents = Math.round(Number(purchase.total_price) * 100);
-                const p = purchase as Record<string, unknown>;
-                await notifyUtmify(utmifyToken, {
-                    orderId: isRenewal ? `${purchase.id}_${charge.correlationID}` : purchase.id,
-                    platform: "EncontroComFe",
-                    paymentMethod: "pix",
-                    status: "paid",
-                    createdAt: fmtDate(new Date(purchase.created_at as string)),
-                    approvedDate: fmtDate(nowPaid),
-                    refundedAt: null,
-                    customer: {
-                        name: purchase.user_name as string,
-                        email: purchase.user_email as string,
-                        phone: (purchase.user_phone as string | null)?.replace(/\D/g, "") || null,
-                        document: null,
-                        country: "BR",
-                    },
-                    products,
-                    trackingParameters: {
-                        src: (p.src as string | null) ?? null,
-                        sck: (p.sck as string | null) ?? null,
-                        utm_source: (p.utm_source as string | null) ?? null,
-                        utm_campaign: (p.utm_campaign as string | null) ?? null,
-                        utm_medium: (p.utm_medium as string | null) ?? null,
-                        utm_content: (p.utm_content as string | null) ?? null,
-                        utm_term: (p.utm_term as string | null) ?? null,
-                    },
-                    commission: calcCommission(totalInCents),
-                });
-            }
-        }
-        // ───────────────────────────────────────────────────────────────
-
-        // ── Send welcome email (await to ensure completion) ──────────
-        try {
-            await fetch(`${supabaseUrl}/functions/v1/send-welcome-email`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userName: purchase.user_name,
-                    userEmail: purchase.user_email,
-                    planName: purchase.plan_name,
-                }),
-            });
-        } catch (e) {
-            console.error("Welcome email error:", e);
-        }
-        // ─────────────────────────────────────────────────────────────
-
-        return new Response(JSON.stringify({ success: true }), {
-            status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" }
-        });
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error("Webhook error:", error);
-        return new Response(JSON.stringify({ success: false, error: message }), {
-            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }
-        });
+    } catch (err) {
+        console.error("[woovi-webhook] Erro:", err);
+        return new Response(
+            JSON.stringify({ error: String(err) }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
     }
 });
