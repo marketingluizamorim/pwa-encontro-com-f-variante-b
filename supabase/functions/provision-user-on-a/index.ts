@@ -40,8 +40,10 @@ Deno.serve(async (req) => {
         console.log("[provision] Purchase encontrada no B:", purchase.id);
 
         // ── 2. Verifica se usuário já existe no Supabase A ────────────────
-        const { data: existingUsers } = await supabaseA.auth.admin.listUsers();
-        const existingUser = existingUsers?.users?.find((u) => u.email === email);
+        const { data: { users: existingUsers }, error: listErr } = await supabaseA.auth.admin.listUsers({
+            perPage: 1000,
+        });
+        const existingUser = existingUsers?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
 
         if (existingUser) {
             console.log("[provision] Usuário já existe no A:", existingUser.id);
