@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { PlansSection } from '@/features/funnel/components/PlansSection';
 import { CheckoutDialog } from '@/features/funnel/components/CheckoutDialog';
@@ -222,6 +223,12 @@ export default function Plans() {
       return true;
     } catch (error) {
       console.error('Error creating payment:', error);
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes('CPF') || msg.includes('CNPJ')) {
+        toast.error('CPF inválido. Verifique os dados e tente novamente.');
+      } else {
+        toast.error('Erro ao processar pagamento. Tente novamente.');
+      }
       return false;
     } finally {
       setIsProcessing(false);

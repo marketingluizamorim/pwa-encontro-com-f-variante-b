@@ -234,7 +234,21 @@ export function CheckoutDialog({
     const isNameValid = name.trim().length >= 3;
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     const isPhoneValid = phone.replace(/\D/g, '').length >= 10;
-    const isCpfValid = cpf.replace(/\D/g, '').length === 11;
+    function validateCpf(cpf: string): boolean {
+        const n = cpf.replace(/\D/g, '');
+        if (n.length !== 11 || /^(\d)\1+$/.test(n)) return false;
+        let sum = 0;
+        for (let i = 0; i < 9; i++) sum += parseInt(n[i]) * (10 - i);
+        let r = (sum * 10) % 11;
+        if (r === 10 || r === 11) r = 0;
+        if (r !== parseInt(n[9])) return false;
+        sum = 0;
+        for (let i = 0; i < 10; i++) sum += parseInt(n[i]) * (11 - i);
+        r = (sum * 10) % 11;
+        if (r === 10 || r === 11) r = 0;
+        return r === parseInt(n[10]);
+    }
+    const isCpfValid = validateCpf(cpf);
 
     const validate = () => {
         const e: Record<string, string> = {};
