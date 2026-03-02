@@ -1,7 +1,10 @@
-project_id = "cpqsfixvpbtbqoaarcjq"
+project_id = "npjlmpadxosdkxwxxnmi"
 
 [functions.send-welcome-email]
 verify_jwt = false
 
 [functions.woovi-webhook]
+verify_jwt = false
+
+[functions.provision-user-on-a]
 verify_jwt = false
