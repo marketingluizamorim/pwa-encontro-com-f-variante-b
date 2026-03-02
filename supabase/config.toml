@@ -1,1 +1,7 @@
 project_id = "cpqsfixvpbtbqoaarcjq"
+
+[functions.send-welcome-email]
+verify_jwt = false
+
+[functions.woovi-webhook]
+verify_jwt = false
