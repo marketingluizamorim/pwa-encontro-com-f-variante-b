@@ -7,4 +7,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.provision-user-on-a]
+verify_jwt = false  
+
+[functions.create-payment]
+verify_jwt = false
+
+[functions.check-payment-status]
 verify_jwt = false
