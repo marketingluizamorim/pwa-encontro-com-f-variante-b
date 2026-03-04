@@ -32,17 +32,15 @@ interface CreatePaymentRequest {
 }
 
 const PLAN_NAMES: Record<string, string> = {
-  bronze_3d: "Plano Bronze - Teste 3 Dias",
-  silver_3d: "Plano Prata - Teste 3 Dias",
-  gold_3d: "Plano Ouro - Teste 3 Dias",
-  "special-offer": "Oferta Especial - Teste 3 Dias",
+  bronze_3d: "Plano Bronze Trial",
+  silver_3d: "Plano Prata Trial",
+  gold_3d: "Plano Ouro Trial",
 };
 
 const PLAN_PRICES: Record<string, number> = {
   bronze_3d: 2.00,
   silver_3d: 4.00,
   gold_3d: 6.00,
-  "special-offer": 14.90,
 };
 
 
