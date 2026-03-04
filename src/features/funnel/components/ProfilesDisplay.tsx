@@ -62,7 +62,11 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
       const minBirth = `${currentYear - ageRange.max}-01-01`;
       const maxBirth = `${currentYear - ageRange.min}-12-31`;
 
-      let { data } = await supabaseA
+      console.log('[ProfilesDisplay] gender:', gender, 'botGender:', botGender);
+      console.log('[ProfilesDisplay] ageRange:', ageRange, 'minBirth:', minBirth, 'maxBirth:', maxBirth);
+      console.log('[ProfilesDisplay] userCity:', userCity, 'userAgeRange:', userAgeRange);
+
+      let { data, error } = await supabaseA
         .from('profiles')
         .select('user_id, display_name, birth_date, city, state, avatar_url')
         .eq('is_bot', true)
@@ -72,15 +76,19 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
         .lte('birth_date', maxBirth)
         .limit(12);
 
+      console.log('[ProfilesDisplay] query result:', data, 'error:', error);
+
       // Fallback se menos de 6 bots na faixa de idade
       if (!data || data.length < 6) {
-        const { data: fallback } = await supabaseA
+        console.log('[ProfilesDisplay] fallback acionado — bots na faixa:', data?.length ?? 0);
+        const { data: fallback, error: fallbackError } = await supabaseA
           .from('profiles')
           .select('user_id, display_name, birth_date, city, state, avatar_url')
           .eq('is_bot', true)
           .eq('gender', botGender)
           .not('avatar_url', 'is', null)
           .limit(12);
+        console.log('[ProfilesDisplay] fallback result:', fallback, 'error:', fallbackError);
         data = fallback || [];
       }
 
