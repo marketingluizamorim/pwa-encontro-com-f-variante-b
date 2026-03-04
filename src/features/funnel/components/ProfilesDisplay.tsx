@@ -112,7 +112,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
           name: bot.display_name || 'Anônimo',
           age,
           photo: photos[photoIndex],
-          city: bot.city || userCity || 'Perto de você',
+          city: userCity || bot.city || 'Perto de você',
           interests: ['LOUVOR', 'DEVOCIONAL'],
         };
       });
