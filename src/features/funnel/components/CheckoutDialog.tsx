@@ -57,9 +57,9 @@ function toTitleCase(str: string): string {
 }
 
 const OLD_PRICES: Record<string, number> = {
-    bronze_3d: 12.90,
-    silver_3d: 29.90,
-    gold_3d: 39.90,
+    bronze_3d: 2.00,
+    silver_3d: 4.00,
+    gold_3d: 6.00,
 };
 
 // ─────────────────────────────────────────────
