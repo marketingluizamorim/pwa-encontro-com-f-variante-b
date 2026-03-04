@@ -15,10 +15,9 @@ interface CreatePaymentRequest {
   userEmail: string;
   userPhone?: string;
   userCpf?: string;
-  orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean; specialOffer: boolean };
+  orderBumps?: { allRegions: boolean; grupoEvangelico: boolean; grupoCatolico: boolean; filtrosAvancados: boolean };
   quizData?: Record<string, unknown>;
   gender?: string;
-  isSpecialOffer?: boolean;
   planName?: string;
   purchaseSource?: string;
   // UTM fields
@@ -49,7 +48,6 @@ const BUMP_NAMES: Record<string, string> = {
   grupoEvangelico: "Grupo Evangélico",
   grupoCatolico: "Grupo Católico",
   filtrosAvancados: "Filtros Avançados",
-  specialOffer: "Oferta Especial",
 };
 
 const BUMP_PRICE = 5;
@@ -85,7 +83,6 @@ Deno.serve(async (req) => {
       orderBumps,
       quizData,
       gender,
-      isSpecialOffer,
       planName,
       purchaseSource,
       utmSource,
@@ -109,17 +106,10 @@ Deno.serve(async (req) => {
     let totalPrice = basePlanPrice;
     const orderBumpsList: string[] = [];
 
-    if (!isSpecialOffer) {
-      if (orderBumps?.allRegions) { totalPrice += 5; orderBumpsList.push("allRegions"); }
-      if (orderBumps?.grupoEvangelico) { totalPrice += 5; orderBumpsList.push("grupoEvangelico"); }
-      if (orderBumps?.grupoCatolico) { totalPrice += 5; orderBumpsList.push("grupoCatolico"); }
-      if (orderBumps?.filtrosAvancados) { totalPrice += 5; orderBumpsList.push("filtrosAvancados"); }
-    } else {
-      if (orderBumps?.allRegions) orderBumpsList.push("allRegions");
-      if (orderBumps?.grupoEvangelico) orderBumpsList.push("grupoEvangelico");
-      if (orderBumps?.grupoCatolico) orderBumpsList.push("grupoCatolico");
-      orderBumpsList.push("specialOffer");
-    }
+    if (orderBumps?.allRegions) { totalPrice += 5; orderBumpsList.push("allRegions"); }
+    if (orderBumps?.grupoEvangelico) { totalPrice += 5; orderBumpsList.push("grupoEvangelico"); }
+    if (orderBumps?.grupoCatolico) { totalPrice += 5; orderBumpsList.push("grupoCatolico"); }
+    if (orderBumps?.filtrosAvancados) { totalPrice += 5; orderBumpsList.push("filtrosAvancados"); }
 
     const amountInCents = Math.round(totalPrice * 100);
     const correlationID = crypto.randomUUID();
@@ -222,7 +212,6 @@ Deno.serve(async (req) => {
           priceInCents: Math.round(basePlanPrice * 100),
         }];
         for (const bumpId of orderBumpsList) {
-          if (bumpId === 'specialOffer') continue;
           products.push({
             id: bumpId,
             name: BUMP_NAMES[bumpId] || bumpId,
