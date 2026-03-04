@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MapPin, Users, Loader2, Cpu, CheckCircle, ShieldCheck, Bot } from 'lucide-react';
 import { useFunnelStore } from "@/features/funnel/hooks/useFunnelStore";
 import { FEMALE_EXTRA, MALE_EXTRA } from "../utils/profiles";
+import { supabaseA } from '@/integrations/supabase/clientA';
 
 interface LoadingScreenProps {
     onComplete: () => void;
@@ -55,10 +56,40 @@ const STAGES = [
 export function LoadingScreen({ onComplete, gender }: LoadingScreenProps) {
     const { quizAnswers } = useFunnelStore();
 
-    const profileNames = useMemo(() => {
-        const list = gender === 'male' ? FEMALE_EXTRA : MALE_EXTRA;
-        return list.map(b => b.name);
-    }, [gender]);
+    const [profileNames, setProfileNames] = useState<string[]>([]);
+
+    useEffect(() => {
+        async function fetchBotNames() {
+            const botGender = gender === 'male' ? 'female' : 'male';
+            const AGE_RANGE_MAP: Record<string, { min: number; max: number }> = {
+                '18-25': { min: 18, max: 25 },
+                '26-35': { min: 26, max: 35 },
+                '36-55': { min: 36, max: 55 },
+                '56+': { min: 56, max: 99 },
+            };
+            const userAgeRange = quizAnswers?.age || '26-35';
+            const ageRange = AGE_RANGE_MAP[userAgeRange] || { min: 18, max: 99 };
+            const currentYear = new Date().getFullYear();
+            const minBirth = `${currentYear - ageRange.max}-01-01`;
+            const maxBirth = `${currentYear - ageRange.min}-12-31`;
+
+            const { data } = await supabaseA
+                .from('profiles')
+                .select('display_name')
+                .eq('is_bot', true)
+                .eq('gender', botGender)
+                .not('avatar_url', 'is', null)
+                .gte('birth_date', minBirth)
+                .lte('birth_date', maxBirth)
+                .limit(12);
+
+            const names = (data || []).map((b: { display_name: string | null }) => b.display_name).filter(Boolean) as string[];
+            const fallbackList = botGender === 'female' ? FEMALE_EXTRA : MALE_EXTRA;
+            setProfileNames(names.length >= 6 ? names : fallbackList.map(b => b.name));
+        }
+
+        fetchBotNames();
+    }, [gender, quizAnswers?.age]);
 
     const [currentStage, setCurrentStage] = useState(0);
     const [progress, setProgress] = useState(0);
@@ -262,7 +293,7 @@ export function LoadingScreen({ onComplete, gender }: LoadingScreenProps) {
                                             >
                                                 <div className="w-2 h-2 rounded-full bg-teal-400" />
                                                 <span className="text-sm text-white font-bold tracking-tight whitespace-nowrap">
-                                                    {discoveredNames[0] === 'Buscando...' ? 'Buscando conexões...' : `${discoveredNames[0]} ${gender === 'female' ? 'encontrado' : 'encontrada'}`}
+                                                    {discoveredNames[0] === 'Buscando...' ? 'Buscando conexões...' : `${discoveredNames[0]} ${gender === 'female' ? 'identificada' : 'identificado'}`}
                                                 </span>
                                             </motion.div>
                                         )}

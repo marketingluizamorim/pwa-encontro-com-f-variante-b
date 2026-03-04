@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useFunnelStore } from "@/features/funnel/hooks/useFunnelStore";
 import { MapPin, Lock, HandHeart, ArrowRight, Heart, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FEMALE_EXTRA, MALE_EXTRA, enrichBotProfile, getStateAbbreviation } from "../utils/profiles";
+import { getStateAbbreviation } from "../utils/profiles";
+import { supabaseA } from '@/integrations/supabase/clientA';
 
 interface ProfilesDisplayProps {
   gender: 'male' | 'female' | null;
@@ -10,106 +12,123 @@ interface ProfilesDisplayProps {
   onBack?: () => void;
 }
 
+interface DisplayProfile {
+  name: string;
+  age: number;
+  photo: string;
+  city: string;
+  interests: string[];
+}
+
+const AGE_RANGE_MAP: Record<string, { min: number; max: number }> = {
+  '18-25': { min: 18, max: 25 },
+  '26-35': { min: 26, max: 35 },
+  '36-55': { min: 36, max: 55 },
+  '56+': { min: 56, max: 99 },
+};
+
+function citySeed(city: string | undefined): number {
+  if (!city) return 42;
+  return city.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+}
+
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const result = [...arr];
+  let s = seed;
+  for (let i = result.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    const j = Math.abs(s) % (i + 1);
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplayProps) {
   const { quizAnswers } = useFunnelStore();
-
-  // Build bot-like stubs and enrich them with enrichBotProfile so photos,
-  // ages and interests are identical to what the user will see post-registration.
-  const extrasList = gender === 'male' ? FEMALE_EXTRA : MALE_EXTRA;
-  // UUIDs que batem exatamente com BOT_PHOTO_MAP em profiles.ts
-  const funnelBotIds: Record<string, string> = {
-    // Female
-    Juliana: '8f517b2a-e1f8-4c2c-bdd2-a5af0f3cbe56',
-    Bruna: '97b2d8a6-6775-46a9-8345-7f66f2398605',
-    Larissa: 'd5229a6d-5194-4a70-a69d-503528bc2ede',
-    Amanda: '64149ade-351e-4814-9a0d-c84839c7a7ca',
-    Rebeca: '078bfc3e-241c-4c8b-877a-3693b1123814',
-    Carolina: '26006097-3918-43d9-af0f-bba823538f36',
-    Talita: '46c9673c-f9d3-4b6d-bd5c-dfaa5f4b5454',
-    'Letícia': 'd6914334-aa71-4bd0-add2-018a2d92efd3',
-    // Male
-    Pedro: '8274a79f-073d-4417-b0b0-6b609cd8aa81',
-    Thiago: '04f6a6d4-11b8-4202-8989-8debf1f49511',
-    Gabriel: 'b837f035-10e8-4e7d-81ae-418920c0a781',
-    Lucas: '189d38e0-ddc4-42ce-aeba-7b54b94d25c3',
-    Felipe: '89f16352-6277-4689-bd3c-bd73efbf3aa3',
-    Mateus: '899e3661-5c53-4626-b3d0-e3244c6e42c5',
-    'André': 'f623beab-2a2c-4f88-b74e-5e38e556dd6f',
-    Daniel: '6c2b02cd-a2da-46b0-8be8-6e7935f78137',
-  };
-
-  // Idade real de cada bot (independente das respostas do usuário)
-  const botAgeMap: Record<string, number> = {
-    Juliana: 18, Bruna: 22, Larissa: 20, Camila: 21, Vanessa: 23, Beatriz: 19,
-    Amanda: 30, Rebeca: 28, Fernanda: 26, Priscila: 29, Luana: 33, Daniela: 27,
-    Carolina: 37, Talita: 41, 'Letícia': 46, 'Patrícia': 44, Soraia: 39, Regina: 55,
-    Maria: 58, Sandra: 62,
-    Gabriel: 23, Lucas: 21, 'André': 19, 'João': 22, Vitor: 20, Diego: 24,
-    Pedro: 27, Mateus: 31, Rafael: 33, Felipe: 28, Carlos: 32, Bruno: 30,
-    Hugo: 39, Daniel: 44, Robson: 46, Marcos: 51, Fernando: 42, Eduardo: 48,
-    Thiago: 57, Benedito: 61,
-  };
-
-  // Limites ideais por faixa do usuário
-  const getIdealAgeLimit = (userRange: string): [number, number] => {
-    switch (userRange) {
-      case '18-25': return [18, 29];
-      case '26-35': return [22, 40];
-      case '36-55': return [30, 58];
-      case '56+': return [48, 99];
-      default: return [22, 40];
-    }
-  };
-
   const userAgeRange = quizAnswers.age || '26-35';
-  const [minAge, maxAge] = getIdealAgeLimit(userAgeRange);
+  const userCity = quizAnswers.city || '';
 
-  // Centro da faixa para calcular proximidade no fallback
-  const centerAge: Record<string, number> = {
-    '18-25': 21, '26-35': 30, '36-55': 45, '56+': 62,
-  };
-  const center = centerAge[userAgeRange] || 30;
+  const [profiles, setProfiles] = useState<DisplayProfile[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Shuffle determinístico baseado na cidade do usuário (parece aleatório mas é consistente por sessão)
-  const shuffleSeed = (quizAnswers.city || 'sp').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  const seededShuffle = <T,>(arr: T[]): T[] => {
-    const result = [...arr];
-    let seed = shuffleSeed;
-    for (let i = result.length - 1; i > 0; i--) {
-      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-      const j = seed % (i + 1);
-      [result[i], result[j]] = [result[j], result[i]];
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchBots() {
+      setLoading(true);
+      const botGender = gender === 'male' ? 'female' : 'male';
+      const ageRange = AGE_RANGE_MAP[userAgeRange] || { min: 18, max: 99 };
+      const currentYear = new Date().getFullYear();
+      const minBirth = `${currentYear - ageRange.max}-01-01`;
+      const maxBirth = `${currentYear - ageRange.min}-12-31`;
+
+      let { data } = await supabaseA
+        .from('profiles')
+        .select('user_id, display_name, birth_date, city, state, avatar_url')
+        .eq('is_bot', true)
+        .eq('gender', botGender)
+        .not('avatar_url', 'is', null)
+        .gte('birth_date', minBirth)
+        .lte('birth_date', maxBirth)
+        .limit(12);
+
+      // Fallback se menos de 6 bots na faixa de idade
+      if (!data || data.length < 6) {
+        const { data: fallback } = await supabaseA
+          .from('profiles')
+          .select('user_id, display_name, birth_date, city, state, avatar_url')
+          .eq('is_bot', true)
+          .eq('gender', botGender)
+          .not('avatar_url', 'is', null)
+          .limit(12);
+        data = fallback || [];
+      }
+
+      if (cancelled) return;
+
+      const seed = citySeed(userCity);
+      const shuffled = seededShuffle(data, seed);
+      const selected = shuffled.slice(0, 6);
+
+      const BASE_URL = 'https://cpqsfixvpbtbqoaarcjq.supabase.co/storage/v1/object/public/matches/';
+
+      const mapped: DisplayProfile[] = selected.map((bot) => {
+        const birthYear = bot.birth_date ? new Date(bot.birth_date).getFullYear() : 1990;
+        const age = new Date().getFullYear() - birthYear;
+        const avatarUrl = bot.avatar_url?.startsWith('http')
+          ? bot.avatar_url
+          : `${BASE_URL}${bot.avatar_url}`;
+
+        return {
+          name: bot.display_name || 'Anônimo',
+          age,
+          photo: avatarUrl,
+          city: bot.city || userCity || 'Perto de você',
+          interests: ['LOUVOR', 'DEVOCIONAL'],
+        };
+      });
+
+      setProfiles(mapped);
+      setLoading(false);
     }
-    return result;
-  };
 
-  // 1. Perfis da faixa ideal (embaralhados)
-  const primary = seededShuffle(
-    extrasList.filter(e => { const a = botAgeMap[e.name] || 28; return a >= minAge && a <= maxAge; })
-  );
+    fetchBots();
+    return () => { cancelled = true; };
+  }, [gender, userAgeRange, userCity]);
 
-  // 2. Fallback: os mais próximos em idade ao centro da faixa
-  const fallback = extrasList
-    .filter(e => { const a = botAgeMap[e.name] || 28; return a < minAge || a > maxAge; })
-    .sort((a, b) =>
-      Math.abs((botAgeMap[a.name] || 28) - center) - Math.abs((botAgeMap[b.name] || 28) - center)
+  if (loading) {
+    return (
+      <div className="h-[100dvh] bg-[#0f172a] flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto px-6">
+          <div className="grid grid-cols-2 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-[3/4.2] rounded-[2rem] bg-white/10 animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
     );
-
-  // 3. Sempre 6 perfis: primários + fallback se necessário
-  const combined = [...primary, ...fallback].slice(0, 6);
-
-  const profiles = combined.map((extra, idx) => {
-    const botAge = botAgeMap[extra.name] || 28;
-    const stub = {
-      is_bot: true,
-      user_id: funnelBotIds[extra.name] || `bot-${idx}`,
-      display_name: extra.name,
-      gender: gender === 'male' ? 'female' : 'male',
-      birth_date: `${new Date().getFullYear() - botAge}-06-15`,
-      ...extra,
-    };
-    return enrichBotProfile(stub, quizAnswers.age);
-  });
+  }
 
   return (
     <div className="h-[100dvh] bg-[#0f172a] relative overflow-y-auto pb-52 flex flex-col items-center w-full">
@@ -136,7 +155,6 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
             </Button>
           )}
 
-          {/* FIX: animate (not whileInView) — prevents re-trigger flickering on scroll */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -171,15 +189,15 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
           <div className="grid grid-cols-2 gap-4 mb-8">
             {profiles.map((profile, index) => (
               <div
-                key={`${profile.display_name || profile.name}-${index}`}
+                key={`${profile.name}-${index}`}
                 className="group relative rounded-[2rem] overflow-hidden shadow-2xl aspect-[3/4.2] border border-white/10 fade-in-fast"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Profile Image */}
                 <div className="w-full h-full relative overflow-hidden">
                   <img
-                    src={profile.photos?.[0] || profile.avatar_url || '/placeholder.svg'}
-                    alt={profile.display_name || profile.name}
+                    src={profile.photo}
+                    alt={profile.name}
                     loading={index < 4 ? "eager" : "lazy"}
                     decoding="async"
                     fetchPriority={index < 2 ? "high" : "auto"}
@@ -209,20 +227,18 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
                 <div className="absolute bottom-0 left-0 right-0 p-4 pt-10">
                   <div className="space-y-1.5">
                     <h3 className="text-white font-bold text-lg flex items-center gap-1.5">
-                      {profile.display_name || profile.name}, {profile.age}
+                      {profile.name}, {profile.age}
                       <div className="w-2 h-2 rounded-full bg-teal-400" />
                     </h3>
 
                     {index === 0 ? (
-                      // Primeiro card: mostra a cidade do usuário para personalização
                       <div className="flex items-center gap-1.5 text-white/60">
                         <MapPin className="w-3 h-3 text-teal-400" />
                         <span className="text-[11px] font-medium tracking-wide">
-                          {quizAnswers.city || profile.city || 'Perto de você'}
+                          {quizAnswers.city || profile.city}
                         </span>
                       </div>
                     ) : (
-                      // Cards bloqueados: "Perfil privado"
                       <div className="flex items-center gap-1.5 text-white/40">
                         <svg className="w-3 h-3 text-white/40 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
@@ -233,7 +249,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
 
                     {index === 0 && (
                       <div className="flex gap-1.5 flex-nowrap mt-2.5 overflow-hidden">
-                        {['LOUVOR', 'DEVOCIONAL'].map((badge) => (
+                        {profile.interests.map((badge) => (
                           <span key={badge} className="bg-black/40 px-2 py-1 rounded-md text-[8px] text-white font-bold uppercase tracking-wide whitespace-nowrap">
                             {badge}
                           </span>
@@ -263,7 +279,7 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
             ))}
           </div>
 
-          {/* Locked Counter — FIX: animate instead of whileInView */}
+          {/* Locked Counter */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -322,8 +338,6 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
           </div>
         </div>
       </div>
-
-
 
     </div>
   );
