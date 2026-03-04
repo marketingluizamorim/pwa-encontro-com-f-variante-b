@@ -57,15 +57,9 @@ function toTitleCase(str: string): string {
 }
 
 const OLD_PRICES: Record<string, number> = {
-    bronze: 12.90,
-    weekly: 12.90,
-    silver: 29.90,
-    prata: 29.90,
-    monthly: 29.90,
-    gold: 39.90,
-    ouro: 39.90,
-    annual: 39.90,
-    'special-offer': 49.90,
+    bronze_3d: 12.90,
+    silver_3d: 29.90,
+    gold_3d: 39.90,
 };
 
 // ─────────────────────────────────────────────

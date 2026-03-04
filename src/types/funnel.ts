@@ -16,7 +16,6 @@ export interface OrderBumps {
     grupoEvangelico: boolean;
     grupoCatolico: boolean;
     filtrosAvancados: boolean;
-    specialOffer: boolean;
 }
 
 export interface CheckoutInfo {

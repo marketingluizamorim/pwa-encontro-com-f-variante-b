@@ -64,7 +64,6 @@ export interface SelectedBumps {
   grupoEvangelico: boolean;
   grupoCatolico: boolean;
   filtrosAvancados: boolean;
-  specialOffer: boolean;
 }
 
 interface OrderBumpDialogProps {
@@ -103,7 +102,6 @@ export function OrderBumpDialog({
       grupoEvangelico: selectedBumps.includes('evangelico'),
       grupoCatolico: selectedBumps.includes('catolico'),
       filtrosAvancados: selectedBumps.includes('filtros'),
-      specialOffer: false,
     };
     // Save to store for UI purposes
     setOrderBumps(bumps);
@@ -119,7 +117,6 @@ export function OrderBumpDialog({
       grupoEvangelico: false,
       grupoCatolico: false,
       filtrosAvancados: false,
-      specialOffer: false,
     };
     // Reset order bumps in store
     setOrderBumps(emptyBumps);

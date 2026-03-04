@@ -38,7 +38,6 @@ const initialState = {
     grupoEvangelico: false,
     grupoCatolico: false,
     filtrosAvancados: false,
-    specialOffer: false,
   },
   checkoutInfo: {
     name: '',
