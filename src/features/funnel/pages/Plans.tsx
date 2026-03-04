@@ -6,33 +6,21 @@ import { PlansSection } from '@/features/funnel/components/PlansSection';
 import { CheckoutDialog } from '@/features/funnel/components/CheckoutDialog';
 import { PixPaymentDialog } from '@/features/funnel/components/PixPaymentDialog';
 import { ThankYouDialog } from '@/features/funnel/components/ThankYouDialog';
-import { ExitIntentDialog } from '@/features/funnel/components/ExitIntentDialog';
-import { SpecialOfferCheckoutDialog } from '@/features/funnel/components/SpecialOfferCheckoutDialog';
 import { useFunnelStore } from '@/features/funnel/hooks/useFunnelStore';
-
-
 
 import { funnelService } from '../services/funnel.service';
 import { getStoredUTMParams } from '@/hooks/useUTMTracking';
 import type { SelectedBumps } from '@/features/funnel/components/OrderBumpDialog';
 
-
-const SPECIAL_OFFER_PRICE = 14.90;
-const SPECIAL_OFFER_PLAN_ID = 'special-offer';
-const GOLD_PLAN_PRICE = 3.00;
-const GOLD_PLAN_ID = 'gold';
-const DEV_MODE = false; // Set to false for real payments
+const GOLD_PLAN_ID = 'gold_3d';
+const GOLD_PLAN_PRICE = 6.00;
+const DEV_MODE = false;
 
 const PLAN_NAMES: Record<string, string> = {
-  bronze: "Plano Bronze · 3 Dias",
   bronze_3d: "Plano Bronze · 3 Dias",
-  silver: "Plano Prata · 3 Dias",
   silver_3d: "Plano Prata · 3 Dias",
-  gold: "Plano Ouro · 3 Dias",
   gold_3d: "Plano Ouro · 3 Dias",
-  [SPECIAL_OFFER_PLAN_ID]: "Plano Ouro · 3 Meses",
 };
-
 
 export default function Plans() {
   const navigate = useNavigate();
@@ -45,13 +33,11 @@ export default function Plans() {
     setOrderBumps,
   } = useFunnelStore();
 
-
   const currentBumpsRef = useRef<SelectedBumps>({
     allRegions: false,
     grupoEvangelico: false,
     grupoCatolico: false,
     filtrosAvancados: false,
-    specialOffer: false,
   });
 
   const [selectedPlanPrice, setSelectedPlanPrice] = useState(0);
@@ -62,9 +48,6 @@ export default function Plans() {
   const [showPixPayment, setShowPixPayment] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showExitIntent, setShowExitIntent] = useState(false);
-  const [showSpecialOfferCheckout, setShowSpecialOfferCheckout] = useState(false);
-  const [hasShownExitIntent, setHasShownExitIntent] = useState(false);
   const [pixCode, setPixCode] = useState('');
   const [pixQrCode, setPixQrCode] = useState('');
   const [paymentId, setPaymentId] = useState('');
@@ -79,76 +62,43 @@ export default function Plans() {
       grupoEvangelico: bumps.grupoEvangelico,
       grupoCatolico: bumps.grupoCatolico,
       filtrosAvancados: bumps.filtrosAvancados,
-      specialOffer: bumps.specialOffer,
     };
     setOrderBumps(bumps);
     setShowCheckout(true);
   };
 
-  // Handle Plan Ouro auto-open from URL (Upgrade Strategy)
+  // Auto-open Plan Ouro from URL ?plan=gold (Upgrade Strategy)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('plan') === 'gold' || params.get('plan') === 'plus') {
       setIsUpgradeFlow(true);
-      const bumps: SelectedBumps = { allRegions: true, grupoEvangelico: true, grupoCatolico: true, filtrosAvancados: true, specialOffer: false };
+      const bumps: SelectedBumps = {
+        allRegions: true, grupoEvangelico: true, grupoCatolico: true, filtrosAvancados: true,
+      };
       handleSelectPlan(GOLD_PLAN_ID, GOLD_PLAN_PRICE, bumps);
-      // Clean URL to avoid reopening on refresh
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
 
   const handleCheckoutOpenChange = (open: boolean) => {
-    if (!open) {
-      // Let handleExitIntent handle it — don't close directly.
-      // (Only called by Dialog's own onOpenChange, which we suppress via onExitIntent prop)
-      setShowCheckout(false);
-    } else {
-      setShowCheckout(open);
-    }
+    setShowCheckout(open);
   };
 
   const handleExitIntent = () => {
-    // Backredirect desativado — apenas fecha o checkout
     setShowCheckout(false);
-  };
-
-
-  const handleAcceptSpecialOffer = () => {
-    setShowExitIntent(false);
-    // Special offer goes through the standard checkout — same UX as regular plans
-    setSelectedPlanId(SPECIAL_OFFER_PLAN_ID);
-    setSelectedPlanPrice(SPECIAL_OFFER_PRICE);
-    // Full Gold features: all bumps enabled including filtrosAvancados
-    const specialBumps = {
-      allRegions: true,
-      grupoEvangelico: true,
-      grupoCatolico: true,
-      filtrosAvancados: true,   // ← Gold feature, must be true
-      specialOffer: true,
-    };
-    currentBumpsRef.current = specialBumps;
-    setOrderBumps(specialBumps);
-    setShowCheckout(true);
-  };
-
-  const handleDeclineSpecialOffer = () => {
-    setShowExitIntent(false);
-    setShowCheckout(true);
   };
 
   const createPayment = async (
     planId: string,
     planPrice: number,
     data: { name: string; email: string; phone: string; cpf: string },
-    isSpecialOffer: boolean = false,
     explicitBumps?: SelectedBumps
   ) => {
     setIsProcessing(true);
     setCheckoutInfo(data);
 
     try {
-      const currentOrderBumps = explicitBumps
-        || (isSpecialOffer ? { allRegions: true, grupoEvangelico: true, grupoCatolico: true, filtrosAvancados: false, specialOffer: true } : currentBumpsRef.current);
+      const bumps = explicitBumps ?? currentBumpsRef.current;
 
       if (DEV_MODE) {
         setPixCode('00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-42661417400052040000530398654040.005802BR5913EncontroComFe6008Brasilia62070503***6304E2CA');
@@ -161,64 +111,37 @@ export default function Plans() {
 
       const utms = getStoredUTMParams();
 
-      if (isSpecialOffer) {
-        const subData = await funnelService.createPayment({
-          planId,
-          planPrice,
-          userName: data.name,
-          userEmail: data.email,
-          userPhone: data.phone,
-          userCpf: data.cpf,
-          gender,
-          orderBumps: { allRegions: true, grupoEvangelico: true, grupoCatolico: true, filtrosAvancados: true },
-          quizData: quizAnswers,
-          purchaseSource: 'funnel_b_special',
-          utmSource: utms.utm_source ?? null,
-          utmMedium: utms.utm_medium ?? null,
-          utmCampaign: utms.utm_campaign ?? null,
-          utmContent: utms.utm_content ?? null,
-          utmTerm: utms.utm_term ?? null,
-          src: utms.src ?? null,
-          sck: utms.sck ?? null,
-        });
-        setPixCode(subData.pixCode || '');
-        setPixQrCode(subData.qrCodeImage || '');
-        setPaymentId(subData.paymentId || '');
-        setPixTotalAmount(subData.totalAmount || planPrice);
-        setIsPixAutomatic(false);
-        setPlanCycle('ONE_TIME');
-      } else {
-        const subData = await funnelService.createPayment({
-          planId,
-          planPrice,
-          userName: data.name,
-          userEmail: data.email,
-          userPhone: data.phone,
-          userCpf: data.cpf,
-          gender,
-          orderBumps: {
-            allRegions: (currentOrderBumps as { allRegions?: boolean }).allRegions ?? false,
-            grupoEvangelico: (currentOrderBumps as { grupoEvangelico?: boolean }).grupoEvangelico ?? false,
-            grupoCatolico: (currentOrderBumps as { grupoCatolico?: boolean }).grupoCatolico ?? false,
-            filtrosAvancados: (currentOrderBumps as { filtrosAvancados?: boolean }).filtrosAvancados ?? false,
-          },
-          quizData: quizAnswers,
-          purchaseSource: 'funnel_b',
-          utmSource: utms.utm_source ?? null,
-          utmMedium: utms.utm_medium ?? null,
-          utmCampaign: utms.utm_campaign ?? null,
-          utmContent: utms.utm_content ?? null,
-          utmTerm: utms.utm_term ?? null,
-          src: utms.src ?? null,
-          sck: utms.sck ?? null,
-        });
-        setPixCode(subData.pixCode || '');
-        setPixQrCode(subData.qrCodeImage || '');
-        setPaymentId(subData.paymentId || '');
-        setPixTotalAmount(subData.totalAmount || planPrice);
-        setIsPixAutomatic(false);
-        setPlanCycle('ONE_TIME');
-      }
+      const subData = await funnelService.createPayment({
+        planId,
+        planPrice,
+        userName: data.name,
+        userEmail: data.email,
+        userPhone: data.phone,
+        userCpf: data.cpf,
+        gender,
+        orderBumps: {
+          allRegions: bumps.allRegions ?? false,
+          grupoEvangelico: bumps.grupoEvangelico ?? false,
+          grupoCatolico: bumps.grupoCatolico ?? false,
+          filtrosAvancados: bumps.filtrosAvancados ?? false,
+        },
+        quizData: quizAnswers,
+        purchaseSource: 'funnel_b',
+        utmSource: utms.utm_source ?? null,
+        utmMedium: utms.utm_medium ?? null,
+        utmCampaign: utms.utm_campaign ?? null,
+        utmContent: utms.utm_content ?? null,
+        utmTerm: utms.utm_term ?? null,
+        src: utms.src ?? null,
+        sck: utms.sck ?? null,
+      });
+
+      setPixCode(subData.pixCode || '');
+      setPixQrCode(subData.qrCodeImage || '');
+      setPaymentId(subData.paymentId || '');
+      setPixTotalAmount(subData.totalAmount || planPrice);
+      setIsPixAutomatic(false);
+      setPlanCycle('ONE_TIME');
 
       return true;
     } catch (error) {
@@ -236,18 +159,9 @@ export default function Plans() {
   };
 
   const handleCheckoutSubmit = async (data: { name: string; email: string; phone: string; cpf: string }) => {
-    const isSpecialOffer = selectedPlanId === SPECIAL_OFFER_PLAN_ID;
-    const success = await createPayment(selectedPlanId, selectedPlanPrice, data, isSpecialOffer, currentBumpsRef.current);
+    const success = await createPayment(selectedPlanId, selectedPlanPrice, data, currentBumpsRef.current);
     if (success) {
       setShowCheckout(false);
-      setShowPixPayment(true);
-    }
-  };
-
-  const handleSpecialOfferSubmit = async (data: { name: string; email: string; phone: string; cpf: string }) => {
-    const success = await createPayment(SPECIAL_OFFER_PLAN_ID, SPECIAL_OFFER_PRICE, data, true);
-    if (success) {
-      setShowSpecialOfferCheckout(false);
       setShowPixPayment(true);
     }
   };
@@ -263,9 +177,10 @@ export default function Plans() {
 
   const handleThankYouClose = () => {
     setShowThankYou(false);
-    navigate(`/register?email=${encodeURIComponent(checkoutInfo.email)}&name=${encodeURIComponent(checkoutInfo.name)}`, {
-      state: { fromCheckout: true }
-    });
+    navigate(
+      `/register?email=${encodeURIComponent(checkoutInfo.email)}&name=${encodeURIComponent(checkoutInfo.name)}`,
+      { state: { fromCheckout: true } }
+    );
   };
 
   return (
@@ -273,10 +188,8 @@ export default function Plans() {
       <PlansSection
         onSelectPlan={handleSelectPlan}
         onBack={() => navigate('/quiz')}
-        isDialogOpen={showCheckout || showPixPayment || showThankYou || showExitIntent || showSpecialOfferCheckout}
+        isDialogOpen={showCheckout || showPixPayment || showThankYou}
       />
-
-
 
       <CheckoutDialog
         open={showCheckout}
@@ -287,20 +200,6 @@ export default function Plans() {
         planName={PLAN_NAMES[selectedPlanId] || 'Plano Gold'}
         orderBumps={currentBumpsRef.current}
         onExitIntent={handleExitIntent}
-      />
-
-      <SpecialOfferCheckoutDialog
-        open={showSpecialOfferCheckout}
-        onOpenChange={setShowSpecialOfferCheckout}
-        onSubmit={handleSpecialOfferSubmit}
-        isLoading={isProcessing}
-      />
-
-      <ExitIntentDialog
-        open={showExitIntent}
-        onOpenChange={setShowExitIntent}
-        onAccept={handleAcceptSpecialOffer}
-        onDecline={handleDeclineSpecialOffer}
       />
 
       <PixPaymentDialog
