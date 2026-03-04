@@ -262,7 +262,7 @@ export function LoadingScreen({ onComplete, gender }: LoadingScreenProps) {
                                             >
                                                 <div className="w-2 h-2 rounded-full bg-teal-400" />
                                                 <span className="text-sm text-white font-bold tracking-tight whitespace-nowrap">
-                                                    {discoveredNames[0] === 'Buscando...' ? 'Buscando conexões...' : `${discoveredNames[0]} encontrada`}
+                                                    {discoveredNames[0] === 'Buscando...' ? 'Buscando conexões...' : `${discoveredNames[0]} ${gender === 'female' ? 'encontrado' : 'encontrada'}`}
                                                 </span>
                                             </motion.div>
                                         )}
