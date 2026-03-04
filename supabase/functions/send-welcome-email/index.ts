@@ -1,21 +1,21 @@
 /// <reference path="../deno.d.ts" />
 
 const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 interface WelcomeEmailRequest {
-    userName: string;
-    userEmail: string;
-    planName: string;
+  userName: string;
+  userEmail: string;
+  planName: string;
 }
 
 function buildWelcomeEmail(userName: string, planName: string): string {
-    const firstName = userName.split(" ")[0];
+  const firstName = userName.split(" ")[0];
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -33,7 +33,7 @@ function buildWelcomeEmail(userName: string, planName: string): string {
           <!-- HERO -->
           <tr>
             <td style="padding:40px 32px 24px;text-align:center;background:linear-gradient(135deg,rgba(212,175,55,0.12) 0%,rgba(20,184,166,0.06) 100%);">
-              <img src="https://encontrocomfe.site/3logo-nova1080x1080.png" alt="Encontro com Fé" width="72" height="72"
+              <img src="https://encontrocomfe.online/3logo-nova1080x1080.png" alt="Encontro com Fé" width="72" height="72"
                    style="border-radius:50%;object-fit:contain;margin-bottom:20px;filter:drop-shadow(0 0 20px rgba(212,175,55,0.5));"/>
 
               <h1 style="margin:0 0 8px;font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">
@@ -101,7 +101,7 @@ function buildWelcomeEmail(userName: string, planName: string): string {
                         </td>
                         <td style="padding:6px 0;">
                           <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.8);">
-                            Abra <strong>encontrocomfe.site/v1</strong> no <strong>Safari</strong>
+                            Abra <strong>encontrocomfe.online/v1</strong> no <strong>Safari</strong>
                           </p>
                         </td>
                       </tr>
@@ -157,7 +157,7 @@ function buildWelcomeEmail(userName: string, planName: string): string {
                         </td>
                         <td style="padding:6px 0;">
                           <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.8);">
-                            Abra <strong>encontrocomfe.site/v1</strong> no <strong>Chrome</strong>
+                            Abra <strong>encontrocomfe.online/v1</strong> no <strong>Chrome</strong>
                           </p>
                         </td>
                       </tr>
@@ -191,12 +191,12 @@ function buildWelcomeEmail(userName: string, planName: string): string {
           <!-- CTA BUTTON -->
           <tr>
             <td style="padding:0 32px 32px;text-align:center;">
-              <a href="https://encontrocomfe.site/login"
+              <a href="https://encontrocomfe.online/login"
                  style="display:inline-block;padding:16px 40px;background:linear-gradient(135deg,#d4af37,#b8860b);color:#0f172a;font-weight:800;font-size:15px;text-decoration:none;border-radius:50px;letter-spacing:0.5px;box-shadow:0 4px 24px rgba(212,175,55,0.35);">
                 Acessar minha conta →
               </a>
               <p style="margin:16px 0 0;font-size:12px;color:rgba(255,255,255,0.4);">
-                Ou acesse diretamente: encontrocomfe.site/login
+                Ou acesse diretamente: encontrocomfe.online/login
               </p>
             </td>
           </tr>
@@ -225,7 +225,7 @@ function buildWelcomeEmail(userName: string, planName: string): string {
           <!-- FOOTER -->
           <tr>
             <td style="padding:20px 32px;text-align:center;background:rgba(0,0,0,0.2);border-top:1px solid rgba(255,255,255,0.06);">
-              <img src="https://encontrocomfe.site/3logo-nova1080x1080.png" alt="Logo" width="32" height="32"
+              <img src="https://encontrocomfe.online/3logo-nova1080x1080.png" alt="Logo" width="32" height="32"
                    style="border-radius:50%;margin-bottom:10px;opacity:0.7;"/>
               <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;">
                 Encontro com Fé
@@ -247,67 +247,67 @@ function buildWelcomeEmail(userName: string, planName: string): string {
 }
 
 Deno.serve(async (req: Request) => {
-    if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-    try {
-        const body: WelcomeEmailRequest = await req.json();
-        const { userName, userEmail, planName } = body;
+  try {
+    const body: WelcomeEmailRequest = await req.json();
+    const { userName, userEmail, planName } = body;
 
-        if (!userName || !userEmail || !planName) {
-            return new Response(
-                JSON.stringify({ success: false, error: "Missing required fields" }),
-                { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
-
-        const resendApiKey = Deno.env.get("RESEND_API_KEY");
-        if (!resendApiKey) {
-            console.error("RESEND_API_KEY not configured");
-            return new Response(
-                JSON.stringify({ success: false, error: "Email service not configured" }),
-                { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
-
-        const html = buildWelcomeEmail(userName, planName);
-        const firstName = userName.split(" ")[0];
-
-        const emailRes = await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${resendApiKey}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                from: "Encontro com Fé <noreply@encontrocomfe.site>",
-                to: [userEmail],
-                subject: `${firstName}, seu acesso está ativo — instale o app agora`,
-                html,
-            }),
-        });
-
-        if (!emailRes.ok) {
-            const errText = await emailRes.text();
-            console.error("Resend error:", emailRes.status, errText);
-            return new Response(
-                JSON.stringify({ success: false, error: `Resend error: ${emailRes.status}` }),
-                { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
-
-        const data = await emailRes.json();
-        console.log("Welcome email sent:", data.id, "→", userEmail);
-
-        return new Response(
-            JSON.stringify({ success: true, emailId: data.id }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-
-    } catch (err) {
-        console.error("Fatal error in send-welcome-email:", err);
-        return new Response(
-            JSON.stringify({ success: false, error: err instanceof Error ? err.message : String(err) }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    if (!userName || !userEmail || !planName) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing required fields" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) {
+      console.error("RESEND_API_KEY not configured");
+      return new Response(
+        JSON.stringify({ success: false, error: "Email service not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const html = buildWelcomeEmail(userName, planName);
+    const firstName = userName.split(" ")[0];
+
+    const emailRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Encontro com Fé <noreply@encontrocomfe.online>",
+        to: [userEmail],
+        subject: `${firstName}, seu acesso está ativo — instale o app agora`,
+        html,
+      }),
+    });
+
+    if (!emailRes.ok) {
+      const errText = await emailRes.text();
+      console.error("Resend error:", emailRes.status, errText);
+      return new Response(
+        JSON.stringify({ success: false, error: `Resend error: ${emailRes.status}` }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const data = await emailRes.json();
+    console.log("Welcome email sent:", data.id, "→", userEmail);
+
+    return new Response(
+      JSON.stringify({ success: true, emailId: data.id }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
+  } catch (err) {
+    console.error("Fatal error in send-welcome-email:", err);
+    return new Response(
+      JSON.stringify({ success: false, error: err instanceof Error ? err.message : String(err) }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
 });

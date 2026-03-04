@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const APP_A_URL = import.meta.env.VITE_APP_A_URL || "https://pwa-encontro-com-f.vercel.app";
+const APP_A_URL = import.meta.env.VITE_APP_A_URL || "https://encontrocomfe.site";
 
 // Supabase A — acesso via Edge Function, não direto no frontend
 // A criação da conta no A é feita pela Edge Function provision-user-on-a
