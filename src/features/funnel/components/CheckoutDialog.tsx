@@ -9,6 +9,7 @@ import { ChevronDown, ChevronUp, Lock, Check, ShieldCheck, X } from 'lucide-reac
 interface CheckoutDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    planId?: string;
     planPrice: number;
     onSubmit: (data: { name: string; email: string; phone: string; cpf: string }) => void;
     isLoading?: boolean;
@@ -140,6 +141,7 @@ function FloatingInput({
 export function CheckoutDialog({
     open,
     onOpenChange,
+    planId,
     planPrice,
     onSubmit,
     isLoading,
@@ -196,9 +198,8 @@ export function CheckoutDialog({
             : `${toTitleCase(planName)}`
         : '';
 
-    // Old (crossed-out) price
-    const oldPriceKey = Object.keys(OLD_PRICES).find(k => cleanPlanName.includes(k));
-    const oldPrice = oldPriceKey ? OLD_PRICES[oldPriceKey] : Math.round(basePlanPrice * 2);
+    // Old (crossed-out) price — lookup by planId directly for reliability
+    const oldPrice = (planId && OLD_PRICES[planId]) || Math.round(basePlanPrice * 2);
 
     // Resources
     const bronzeResources = [

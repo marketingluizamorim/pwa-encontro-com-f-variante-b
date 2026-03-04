@@ -194,6 +194,7 @@ export default function Plans() {
       <CheckoutDialog
         open={showCheckout}
         onOpenChange={handleCheckoutOpenChange}
+        planId={selectedPlanId}
         planPrice={selectedPlanPrice}
         onSubmit={handleCheckoutSubmit}
         isLoading={isProcessing}
