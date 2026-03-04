@@ -43,6 +43,17 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return result;
 }
 
+const BOT_PHOTO_MAP: Record<string, string[]> = {
+  'female-18-25': Array.from({ length: 9 }, (_, i) => i === 0 ? '/assets/matches/match-female-18-25-display.jpg' : `/assets/matches/match-female-18-25-${i}.jpg`),
+  'female-26-35': Array.from({ length: 9 }, (_, i) => i === 0 ? '/assets/matches/match-female-26-35-display.jpg' : `/assets/matches/match-female-26-35-${i}.jpg`),
+  'female-36-55': Array.from({ length: 9 }, (_, i) => i === 0 ? '/assets/matches/match-female-36-55-display.jpg' : `/assets/matches/match-female-36-55-${i}.jpg`),
+  'female-56+': Array.from({ length: 9 }, (_, i) => i === 0 ? '/assets/matches/match-female-56-plus-display.jpg' : `/assets/matches/match-female-56-plus-${i}.jpg`),
+  'male-18-25': Array.from({ length: 9 }, (_, i) => i === 0 ? '/assets/matches/match-male-18-25-display.jpg' : `/assets/matches/match-male-18-25-${i}.jpg`),
+  'male-26-35': Array.from({ length: 9 }, (_, i) => i === 0 ? '/assets/matches/match-male-26-35-display.jpg' : `/assets/matches/match-male-26-35-${i}.jpg`),
+  'male-36-55': Array.from({ length: 9 }, (_, i) => i === 0 ? '/assets/matches/match-male-36-55-display.jpg' : `/assets/matches/match-male-36-55-${i}.jpg`),
+  'male-56+': Array.from({ length: 9 }, (_, i) => i === 0 ? '/assets/matches/match-male-56-plus-display.jpg' : `/assets/matches/match-male-56-plus-${i}.jpg`),
+};
+
 export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplayProps) {
   const { quizAnswers } = useFunnelStore();
   const userAgeRange = quizAnswers.age || '26-35';
@@ -68,10 +79,9 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
 
       let { data, error } = await supabaseA
         .from('profiles')
-        .select('user_id, display_name, birth_date, city, state, avatar_url')
+        .select('user_id, display_name, birth_date, city, state')
         .eq('is_bot', true)
         .eq('gender', botGender)
-        .not('avatar_url', 'is', null)
         .gte('birth_date', minBirth)
         .lte('birth_date', maxBirth)
         .limit(12);
@@ -83,10 +93,9 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
         console.log('[ProfilesDisplay] fallback acionado — bots na faixa:', data?.length ?? 0);
         const { data: fallback, error: fallbackError } = await supabaseA
           .from('profiles')
-          .select('user_id, display_name, birth_date, city, state, avatar_url')
+          .select('user_id, display_name, birth_date, city, state')
           .eq('is_bot', true)
           .eq('gender', botGender)
-          .not('avatar_url', 'is', null)
           .limit(12);
         console.log('[ProfilesDisplay] fallback result:', fallback, 'error:', fallbackError);
         data = fallback || [];
@@ -98,14 +107,20 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
       const shuffled = seededShuffle(data, seed);
       const selected = shuffled.slice(0, 6);
 
-      const BASE_URL = 'https://cpqsfixvpbtbqoaarcjq.supabase.co/storage/v1/object/public/matches/';
+      const botGenderKey = gender === 'male' ? 'female' : 'male';
 
-      const mapped: DisplayProfile[] = selected.map((bot) => {
+      const mapped: DisplayProfile[] = selected.map((bot, index) => {
         const birthYear = bot.birth_date ? new Date(bot.birth_date).getFullYear() : 1990;
         const age = new Date().getFullYear() - birthYear;
-        const avatarUrl = bot.avatar_url?.startsWith('http')
-          ? bot.avatar_url
-          : `${BASE_URL}${bot.avatar_url}`;
+
+        // Determina faixa etária do bot para selecionar foto local correta
+        const botRange = age >= 56 ? '56+' : age >= 36 ? '36-55' : age >= 26 ? '26-35' : '18-25';
+        const photoKey = `${botGenderKey}-${botRange}`;
+        const photos = BOT_PHOTO_MAP[photoKey] || BOT_PHOTO_MAP['female-26-35'];
+
+        // Card 0 usa display.jpg; demais usam fotos numeradas (1..8)
+        const photoIndex = index === 0 ? 0 : (index % (photos.length - 1)) + 1;
+        const avatarUrl = photos[photoIndex];
 
         return {
           name: bot.display_name || 'Anônimo',
