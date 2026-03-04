@@ -20,11 +20,11 @@ interface DisplayProfile {
   interests: string[];
 }
 
-const AGE_RANGE_MAP: Record<string, { min: number; max: number }> = {
-  '18-25': { min: 18, max: 25 },
-  '26-35': { min: 26, max: 35 },
-  '36-55': { min: 36, max: 55 },
-  '56+': { min: 56, max: 99 },
+const AGE_RANGE_COMPAT: Record<string, Array<{ min: number; max: number }>> = {
+  '18-25': [{ min: 18, max: 25 }, { min: 26, max: 35 }],
+  '26-35': [{ min: 26, max: 35 }, { min: 18, max: 25 }, { min: 36, max: 55 }],
+  '36-55': [{ min: 36, max: 55 }, { min: 26, max: 35 }, { min: 56, max: 99 }],
+  '56+': [{ min: 56, max: 99 }, { min: 36, max: 55 }],
 };
 
 function citySeed(city: string | undefined): number {
@@ -68,64 +68,50 @@ export function ProfilesDisplay({ gender, onViewPlans, onBack }: ProfilesDisplay
     async function fetchBots() {
       setLoading(true);
       const botGender = gender === 'male' ? 'female' : 'male';
-      const ageRange = AGE_RANGE_MAP[userAgeRange] || { min: 18, max: 99 };
+      const compatRanges = AGE_RANGE_COMPAT[userAgeRange] || [{ min: 18, max: 99 }];
       const currentYear = new Date().getFullYear();
-      const minBirth = `${currentYear - ageRange.max}-01-01`;
-      const maxBirth = `${currentYear - ageRange.min}-12-31`;
+      const collected: any[] = [];
 
-      console.log('[ProfilesDisplay] gender:', gender, 'botGender:', botGender);
-      console.log('[ProfilesDisplay] ageRange:', ageRange, 'minBirth:', minBirth, 'maxBirth:', maxBirth);
-      console.log('[ProfilesDisplay] userCity:', userCity, 'userAgeRange:', userAgeRange);
+      for (const range of compatRanges) {
+        if (collected.length >= 6) break;
 
-      let { data, error } = await supabaseA
-        .from('profiles')
-        .select('user_id, display_name, birth_date, city, state')
-        .eq('is_bot', true)
-        .eq('gender', botGender)
-        .gte('birth_date', minBirth)
-        .lte('birth_date', maxBirth)
-        .limit(12);
+        const minBirth = `${currentYear - range.max}-01-01`;
+        const maxBirth = `${currentYear - range.min}-12-31`;
 
-      console.log('[ProfilesDisplay] query result:', data, 'error:', error);
-
-      // Fallback se menos de 6 bots na faixa de idade
-      if (!data || data.length < 6) {
-        console.log('[ProfilesDisplay] fallback acionado — bots na faixa:', data?.length ?? 0);
-        const { data: fallback, error: fallbackError } = await supabaseA
+        const { data } = await supabaseA
           .from('profiles')
           .select('user_id, display_name, birth_date, city, state')
           .eq('is_bot', true)
           .eq('gender', botGender)
+          .gte('birth_date', minBirth)
+          .lte('birth_date', maxBirth)
           .limit(12);
-        console.log('[ProfilesDisplay] fallback result:', fallback, 'error:', fallbackError);
-        data = fallback || [];
+
+        if (data) {
+          const newBots = data.filter(b => !collected.find(c => c.user_id === b.user_id));
+          collected.push(...newBots);
+        }
       }
 
       if (cancelled) return;
 
       const seed = citySeed(userCity);
-      const shuffled = seededShuffle(data, seed);
+      const shuffled = seededShuffle(collected, seed);
       const selected = shuffled.slice(0, 6);
-
-      const botGenderKey = gender === 'male' ? 'female' : 'male';
+      const currentYearCalc = new Date().getFullYear();
 
       const mapped: DisplayProfile[] = selected.map((bot, index) => {
         const birthYear = bot.birth_date ? new Date(bot.birth_date).getFullYear() : 1990;
-        const age = new Date().getFullYear() - birthYear;
-
-        // Determina faixa etária do bot para selecionar foto local correta
+        const age = currentYearCalc - birthYear;
         const botRange = age >= 56 ? '56+' : age >= 36 ? '36-55' : age >= 26 ? '26-35' : '18-25';
-        const photoKey = `${botGenderKey}-${botRange}`;
-        const photos = BOT_PHOTO_MAP[photoKey] || BOT_PHOTO_MAP['female-26-35'];
-
-        // Card 0 usa display.jpg; demais usam fotos numeradas (1..8)
+        const photoKey = `${botGender}-${botRange}`;
+        const photos = BOT_PHOTO_MAP[photoKey] || BOT_PHOTO_MAP[`${botGender}-26-35`];
         const photoIndex = index === 0 ? 0 : (index % (photos.length - 1)) + 1;
-        const avatarUrl = photos[photoIndex];
 
         return {
           name: bot.display_name || 'Anônimo',
           age,
-          photo: avatarUrl,
+          photo: photos[photoIndex],
           city: bot.city || userCity || 'Perto de você',
           interests: ['LOUVOR', 'DEVOCIONAL'],
         };
