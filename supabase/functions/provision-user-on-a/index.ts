@@ -90,6 +90,8 @@ Deno.serve(async (req) => {
                 utm_campaign: purchase.utm_campaign || null,
                 utm_content: purchase.utm_content || null,
                 utm_term: purchase.utm_term || null,
+                src: purchase.src || null,
+                sck: purchase.sck || null,
             });
 
         if (purchaseAErr) {
