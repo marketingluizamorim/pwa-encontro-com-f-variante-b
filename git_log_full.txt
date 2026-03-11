@@ -1,0 +1,509 @@
+﻿hash:83d4158 | 2026-01-27 00:43:45 -0300 | feat: redesign da tela de boas-vindas com estilo de app de namoro
+hash:59a67a8 | 2026-01-27 00:51:44 -0300 | chore: force update verify github sync
+hash:1dc5328 | 2026-01-27 12:25:29 -0300 | Refactor: Reorganize project structure to 'app' root, improve folder organization, and add PRD documentation
+hash:a33bcad | 2026-01-28 03:19:46 -0300 | feat(ui): Atualiza LoadingScreen, PlansGrid e imagens de depoimentos
+hash:a212ca5 | 2026-01-28 15:24:18 -0300 | UI Polish: Refine Checkout & OrderBump dialogs, adjust layouts/fonts/colors
+hash:01dfeb5 | 2026-01-28 15:49:30 -0300 | UI Polish: Center compatibility text in ProfilesDisplay
+hash:c445db0 | 2026-01-28 15:57:52 -0300 | Perf: Implement Code Splitting, Lazy Loading & Image Opt optimizations
+hash:da03f7f | 2026-01-28 16:15:18 -0300 | UI Polish: Fix 92k+ font display, restore white color, and fix clipping bug
+hash:580d043 | 2026-01-28 16:39:46 -0300 | Perf Boost: Eager load key images & prefetch routes on hover for instant UX
+hash:2032199 | 2026-01-28 17:12:14 -0300 | UI Polish: Optimize loading screens & refine profile badges
+hash:72efde9 | 2026-01-28 17:21:05 -0300 | Perf: Optimize Order Bump images with eager loading
+hash:762c65e | 2026-01-28 18:02:06 -0300 | UI/UX: Refine Plans, Checkout and Community sections with premium arrows and adjusted spacing
+hash:cbe7b67 | 2026-01-28 18:12:23 -0300 | UI/UX Refinement: Update Exclusive Offer badge with crystal glass style and synced color palette
+hash:ae614df | 2026-01-28 18:18:09 -0300 | UI/UX: Final refinement of Exclusive Offer badge with improved visibility and premium aesthetics
+hash:cdd4e81 | 2026-01-28 18:25:06 -0300 | Feature: Smart gender-aware push notifications with exponential timing and popup avoidance
+hash:d092c7d | 2026-01-28 18:31:48 -0300 | UI: Adjust countdown timer start time to 07:53 for increased urgency
+hash:97e25c3 | 2026-01-28 18:38:32 -0300 | UI: Update OrderBump description text to be more persuasive
+hash:50a437b | 2026-01-28 19:00:36 -0300 | UI: Remove aggressive focus rings to fix fake selection visual issue
+hash:a6811ca | 2026-01-28 19:05:12 -0300 | Fix: Resolve sticky hover and pre-selection artifacts in funnel flow
+hash:966933e | 2026-01-28 19:07:29 -0300 | UI: Refine quiz step indicator style and reduce vertical spacing
+hash:4fdc2c4 | 2026-01-28 19:10:09 -0300 | UI: Soften quiz step indicator for a lighter, more discrete look
+hash:2d7aa62 | 2026-01-28 19:11:38 -0300 | UI: Restore yellow quiz indicator with refined translucency
+hash:d58067e | 2026-01-28 20:55:13 -0300 | UI: Refine PIX Payment Dialog to match brand identity
+hash:a998373 | 2026-01-28 21:10:17 -0300 | UI: Sync PIX value font and compact QR code size for consistency
+hash:9f32610 | 2026-01-28 21:12:43 -0300 | UI: Align PIX instructions to left and prevent line breaks
+hash:75f72b5 | 2026-01-28 21:46:41 -0300 | UI: Further reduce PIX dialog header and QR code sizes for ultra-compact layout
+hash:64e6d7b | 2026-01-28 21:53:20 -0300 | UI: Add PIX dialog close button, detailed copy toast, and verify payment logic
+hash:7b949f0 | 2026-01-28 22:05:05 -0300 | UI: Refactor PIX dialog close button and add not found modal with cooldown
+hash:6393d76 | 2026-01-28 22:11:33 -0300 | UI: Refactor PIX dialog close button position and not found modal view swap
+hash:032b8f7 | 2026-01-28 22:15:05 -0300 | UI: Fix auto-polling payment check loop and separate manual check logic
+hash:275e91a | 2026-01-28 22:19:12 -0300 | UI: Replace full-screen error overlay with compact payment alert bubble
+hash:9d7277a | 2026-01-28 22:34:17 -0300 | UI: Replace copy toast with instructional bubble modal
+hash:88111e2 | 2026-01-28 22:37:37 -0300 | UI: Remove duplicate close button from PIX dialog
+hash:4a241a7 | 2026-01-28 22:46:50 -0300 | Feat: Add Under Construction page at root and move Home to /v1
+hash:87606e4 | 2026-01-28 23:04:17 -0300 | Refactor: Reorganize project structure to Feature-Sliced Design (Auth and Discovery modules)
+hash:01511b8 | 2026-01-29 02:08:53 +0000 | Changes
+hash:8f9a6d4 | 2026-01-29 02:08:53 +0000 | Fix auth import paths
+hash:3d849a7 | 2026-01-28 23:15:59 -0300 | Fix: Update import paths for moved Auth and Discovery hooks
+hash:fdd0240 | 2026-01-28 23:23:00 -0300 | Merge remote-tracking branch 'origin/main'
+hash:f7fb276 | 2026-01-28 23:39:31 -0300 | UX: Enhance phone input with numeric keypad on mobile
+hash:6b0ee97 | 2026-01-28 23:47:15 -0300 | UI: Harmonize typography and styles in ExitIntent and SpecialOffer dialogs
+hash:16ce2f5 | 2026-02-05 01:34:48 -0300 | feat: refine profile UI, settings navigation, and bio editing dialog
+hash:9cbe580 | 2026-02-07 01:55:35 -0300 | style: refine emoji glow, fix help drawer scrolling, and sync filters with quiz
+hash:c1ae076 | 2026-02-08 23:47:31 -0300 | feat: implement chat media/audio, geolocation, discovery filters, and UX improvements
+hash:117b6fc | 2026-02-08 23:51:55 -0300 | fix: add/update missing christian interest icons and prioritize them in the list
+hash:f89bcf4 | 2026-02-08 23:54:28 -0300 | fix: reorder christian interests by priority and fix teatro icon
+hash:e5a427e | 2026-02-08 23:59:24 -0300 | fix: change Teatro icon to ri-masks-line for better compatibility
+hash:0fe8a26 | 2026-02-09 00:03:46 -0300 | fix: replace invalid Teatro icon with ri-clapperboard-line
+hash:dff3e65 | 2026-02-10 10:21:58 -0300 | refactor: update checkout components, plans and legal pages
+hash:67ad7c7 | 2026-02-10 13:45:00 +0000 | Changes
+hash:8e6a4f9 | 2026-02-10 13:45:00 +0000 | Refactor sync and remove missing fields
+hash:5a9da38 | 2026-02-10 11:10:18 -0300 | style: update public pages (login, register, install) to premium dark theme and flat buttons
+hash:54bbe1f | 2026-02-11 00:58:56 -0300 | feat: implement logic for daily like limit popup and adjust plan permissions
+hash:3d4ce92 | 2026-02-11 04:00:18 +0000 | Changes
+hash:4b00e85 | 2026-02-11 04:00:19 +0000 | Lovable update
+hash:bf15745 | 2026-02-11 15:41:49 -0300 | docs: atualizar e expandir termos de uso e politica de reembolso
+hash:6346f55 | 2026-02-11 15:41:49 -0300 | chore: salvar altera├º├Áes pendentes antes do sync
+hash:6bcc46b | 2026-02-12 01:37:21 -0300 | feat: enhance devotional translation, refine plan cards & chat UI, update legal info
+hash:23bf4df | 2026-02-12 01:42:21 -0300 | Fix icon reference for Sermon on the Mount in Explore.tsx
+hash:e657d2d | 2026-02-12 01:54:28 -0300 | feat: Update plan icons in discovery feature gate dialog
+hash:06890f1 | 2026-02-12 04:04:01 -0300 | fix: ajustes no comportamento de di├ílogos e melhorias na interface
+hash:c86f7a7 | 2026-02-12 15:55:05 -0300 | feat: refresh discovery features and chat flow
+hash:b4ca5ec | 2026-02-12 23:43:07 -0300 | Fa├ºa um commit e push das altera├º├Áes
+hash:a7a8878 | 2026-02-12 23:53:53 -0300 | docs: remove unnecessary documentation files, keep only PRD.md
+hash:e0f5a0c | 2026-02-13 00:20:39 -0300 | fix: adiciona vercel.json para corrigir rotas e navega├º├úo direta
+hash:9b7e561 | 2026-02-13 00:34:26 -0300 | fix: move vercel.json to public folder for correct routing
+hash:7e85293 | 2026-02-13 00:43:22 -0300 | fix: move vercel.json to root for proper routing configuration
+hash:51f1984 | 2026-02-13 00:47:30 -0300 | feat: melhora SEO com meta tags otimizadas e Open Graph completo
+hash:0cdbe2b | 2026-02-13 01:51:25 -0300 | feat: atualiza imagens do app e configura PWA/Open Graph
+hash:dd8792c | 2026-02-13 02:00:27 -0300 | chore: update pwa short_name
+hash:ac0ffe9 | 2026-02-13 02:06:27 -0300 | fix: improve mobile login UX with proper autocomplete attributes
+hash:d4d727f | 2026-02-13 02:12:20 -0300 | style: fix loading screen colors and route redirect
+hash:e2cc546 | 2026-02-13 10:58:47 -0300 | fix: auto-redirect authenticated users from login/register pages
+hash:1c7afd7 | 2026-02-13 20:04:19 -0300 | fix(matches): adjust UI layout and button positioning
+hash:4e43d4c | 2026-02-14 22:44:08 -0300 | fix(pwa): apply safe area insets to multiple screens
+hash:509056f | 2026-02-14 23:59:14 -0300 | feat: disable super like on matches, fix scrolling refresh bug, and remove animations
+hash:2ae3009 | 2026-02-15 00:02:01 -0300 | feat: fix scrolling refresh bug and remove super like functionality
+hash:bae9683 | 2026-02-15 00:08:24 -0300 | fix: manual re-trigger after reconnection to vercel
+hash:2cadf73 | 2026-02-15 00:13:13 -0300 | chore: ensure commit author matches github profile marketingluizamorim
+hash:960f572 | 2026-02-15 00:16:57 -0300 | fix: manual re-trigger for vercel with exact email matching
+hash:a4d914e | 2026-02-15 00:20:27 -0300 | chore: test commit to verify github connection
+hash:7e25d8a | 2026-02-15 00:28:10 -0300 | chore: second test commit with updated author info
+hash:7d25a95 | 2026-02-15 01:48:36 -0300 | fix: resolve typescript any types and lint errors across modules
+hash:75f47c1 | 2026-02-15 01:57:21 -0300 | Fa├ºa um commit e push das altera├º├Áes
+hash:3913aac | 2026-02-15 16:27:32 -0300 | fix(discovery): remove nested scroll container in Chat to fix PullToRefresh
+hash:bf672a9 | 2026-02-15 16:37:37 -0300 | fix(discovery): remove layout animations in Explore page for instant loading
+hash:bbf54da | 2026-02-15 16:58:58 -0300 | fix(ux): optimize splash screen, reduce geo prompts, improve matches page animation, and fix nav active state
+hash:ef072a7 | 2026-02-15 17:13:23 -0300 | fix(ui): simplify matches badge and fix nav selection ghosting
+hash:12d0436 | 2026-02-15 17:25:58 -0300 | fix(ux): improve expanded profile navigation, pwa safe areas, and finalize nav selection fixes
+hash:ff16d64 | 2026-02-15 17:34:44 -0300 | fix(ux): premium action controls in expanded profile, global tap highlight fix, and nav selection cleanup
+hash:ac26416 | 2026-02-15 17:48:59 -0300 | fix(ui/ux): resolve nav ghosting, stabilize matches cards, fix explore scrolling, and align superlike branding
+hash:e04f3e9 | 2026-02-15 17:53:41 -0300 | fix(ui): ensure only one navigation item is active and cleanup indicator transitions
+hash:8e89837 | 2026-02-15 17:56:56 -0300 | fix(nav): implement layoutId transition and strict segment match to solve multiple selection bug
+hash:de34865 | 2026-02-15 18:02:28 -0300 | fix(explore): resolve nested scroll bug, fix stuck headers, and prevent accidental page refresh
+hash:c1029b5 | 2026-02-15 18:07:16 -0300 | fix(explore): remove sticky positioning from sub-view headers to solve overlapping during scroll
+hash:b71693e | 2026-02-15 18:10:35 -0300 | fix(explore): add bottom padding to sub-views for nav bar clearance
+hash:8386304 | 2026-02-15 18:14:09 -0300 | fix(explore): increase bottom padding for nav bar clearance on main view
+hash:bef6ad9 | 2026-02-15 18:17:49 -0300 | fix(explore): standardize internal bottom padding for all sub-views
+hash:66d5adb | 2026-02-15 18:25:06 -0300 | fix(explore): increase bottom padding and use grid for lesson navigation
+hash:7526ad0 | 2026-02-15 18:28:30 -0300 | feat(explore): implement lesson progression locking
+hash:5f41459 | 2026-02-15 18:38:25 -0300 | fix(matches): fix profile scrolling and sync action buttons
+hash:f77cfda | 2026-02-15 18:45:05 -0300 | fix(ux): enable multi-photo viewing in expanded profiles
+hash:8b7f438 | 2026-02-15 18:55:05 -0300 | feat: implementado gesto de 'swipe back' e gestos de fechar perfil em Matches, Chat e Explore
+hash:321b799 | 2026-02-15 23:07:44 -0300 | feat: refine profile overlay and connection cards design consistency
+hash:46672b4 | 2026-02-16 09:09:01 -0300 | Fa├ºa um commit e push das altera├º├Áes
+hash:9906932 | 2026-02-16 10:00:14 -0300 | Refinamento de UI: margens de seguran├ºa, termos de atividade e ajustes de espa├ºamento no chat e descoberta
+hash:8539833 | 2026-02-16 10:09:11 -0300 | Fix: Problema de rolagem nos overlays de perfil corrigido atrav├®s do isolamento de gestos de drag
+hash:e354c2a | 2026-02-16 10:27:58 -0300 | Fix: Ajuste de padding inferior no chat e corre├º├úo do gesto de drag no Descobrir
+hash:d9c2f2e | 2026-02-16 11:37:07 -0300 | feat: enhance profile plan colors, matches UI, and notification positioning
+hash:846bfca | 2026-02-16 14:39:48 -0300 | fix: resolve duplicate notification popups
+hash:b7a5436 | 2026-02-16 15:01:49 -0300 | feat: implement real-time updates and fix match synchronization
+hash:affcbbe | 2026-02-16 15:37:18 -0300 | style: refine Discovery card layout and restore profile information
+hash:7bfb2e5 | 2026-02-16 15:41:31 -0300 | perf: re-implement smart image preloading and priority rendering
+hash:b9afce4 | 2026-02-16 15:50:59 -0300 | fix: resolve keyboard layout shift and global scroll bugs
+hash:e951a20 | 2026-02-16 16:13:12 -0300 | feat: melhorias no input do chat, ajuste do teclado e refinamentos na UI da Descoberta
+hash:fffbda9 | 2026-02-16 16:26:04 -0300 | style: ajuste na altura da foto de perfil e zona segura dos indicadores de fotos
+hash:d8e1b3a | 2026-02-16 16:33:09 -0300 | fix(chat): corre├º├úo definitiva do bug de layout com o teclado e zona segura no chat
+hash:ab26051 | 2026-02-16 16:37:09 -0300 | feat(chat): manter foco no input ap├│s enviar mensagem para conversa fluida
+hash:828c4b3 | 2026-02-16 16:41:47 -0300 | fix(chat): melhoria na fluidez e ajustes de layout no teclado
+hash:d3f7d2c | 2026-02-16 16:42:36 -0300 | fix(chat): solu├º├úo definitiva para teclado e zona segura sem atrasos visuais
+hash:0ee40d8 | 2026-02-16 16:52:52 -0300 | fix(ui): arquitetura de zona segura e viewport unificada para resolver bugs de teclado e layout
+hash:97389c4 | 2026-02-16 19:16:24 -0300 | fix(chat): reconstru├º├úo total da arquitetura de viewport e zona segura para eliminar gaps e bugs de teclado
+hash:1e84ae1 | 2026-02-16 19:42:46 -0300 | fix(chat): implementacao de viewport-fixed container e body-freeze para eliminar gaps de teclado e zona segura
+hash:5dc17ba | 2026-02-16 19:56:21 -0300 | fix(layout): implementacao de PWA Viewport Adhesion e reset de Shell Global para estabilidade de teclado e navegacao
+hash:15e84c0 | 2026-02-16 20:05:56 -0300 | revert(layout): restauracao do controle central e layout original do discovery; simplificacao do chat
+hash:5219991 | 2026-02-16 20:12:34 -0300 | fix(layout): restauracao do controle central e tamanho dos cards de perfil; ajustes de safe-area-inset
+hash:46551ae | 2026-02-16 20:20:46 -0300 | fix(layout): ajuste fino de safe-area e posicionamento dos controles no Discovery
+hash:053fbec | 2026-02-16 20:54:15 -0300 | fix(layout): reducao da zona segura inferior e ajuste de controles no Discover
+hash:2c786d6 | 2026-02-16 21:00:32 -0300 | fix(layout): implementa├º├úo de layout auto-ajust├ível e responsividade din├ómica para cards e navega├º├úo
+hash:bf667d8 | 2026-02-16 21:04:22 -0300 | fix(layout): otimiza├º├úo da zona segura inferior com CSS max() para PWA
+hash:ee29351 | 2026-02-16 21:08:01 -0300 | fix(layout): ajuste fino na margem inferior dos bot├Áes de a├º├úo no Discovery
+hash:8a126c0 | 2026-02-16 21:12:19 -0300 | fix(chat): ajuste de zona segura e compacta├º├úo dos controles no ChatRoom
+hash:82eaa79 | 2026-02-16 21:15:06 -0300 | fix(layout): compacta├º├úo extrema de rodap├® e zona segura para PWA
+hash:fd8966b | 2026-02-16 21:22:42 -0300 | fix(layout): ajuste de espa├ºamento no perfil expandido do Chat e Discover para PWA
+hash:1ea4b7e | 2026-02-16 21:28:38 -0300 | fix(chat): corre├º├úo de sobreposi├º├úo do perfil no chat e ajuste de safe-area para 0.25
+hash:1bef1f8 | 2026-02-16 21:40:18 -0300 | fix(chatroom): fix profile overlay swipe down gesture and consistency
+hash:5f08ad0 | 2026-02-16 21:59:30 -0300 | fix: ajuste no gesto do perfil no chat e melhorias de UI
+hash:3a50c6b | 2026-02-16 22:08:20 -0300 | style: replace emojis with themed icons, implement drawer filters and fix PWA safe area notifications
+hash:6bd2c5f | 2026-02-16 22:14:43 -0300 | fix: adjust PWA notification safe area and splash screen text case
+hash:14d2bf7 | 2026-02-16 22:18:14 -0300 | style: force notification positioning 80px from top and fix splash screen casing
+hash:95d50d5 | 2026-02-16 22:21:17 -0300 | test: use fixed 120px offset for notifications
+hash:53de33a | 2026-02-17 09:19:49 -0300 | test: extreme 500px offset for notifications debugging
+hash:7af96eb | 2026-02-17 09:24:42 -0300 | test: inline styles for login toast debugging
+hash:ea191cd | 2026-02-17 09:30:43 -0300 | style: revert notification offsets and apply isolated safe area to login toast
+hash:a57f272 | 2026-02-17 09:39:37 -0300 | test: apply global 500px notification offset and fix location notifications
+hash:71b1a86 | 2026-02-17 09:45:27 -0300 | style: adjust notification offset to 250px and revert background transparency
+hash:b31ada8 | 2026-02-17 09:51:15 -0300 | style: adjust notification offset to 50px
+hash:a268092 | 2026-02-17 09:54:27 -0300 | feat: introduce `useGeolocation` hook to get and store user's current location with rate limiting.
+hash:5416e6e | 2026-02-17 09:58:34 -0300 | style: adjust login notification margin to 50px
+hash:9d3d95d | 2026-02-17 10:17:43 -0300 | style: aplicar marginTop de 50px em todos os toasts para consist├¬ncia visual
+hash:e914a7b | 2026-02-17 10:38:30 -0300 | fix(ui): resolve scrolling issues and refine profile layout
+hash:b72eccf | 2026-02-17 11:29:10 -0300 | fix(chat): improve audio recording UX, fix dropdown visibility, and audio format compatibility
+hash:b6011e6 | 2026-02-17 11:39:25 -0300 | style(chat): implement WhatsApp-style audio player and fix recording timer
+hash:82d95ad | 2026-02-17 11:41:42 -0300 | fix(chat): show user avatar in audio player
+hash:8d63138 | 2026-02-17 11:44:06 -0300 | feat(chat): whatsapp-style image messages with overlay and lightbox
+hash:d75f37d | 2026-02-17 11:48:07 -0300 | style(chat): use platform colors for shared social media cards
+hash:33c1ec2 | 2026-02-17 11:51:32 -0300 | feat(chat): implement WhatsApp-style video call with Jitsi integration
+hash:54b81d5 | 2026-02-17 11:58:05 -0300 | style(chat): redesign video call UI to match WhatsApp premium aesthetic
+hash:38be4f1 | 2026-02-17 12:03:34 -0300 | style(chat): simplify video call UI and refine controls for voice-only capability
+hash:f2abe7e | 2026-02-17 12:09:48 -0300 | feat(chat): implement real-time video call handshake for caller/receiver synchronization
+hash:b75aa6a | 2026-02-17 12:26:36 -0300 | feat(chat): implement audio call functionality and update plan descriptions
+hash:8328e7f | 2026-02-17 12:28:10 -0300 | style(chat): swap call button order to place video before audio
+hash:c98b01c | 2026-02-17 12:32:05 -0300 | fix(chat): hide audio call codes from message preview in chat list
+hash:54bb054 | 2026-02-17 12:47:43 -0300 | feat: Add core discovery, matching, chat, and subscription funnel pages and components.
+hash:4193b38 | 2026-02-17 17:22:55 -0300 | style: fix scrolling issues and adjust plan card UI
+hash:223cc0b | 2026-02-17 18:02:26 -0300 | style: upgrade plan cards layout, floating badges and typography refinements
+hash:2e17d65 | 2026-02-17 18:16:33 -0300 | style: redesign plan comparison with Sora typography and improved mobile stability
+hash:21813fd | 2026-02-17 18:42:21 -0300 | feat: implement 'unlock scroll' logic for plan comparison with smooth auto-scroll
+hash:88ddc65 | 2026-02-17 19:07:40 -0300 | style: reorder plan comparison features sequence
+hash:2bf85da | 2026-02-17 19:21:09 -0300 | ux: delay geolocation request to avoid overlap with login notifications
+hash:493e6cd | 2026-02-17 19:45:06 -0300 | style: adjust spacing on Explore page and refine Discover filters modal
+hash:d6126c2 | 2026-02-17 19:52:02 -0300 | style: apply consistent pb-24 spacing and profile spacers across all tabs (Likes, Messages, Profile, Discover)
+hash:b0cf813 | 2026-02-17 20:03:26 -0300 | feat: improve geolocation permission notification with install action and persistent UI
+hash:e0190c5 | 2026-02-17 20:05:40 -0300 | feat: persist geolocation notice dismissal to avoid reappearance
+hash:1136c69 | 2026-02-17 20:09:29 -0300 | feat: enhance install page with device-specific instructions and premium UI
+hash:32588b8 | 2026-02-17 20:10:52 -0300 | style: reduce installation icon size and optimize vertical spacing
+hash:d5c037a | 2026-02-17 20:12:39 -0300 | style: update installation page feature highlights text and icons
+hash:cf874d6 | 2026-02-17 20:16:54 -0300 | feat: simplify install step 2 with direct Clique Aqui button and toast fallback
+hash:42537b0 | 2026-02-17 20:18:23 -0300 | style: refine install step 2 text to specify 'Procure por' instruction
+hash:0b5e2a5 | 2026-02-17 20:50:37 -0300 | style: reduce logo and title size on install page to fit viewport
+hash:12d68f7 | 2026-02-17 20:53:48 -0300 | style: ultra-compact layout for install page with icon-only back button
+hash:efd41be | 2026-02-17 20:55:19 -0300 | style: push install page content higher by eliminating top margins
+hash:8707ea4 | 2026-02-17 20:56:13 -0300 | style: add breathing room between subtitle and install card
+hash:80d9873 | 2026-02-17 20:57:08 -0300 | style: adjust install page title size and back button positioning
+hash:1ae3d51 | 2026-02-17 20:59:24 -0300 | style: lift content higher on install page while keeping back button position
+hash:6e16281 | 2026-02-17 21:04:22 -0300 | style: fix toast notification colors and close button contrast
+hash:a88162c | 2026-02-17 21:09:55 -0300 | style: fix sonner notification colors and close button contrast for iOS compatibility
+hash:93ad167 | 2026-02-17 21:19:20 -0300 | style: increase visible features in PlanCard to show 'Perfil em destaque'
+hash:320a9e5 | 2026-02-17 21:22:12 -0300 | fix(plans): show 'Perfil em destaque' in FeatureGateDialog by increasing features limit
+hash:d6d8a47 | 2026-02-17 21:26:51 -0300 | feat(filters): add subtitle to help users discover more filters
+hash:0615246 | 2026-02-17 21:28:36 -0300 | chore: sync user edits and final UI refinements
+hash:70188eb | 2026-02-17 21:33:36 -0300 | feat(plans): add discrete close button to upgrade cards
+hash:d9c94a2 | 2026-02-17 21:35:16 -0300 | style: make upgrade card close button more discreet (transparent & 1rem)
+hash:4722285 | 2026-02-17 21:38:01 -0300 | style(filters): add spacing to subtitle
+hash:b099c53 | 2026-02-17 22:21:23 -0300 | style(help): resize help drawer to 65vh, increase text/icons and add close button
+hash:45935f8 | 2026-02-17 22:22:45 -0300 | style(help): decrease title and icon size in HelpDrawer
+hash:9f138e8 | 2026-02-18 02:30:40 -0300 | fix: comprehensive Supabase integration review and fixes
+hash:e4c1714 | 2026-02-18 02:51:35 -0300 | fix: discovery function haversine + ProtectedRoute race condition on F5
+hash:df6e669 | 2026-02-18 02:57:37 -0300 | fix: Patricia coordinates + maxDistance 500km default + localStorage versioning
+hash:27e9f04 | 2026-02-18 03:06:57 -0300 | fix: interest tags white, church_frequency moved to More Info with label
+hash:fae39bc | 2026-02-18 03:15:12 -0300 | fix: white interest tags in ChatRoom and Chat profile views
+hash:347c23b | 2026-02-18 03:20:10 -0300 | fix: increase gradient h-40 to h-56 to hide photo/content separator in all profile views
+hash:46a22fc | 2026-02-18 03:21:45 -0300 | fix: revert gradient to h-40 and add overflow-hidden to photo containers to hide separator line
+hash:c94ed20 | 2026-02-18 03:25:03 -0300 | fix: add bg-background cover div to definitively hide photo/content separator line in all profile views
+hash:a5809f5 | 2026-02-18 03:26:59 -0300 | fix: lower cover div z-index to z-5 so activity text is not hidden behind it
+hash:52afccd | 2026-02-18 03:28:59 -0300 | fix: paint photo container bottom border with bg-background color to hide separator line
+hash:dd28144 | 2026-02-18 03:31:53 -0300 | fix: resolve refresh race condition - skip initial onAuthStateChange null event, add sub query safety timeout
+hash:113e11f | 2026-02-18 03:37:41 -0300 | fix: use real GPS coords for distance calculation, fallback to saved profile coords, hide if no location
+hash:393aeea | 2026-02-18 13:58:02 -0300 | feat: implement profile completion dialog logic and fix profile border line UI
+hash:82c2066 | 2026-02-18 15:10:13 -0300 | fix: corrige loading infinito, adiciona desfazer match e audita chat
+hash:9e57506 | 2026-02-18 15:32:47 -0300 | fix: elimina flash de fundo preto (FOUC) na pagina de login
+hash:54c9392 | 2026-02-18 15:45:24 -0300 | fix: remove fundo branco da logo usando mix-blend-mode screen
+hash:b061a9e | 2026-02-18 16:12:16 -0300 | perf: corrige skeleton infinito no Chat - consolida queries de mensagens
+hash:c5d4d88 | 2026-02-18 16:21:23 -0300 | fix: corrige skeleton infinito em Discover, Matches e Profile
+hash:3b77cca | 2026-02-18 16:28:35 -0300 | fix: corrige travamento de loading em todas as paginas
+hash:d49defe | 2026-02-18 16:41:30 -0300 | fix: elimina skeleton na primeira visita com prefetch no AppLayout
+hash:9d80ea5 | 2026-02-18 16:57:56 -0300 | feat: implementa todas as funcionalidades de plano + corrige discovery
+hash:0259a08 | 2026-02-18 17:06:41 -0300 | fix: corrige PullToRefresh em loop + slider dist├óncia 500100km
+hash:bb28d05 | 2026-02-18 17:12:01 -0300 | fix: corrige loading infinito ao abrir conversa no ChatRoom
+hash:6c739a0 | 2026-02-18 17:45:30 -0300 | fix: corrige loading infinito ao abrir chat - race condition user vs matchId
+hash:178ecc1 | 2026-02-18 17:52:11 -0300 | feat: atualiza logo e splash screen da PWA para novo icone dourado
+hash:8126a20 | 2026-02-18 17:56:57 -0300 | feat: adiciona splash screen HTML com novo logo dourado
+hash:1ef72c0 | 2026-02-18 18:01:25 -0300 | fix: forca iOS a usar novo icone 2pwa-512x512.png com cache-busting
+hash:f780dc3 | 2026-02-18 18:04:58 -0300 | fix: splash screen volta a usar pwa-512x512.png (logo com fundo azul)
+hash:77f224d | 2026-02-18 18:08:46 -0300 | feat: usa 3logo-nova1080x1080.png em todos os icones e splash screen da PWA
+hash:4ec5982 | 2026-02-18 18:13:52 -0300 | feat: icone do app (iOS/Android) atualizado para nova-logo-azul.png
+hash:8435fd1 | 2026-02-18 18:27:53 -0300 | feat: modal bloqueante de localizacao negada com vibracao e botao pulsante
+hash:8f7937d | 2026-02-18 18:34:29 -0300 | fix: reposiciona modal de localizacao para o topo (igual ao toast anterior)
+hash:e30a75e | 2026-02-18 18:44:03 -0300 | feat: bloqueia navegacao na navbar quando modal de localizacao esta aberto
+hash:597f172 | 2026-02-18 18:47:32 -0300 | fix: pagina Install responsiva para telas pequenas
+hash:e3fc099 | 2026-02-18 18:50:45 -0300 | fix: corrige logo com fundo preto no iOS Safari
+hash:a86ef6e | 2026-02-18 18:56:53 -0300 | fix: botao Ativar Agora do modal de localizacao navega para /install
+hash:8ae7885 | 2026-02-18 19:00:56 -0300 | feat: redireciona navegador para /install e corrige fluxo do modal de localizacao
+hash:e93ba9e | 2026-02-18 19:04:47 -0300 | fix: pagina Install centralizada verticalmente e botao voltar com safe area
+hash:1a5f4a7 | 2026-02-18 19:07:43 -0300 | fix: redirect para /install so ocorre em producao, nao em localhost/dev
+hash:53d9587 | 2026-02-18 19:13:11 -0300 | fix: frase de zero curtidas por plano na pagina Matches
+hash:86328e1 | 2026-02-18 19:18:44 -0300 | fix: remove redirect para /install do ProtectedRoute - app funciona normalmente no navegador
+hash:1c17d8a | 2026-02-18 19:32:06 -0300 | feat: splash screen suprimida em rotas do funil e publicas
+hash:5ab95cd | 2026-02-18 19:36:59 -0300 | fix: modal de localizacao - X dentro do card e onActivate por contexto
+hash:46f04bc | 2026-02-18 20:01:49 -0300 | fix: atualiza mensagem de zero curtidas no plano bronze
+hash:eca1c18 | 2026-02-18 20:05:18 -0300 | feat: aumenta fontes e icones da pagina Install
+hash:9c65f74 | 2026-02-18 20:07:39 -0300 | fix: botao Clique Aqui agora funcional em Android e iOS
+hash:a44ae80 | 2026-02-18 20:18:48 -0300 | fix: iOS install guide - overlay visual aponta para botao correto do Safari
+hash:e08d72c | 2026-02-18 20:55:24 -0300 | fix: elimina segunda tela de loading antes do login
+hash:74332ef | 2026-02-18 21:03:54 -0300 | feat: overlay visual para Android quando prompt nao disponivel
+hash:eb19dd8 | 2026-02-18 21:08:20 -0300 | fix: sliders de filtros draggable no mobile
+hash:60a214b | 2026-02-18 21:13:12 -0300 | fix: substitui Radix Slider por slider custom com setPointerCapture
+hash:de038b5 | 2026-02-18 21:16:34 -0300 | fix: slider com input nativo + data-vaul-no-drag
+hash:d5302c1 | 2026-02-18 21:23:54 -0300 | fix: dismissible=false + touch events + data-vaul-no-drag
+hash:60f66bd | 2026-02-18 21:38:08 -0300 | fix: slider com addEventListener passive:false + touch-action:none
+hash:71db9c1 | 2026-02-18 21:43:26 -0300 | feat: double range slider com labels flutuantes + input nativo
+hash:74ca0fc | 2026-02-18 21:46:36 -0300 | fix: slider livre com pointer events + setPointerCapture
+hash:c1e08d0 | 2026-02-18 21:52:11 -0300 | fix: slider com DOM direto + rAF + document listeners
+hash:28003a4 | 2026-02-18 21:54:03 -0300 | ui: aumenta drawer de filtros avancados de 60vh para 70vh
+hash:89dcc91 | 2026-02-18 21:58:23 -0300 | fix: remove document listeners duplos do slider
+hash:6ba59cd | 2026-02-18 22:03:55 -0300 | fix: bloqueia arrasto horizontal no modal dos filtros
+hash:ab80a52 | 2026-02-18 22:08:32 -0300 | refactor: substitui vaul Drawer por bottom sheet nativo nos filtros
+hash:d23b030 | 2026-02-18 22:09:45 -0300 | ui: subtitulo 'Deslize para ver mais' no header dos filtros
+hash:75c8592 | 2026-02-18 22:22:50 -0300 | fix: bloqueia overflow-x em todas as camadas do FilterSheet
+hash:4a7dfd6 | 2026-02-18 22:24:29 -0300 | ui: aumenta tamanho dos textos do filtro avancado para 0.95rem
+hash:dddab93 | 2026-02-18 22:30:05 -0300 | feat: animacao de feedback leve ao dar like/dislike/super_like
+hash:1895a14 | 2026-02-18 22:43:42 -0300 | fix: corrige piscar duplo no feedback de swipe
+hash:7f81955 | 2026-02-18 22:47:57 -0300 | fix: splash screen nao aparece mais em rotas publicas e do funil
+hash:bd7edb2 | 2026-02-18 22:50:16 -0300 | fix: bloqueia splash na fonte (hook) usando window.location.pathname
+hash:c710d76 | 2026-02-18 22:52:56 -0300 | fix: verificacao de rota sincrona no useState evita janela de tempo
+hash:7f25104 | 2026-02-18 22:55:15 -0300 | temp: desativa splash completamente para diagnostico
+hash:1817264 | 2026-02-18 22:57:01 -0300 | fix: splash HTML do index.html removido instantaneamente em rotas publicas
+hash:be21028 | 2026-02-18 22:58:47 -0300 | fix: reativa useSplashScreen com logica de rota completa
+hash:e178e05 | 2026-02-18 23:00:44 -0300 | feat: splash permitido tambem em /login, /register e /install
+hash:b6a6f5c | 2026-02-18 23:27:12 -0300 | feat: sistema de denuncia via email com Resend
+hash:0850ec9 | 2026-02-18 23:30:01 -0300 | fix: suprime erros de tipo Deno no IDE (Edge Function)
+hash:2a4e052 | 2026-02-18 23:47:25 -0300 | feat: popup de sucesso apos instalacao do PWA
+hash:bd99a49 | 2026-02-18 23:49:09 -0300 | feat: aviso visual na pagina install sobre lista de apps
+hash:9e413bd | 2026-02-18 23:50:25 -0300 | chore: ajustes no texto dos avisos da pagina install
+hash:fa98d6b | 2026-02-18 23:51:10 -0300 | chore: remove emoji do aviso Android na pagina install
+hash:174e7fb | 2026-02-18 23:53:42 -0300 | fix: corrige loading infinito no ChatRoom na primeira abertura
+hash:a8034d6 | 2026-02-18 23:56:17 -0300 | fix: AuthProvider nunca fica preso em loading infinito
+hash:357a707 | 2026-02-19 00:03:54 -0300 | chore: revisao de producao - limpeza e hardening
+hash:9da8b00 | 2026-02-19 00:11:47 -0300 | fix: corrige dominio para encontrocomfe.site (sem 's')
+hash:e66ebcf | 2026-02-19 00:30:06 -0300 | fix: corrige envio de email de denuncia em todos os ambientes
+hash:76a2523 | 2026-02-19 00:32:52 -0300 | fix: email de denuncia somente em producao (restaura guard isLocalhost)
+hash:0e60f41 | 2026-02-19 00:42:55 -0300 | feat: painel admin com lista de denuncias e suspensao de contas
+hash:c9197e3 | 2026-02-19 01:03:37 -0300 | fix: ProfileEdit nao travava mais no spinner ao abrir pela primeira vez
+hash:b122400 | 2026-02-19 01:08:53 -0300 | fix: fotos carregando pela metade e info sumindo ao rolar em Curtidas/Mensagens
+hash:9350661 | 2026-02-19 13:05:25 -0300 | fix: add Deno type shims for Edge Functions TS server compatibility
+hash:afb392d | 2026-02-19 15:57:38 -0300 | feat: redesign CheckoutDialog e botoes ASSINAR AGORA em caixa alta
+hash:492af6d | 2026-02-19 16:03:19 -0300 | fix: aumenta z-index do Dialog overlay para z-99999
+hash:a04cd93 | 2026-02-19 16:25:07 -0300 | feat: adiciona mensagem de boas-vindas na aba Mensagens com guia completo do app
+hash:2c87b9d | 2026-02-19 16:48:42 -0300 | feat: atualiza textos do WelcomeChat e adiciona suporte a bullets
+hash:fbecdd7 | 2026-02-19 16:51:51 -0300 | feat: adiciona secao Perfil em Destaque no WelcomeChat
+hash:ce557f8 | 2026-02-19 16:55:26 -0300 | fix: corrige Perfil em Destaque para exclusivo do plano Ouro no WelcomeChat
+hash:44f3a8c | 2026-02-19 17:03:43 -0300 | fix: move menu 3 pontinhos para dentro da conversa WelcomeChat
+hash:f56e1f8 | 2026-02-19 17:05:52 -0300 | fix: usa DropdownMenu igual ao ChatRoom no header do WelcomeChat
+hash:030106e | 2026-02-19 17:12:05 -0300 | fix: cor do preco +R,00 no OrderBump alterada para branco
+hash:1b467bd | 2026-02-19 17:14:52 -0300 | fix: remove negrito do preco do plano e converte precos amarelos para branco no OrderBump
+hash:a1abb03 | 2026-02-19 17:16:12 -0300 | fix: remove negrito dos precos +5,00 nos cards do OrderBump
+hash:8b58e89 | 2026-02-19 17:17:21 -0300 | fix: valor total dos extras em branco/60 no OrderBump
+hash:b1ccdfb | 2026-02-19 17:19:12 -0300 | fix: alinha estilo do preco no bump unico com os demais (white/60)
+hash:36e7088 | 2026-02-19 17:20:41 -0300 | fix: total a pagar com font-weight 800 (extrabold)
+hash:ad9b7a5 | 2026-02-19 17:21:21 -0300 | fix: total a pagar com font-weight 750 via inline style
+hash:bf62517 | 2026-02-19 17:22:50 -0300 | fix: preco do plano R,90 com font-weight 500
+hash:a91017e | 2026-02-19 17:28:00 -0300 | fix: titulo Ofertas de Ano Novo com font-weight 600 e nomes dos bumps com 0.975rem
+hash:0886c06 | 2026-02-19 17:30:41 -0300 | fix: preco riscado no checkout aumentado para 13px
+hash:944cdd1 | 2026-02-19 17:31:53 -0300 | fix: titulo Finalizar Assinatura com font-weight 700
+hash:248e280 | 2026-02-19 17:34:22 -0300 | fix: labels dos campos nome/email/telefone para 14px
+hash:ce5d911 | 2026-02-19 17:35:45 -0300 | fix: mensagem de erro obrigatorio para 12px no checkout
+hash:ef88e90 | 2026-02-19 17:36:19 -0300 | fix: texto Ver o que esta incluido para 12px
+hash:9cf52cc | 2026-02-19 17:36:56 -0300 | fix: erro de telefone obrigatorio para 12px
+hash:c1d5c05 | 2026-02-19 17:41:38 -0300 | feat: adiciona recursos do Plano Bronze e exibe Ver o que esta incluido para todos os planos
+hash:87a7274 | 2026-02-19 17:44:24 -0300 | fix: beneficios do Bronze no checkout alinhados com o card do plano
+hash:6679eb8 | 2026-02-19 17:57:42 -0300 | feat: adiciona has_grupo_evangelico e has_grupo_catolico ao banco e types
+hash:9258b68 | 2026-02-19 18:08:19 -0300 | feat: sincronizacao cross-device do quiz_data via banco de dados
+hash:aeec863 | 2026-02-19 18:14:43 -0300 | feat: botao TESTAR COMPRA no modal de finalizar assinatura
+hash:207c559 | 2026-02-19 18:22:42 -0300 | fix: flickering das imagens e scroll bloqueado na pagina de perfis
+hash:269d768 | 2026-02-19 18:32:18 -0300 | fix: ajustes de layout e scroll na pagina de perfis
+hash:e99fc1f | 2026-02-19 18:41:13 -0300 | fix: ajustes visuais no order bump dialog
+hash:2889c0e | 2026-02-19 18:44:58 -0300 | fix: reduz espaco antes da linha divisoria no order bump
+hash:9e3f64f | 2026-02-19 18:53:01 -0300 | feat: order bump filtros de idade e distancia exclusivo para plano prata
+hash:ceb9c33 | 2026-02-19 18:58:16 -0300 | fix: renomeia bump para Filtros Avancados
+hash:3933f49 | 2026-02-19 19:04:52 -0300 | fix: remove badge exclusivo plano prata do bump filtros
+hash:39e24c0 | 2026-02-19 19:07:34 -0300 | feat: destaca palavras-chave em negrito nas descricoes dos bumps
+hash:607dac1 | 2026-02-19 19:08:45 -0300 | fix: negrito herda cor da frase sem alterar a cor do texto
+hash:11c48dc | 2026-02-19 19:11:31 -0300 | fix: usa lupa-ordembump.png na imagem do bump filtros avancados
+hash:693a7f0 | 2026-02-19 19:20:35 -0300 | fix: inclui user_id no insert de compra de teste para passar na politica RLS
+hash:f0b772c | 2026-02-19 19:31:08 -0300 | fix: compra de teste funciona com ou sem login (anonimo via nova politica RLS)
+hash:ccba8e0 | 2026-02-19 19:33:00 -0300 | fix: edge function invoke e fire-and-forget para evitar erro de abort ao navegar
+hash:99a5596 | 2026-02-19 19:39:52 -0300 | feat: remove botao testar compra e funcoes relacionadas do CheckoutDialog
+hash:b337d05 | 2026-02-19 19:48:46 -0300 | feat: adiciona botoes de demo (PIX e Obrigado) no painel admin; limpa props do CheckoutDialog
+hash:6a61d8a | 2026-02-19 19:54:13 -0300 | fix: reduz QR Code do PIX para 3rem (w-12 h-12)
+hash:adf0a6b | 2026-02-19 19:54:49 -0300 | fix: cor do valor do PIX de amarelo para branco
+hash:13f2be3 | 2026-02-19 19:55:57 -0300 | fix: reduz espacamentos do PixPaymentDialog para modal mais compacto
+hash:1faf4a6 | 2026-02-19 19:57:07 -0300 | fix: ajusta espacamento do PIX modal para ponto medio confortavel
+hash:4189ba5 | 2026-02-19 20:20:13 -0300 | chore: remove painel admin e imports nao usados de Plans.tsx
+hash:299441a | 2026-02-19 20:22:13 -0300 | feat: mostra order bumps com icone + amarelo no checkout de planos Bronze/Prata
+hash:a914419 | 2026-02-19 20:29:09 -0300 | fix: corrige deteccao de plano no checkout - nome tem prioridade sobre preco (Bronze+extras nao vira Prata)
+hash:ceb5ccb | 2026-02-19 20:30:17 -0300 | fix: remove separador e simplifica titulo para 'Ver o que esta incluido'
+hash:173f2dd | 2026-02-19 23:01:40 -0300 | feat: Add subscription and payment management system, including protected routes, an expired plan modal, and a financial admin dashboard.
+hash:ee327e0 | 2026-02-20 02:39:48 -0300 | feat: password reset flow + welcome email via Resend after purchase
+hash:ccdad50 | 2026-02-20 03:14:29 -0300 | chore: remove emojis from welcome email subject and headings
+hash:61ab874 | 2026-02-20 11:09:18 -0300 | fix: reduce special offer price from R$ 15,90 to R$ 14,90
+hash:02ec326 | 2026-02-20 11:33:19 -0300 | fix: hide floating like button when HelpDrawer is open to prevent overlap
+hash:718425b | 2026-02-20 11:35:06 -0300 | fix: rebuild HelpDrawer with proper scroll, sizing and fixed CTA button
+hash:637f79c | 2026-02-20 11:38:20 -0300 | fix: remove duplicate DESCONTO word in plan card badge + HelpDrawer text tweaks
+hash:49d079b | 2026-02-20 11:44:22 -0300 | fix: remove overflow-hidden from legal pages to restore scroll
+hash:9dccf95 | 2026-02-20 11:45:58 -0300 | fix: legal pages use fixed inset-0 overflow-y-auto to bypass global body overflow:hidden
+hash:8e15954 | 2026-02-20 11:48:11 -0300 | fix: change R$ 14,90 price color from yellow to white in ExitIntentDialog
+hash:806da9c | 2026-02-20 11:54:02 -0300 | feat: ExitIntent CTA now opens standard CheckoutDialog with special offer data (Ouro 3 Meses R,90)
+hash:eef3f39 | 2026-02-20 11:58:40 -0300 | fix: remove duplicate period suffix in CheckoutDialog planLabel for special offer
+hash:316df70 | 2026-02-20 12:19:15 -0300 | fix: subscription flow - switch from PIX_RECURRING to standard charge endpoint
+hash:34610ca | 2026-02-20 12:42:20 -0300 | feat: PIX Automatico Jornada 3 - server-side CPF no user input
+hash:6a03248 | 2026-02-20 13:00:28 -0300 | chore: update billing address to Goiania-GO for Woovi PIX Automatico
+hash:3f6acf5 | 2026-02-20 13:11:39 -0300 | ui: simplify PIX dialog - remove recurring badge and simplify step 3 text
+hash:7d5672c | 2026-02-20 13:19:09 -0300 | ui: add dark overlay to PIX copy and payment modals
+hash:c2fb5e0 | 2026-02-20 14:39:19 -0300 | feat: seed discover profiles for new subscribers
+hash:31c0986 | 2026-02-20 15:05:26 -0300 | feat: whatsapp group invite flow + admin panel + analytics
+hash:32b99c5 | 2026-02-20 15:10:36 -0300 | fix: admin infinite loading + convite page scrolling
+hash:316c647 | 2026-02-20 15:16:51 -0300 | fix: discover syntax error + convite redirect + admin login page
+hash:95cfe3c | 2026-02-20 15:21:08 -0300 | fix: enable body scroll on /convite and /admin/login pages
+hash:0ab5ed9 | 2026-02-20 15:23:09 -0300 | fix: update invite badge text, remove icon
+hash:5d943c3 | 2026-02-20 15:26:20 -0300 | feat: update benefits list with psychological trigger on /convite
+hash:b21befc | 2026-02-20 15:27:42 -0300 | fix: shorten proximity benefit text on /convite
+hash:ec1ebbc | 2026-02-20 15:29:47 -0300 | fix: force dark input styles on /convite form fields
+hash:eb706a6 | 2026-02-20 15:38:37 -0300 | fix: convite login redirect + stuck loading (use main supabase client)
+hash:49148d9 | 2026-02-20 15:48:32 -0300 | fix: restore try/catch in handleRegister + handle 422 gracefully
+hash:75326ac | 2026-02-20 15:54:44 -0300 | fix: resilient handleRegister  best-effort post-signIn steps, never blocks done
+hash:dcdb005 | 2026-02-20 16:37:32 -0300 | fix: edge fn missing NOT NULL fields (subscription_type, auto_renew, failed_charges_count) + better error logging
+hash:c17e0ce | 2026-02-20 16:47:19 -0300 | fix: remove manual auth header from functions.invoke  SDK adds JWT automatically
+hash:6ced217 | 2026-02-20 16:59:12 -0300 | fix: edge fn v3 verify_jwt=false + token in body fallback  resolves 401 on activate-group-invite
+hash:a3d7314 | 2026-02-20 17:42:21 -0300 | fix: bypass edge fn  direct INSERT into user_subscriptions via new RLS policy
+hash:b91ddbc | 2026-02-20 17:49:08 -0300 | fix: use SECURITY DEFINER rpc() to activate Silver plan + fix subscription_type check constraint
+hash:b320745 | 2026-02-20 19:07:44 -0300 | fix: skip PWA modal for /convite users + seed with real profile data after setup
+hash:86282af | 2026-02-20 19:33:10 -0300 | fix: invert flow for /convite  ProfileSetup first, then Welcome slides
+hash:2283d2e | 2026-02-20 19:42:44 -0300 | fix: remove duplicate action buttons from seed card  use shared bottom bar like real cards
+hash:6adf787 | 2026-02-20 19:47:41 -0300 | refactor: unify seed and real card into single template  no duplication
+hash:04ba7ae | 2026-02-20 19:55:41 -0300 | refactor: true unification  activeCard drives all rendering, zero seed-specific conditionals in template
+hash:096ec3f | 2026-02-20 20:05:45 -0300 | unify flows: /convite and /planos now share identical post-registration journey  Onboarding  ProfileSetup  Discover, no special-casing
+hash:6c75927 | 2026-02-20 21:34:54 -0300 | feat: corrige integra\u00e7\u00e3o de perfis seed (notifica\u00e7\u00f5es, matches e chat)
+hash:4268c15 | 2026-02-21 01:14:35 -0300 | fa├ºa um push e commit das altera├º├Áes
+hash:64bb532 | 2026-02-21 03:29:25 -0300 | feat: Implement discovery, matching, and chat features, including a custom filter bottom sheet and supporting UI components.
+hash:f880feb | 2026-02-21 16:48:29 -0300 | feat: refine profile discovery logic, bots configuration, and age filters
+hash:bbcd830 | 2026-02-21 18:31:34 -0300 | feat(ui): refine modals UX and fix z-index issues
+hash:cae1588 | 2026-02-21 19:03:37 -0300 | fix: adjust slider labels positioning and prepared database for production
+hash:2b2608c | 2026-02-21 19:49:24 -0300 | perf: otimizar performance em ProfileEdit e ChatRoom, adicionar campo bio
+hash:06c7262 | 2026-02-21 21:54:13 -0300 | fix: resolve React 'Rendered more hooks' error and optimize performance in ProfileEdit and ChatRoom
+hash:148ae31 | 2026-02-21 23:48:01 -0300 | Refactor: Centralize profile options and unify UI components across Discovery feature.
+hash:10816f3 | 2026-02-22 00:07:16 -0300 | Production: Performance and Accessibility Audit completed.\n\n- Implemented Feature-based directory structure.\n- Added parallel data fetching and query caching (staleTime/gcTime).\n- Implemented image optimization utility with Supabase transformation.\n- Applied image optimization across Discover, Matches and Gallery.\n- Created vercel.json with security headers and asset caching.\n- Improved UI accessibility for seniors (larger fonts and touch targets).
+hash:1f6f4db | 2026-02-22 00:44:25 -0300 | feat: admin audit logs panel and mobile input autofill fix
+hash:3e33bbf | 2026-02-22 00:50:42 -0300 | feat: refine invite page layout and benefits
+hash:473f776 | 2026-02-22 01:03:01 -0300 | test: set temporary prices for payment flow validation
+hash:014f32a | 2026-02-22 01:10:00 -0300 | test: adjust subscription durations to 10/20/30 minutes and update backup
+hash:19441b9 | 2026-02-22 01:25:15 -0300 | test: set backend prices to 1/2/3 for PIX generation
+hash:ffc9087 | 2026-02-22 01:31:42 -0300 | test: update create-subscription backend prices for PIX Automatic validation
+hash:acded0b | 2026-02-22 01:40:12 -0300 | fix: update check-payment-status to support PIX Automatic and test durations
+hash:8534f59 | 2026-02-22 01:54:56 -0300 | fix: exhaustive payment check strategy with logging
+hash:46c9b41 | 2026-02-22 02:07:33 -0300 | fix: resolve 500 error in check-payment-status by silent fallback and robust fetch
+hash:b6a1798 | 2026-02-22 02:11:19 -0300 | security: remove vague auto-approval for 'dev' users
+hash:1d75b10 | 2026-02-22 02:15:57 -0300 | security: enforce strict Woovi validation, remove all auto-approval bypasses
+hash:8dba60c | 2026-02-22 02:24:47 -0300 | security: strict subscription charge validation and removal of dev bypasses
+hash:c61f1cb | 2026-02-22 03:03:58 -0300 | fix(security): enhance payment validation and protect routes
+hash:dc23b49 | 2026-02-22 04:12:03 -0300 | fix: subscription flow, payment recognition and order bump display
+hash:ca01965 | 2026-02-22 04:46:55 -0300 | fix: implement server-side retry logic for user linking and robust authentication
+hash:2ab5035 | 2026-02-22 05:08:38 -0300 | fix(payment): improve webhook retry logic and link-purchase resilience
+hash:494991f | 2026-02-22 05:20:20 -0300 | feat(payment): implement hybrid linking approach with SQL Cron safety net
+hash:4623b22 | 2026-02-22 05:30:42 -0300 | fix(payment): implement real-time Woovi check in link-purchase and fix frontend cache invalidation
+hash:069b24a | 2026-02-22 05:51:27 -0300 | fix(funnel): ensure quiz data mapping to profile and include gender tracking
+hash:fb1c678 | 2026-02-22 17:15:31 -0300 | fix(utmify): send full gross price to UTMify without discounting gateway fees
+hash:d43ef17 | 2026-02-22 17:25:36 -0300 | fix(call): show recipient photo instead of own photo during calls
+hash:2a1accc | 2026-02-22 17:35:46 -0300 | feat(pwa): implement web push notifications with service worker and edge functions
+hash:b0b726c | 2026-02-22 17:42:46 -0300 | fix(push): restrict notification prompt to installed PWA with granted location
+hash:1bc61c6 | 2026-02-22 17:50:40 -0300 | style(push): update notification prompt to match location modal styling and add 30s delay after login
+hash:5d83fe6 | 2026-02-22 17:53:56 -0300 | feat(admin): add push notification metrics and campaign dispatch tool
+hash:c183d0d | 2026-02-22 18:18:21 -0300 | fix(push): update VAPID keys to valid generated pair
+hash:aa02675 | 2026-02-22 18:23:33 -0300 | chore: Delete script for generating VAPID keys.
+hash:0adb1f8 | 2026-02-22 18:41:39 -0300 | fix(push): use final validated VAPID key pair
+hash:93f710f | 2026-02-22 18:57:24 -0300 | fix(push): use final clean VAPID keys and add string trimming
+hash:61bc7d6 | 2026-02-22 19:00:08 -0300 | chore: cleanup temporary key files and final push notification sync
+hash:fca9d0f | 2026-02-22 19:12:03 -0300 | fix(push): provide a strictly validated 65-byte VAPID key
+hash:b501f53 | 2026-02-22 19:14:02 -0300 | fix(push): ensure clean 65-byte VAPID key and string trimming in conversion
+hash:084922e | 2026-02-22 19:35:21 -0300 | style(admin): fix input and placeholder visibility in admin login
+hash:7b9598d | 2026-02-22 19:57:53 -0300 | fix(push): update VAPID keys for push notifications
+hash:d94f490 | 2026-02-22 20:08:05 -0300 | fix(push): use correct 87-char VAPID public key (P-256 format)
+hash:c297117 | 2026-02-22 20:19:49 -0300 | fix(push): revert to user provided VAPID public key
+hash:7658140 | 2026-02-22 20:44:44 -0300 | feat(admin): add plan filtering to push notification campaign panel
+hash:2f162a5 | 2026-02-22 20:53:54 -0300 | perf(pwa): enable data revalidation on focus and NetworkFirst cache strategy for Supabase
+hash:163c61e | 2026-02-22 21:30:56 -0300 | fix: resolve infinite loading issues and improve auth/query resilience
+hash:cff7062 | 2026-02-22 21:38:44 -0300 | fix: enable profile refetch on window focus to prevent stale loading states
+hash:a078025 | 2026-02-22 21:46:32 -0300 | fix: ensure push notification prompt is not shown again after dismissal (x, later, or outside click)
+hash:37d7463 | 2026-02-22 21:57:17 -0300 | fix: resolve non-functional user actions in ChatRoom by using onSelect and ensuring high z-index
+hash:019fb4b | 2026-02-22 22:01:42 -0300 | fix: resolve non-functional logout and deactivate buttons in Settings by using state-controlled dialogs
+hash:e2e0570 | 2026-02-22 22:25:07 -0300 | feat: implement PWA and Mobile UX audit improvements
+hash:a90027b | 2026-02-22 22:43:21 -0300 | fix: apply filters to fake profiles in Discover fallback
+hash:bbd0051 | 2026-02-22 22:49:34 -0300 | fix: remove yellow autofill background and fix focus box-shadow reset
+hash:f654f93 | 2026-02-22 22:55:49 -0300 | style: unify Convite inputs with Login style to fix yellow autofill
+hash:78b0c09 | 2026-02-22 23:00:15 -0300 | style: restore Convite icons and fix yellow autofill background
+hash:0d7048c | 2026-02-22 23:05:29 -0300 | fix(ios): prevent yellow autofill background using color-scheme dark
+hash:3ac0820 | 2026-02-22 23:12:10 -0300 | fix(convite): eliminate yellow autofill using login transparency logic and css background-clip
+hash:9c94e15 | 2026-02-22 23:17:46 -0300 | fix(convite): restore original placeholder and visuals while refining autofill css
+hash:75a696e | 2026-02-22 23:21:17 -0300 | fix(forms): expand autofill coverage and add glass variation for login form
+hash:781663b | 2026-02-22 23:27:30 -0300 | fix(ios): add high-specificity autofill rules for password fields
+hash:6e09d7e | 2026-02-22 23:32:36 -0300 | fix(convite): remove !important from input backgrounds to allow index.css priority
+hash:19b0d1e | 2026-02-22 23:35:55 -0300 | fix(ios): prevent yellow background on focus with long transition delay
+hash:14ee54a | 2026-02-23 17:23:54 -0300 | feat: implementar coleta de CPF no checkout e atualizar endereco estatico Woovi
+hash:42b57c7 | 2026-02-23 17:28:21 -0300 | fix: resolver erros de lint (expressoes redundantes) nas Edge Functions
+hash:997b3a2 | 2026-02-23 21:54:13 -0300 | fix: improve onboarding responsiveness and button visibility
+hash:fd8ac69 | 2026-02-23 23:29:07 -0300 | perf: optimize form performance by memoizing background blobs and reducing blur radius
+hash:ee69a1d | 2026-02-23 23:56:04 -0300 | style: remove green focus ring from input fields
+hash:f41029a | 2026-02-24 11:22:05 -0300 | fix: corre├º├úo da foto nas mensagens de ├íudio no chat
+hash:4f7d658 | 2026-02-24 14:21:29 -0300 | fix: optimize payment verification flow, link-purchase and webhook logic
+hash:bd2383f | 2026-02-24 14:33:54 -0300 | fix: enforce email uniqueness check on invite page with custom error message
+hash:b2afb61 | 2026-02-24 16:49:10 -0300 | fix: improve block and report functionality, adding support for fake profiles and fixing UI conflicts
+hash:66395de | 2026-02-24 16:54:57 -0300 | feat: automated welcome emails on payment confirmation (webhook and manual check)
+hash:198247b | 2026-02-24 17:45:22 -0300 | fa├ºa push e commit das altera├º├Áes.
+hash:082f3bd | 2026-02-24 18:07:58 -0300 | feat: unique orderId and 'Renova├º├úo' prefix for UTMify renewals
+hash:5c395de | 2026-02-24 19:49:24 -0300 | feat(admin): enhance financial and engagement panels with metrics guide, layout optimizations, and upgrade/downgrade separation
+hash:d686041 | 2026-02-24 20:15:18 -0300 | feat: audit and fixes for discovery filters, match logic, and persistent fake profile tracking
+hash:a982a6e | 2026-02-25 09:50:33 -0300 | perf: otimiza├º├úo massiva de performance, imagens (OptimizedImage), cache de SW agressivo e preserva├º├úo de estado das abas (Keep-Alive)
+hash:aa99cac | 2026-02-25 15:05:37 -0300 | feat: implementada consistencia total de perfis fakes entre funnel e app, logica 6/3 split (6 likes / 3 descobrir) e pool completo de 72 fotos por faixa etaria
+hash:f263b7e | 2026-02-25 16:03:02 -0300 | fix: bot profile visibility and discovery filter consistency
+hash:78b2c27 | 2026-02-25 17:00:04 -0300 | feat(funnel): implement mini profile setup in invite flow and refine bot profiles
+hash:1d68efc | 2026-02-25 17:15:58 -0300 | fix(photo-upload): add timeout, better error handling, and session sync for profile photo uploads in invite flow
+hash:924159f | 2026-02-25 17:22:20 -0300 | fa├ºa push e commit das altera├º├Áes.
+hash:b27879a | 2026-02-25 22:01:28 -0300 | fa├ºa push e commit das altera├º├Áes.
+hash:194b9df | 2026-02-26 00:46:55 -0300 | fix: bots, age filters, special offer and discovery
+hash:1eb925c | 2026-02-26 01:04:39 -0300 | fix: curtidas sem perfis ao voltar do descobrir
+hash:ecea418 | 2026-02-26 01:10:25 -0300 | fix: lista de curtidas some apos swipe interno
+hash:617ec5d | 2026-02-26 01:17:44 -0300 | revert: curtidas volta ao estado original
+hash:4fe9692 | 2026-02-26 01:22:45 -0300 | fix: listener duplicado causava lista vazia apos swipe
+hash:676793b | 2026-02-26 01:40:21 -0300 | fix: filtro de idade em curtidas e correcao de fotos de bots
+hash:bd4285b | 2026-02-26 01:48:47 -0300 | fix: resolvedAgeRange usa birth_date real antes de quizAge do store
+hash:d72a566 | 2026-02-26 02:06:40 -0300 | fix: birth_date preservado no enrichBotProfile para filtro de idade em Curtidas
+hash:58dcaba | 2026-02-26 02:20:10 -0300 | fix: swipe na aba Curtidas nao invalida cache de likes globalmente
+hash:c1d5b25 | 2026-02-26 02:30:51 -0300 | fix: onSuccess nao invalida queries desnecessarias quando swipe vem de Curtidas
+hash:37ef31e | 2026-02-26 02:51:28 -0300 | fix: realtime estavel - remove seed_likes, canal fixo e invalidacao errada de likes apos match
+hash:b4c76fe | 2026-02-26 10:37:37 -0300 | fix: keepPreviousData no Descobrir evita skeleton ao voltar do background
+hash:d7a75d4 | 2026-02-26 10:54:38 -0300 | fix: hasLoadedRef em ProfileEdit evita spinner infinito ao voltar do background
+hash:16156af | 2026-02-26 12:54:43 -0300 | fix: remove badge Curtiu Voce do card Descobrir; reduz logo convite para 4rem; remove logs diagnosticos
+hash:0841673 | 2026-02-26 17:51:01 -0300 | fix: registra funcoes RPC no types.ts (get_swiped_bots_count, get_profiles_discovery, activate_whatsapp_invite)
+hash:651e340 | 2026-02-26 18:28:01 -0300 | test: verificando pipeline de commit e push automatico via agente
+hash:85f3115 | 2026-02-27 16:11:06 -0300 | chore: update environment variables
+hash:09022d8 | 2026-02-27 18:56:05 -0300 | feat: profile matching by age range, fixed badges, plan IDs _3d, checkout fixes, disabled order bumps and backredirect
+hash:fd18bb0 | 2026-02-27 20:37:52 -0300 | chore: remove back_refactor backup folder
+hash:082b7c2 | 2026-02-27 23:15:39 -0300 | feat: funil B ÔÇö pix ├║nico, register, provision-user-on-a, rotas sem /v1
+hash:94eeed2 | 2026-02-27 23:44:41 -0300 | fix: renomear secrets SUPABASE_A para APP_A no provision-user-on-a
+hash:a2c491e | 2026-02-28 00:03:07 -0300 | feat: adicionar VITE_APP_A_URL no .env
+hash:9bceeeb | 2026-02-28 00:15:26 -0300 | fix: texto plataforma->aplicativo, timer 07:34, font-light subtitulo video
+hash:8665ac6 | 2026-02-28 00:23:29 -0300 | fix: hifens simples no PLAN_NAMES do create-payment
+hash:87f59c4 | 2026-02-28 01:24:32 -0300 | fix: listUsers paginado e comparacao case-insensitive no provision-user-on-a
+hash:14e8d3c | 2026-03-01 17:25:18 -0300 | fix: valida├º├úo CPF com d├¡gitos verificadores + feedback de erro no checkout
+hash:53861f8 | 2026-03-02 15:45:36 -0300 | fix: verify_jwt false para send-welcome-email e woovi-webhook no config.toml
+hash:3a7ada0 | 2026-03-02 16:07:25 -0300 | fix: config.toml correto com project_id B e verify_jwt false nas funcoes
+hash:564bb7c | 2026-03-03 17:18:16 -0300 | fix: verify_jwt false para todas as edge functions
+hash:1023109 | 2026-03-03 21:48:22 -0300 | fix: concordancia de genero no sufixo de nomes no LoadingScreen
+hash:0c9a6bf | 2026-03-03 22:44:45 -0300 | fix: replicar src e sck para Projeto A no provision-user-on-a
+hash:c0b259c | 2026-03-03 23:11:18 -0300 | fix: padronizar PLAN_NAMES e PLAN_PRICES no projeto B sem special-offer
+hash:cad296a | 2026-03-03 23:15:33 -0300 | fix: remover l├│gica residual special-offer do projeto B
+hash:8455722 | 2026-03-03 23:42:04 -0300 | fix: remover dead code special-offer e ExitIntent do projeto B
+hash:459282b | 2026-03-03 23:45:21 -0300 | fix: limpar aliases legados e special-offer do CheckoutDialog projeto B
+hash:004a788 | 2026-03-03 23:48:53 -0300 | fix: corrigir OLD_PRICES para pre├ºos Trial corretos no CheckoutDialog projeto B
+hash:ba46152 | 2026-03-03 23:51:40 -0300 | fix: OLD_PRICES com pre├ºos originais para exibir desconto no checkout projeto B
+hash:51c020d | 2026-03-03 23:59:51 -0300 | fix: usar planId direto para lookup OLD_PRICES no CheckoutDialog projeto B
+hash:ec75ce9 | 2026-03-04 12:24:47 -0300 | fix: /perfis e /analise buscam bots reais do Supabase A
+hash:e8663f9 | 2026-03-04 13:34:54 -0300 | debug: logs temporarios em ProfilesDisplay para diagnosticar query Supabase A
+hash:6c39153 | 2026-03-04 13:40:21 -0300 | fix: corrige VITE_SUPABASE_A_ANON_KEY invalida (401) e mant├®m logs de debug
+hash:f783f26 | 2026-03-04 13:50:09 -0300 | fix: fotos dos bots em /perfis usando mapa local por faixa et├íria
+hash:586681b | 2026-03-04 14:07:53 -0300 | fix: /perfis faixas adjacentes acumulativas sem fallback destrutivo
+hash:3c5a597 | 2026-03-04 14:13:50 -0300 | fix: sufixo identificado/a concorda com g├¬nero dos bots exibidos
+hash:33d2f24 | 2026-03-04 14:18:27 -0300 | fix: /perfis exibe cidade do usu├írio no card, n├úo a cidade do bot
+hash:6fa7d3c | 2026-03-04 14:55:39 -0300 | fix: dom├¡nio definitivo encontrocomfe.online no projeto B
+hash:4b92266 | 2026-03-05 22:22:56 -0300 | fix: types regenerados ÔÇö remove colunas legadas

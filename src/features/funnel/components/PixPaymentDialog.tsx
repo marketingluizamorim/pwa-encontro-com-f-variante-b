@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +45,7 @@ export function PixPaymentDialog({
   const [showPaymentNotFound, setShowPaymentNotFound] = useState(false);
   const [showCopyInstructions, setShowCopyInstructions] = useState(false);
   const [retryCooldown, setRetryCooldown] = useState(0);
+  const hasConfirmed = useRef(false);
 
   const copyToClipboard = async () => {
     try {
@@ -69,7 +70,8 @@ export function PixPaymentDialog({
 
       const [status] = await Promise.all([statusPromise, delayPromise]);
 
-      if (status === 'PAID') {
+      if (status === 'PAID' && !hasConfirmed.current) {
+        hasConfirmed.current = true;
         onPaymentConfirmed();
       } else if (isManual) {
         // Only show error if manual check
@@ -100,6 +102,7 @@ export function PixPaymentDialog({
     if (!open) {
       setTimeLeft(600);
       setCheckCount(0);
+      hasConfirmed.current = false;
       return;
     }
 
