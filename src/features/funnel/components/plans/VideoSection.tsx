@@ -33,7 +33,7 @@ export function VideoSection() {
         <div style={{ padding: '56.25% 0 0 0', position: 'relative' }}>
           <div style={{ height: '100%', left: 0, position: 'absolute', top: 0, width: '100%' }}>
             <iframe
-              src="https://fast.wistia.net/embed/iframe/6cib2lrqul?web_component=true&seo=true"
+              src="https://fast.wistia.net/embed/iframe/7lgta4hwnz?web_component=true&seo=true"
               title="Como funciona o Encontro com Fé"
               allow="autoplay; fullscreen"
               allowTransparency={true}
