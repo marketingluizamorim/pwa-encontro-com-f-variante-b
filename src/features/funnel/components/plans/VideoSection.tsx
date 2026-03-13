@@ -29,7 +29,7 @@ export function VideoSection() {
         </p>
       </div>
 
-      <div className="w-full rounded-[2rem] overflow-hidden bg-[#0a0f1d]" style={{ border: '1px solid transparent', borderImage: 'linear-gradient(to right, transparent, rgb(251 191 36 / 0.4), transparent) 1' }}>
+      <div className="w-full rounded-[2rem] overflow-hidden bg-[#0a0f1d]" style={{ border: '1px solid #fbbf2466' }}>
         <div style={{ padding: '56.25% 0 0 0', position: 'relative' }} className="rounded-[2rem] overflow-hidden">
           <div style={{ height: '100%', left: 0, position: 'absolute', top: 0, width: '100%' }}>
             <iframe
