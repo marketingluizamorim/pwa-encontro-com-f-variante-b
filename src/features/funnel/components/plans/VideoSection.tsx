@@ -24,12 +24,12 @@ export function VideoSection() {
         <h2 className="text-2xl font-serif font-bold text-white tracking-tight leading-tight mb-2">
           Veja como funciona
         </h2>
-        <p className="text-white/60 text-sm font-light tracking-tight whitespace-nowrap">
-          Conheça nosso <strong className="font-bold text-white">aplicativo</strong> e encontre seu par ideal.
+        <p className="text-white/60 text-sm font-medium tracking-tight whitespace-nowrap">
+          Conheça nossa plataforma e encontre seu par ideal.
         </p>
       </div>
 
-      <div className="w-full rounded-2xl overflow-hidden">
+      <div className="w-full rounded-[2rem] overflow-hidden bg-[#0a0f1d]" style={{ border: '1px solid #fbbf2466' }}>
         <div style={{ padding: '56.25% 0 0 0', position: 'relative' }} className="rounded-[2rem] overflow-hidden">
           <div style={{ height: '100%', left: 0, position: 'absolute', top: 0, width: '100%' }}>
             <iframe
