@@ -18,8 +18,6 @@ export function VideoSection() {
       transition={{ delay: 0.1 }}
       className="bg-white/5 backdrop-blur-2xl rounded-[2.5rem] p-8 border border-white/10 mb-8 overflow-hidden relative shadow-2xl"
     >
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
-
       <div className="text-center mb-8">
         <h2 className="text-2xl font-serif font-bold text-white tracking-tight leading-tight mb-2">
           Veja como funciona
