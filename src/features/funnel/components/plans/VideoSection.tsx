@@ -1,6 +1,16 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export function VideoSection() {
+  useEffect(() => {
+    if (!document.querySelector('script[src="https://fast.wistia.net/player.js"]')) {
+      const s = document.createElement('script');
+      s.src = 'https://fast.wistia.net/player.js';
+      s.async = true;
+      document.head.appendChild(s);
+    }
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -19,14 +29,23 @@ export function VideoSection() {
         </p>
       </div>
 
-      <div className="relative w-full pb-[56.25%] rounded-[1.5rem] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.3)] border border-white/10">
-        <iframe
-          src="https://www.youtube.com/embed/QTvgTq9cq8E"
-          title="Como funciona o Encontro com Fé"
-          className="absolute inset-0 w-full h-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
+      <div className="w-full rounded-2xl overflow-hidden">
+        <div style={{ padding: '56.25% 0 0 0', position: 'relative' }}>
+          <div style={{ height: '100%', left: 0, position: 'absolute', top: 0, width: '100%' }}>
+            <iframe
+              src="https://fast.wistia.net/embed/iframe/6cib2lrqul?web_component=true&seo=true"
+              title="Como funciona o Encontro com Fé"
+              allow="autoplay; fullscreen"
+              allowTransparency={true}
+              frameBorder={0}
+              scrolling="no"
+              className="wistia_embed"
+              name="wistia_embed"
+              width="100%"
+              height="100%"
+            />
+          </div>
+        </div>
       </div>
     </motion.div>
   );
