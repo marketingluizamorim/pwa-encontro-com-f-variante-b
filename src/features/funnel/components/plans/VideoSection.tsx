@@ -30,7 +30,7 @@ export function VideoSection() {
       </div>
 
       <div className="w-full rounded-2xl overflow-hidden">
-        <div style={{ padding: '56.25% 0 0 0', position: 'relative' }}>
+        <div style={{ padding: '56.25% 0 0 0', position: 'relative' }} className="rounded-[2rem] overflow-hidden">
           <div style={{ height: '100%', left: 0, position: 'absolute', top: 0, width: '100%' }}>
             <iframe
               src="https://fast.wistia.net/embed/iframe/6cib2lrqul?web_component=true&seo=true"
