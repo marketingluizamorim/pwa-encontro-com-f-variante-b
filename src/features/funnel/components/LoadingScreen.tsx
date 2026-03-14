@@ -110,14 +110,14 @@ export function LoadingScreen({ onComplete, gender }: LoadingScreenProps) {
 
     useEffect(() => {
         // Stage Timing: 5 stages * 2000ms = 10s to complete
-        const STAGE_DURATION = 2000;
+        const STAGE_DURATION = 1000;
         const TOTAL_STEPS = 100;
         const PROGRESS_TICK = (STAGE_DURATION * STAGES.length) / TOTAL_STEPS; // exactly 100ms
 
         const searchTimeout = setTimeout(() => {
             isSearchingRef.current = false;
             setDiscoveredNames([]);
-        }, 2500);
+        }, 1200);
 
         setDiscoveredNames(['Buscando...']);
 
@@ -130,7 +130,7 @@ export function LoadingScreen({ onComplete, gender }: LoadingScreenProps) {
                     setProgress(100); // Sync bar to 100% exactly on finish
                     setTimeout(() => {
                         onCompleteRef.current();
-                    }, 2400);
+                    }, 1200);
                     return prev;
                 }
                 return prev + 1;
@@ -151,10 +151,10 @@ export function LoadingScreen({ onComplete, gender }: LoadingScreenProps) {
                     setDiscoveredNames([nameToFind]);
                     setTimeout(() => {
                         setDiscoveredNames(prev => prev.filter(n => n !== nameToFind));
-                    }, 1200);
+                    }, 600);
                 }
             }
-        }, 1500);
+        }, 800);
 
         const progressInterval = setInterval(() => {
             setProgress((prev) => {
